@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>BLOCK GAME with Online Ranking</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+    <style>
+        :root { overscroll-behavior: none; }
+        html, body {
+            margin: 0; padding: 0; width: 100%;
+            height: 100vh; height: 100dvh;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f2f5;
+        }
+        .app-container { display: flex; flex-direction: column; width: 100%; height: 100%; }
+        .info-bar { display: flex; justify-content: space-around; padding: 8px; font-size: 1.1em; font-weight: bold; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; }
+        #canvas-holder { flex-grow: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; line-height: 0; background-color: #34495e; position: relative; }
+        #canvas-holder canvas { max-width: 100%; max-height: 100%; object-fit: contain; border-left: 2px solid #333; border-right: 2px solid #333; display: none; }
+        #combo-display { position: absolute; top: 15px; right: 25px; font-size: 1.8em; font-weight: bold; color: rgba(255, 255, 255, 0.9); text-shadow: 2px 2px 4px rgba(0,0,0,0.5); display: none; transition: transform 0.1s ease-out; line-height: 1.2; text-align: right; }
+        #combo-display.active { transform: scale(1.2); }
+        .fever-text { color: #f1c40f; font-weight: bold; }
+        .fever-timer { font-size: 0.9em; color: #ffffff; font-weight: normal; }
+        .game-state-content { display: none; flex-direction: column; justify-content: center; align-items: center; color: white; padding: 20px; text-align: center; }
+        .game-state-content h2 { font-size: clamp(1.8em, 8vw, 2.2em); }
+        .game-state-content p { font-size: clamp(1.2em, 5vw, 1.5em); line-height: 1.5; margin: 0 0 20px 0; }
+        .game-state-content button { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-size: 1.1em; margin-top: 20px; }
+        .game-state-content input { padding: 10px; width: 80%; max-width: 250px; margin: 15px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; }
+        .game-state-content .button-group button { margin: 5px; }
+        .button-bar { display: flex; justify-content: space-around; padding: 10px; background-color: #fff; box-shadow: 0 -2px 4px rgba(0,0,0,0.1); flex-shrink: 0; gap: 10px; }
+        .button-bar button { flex-grow: 1; padding: 12px; font-size: 1em; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9; cursor: pointer; }
+        .modal-overlay { display: none; position: fixed; z-index: 100; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; }
+        
+        /* MOD: modal-contentのレイアウトをFlexboxに変更 */
+        .modal-content {
+            background-color: white; padding: 25px; border-radius: 10px;
+            text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 100%; max-width: 400px; max-height: 90vh; /* MOD: 高さをvh基準に */
+            display: flex; /* MOD */
+            flex-direction: column; /* MOD */
+        }
+        .modal-content h2 { margin-top: 0; margin-bottom: 20px; flex-shrink: 0; /* MOD */ }
+        .close-btn { background-color: #e74c3c; color: white; margin-top: 20px; flex-shrink: 0; /* MOD */ }
+        .legend-item { display: flex; align-items: center; margin-bottom: 8px; font-size: 1em; text-align: left; }
+        .legend-icon { width: 24px; height: 24px; border-radius: 50%; margin-right: 12px; border: 1px solid #ccc; flex-shrink: 0; }
+        
+        /* MOD: ranking-listのレイアウトを調整 */
+        #ranking-list {
+            list-style-type: none; padding: 0; text-align: left;
+            flex-grow: 1; /* MOD: 残りのスペースを埋める */
+            overflow-y: auto; /* MOD: リスト自体をスクロールさせる */
+            min-height: 0; /* MOD: flexアイテムの縮小を許可 */
+        }
+        #ranking-list li { background-color: #f9f9f9; padding: 10px 15px; border-bottom: 1px solid #eee; font-size: 1em; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="info-bar"><span id="score-display">Score: 0</span><span id="bullet-display">Shots: 0</span></div>
+        <div id="canvas-holder">
+            <div id="combo-display"></div>
+            <div id="start-content" class="game-state-content"><p>ブロックを破壊して<br>ハイスコアを目指そう！</p><button id="start-btn">スタート</button></div>
+            <div id="game-over-content" class="game-state-content"><h2>ゲームオーバー！</h2><p>最終スコア: <span id="final-score">0</span></p><input type="text" id="player-name" placeholder="名前を入力 (10文字まで)" maxlength="10"><div class="button-group"><button id="submit-score-btn">ランキングに登録</button><button id="retry-btn">もう一度プレイ</button></div></div>
+        </div>
+        <div class="button-bar"><button id="how-to-play-btn">アイテム説明</button><button id="ranking-btn">ランキング</button></div>
+    </div>
+    <div id="how-to-play-modal" class="modal-overlay"><div class="modal-content"><h2>アイテム説明</h2><div class="legend-item"><div class="legend-icon" style="background-color: #e74c3c;"></div>弾を5発チャージ（タップで発射）</div><div class="legend-item"><div class="legend-icon" style="background-color: #3498db;"></div>パドルが一定時間拡大</div><div class="legend-item"><div class="legend-icon" style="background-color: #f1c40f;"></div>ボールが一定時間拡大</div><div class="legend-item"><div class="legend-icon" style="background-color: #ecf0f1;"></div>ボールが3つに分裂</div><div class="legend-item"><div class="legend-icon" style="background-color: #2ecc71;"></div>セーフティーウォールが出現</div><button class="close-btn" data-modal-id="how-to-play-modal">閉じる</button></div></div>
+    <div id="ranking-modal" class="modal-overlay"><div class="modal-content"><h2>オンラインランキング</h2><ul id="ranking-list"><li>読み込み中...</li></ul><button class="close-btn" data-modal-id="ranking-modal">閉じる</button></div></div>
+
+<script>
+// --- JavaScript部分は前回のまま変更ありません ---
+const API_URL = 'https://script.google.com/macros/s/AKfycbx_rEO5BpjwJMPgV7-7AIpZLrGHsb8UzXDZpiTMZgBwpUFacvaDqlFJ0DAQGjY7oVp4/exec';
+
+let paddle, balls = [], blocks = [], items = [], bullets = [];
+let score = 0, bulletCount = 0;
+let itemSpawnInterval;
+let gameState = 'start';
+let comboCount = 0;
+let isWallActive = false; let wallTimer;
+let isFeverTime = false; let feverEndTime = 0;
+
+const PADDLE_INITIAL_WIDTH = 80, PADDLE_HEIGHT = 15;
+const BALL_INITIAL_SIZE = 15;
+const INITIAL_BALL_SPEED_Y = 5, INITIAL_BALL_SPEED_X_RANGE = 5;
+const BLOCK_WIDTH = 55, BLOCK_HEIGHT = 20, BLOCK_GAP = 1;
+const PADDLE_BALL_SIZE_DURATION = 15000;
+const WALL_DURATION = 15000;
+const MAX_BALLS = 10;
+const FEVER_THRESHOLD = 25;
+const FEVER_DURATION = 30000;
+
+const ITEM_TYPES = {
+    RED:    { color: [231, 76, 60],  effect: 'bullet' },
+    BLUE:   { color: [52, 152, 219], effect: 'paddle_size' },
+    YELLOW: { color: [241, 196, 15], effect: 'ball_size' },
+    WHITE:  { color: [236, 240, 241], effect: 'ball_split' },
+    GREEN:  { color: [46, 204, 113], effect: 'safety_wall' }
+};
+
+function setup() {
+    let canvas = createCanvas(400, 600);
+    canvas.parent('canvas-holder');
+    noLoop(); getRanking(); updateGameView();
+    document.getElementById('start-btn').addEventListener('click', startGame);
+    document.getElementById('retry-btn').addEventListener('click', startGame);
+    document.getElementById('submit-score-btn').addEventListener('click', handleSubmitScore);
+    document.getElementById('how-to-play-btn').addEventListener('click', () => showModal('how-to-play-modal'));
+    document.getElementById('ranking-btn').addEventListener('click', () => { getRanking(); showModal('ranking-modal'); });
+    document.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', () => hideModal(btn.dataset.modalId)));
+}
+
+function draw() {
+    if (gameState !== 'playing') return;
+    updateComboDisplay();
+    background(52, 73, 94);
+    updateItemEffects(); updatePaddle(); drawPaddle();
+    updateAndDrawItems(); updateAndDrawBullets(); updateAndDrawBalls(); drawBlocks();
+    if(isWallActive) { fill(46, 204, 113, 150); rect(0, height - 10, width, 10); }
+    if (blocks.length > 0 && blocks.every(b => !b.visible)) {
+        setupBlocks(true);
+        spawnNewBall(width / 2, height / 2);
+    }
+}
+
+function touchStarted() { if (gameState === 'playing') { shoot(); return false; } }
+function mousePressed() { if (gameState === 'playing') shoot(); }
+
+function updateGameView() {
+    const canvasEl = document.querySelector('#canvas-holder canvas');
+    const startContentEl = document.getElementById('start-content');
+    const gameOverContentEl = document.getElementById('game-over-content');
+    const comboDisplayEl = document.getElementById('combo-display');
+    canvasEl.style.display = 'none'; startContentEl.style.display = 'none';
+    gameOverContentEl.style.display = 'none'; comboDisplayEl.style.display = 'none';
+    switch (gameState) {
+        case 'start': startContentEl.style.display = 'flex'; break;
+        case 'playing': canvasEl.style.display = 'block'; break;
+        case 'game_over': gameOverContentEl.style.display = 'flex'; break;
+    }
+}
+
+function startGame() { gameState = 'playing'; updateGameView(); resetGame(); loop(); }
+function handleGameOver() { gameState = 'game_over'; clearInterval(itemSpawnInterval); clearTimeout(wallTimer); document.getElementById('final-score').textContent = score; updateGameView(); noLoop(); }
+function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+function hideModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function resetGame() {
+    score = 0; bulletCount = 0; comboCount = 0; updateInfoDisplay();
+    paddle = { x: width / 2 - PADDLE_INITIAL_WIDTH / 2, y: height - 40, w: PADDLE_INITIAL_WIDTH, h: PADDLE_HEIGHT, isEnlarged: false, sizeEffectEndTime: 0 };
+    balls = []; spawnNewBall(); setupBlocks(false);
+    items = []; bullets = [];
+    isWallActive = false; clearTimeout(wallTimer);
+    isFeverTime = false; feverEndTime = 0;
+    clearInterval(itemSpawnInterval);
+    itemSpawnInterval = setInterval(() => spawnItem(), 12000);
+    const submitBtn = document.getElementById('submit-score-btn');
+    if(submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'ランキングに登録'; }
+    const playerNameInput = document.getElementById('player-name');
+    if(playerNameInput) playerNameInput.disabled = false;
+}
+
+function setupBlocks(isLevelUp) { blocks = []; const cols = Math.floor(width / (BLOCK_WIDTH + BLOCK_GAP)); const rows = 10; const blockCount = isLevelUp ? 40 : 25; const offsetX = (width - cols * (BLOCK_WIDTH + BLOCK_GAP) + BLOCK_GAP) / 2; let positions = new Set(); while (blocks.length < blockCount) { let r = floor(random(rows)); let c = floor(random(cols)); let posKey = `${r},${c}`; if (!positions.has(posKey)) { positions.add(posKey); blocks.push({ x: c * (BLOCK_WIDTH + BLOCK_GAP) + offsetX, y: r * (BLOCK_HEIGHT + BLOCK_GAP) + 50, w: BLOCK_WIDTH, h: BLOCK_HEIGHT, visible: true, color: color(189, 195, 199) }); } } }
+
+function updateItemEffects() {
+    let currentTime = millis();
+    if (paddle.isEnlarged && currentTime > paddle.sizeEffectEndTime) paddle.isEnlarged = false;
+    balls.forEach(ball => { if (ball.isEnlarged && currentTime > ball.sizeEffectEndTime) ball.isEnlarged = false; });
+    if (isFeverTime && currentTime > feverEndTime) {
+        isFeverTime = false;
+    }
+}
+
+function updatePaddle() { paddle.w = paddle.isEnlarged ? PADDLE_INITIAL_WIDTH * 1.5 : PADDLE_INITIAL_WIDTH; let targetX = (touches.length > 0) ? touches[0].x : mouseX; paddle.x = constrain(targetX - paddle.w / 2, 0, width - paddle.w); }
+
+function drawPaddle() {
+    if (isFeverTime) {
+        colorMode(HSB, 360, 100, 100);
+        const hue = (frameCount * 2) % 360;
+        fill(hue, 90, 90);
+        noStroke();
+        rect(paddle.x, paddle.y, paddle.w, paddle.h, 5);
+        colorMode(RGB);
+    } else {
+        fill(41, 128, 185);
+        noStroke();
+        rect(paddle.x, paddle.y, paddle.w, paddle.h, 5);
+    }
+}
+
+function collideRectCircle(rx, ry, rw, rh, cx, cy, diameter) { let testX = cx; let testY = cy; if (cx < rx) testX = rx; else if (cx > rx + rw) testX = rx + rw; if (cy < ry) testY = ry; else if (cy > ry + rh) testY = ry + rh; return dist(cx, cy, testX, testY) <= diameter / 2; }
+
+function updateAndDrawBalls() {
+    for (let i = balls.length - 1; i >= 0; i--) {
+        let ball = balls[i];
+        ball.size = ball.isEnlarged ? BALL_INITIAL_SIZE * 2 : BALL_INITIAL_SIZE;
+        ball.x += ball.speedX; ball.y += ball.speedY;
+        if (ball.x < ball.size / 2 || ball.x > width - ball.size / 2) ball.speedX *= -1;
+        if (ball.y < ball.size / 2) ball.speedY *= -1;
+        if (isWallActive && ball.y + ball.size / 2 > height - 10) {
+            ball.speedY *= -1; ball.y = height - 10 - ball.size / 2;
+        } else if (ball.y > height) {
+            balls.splice(i, 1);
+            if (balls.length > 0) { comboCount = 0; } else { handleGameOver(); }
+            continue;
+        }
+        if (collideRectCircle(paddle.x, paddle.y, paddle.w, paddle.h, ball.x, ball.y, ball.size)) {
+            ball.speedY *= -1; ball.y = paddle.y - ball.size / 2;
+            increaseBallSpeed(ball); comboCount = 0;
+        }
+        for (let block of blocks) {
+            if (block.visible && collideRectCircle(block.x, block.y, block.w, block.h, ball.x, ball.y, ball.size)) {
+                if (!isFeverTime) ball.speedY *= -1;
+                block.visible = false;
+                comboCount++;
+                triggerComboAnimation();
+                if (comboCount >= FEVER_THRESHOLD && !isFeverTime) {
+                    isFeverTime = true;
+                    feverEndTime = millis() + FEVER_DURATION;
+                }
+                let scoreToAdd = 10 * comboCount;
+                if (isFeverTime) { scoreToAdd *= 2; }
+                score += scoreToAdd;
+                increaseBallSpeed(ball); updateInfoDisplay();
+                if (comboCount > 0 && comboCount % 5 === 0) {
+                    spawnItem(block.x + block.w / 2, block.y + block.h / 2);
+                }
+                if (!isFeverTime) break;
+            }
+        }
+        if (isFeverTime) { fill(255, 235, 59); stroke(255, 87, 34); strokeWeight(3); }
+        else { fill(255); stroke(0); strokeWeight(2); }
+        ellipse(ball.x, ball.y, ball.size); noStroke();
+    }
+    if (balls.length === 0 && gameState === 'playing') handleGameOver();
+}
+
+function updateComboDisplay() {
+    const el = document.getElementById('combo-display');
+    if (isFeverTime) {
+        const remainingTime = Math.max(0, (feverEndTime - millis()) / 1000);
+        const comboText = `${comboCount} COMBO`;
+        const feverText = `<span class="fever-text">FEVER TIME</span>`;
+        const timerText = `<span class="fever-timer">${remainingTime.toFixed(1)}s</span>`;
+        el.innerHTML = `${comboText}<br>${feverText}<br>${timerText}`;
+        el.style.display = 'block';
+    } else if (comboCount > 1) {
+        el.innerHTML = `${comboCount} COMBO`;
+        el.style.display = 'block';
+    } else {
+        el.style.display = 'none';
+    }
+}
+
+function triggerComboAnimation() {
+    const el = document.getElementById('combo-display');
+    el.classList.add('active');
+    setTimeout(() => el.classList.remove('active'), 100);
+}
+
+function drawBlocks() { stroke(52, 73, 94); strokeWeight(BLOCK_GAP); for (let block of blocks) { if (block.visible) { fill(block.color); rect(block.x, block.y, block.w, block.h, 3); } } noStroke(); }
+function updateAndDrawItems() { for (let i = items.length - 1; i >= 0; i--) { let item = items[i]; item.y += 2; fill(item.type.color); stroke(255); strokeWeight(2); ellipse(item.x, item.y, 20); noStroke(); if (collideRectCircle(paddle.x, paddle.y, paddle.w, paddle.h, item.x, item.y, 20)) { applyItemEffect(item.type.effect); items.splice(i, 1); } else if (item.y > height) { items.splice(i, 1); } } }
+function updateAndDrawBullets() { for (let i = bullets.length - 1; i >= 0; i--) { let bullet = bullets[i]; bullet.y -= 10; fill(255, 255, 0); rect(bullet.x - 2, bullet.y, 4, 10); let hit = false; for (let block of blocks) { if (block.visible && bullet.x > block.x && bullet.x < block.x + block.w && bullet.y > block.y && bullet.y < block.y + block.h) { block.visible = false; score += 10; updateInfoDisplay(); hit = true; break; } } if (hit || bullet.y < 0) bullets.splice(i, 1); } }
+function increaseBallSpeed(ball) { const MAX_SPEED = 12; let speedVec = createVector(ball.speedX, ball.speedY); if (speedVec.mag() < MAX_SPEED) { speedVec.mult(1.03); ball.speedX = speedVec.x; ball.speedY = speedVec.y; } }
+function updateInfoDisplay() { document.getElementById('score-display').textContent = 'Score: ' + score; document.getElementById('bullet-display').textContent = 'Shots: ' + bulletCount; }
+function spawnNewBall(x = width / 2, y = height / 2, templateBall = null) { if (balls.length >= MAX_BALLS) return; balls.push({ x: x, y: y, speedX: random(-INITIAL_BALL_SPEED_X_RANGE, INITIAL_BALL_SPEED_X_RANGE), speedY: INITIAL_BALL_SPEED_Y, isEnlarged: templateBall ? templateBall.isEnlarged : false, sizeEffectEndTime: 0 }); }
+function spawnItem(x = random(20, width - 20), y = 0) { if (isFeverTime) return; const itemKeys = Object.keys(ITEM_TYPES); const randomKey = random(itemKeys); items.push({ x: x, y: y, type: ITEM_TYPES[randomKey] }); }
+function shoot() { if (bulletCount > 0) { bullets.push({ x: paddle.x + paddle.w / 2, y: paddle.y }); bulletCount--; updateInfoDisplay(); } }
+function applyItemEffect(effect) { let currentTime = millis(); switch (effect) { case 'bullet': bulletCount += 5; break; case 'paddle_size': paddle.isEnlarged = true; paddle.sizeEffectEndTime = currentTime + PADDLE_BALL_SIZE_DURATION; break; case 'ball_size': balls.forEach(b => { b.isEnlarged = true; b.sizeEffectEndTime = currentTime + PADDLE_BALL_SIZE_DURATION; }); break; case 'ball_split': const currentBalls = [...balls]; for (const ball of currentBalls) { spawnNewBall(ball.x, ball.y, ball); } break; case 'safety_wall': isWallActive = true; clearTimeout(wallTimer); wallTimer = setTimeout(() => { isWallActive = false; }, WALL_DURATION); break; } updateInfoDisplay(); }
+async function handleSubmitScore() { const playerNameInput = document.getElementById('player-name'); const playerName = playerNameInput.value.trim(); if (!playerName) { alert('名前を入力してください！'); return; } playerNameInput.disabled = true; document.getElementById('submit-score-btn').disabled = true; document.getElementById('submit-score-btn').textContent = '送信中...'; await sendScore(playerName, score); }
+async function sendScore(playerName, playerScore) { const postData = { name: playerName, score: playerScore }; try { await fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(postData), }); alert('ランキングにスコアを登録しました！'); getRanking(); } catch (error) { console.error('スコアの送信に失敗しました:', error); alert('スコアの送信に失敗しました...'); } finally { const btn = document.getElementById('submit-score-btn'); if (btn) { btn.disabled = false; btn.textContent = 'ランキングに登録'; } } }
+async function getRanking() { const rankingList = document.getElementById('ranking-list'); rankingList.innerHTML = '<li>ランキングを読み込み中...</li>'; try { const response = await fetch(API_URL); const result = await response.json(); if (result.status === 'success') { rankingList.innerHTML = ''; const rankingData = result.data; if (rankingData.length === 0) { rankingList.innerHTML = '<li>まだ誰もプレイしていません。一番乗りを目指そう！</li>'; return; } const top10Data = rankingData.slice(0, 10); top10Data.forEach((player, index) => { const li = document.createElement('li'); li.textContent = `${index + 1}位: ${player.name} - ${player.score}点`; rankingList.appendChild(li); }); } else { throw new Error(result.message); } } catch (error) { console.error('ランキングの取得に失敗しました:', error); rankingList.innerHTML = '<li>ランキングの取得に失敗しました。</li>'; } }
+</script>
+</body>
+</html>
