@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BLOCK GAME 〔オンラインランキング対応版〕</title>
+    <title>BLOCK GAME with Online Ranking</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
     <style>
         :root { overscroll-behavior: none; }
@@ -87,8 +87,7 @@ const WALL_DURATION = 15000;
 const MAX_BALLS = 10;
 const FEVER_THRESHOLD = 25;
 const FEVER_DURATION = 30000;
-// ★ 修正点 ★ ボールがパドルに触れずに停滞するのを防ぐタイマー時間（ミリ秒）
-const BALL_STALL_TIMEOUT = 30000; // 30秒 (1分にする場合は 60000 に変更)
+const BALL_STALL_TIMEOUT = 30000;
 
 const ITEM_TYPES = {
     RED:    { color: [231, 76, 60],  effect: 'bullet' },
@@ -110,7 +109,6 @@ const sounds = {
 
 const bgm = {
     normal: new Audio('mp3/0.mp3'),
-    // ★ 修正点 ★ '3'というファイル名はおそらく間違いです。正しいファイルパスを指定してください (例: 'mp3/fever.mp3')
     fever: new Audio('mp3/fever.mp3') 
 };
 bgm.normal.loop = true;
@@ -127,11 +125,9 @@ function setup() {
     canvas.parent('canvas-holder');
     noLoop(); getRanking(); updateGameView();
     
-    // ★ 修正点 ★ スタートボタンに音声再生を有効化する処理を追加
     document.getElementById('start-btn').addEventListener('click', () => {
         if (!userHasInteracted) {
             userHasInteracted = true;
-            // p5.jsのAudioContextをユーザー操作によって開始する（モバイルでの音声再生に必須）
             if (getAudioContext().state !== 'running') {
                 getAudioContext().resume();
             }
@@ -251,20 +247,15 @@ function drawPaddle() {
 
 function collideRectCircle(rx, ry, rw, rh, cx, cy, diameter) { let testX = cx; let testY = cy; if (cx < rx) testX = rx; else if (cx > rx + rw) testX = rx + rw; if (cy < ry) testY = ry; else if (cy > ry + rh) testY = ry + rh; return dist(cx, cy, testX, testY) <= diameter / 2; }
 
-// ★ 修正点 ★ ボール停滞防止ロジックを追加
 function updateAndDrawBalls() {
     for (let i = balls.length - 1; i >= 0; i--) {
         let ball = balls[i];
         
-        // ★ 修正点 ★ ボール停滞防止ロジック
         if (millis() - ball.lastPaddleHitTime > BALL_STALL_TIMEOUT) {
-            // 一定時間パドルに触れていない場合、強制的に下向きの速度を与える
             ball.speedY = Math.abs(ball.speedY) || INITIAL_BALL_SPEED_Y;
-            // 角度が単調にならないようにX方向の速度も少し調整
             if (Math.abs(ball.speedX) < 1) {
                 ball.speedX = random(-INITIAL_BALL_SPEED_X_RANGE / 2, INITIAL_BALL_SPEED_X_RANGE / 2);
             }
-            // 連続発動を防ぐためにタイムスタンプを更新
             ball.lastPaddleHitTime = millis();
         }
 
@@ -279,39 +270,57 @@ function updateAndDrawBalls() {
             if (balls.length > 0) { comboCount = 0; } else { handleGameOver(); }
             continue;
         }
+        
         if (collideRectCircle(paddle.x, paddle.y, paddle.w, paddle.h, ball.x, ball.y, ball.size)) {
-            ball.speedY *= -1; ball.y = paddle.y - ball.size / 2;
-            increaseBallSpeed(ball); comboCount = 0; playSound(sounds.hitPaddle);
-            // ★ 修正点 ★ パドルに当たった時刻を更新
+            let speedMagnitude = createVector(ball.speedX, ball.speedY).mag();
+            let relativeIntersectX = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
+            
+            // ★ 修正点 ★ 最大反射角度を調整 (垂直から30度 = 水平から60度)
+            const maxAngleDeg = 30;
+            let bounceAngleDeg = relativeIntersectX * maxAngleDeg;
+            
+            let bounceAngleRad = radians(bounceAngleDeg);
+            
+            ball.speedX = speedMagnitude * sin(bounceAngleRad);
+            ball.speedY = -speedMagnitude * cos(bounceAngleRad);
+
+            ball.y = paddle.y - ball.size / 2;
+            
+            increaseBallSpeed(ball);
+            comboCount = 0;
+            playSound(sounds.hitPaddle);
             ball.lastPaddleHitTime = millis();
-        }
-        for (let block of blocks) {
-            if (block.visible && collideRectCircle(block.x, block.y, block.w, block.h, ball.x, ball.y, ball.size)) {
-                if (!isFeverTime) ball.speedY *= -1;
-                block.visible = false;
-                comboCount++;
-                playSound(sounds.breakBlock);
-                triggerComboAnimation();
-                if (comboCount >= FEVER_THRESHOLD && !isFeverTime) {
-                    isFeverTime = true;
-                    feverEndTime = millis() + FEVER_DURATION;
-                    playSound(sounds.fever);
-                    if (userHasInteracted) {
-                        bgm.normal.pause();
-                        bgm.fever.currentTime = 0;
-                        bgm.fever.play().catch(e => console.error("フィーバーBGMの再生に失敗:", e));
+
+        } else {
+            for (let block of blocks) {
+                if (block.visible && collideRectCircle(block.x, block.y, block.w, block.h, ball.x, ball.y, ball.size)) {
+                    if (!isFeverTime) ball.speedY *= -1;
+                    block.visible = false;
+                    comboCount++;
+                    playSound(sounds.breakBlock);
+                    triggerComboAnimation();
+                    if (comboCount >= FEVER_THRESHOLD && !isFeverTime) {
+                        isFeverTime = true;
+                        feverEndTime = millis() + FEVER_DURATION;
+                        playSound(sounds.fever);
+                        if (userHasInteracted) {
+                            bgm.normal.pause();
+                            bgm.fever.currentTime = 0;
+                            bgm.fever.play().catch(e => console.error("フィーバーBGMの再生に失敗:", e));
+                        }
                     }
+                    let scoreToAdd = 10 * comboCount;
+                    if (isFeverTime) { scoreToAdd *= 2; }
+                    score += scoreToAdd;
+                    increaseBallSpeed(ball); updateInfoDisplay();
+                    if (comboCount > 0 && comboCount % 5 === 0) {
+                        spawnItem(block.x + block.w / 2, block.y + block.h / 2);
+                    }
+                    if (!isFeverTime) break;
                 }
-                let scoreToAdd = 10 * comboCount;
-                if (isFeverTime) { scoreToAdd *= 2; }
-                score += scoreToAdd;
-                increaseBallSpeed(ball); updateInfoDisplay();
-                if (comboCount > 0 && comboCount % 5 === 0) {
-                    spawnItem(block.x + block.w / 2, block.y + block.h / 2);
-                }
-                if (!isFeverTime) break;
             }
         }
+        
         if (isFeverTime) { fill(255, 235, 59); stroke(255, 87, 34); strokeWeight(3); }
         else { fill(255); stroke(0); strokeWeight(2); }
         ellipse(ball.x, ball.y, ball.size); noStroke();
@@ -348,7 +357,6 @@ function updateAndDrawBullets() { for (let i = bullets.length - 1; i >= 0; i--) 
 function increaseBallSpeed(ball) { const MAX_SPEED = 12; let speedVec = createVector(ball.speedX, ball.speedY); if (speedVec.mag() < MAX_SPEED) { speedVec.mult(1.03); ball.speedX = speedVec.x; ball.speedY = speedVec.y; } }
 function updateInfoDisplay() { document.getElementById('score-display').textContent = 'Score: ' + score; document.getElementById('bullet-display').textContent = 'Shots: ' + bulletCount; }
 
-// ★ 修正点 ★ 新しいボールに、パドルに当たった最終時刻を記録するプロパティを追加
 function spawnNewBall(x = width / 2, y = height / 2, templateBall = null) {
     if (balls.length >= MAX_BALLS) return;
     balls.push({
@@ -358,7 +366,7 @@ function spawnNewBall(x = width / 2, y = height / 2, templateBall = null) {
         speedY: INITIAL_BALL_SPEED_Y,
         isEnlarged: templateBall ? templateBall.isEnlarged : false,
         sizeEffectEndTime: 0,
-        lastPaddleHitTime: millis() // 最後にパドルに当たった時刻を記録
+        lastPaddleHitTime: millis()
     });
 }
 
