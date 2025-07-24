@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BLOCK GAME with Online Ranking</title>
+    <title>BLOCK GAME 〔オンラインランキング対応版〕</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
     <style>
         :root { overscroll-behavior: none; }
@@ -32,25 +32,23 @@
         .button-bar button { flex-grow: 1; padding: 12px; font-size: 1em; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9; cursor: pointer; }
         .modal-overlay { display: none; position: fixed; z-index: 100; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; }
         
-        /* MOD: modal-contentのレイアウトをFlexboxに変更 */
         .modal-content {
             background-color: white; padding: 25px; border-radius: 10px;
             text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            width: 100%; max-width: 400px; max-height: 90vh; /* MOD: 高さをvh基準に */
-            display: flex; /* MOD */
-            flex-direction: column; /* MOD */
+            width: 100%; max-width: 400px; max-height: 90vh;
+            display: flex;
+            flex-direction: column;
         }
-        .modal-content h2 { margin-top: 0; margin-bottom: 20px; flex-shrink: 0; /* MOD */ }
-        .close-btn { background-color: #e74c3c; color: white; margin-top: 20px; flex-shrink: 0; /* MOD */ }
+        .modal-content h2 { margin-top: 0; margin-bottom: 20px; flex-shrink: 0; }
+        .close-btn { background-color: #e74c3c; color: white; margin-top: 20px; flex-shrink: 0; }
         .legend-item { display: flex; align-items: center; margin-bottom: 8px; font-size: 1em; text-align: left; }
         .legend-icon { width: 24px; height: 24px; border-radius: 50%; margin-right: 12px; border: 1px solid #ccc; flex-shrink: 0; }
         
-        /* MOD: ranking-listのレイアウトを調整 */
         #ranking-list {
             list-style-type: none; padding: 0; text-align: left;
-            flex-grow: 1; /* MOD: 残りのスペースを埋める */
-            overflow-y: auto; /* MOD: リスト自体をスクロールさせる */
-            min-height: 0; /* MOD: flexアイテムの縮小を許可 */
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 0;
         }
         #ranking-list li { background-color: #f9f9f9; padding: 10px 15px; border-bottom: 1px solid #eee; font-size: 1em; }
     </style>
@@ -69,7 +67,6 @@
     <div id="ranking-modal" class="modal-overlay"><div class="modal-content"><h2>オンラインランキング</h2><ul id="ranking-list"><li>読み込み中...</li></ul><button class="close-btn" data-modal-id="ranking-modal">閉じる</button></div></div>
 
 <script>
-// --- JavaScript部分は前回のまま変更ありません ---
 const API_URL = 'https://script.google.com/macros/s/AKfycbx_rEO5BpjwJMPgV7-7AIpZLrGHsb8UzXDZpiTMZgBwpUFacvaDqlFJ0DAQGjY7oVp4/exec';
 
 let paddle, balls = [], blocks = [], items = [], bullets = [];
@@ -79,6 +76,7 @@ let gameState = 'start';
 let comboCount = 0;
 let isWallActive = false; let wallTimer;
 let isFeverTime = false; let feverEndTime = 0;
+let userHasInteracted = false;
 
 const PADDLE_INITIAL_WIDTH = 80, PADDLE_HEIGHT = 15;
 const BALL_INITIAL_SIZE = 15;
@@ -89,6 +87,8 @@ const WALL_DURATION = 15000;
 const MAX_BALLS = 10;
 const FEVER_THRESHOLD = 25;
 const FEVER_DURATION = 30000;
+// ★ 修正点 ★ ボールがパドルに触れずに停滞するのを防ぐタイマー時間（ミリ秒）
+const BALL_STALL_TIMEOUT = 30000; // 30秒 (1分にする場合は 60000 に変更)
 
 const ITEM_TYPES = {
     RED:    { color: [231, 76, 60],  effect: 'bullet' },
@@ -98,16 +98,53 @@ const ITEM_TYPES = {
     GREEN:  { color: [46, 204, 113], effect: 'safety_wall' }
 };
 
+const sounds = {
+    hitPaddle: new Audio('mp3/hit2.mp3'),
+    breakBlock: new Audio('mp3/hit.mp3'),
+    getItem: new Audio('mp3/hit3.mp3'),
+    gameOver: new Audio('https://cdn.jsdelivr.net/gh/k-next/jp-games@main/block-game/assets/gameover.wav'),
+    shoot: new Audio('https://cdn.jsdelivr.net/gh/k-next/jp-games@main/block-game/assets/shoot.wav'),
+    fever: new Audio('mp3/starsol_02.mp'),
+    click: new Audio('https://cdn.jsdelivr.net/gh/k-next/jp-games@main/block-game/assets/click.wav')
+};
+
+const bgm = {
+    normal: new Audio('mp3/0.mp3'),
+    // ★ 修正点 ★ '3'というファイル名はおそらく間違いです。正しいファイルパスを指定してください (例: 'mp3/fever.mp3')
+    fever: new Audio('mp3/fever.mp3') 
+};
+bgm.normal.loop = true;
+bgm.fever.loop = true;
+
+function playSound(sound) {
+    if (!userHasInteracted) return;
+    sound.currentTime = 0;
+    sound.play().catch(e => console.error("サウンドの再生に失敗しました:", e));
+}
+
 function setup() {
     let canvas = createCanvas(400, 600);
     canvas.parent('canvas-holder');
     noLoop(); getRanking(); updateGameView();
-    document.getElementById('start-btn').addEventListener('click', startGame);
-    document.getElementById('retry-btn').addEventListener('click', startGame);
-    document.getElementById('submit-score-btn').addEventListener('click', handleSubmitScore);
-    document.getElementById('how-to-play-btn').addEventListener('click', () => showModal('how-to-play-modal'));
-    document.getElementById('ranking-btn').addEventListener('click', () => { getRanking(); showModal('ranking-modal'); });
-    document.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', () => hideModal(btn.dataset.modalId)));
+    
+    // ★ 修正点 ★ スタートボタンに音声再生を有効化する処理を追加
+    document.getElementById('start-btn').addEventListener('click', () => {
+        if (!userHasInteracted) {
+            userHasInteracted = true;
+            // p5.jsのAudioContextをユーザー操作によって開始する（モバイルでの音声再生に必須）
+            if (getAudioContext().state !== 'running') {
+                getAudioContext().resume();
+            }
+        }
+        playSound(sounds.click);
+        startGame();
+    });
+
+    document.getElementById('retry-btn').addEventListener('click', () => { playSound(sounds.click); startGame(); });
+    document.getElementById('submit-score-btn').addEventListener('click', () => { playSound(sounds.click); handleSubmitScore(); });
+    document.getElementById('how-to-play-btn').addEventListener('click', () => { playSound(sounds.click); showModal('how-to-play-modal'); });
+    document.getElementById('ranking-btn').addEventListener('click', () => { playSound(sounds.click); getRanking(); showModal('ranking-modal'); });
+    document.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', () => { playSound(sounds.click); hideModal(btn.dataset.modalId); }));
 }
 
 function draw() {
@@ -140,8 +177,27 @@ function updateGameView() {
     }
 }
 
-function startGame() { gameState = 'playing'; updateGameView(); resetGame(); loop(); }
-function handleGameOver() { gameState = 'game_over'; clearInterval(itemSpawnInterval); clearTimeout(wallTimer); document.getElementById('final-score').textContent = score; updateGameView(); noLoop(); }
+function startGame() {
+    gameState = 'playing'; updateGameView(); resetGame();
+    if (userHasInteracted) {
+        bgm.fever.pause();
+        bgm.normal.currentTime = 0;
+        bgm.normal.play().catch(e => console.error("BGMの再生に失敗:", e));
+    }
+    loop();
+}
+
+function handleGameOver() {
+    gameState = 'game_over';
+    clearInterval(itemSpawnInterval);
+    clearTimeout(wallTimer);
+    document.getElementById('final-score').textContent = score;
+    updateGameView();
+    noLoop();
+    playSound(sounds.gameOver);
+    bgm.normal.pause();
+    bgm.fever.pause();
+}
 function showModal(id) { document.getElementById(id).style.display = 'flex'; }
 function hideModal(id) { document.getElementById(id).style.display = 'none'; }
 
@@ -166,8 +222,13 @@ function updateItemEffects() {
     let currentTime = millis();
     if (paddle.isEnlarged && currentTime > paddle.sizeEffectEndTime) paddle.isEnlarged = false;
     balls.forEach(ball => { if (ball.isEnlarged && currentTime > ball.sizeEffectEndTime) ball.isEnlarged = false; });
+    
     if (isFeverTime && currentTime > feverEndTime) {
         isFeverTime = false;
+        if (userHasInteracted) {
+            bgm.fever.pause();
+            bgm.normal.play().catch(e => console.error("BGMの再生に失敗:", e));
+        }
     }
 }
 
@@ -190,15 +251,29 @@ function drawPaddle() {
 
 function collideRectCircle(rx, ry, rw, rh, cx, cy, diameter) { let testX = cx; let testY = cy; if (cx < rx) testX = rx; else if (cx > rx + rw) testX = rx + rw; if (cy < ry) testY = ry; else if (cy > ry + rh) testY = ry + rh; return dist(cx, cy, testX, testY) <= diameter / 2; }
 
+// ★ 修正点 ★ ボール停滞防止ロジックを追加
 function updateAndDrawBalls() {
     for (let i = balls.length - 1; i >= 0; i--) {
         let ball = balls[i];
+        
+        // ★ 修正点 ★ ボール停滞防止ロジック
+        if (millis() - ball.lastPaddleHitTime > BALL_STALL_TIMEOUT) {
+            // 一定時間パドルに触れていない場合、強制的に下向きの速度を与える
+            ball.speedY = Math.abs(ball.speedY) || INITIAL_BALL_SPEED_Y;
+            // 角度が単調にならないようにX方向の速度も少し調整
+            if (Math.abs(ball.speedX) < 1) {
+                ball.speedX = random(-INITIAL_BALL_SPEED_X_RANGE / 2, INITIAL_BALL_SPEED_X_RANGE / 2);
+            }
+            // 連続発動を防ぐためにタイムスタンプを更新
+            ball.lastPaddleHitTime = millis();
+        }
+
         ball.size = ball.isEnlarged ? BALL_INITIAL_SIZE * 2 : BALL_INITIAL_SIZE;
         ball.x += ball.speedX; ball.y += ball.speedY;
-        if (ball.x < ball.size / 2 || ball.x > width - ball.size / 2) ball.speedX *= -1;
-        if (ball.y < ball.size / 2) ball.speedY *= -1;
+        if (ball.x < ball.size / 2 || ball.x > width - ball.size / 2) { ball.speedX *= -1; playSound(sounds.hitPaddle); }
+        if (ball.y < ball.size / 2) { ball.speedY *= -1; playSound(sounds.hitPaddle); }
         if (isWallActive && ball.y + ball.size / 2 > height - 10) {
-            ball.speedY *= -1; ball.y = height - 10 - ball.size / 2;
+            ball.speedY *= -1; ball.y = height - 10 - ball.size / 2; playSound(sounds.hitPaddle);
         } else if (ball.y > height) {
             balls.splice(i, 1);
             if (balls.length > 0) { comboCount = 0; } else { handleGameOver(); }
@@ -206,17 +281,26 @@ function updateAndDrawBalls() {
         }
         if (collideRectCircle(paddle.x, paddle.y, paddle.w, paddle.h, ball.x, ball.y, ball.size)) {
             ball.speedY *= -1; ball.y = paddle.y - ball.size / 2;
-            increaseBallSpeed(ball); comboCount = 0;
+            increaseBallSpeed(ball); comboCount = 0; playSound(sounds.hitPaddle);
+            // ★ 修正点 ★ パドルに当たった時刻を更新
+            ball.lastPaddleHitTime = millis();
         }
         for (let block of blocks) {
             if (block.visible && collideRectCircle(block.x, block.y, block.w, block.h, ball.x, ball.y, ball.size)) {
                 if (!isFeverTime) ball.speedY *= -1;
                 block.visible = false;
                 comboCount++;
+                playSound(sounds.breakBlock);
                 triggerComboAnimation();
                 if (comboCount >= FEVER_THRESHOLD && !isFeverTime) {
                     isFeverTime = true;
                     feverEndTime = millis() + FEVER_DURATION;
+                    playSound(sounds.fever);
+                    if (userHasInteracted) {
+                        bgm.normal.pause();
+                        bgm.fever.currentTime = 0;
+                        bgm.fever.play().catch(e => console.error("フィーバーBGMの再生に失敗:", e));
+                    }
                 }
                 let scoreToAdd = 10 * comboCount;
                 if (isFeverTime) { scoreToAdd *= 2; }
@@ -260,13 +344,27 @@ function triggerComboAnimation() {
 
 function drawBlocks() { stroke(52, 73, 94); strokeWeight(BLOCK_GAP); for (let block of blocks) { if (block.visible) { fill(block.color); rect(block.x, block.y, block.w, block.h, 3); } } noStroke(); }
 function updateAndDrawItems() { for (let i = items.length - 1; i >= 0; i--) { let item = items[i]; item.y += 2; fill(item.type.color); stroke(255); strokeWeight(2); ellipse(item.x, item.y, 20); noStroke(); if (collideRectCircle(paddle.x, paddle.y, paddle.w, paddle.h, item.x, item.y, 20)) { applyItemEffect(item.type.effect); items.splice(i, 1); } else if (item.y > height) { items.splice(i, 1); } } }
-function updateAndDrawBullets() { for (let i = bullets.length - 1; i >= 0; i--) { let bullet = bullets[i]; bullet.y -= 10; fill(255, 255, 0); rect(bullet.x - 2, bullet.y, 4, 10); let hit = false; for (let block of blocks) { if (block.visible && bullet.x > block.x && bullet.x < block.x + block.w && bullet.y > block.y && bullet.y < block.y + block.h) { block.visible = false; score += 10; updateInfoDisplay(); hit = true; break; } } if (hit || bullet.y < 0) bullets.splice(i, 1); } }
+function updateAndDrawBullets() { for (let i = bullets.length - 1; i >= 0; i--) { let bullet = bullets[i]; bullet.y -= 10; fill(255, 255, 0); rect(bullet.x - 2, bullet.y, 4, 10); let hit = false; for (let block of blocks) { if (block.visible && bullet.x > block.x && bullet.x < block.x + block.w && bullet.y > block.y && bullet.y < block.y + block.h) { block.visible = false; score += 10; updateInfoDisplay(); hit = true; playSound(sounds.breakBlock); break; } } if (hit || bullet.y < 0) bullets.splice(i, 1); } }
 function increaseBallSpeed(ball) { const MAX_SPEED = 12; let speedVec = createVector(ball.speedX, ball.speedY); if (speedVec.mag() < MAX_SPEED) { speedVec.mult(1.03); ball.speedX = speedVec.x; ball.speedY = speedVec.y; } }
 function updateInfoDisplay() { document.getElementById('score-display').textContent = 'Score: ' + score; document.getElementById('bullet-display').textContent = 'Shots: ' + bulletCount; }
-function spawnNewBall(x = width / 2, y = height / 2, templateBall = null) { if (balls.length >= MAX_BALLS) return; balls.push({ x: x, y: y, speedX: random(-INITIAL_BALL_SPEED_X_RANGE, INITIAL_BALL_SPEED_X_RANGE), speedY: INITIAL_BALL_SPEED_Y, isEnlarged: templateBall ? templateBall.isEnlarged : false, sizeEffectEndTime: 0 }); }
+
+// ★ 修正点 ★ 新しいボールに、パドルに当たった最終時刻を記録するプロパティを追加
+function spawnNewBall(x = width / 2, y = height / 2, templateBall = null) {
+    if (balls.length >= MAX_BALLS) return;
+    balls.push({
+        x: x,
+        y: y,
+        speedX: random(-INITIAL_BALL_SPEED_X_RANGE, INITIAL_BALL_SPEED_X_RANGE),
+        speedY: INITIAL_BALL_SPEED_Y,
+        isEnlarged: templateBall ? templateBall.isEnlarged : false,
+        sizeEffectEndTime: 0,
+        lastPaddleHitTime: millis() // 最後にパドルに当たった時刻を記録
+    });
+}
+
 function spawnItem(x = random(20, width - 20), y = 0) { if (isFeverTime) return; const itemKeys = Object.keys(ITEM_TYPES); const randomKey = random(itemKeys); items.push({ x: x, y: y, type: ITEM_TYPES[randomKey] }); }
-function shoot() { if (bulletCount > 0) { bullets.push({ x: paddle.x + paddle.w / 2, y: paddle.y }); bulletCount--; updateInfoDisplay(); } }
-function applyItemEffect(effect) { let currentTime = millis(); switch (effect) { case 'bullet': bulletCount += 5; break; case 'paddle_size': paddle.isEnlarged = true; paddle.sizeEffectEndTime = currentTime + PADDLE_BALL_SIZE_DURATION; break; case 'ball_size': balls.forEach(b => { b.isEnlarged = true; b.sizeEffectEndTime = currentTime + PADDLE_BALL_SIZE_DURATION; }); break; case 'ball_split': const currentBalls = [...balls]; for (const ball of currentBalls) { spawnNewBall(ball.x, ball.y, ball); } break; case 'safety_wall': isWallActive = true; clearTimeout(wallTimer); wallTimer = setTimeout(() => { isWallActive = false; }, WALL_DURATION); break; } updateInfoDisplay(); }
+function shoot() { if (bulletCount > 0) { bullets.push({ x: paddle.x + paddle.w / 2, y: paddle.y }); bulletCount--; updateInfoDisplay(); playSound(sounds.shoot); } }
+function applyItemEffect(effect) { let currentTime = millis(); playSound(sounds.getItem); switch (effect) { case 'bullet': bulletCount += 5; break; case 'paddle_size': paddle.isEnlarged = true; paddle.sizeEffectEndTime = currentTime + PADDLE_BALL_SIZE_DURATION; break; case 'ball_size': balls.forEach(b => { b.isEnlarged = true; b.sizeEffectEndTime = currentTime + PADDLE_BALL_SIZE_DURATION; }); break; case 'ball_split': const currentBalls = [...balls]; for (const ball of currentBalls) { spawnNewBall(ball.x, ball.y, ball); } break; case 'safety_wall': isWallActive = true; clearTimeout(wallTimer); wallTimer = setTimeout(() => { isWallActive = false; }, WALL_DURATION); break; } updateInfoDisplay(); }
 async function handleSubmitScore() { const playerNameInput = document.getElementById('player-name'); const playerName = playerNameInput.value.trim(); if (!playerName) { alert('名前を入力してください！'); return; } playerNameInput.disabled = true; document.getElementById('submit-score-btn').disabled = true; document.getElementById('submit-score-btn').textContent = '送信中...'; await sendScore(playerName, score); }
 async function sendScore(playerName, playerScore) { const postData = { name: playerName, score: playerScore }; try { await fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(postData), }); alert('ランキングにスコアを登録しました！'); getRanking(); } catch (error) { console.error('スコアの送信に失敗しました:', error); alert('スコアの送信に失敗しました...'); } finally { const btn = document.getElementById('submit-score-btn'); if (btn) { btn.disabled = false; btn.textContent = 'ランキングに登録'; } } }
 async function getRanking() { const rankingList = document.getElementById('ranking-list'); rankingList.innerHTML = '<li>ランキングを読み込み中...</li>'; try { const response = await fetch(API_URL); const result = await response.json(); if (result.status === 'success') { rankingList.innerHTML = ''; const rankingData = result.data; if (rankingData.length === 0) { rankingList.innerHTML = '<li>まだ誰もプレイしていません。一番乗りを目指そう！</li>'; return; } const top10Data = rankingData.slice(0, 10); top10Data.forEach((player, index) => { const li = document.createElement('li'); li.textContent = `${index + 1}位: ${player.name} - ${player.score}点`; rankingList.appendChild(li); }); } else { throw new Error(result.message); } } catch (error) { console.error('ランキングの取得に失敗しました:', error); rankingList.innerHTML = '<li>ランキングの取得に失敗しました。</li>'; } }
