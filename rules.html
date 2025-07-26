@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>ルール説明 - バトル・オブ・ネームス</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    html { font-size: 14px; }
+    @media (min-width: 800px) { html { font-size: 16px; } }
+    body{ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color:#fff; font-family:'Press Start 2P', monospace; display:flex; flex-direction:column; align-items:center; padding:1rem; min-height:100vh; margin:0; box-sizing: border-box; }
+    h1{ font-size: 1.5rem; margin-bottom: 1rem; color: #fff; text-shadow: 3px 3px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000; text-align: center; line-height: 1.4; }
+    .window{ background: linear-gradient(145deg, #2d4a8a 0%, #1e3a5f 100%); border: 3px solid #4a90e2; border-radius: 12px; padding: 1.5rem; margin: 0.5rem; width: 95%; max-width: 700px; box-sizing: border-box; box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.2); }
+    h2 { font-size: 1.2rem; color: #ffd700; text-shadow: 1px 1px 2px #000; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 2px solid #4a90e2; padding-bottom: 0.5rem; }
+    p, li { line-height: 1.8; font-size: 0.9rem; }
+    ul { list-style-type: '★ '; padding-left: 20px; }
+    .stat-name { color: #ffd700; font-weight: bold; }
+    .back-button { display: inline-block; text-decoration: none; font-family:'Press Start 2P', monospace; padding: 0.8rem 1.5rem; border: none; border-radius: 0.7rem; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.5); font-size: 1rem; text-align: center; background: linear-gradient(145deg, #4a90e2 0%, #357abd 100%); color: #fff; margin-top: 2rem; }
+    .back-button:hover { transform: translateY(-2px); background: linear-gradient(145deg, #5aa1f2 0%, #468be0 100%); }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.8rem; }
+    th, td { border: 2px solid #4a90e2; padding: 0.8rem; text-align: left; }
+    th { background-color: rgba(0,0,0,0.3); color: #ffd700; }
+    .log-critical { color: #ff4757; }
+    .log-win { color: #2ed573; }
+  </style>
+</head>
+<body>
+  <h1>ルール説明 & 必殺技一覧</h1>
+  <div class="window">
+    <h2>ゲームのながれ</h2>
+    <p>なまえと性別をきめて「たたかう！」ボタンをおすと、バトルがはじまるぞ！<br>なまえと性別によって、ステータスや見た目、そして強力な「必殺技」が自動的に決まる！色々な名前で試してみよう！</p>
+    
+    <h2>ステータスについて</h2>
+    <ul>
+      <li><span class="stat-name">HP:</span> たいりょく。ゼロになると負け。</li>
+      <li><span class="stat-name">ATK:</span> こうげきりょく。高いほどダメージがあがる。</li>
+      <li><span class="stat-name">DEF:</span> ぼうぎょりょく。高いほど受けるダメージがへる。</li>
+      <li><span class="stat-name">SPD:</span> すばやさ。高いほうが先にこうげきする。相手よりずっと速いと、複数回こうげきできることも！</li>
+      <li><span class="stat-name">LUCK:</span> うんのよさ。会心の一撃や回避、そして「必殺技」の発動率にかんけいするぞ。<br/>※LUCKは隠しパラメーターのため表示されない</li>
+    </ul>
+
+    <h2>とくしゅなこうどう</h2>
+    <ul>
+        <li><span class="stat-name">決戦モード:</span> 12ラウンドになると発動！おたがいのダメージが1.5倍になり、バトルが一気に加速するぞ！</li>
+        <li><span class="stat-name">一時停止:</span> バトル中にログ画面をタップすると、ゲームが一時停止する。もう一度タップで再開だ。</li>
+    </ul>
+    
+    <h2>ひっさつわざ いちらん</h2>
+    <p>バトル中、うんがよければキャラクターごとに決められた必殺技を１度だけはなつ！</p>
+    <table>
+      <thead>
+        <tr><th>技の名前</th><th>効果</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>ギガントブレイク</td><td>とてもつよい <span class="log-critical">いちげき</span>を はなつ</td></tr>
+        <tr><td>トールハンマー</td><td>つよい <span class="log-critical">ダメージ</span>を あたえる</td></tr>
+        <tr><td>メテオストライク</td><td>相手の防御が高いほど <span class="log-critical">ダメージ</span>が あがる</td></tr>
+        <tr><td>インフェルノ</td><td>ほのおで <span class="log-critical">大ダメージ</span>を あたえる</td></tr>
+        <tr><td>ブリザードストーム</td><td><span class="log-critical">ダメージ</span>をあたえ、相手の<span class="stat-name">すばやさ</span>を さげる</td></tr>
+        <tr><td>サンダーボルト</td><td><span class="log-critical">ダメージ</span>をあたえ、相手の<span class="stat-name">ぼうぎょ</span>を さげる</td></tr>
+        <tr><td>ホーリーライト</td><td>じぶんのHPを <span class="log-win">おおきく かいふく</span>する</td></tr>
+        <tr><td>ダークマター</td><td>相手ののこりHPに応じた <span class="log-critical">ダメージ</span>を あたえる</td></tr>
+        <tr><td>ライフスティール</td><td>あたえた<span class="log-critical">ダメージ</span>の半分だけ <span class="log-win">HPをすいとる</span></td></tr>
+        <tr><td>ソウルイーター</td><td><span class="log-critical">ダメージ</span>をあたえ、そのぶん <span class="log-win">HPをすいとる</span></td></tr>
+        <tr><td>アーマーピアス</td><td>相手の<span class="stat-name">ぼうぎょ</span>を むしして <span class="log-critical">大ダメージ</span>を あたえる</td></tr>
+        <tr><td>ポイズンバイト</td><td><span class="log-critical">ダメージ</span>をあたえ、相手の<span class="stat-name">こうげき</span>を さげる</td></tr>
+        <tr><td>ドラゴンブレス</td><td>じぶんの<span class="stat-name">ぼうぎょ</span>も力にかえて <span class="log-critical">ダメージ</span>をあたえる</td></tr>
+        <tr><td>スターダストレイン</td><td>ほしくずの <span class="log-critical">2回こうげき</span>を はなつ</td></tr>
+        <tr><td>アースクエイク</td><td><span class="log-critical">おたがいの防御力</span>に応じた<span class="log-critical">全体ダメージ</span></td></tr>
+        <tr><td>ヴォーテックス</td><td><span class="log-critical">おたがいの現在HP</span>に応じた<span class="log-critical">全体ダメージ</span></td></tr>
+        <tr><td>クイックステップ</td><td>じぶんの<span class="stat-name">すばやさ</span>を <span class="log-win">大きくあげる</span>（このターンは攻撃しない）</td></tr>
+        <tr><td>ミラージュアタック</td><td>じぶんの<span class="stat-name">すばやさ</span>に応じた <span class="log-critical">ダメージ</span>を あたえる</td></tr>
+        <tr><td>パワーブースト</td><td>じぶんの<span class="stat-name">こうげき</span>を <span class="log-win">あげる</span>（このターンは攻撃しない）</td></tr>
+        <tr><td>マジックバリア</td><td>じぶんの<span class="stat-name">ぼうぎょ</span>を <span class="log-win">大きくあげる</span>（このターンは攻撃しない）</td></tr>
+        <tr><td>リジェネレーション</td><td>2回にわけてHPを <span class="log-win">ちゅうくらい かいふく</span>する</td></tr>
+        <tr><td>ミラクルギフト</td><td>じぶんの<span class="stat-name">うんのよさ</span>を <span class="log-win">大きくあげる</span>（このターンは攻撃しない）</td></tr>
+        <tr><td>ファイナルジャッジ</td><td>相手が失ったHPが多いほど <span class="log-critical">ダメージ</span>が あがる</td></tr>
+        <tr><td>ゼログラビティ</td><td>おたがいの<span class="stat-name">ぼうぎょ</span>を力に変え、相手の<span class="stat-name">ぼうぎょ</span>をさげる</td></tr>
+      </tbody>
+    </table>
+
+    <a href="battle_of_names_final.html" class="back-button">ゲームにもどる</a>
+  </div>
+</body>
+</html>

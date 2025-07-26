@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>バトル・オブ・ネームス～キミの名に宿る力～</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    html { font-size: 11px; }
+    @media (min-width: 500px) { html { font-size: 14px; } }
+    @media (min-width: 800px) { html { font-size: 16px; } }
+    body{ background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color:#fff; font-family:'Press Start 2P', monospace; display:flex; flex-direction:column; align-items:center; padding:1rem; min-height:100vh; margin:0; box-sizing: border-box; }
+    h1{ font-size: 1.5rem; margin-bottom: 1rem; color: #fff; text-shadow: 3px 3px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000; text-align: center; line-height: 1.4; }
+    .rules-link { color: #a9c1e2; font-size: 0.8rem; text-decoration: none; margin-bottom: 1rem; display: inline-block; }
+    .rules-link:hover { text-decoration: underline; color: #fff; }
+    .window{ background: linear-gradient(145deg, #2d4a8a 0%, #1e3a5f 100%); border: 3px solid #4a90e2; border-radius: 12px; padding: 1.25rem; margin: 0.5rem; width: 95%; max-width: 550px; box-sizing: border-box; box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.2); }
+    .battle-field { display: flex; gap: 0.5rem; justify-content: center; align-items: flex-start; }
+    .character-container { display: flex; flex-direction: column; align-items: center; position: relative; flex: 1; min-width: 120px; gap: 0.8rem; }
+    .input-area { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; width: 100%; }
+    .name-input-wrapper { display: flex; gap: 0.4rem; width: 100%; }
+    .name-input { font-family:'Press Start 2P', monospace; padding: 0.6rem 0.4rem; border: 2px solid #4a90e2; border-radius: 0.5rem; font-size: 0.75rem; background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%); color: #fff; text-align: center; flex-grow: 1; min-width: 0; box-sizing: border-box; }
+    .name-input::placeholder { color: #888; opacity: 0.8; }
+    .name-input:focus { outline: none; box-shadow: 0 0 10px rgba(74, 144, 226, 0.5); border-color: #5aa1f2; }
+    .gender-btn { font-family:'Press Start 2P', monospace; padding: 0.6rem 0.5rem; border: 2px solid #4a90e2; border-radius: 0.5rem; cursor: pointer; background: #333; color: #aaa; flex-shrink: 0; }
+    .gender-btn.active { background: #ffd700; color: #000; border-color: #fff; }
+    .vs-section { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; flex-shrink: 0; padding-top: 15rem; }
+    .stats-display { background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%); border: 2px solid #4a90e2; border-radius: 0.7rem; padding: 0.5rem; font-size: 0.7rem; line-height: 1.4; text-align: center; width: 100%; height: 6.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.3); box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; }
+    .stat-name { color: #ffd700; font-size: 0.8rem; margin-bottom: 0.2rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); word-break: break-all; }
+    .stat-line { margin: 0.1rem 0; }
+    .stat-value { color: #ffd700; font-weight: bold; }
+    .skill-display { color: #2ed573; font-size: 0.75rem; text-align: center; padding: 0.3rem; background: rgba(0,0,0,0.3); border-radius: 5px; width: 100%; box-sizing: border-box; text-shadow: 1px 1px 2px #000; height: 2.5rem; display: flex; align-items: center; justify-content: center; }
+    canvas{ border: 3px solid #4a90e2; border-radius: 0.7rem; background: linear-gradient(135deg, #000 0%, #1a1a2e 100%); transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.4); width: 100%; height: auto; aspect-ratio: 1 / 1; }
+    canvas:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3); }
+    .hp-bar-container { width: 100%; height: 1.2rem; background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%); border: 2px solid #4a90e2; border-radius: 0.5rem; position: relative; overflow: hidden; }
+    .hp-bar { height: 100%; background: linear-gradient(90deg, #ff4757 0%, #ff3838 50%, #ff6b7a 100%); transition: width 0.8s ease-out; border-radius: 0.25rem; position: relative; }
+    .hp-bar.high { background: linear-gradient(90deg, #2ed573 0%, #20bf6b 50%, #26de81 100%); }
+    .hp-bar.medium { background: linear-gradient(90deg, #ffa502 0%, #ff7675 50%, #fd79a8 100%); }
+    .hp-bar::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); animation: shimmer 2s infinite; }
+    @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+    .hp-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.8rem; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); pointer-events: none; z-index: 10; }
+    .vs-text{ color: #ffd700; font-size: 1.4rem; margin-bottom: 0.8rem; text-shadow: 2px 2px 0px #000, -1px -1px 0px #000; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    #battleBtn { font-family:'Press Start 2P', monospace; padding: 0.8rem 0.6rem; border: none; border-radius: 0.7rem; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.5); font-size: 0.8rem; white-space: nowrap; text-align: center; background: linear-gradient(145deg, #27ae60 0%, #2ecc71 100%); color: #fff; }
+    #battleBtn:hover:not(:disabled) { transform: translateY(-2px); background: linear-gradient(145deg, #2ecc71 0%, #27ae60 100%); box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4); }
+    #battleBtn:active:not(:disabled) { transform: translateY(0); }
+    #battleBtn:disabled{ background: linear-gradient(145deg, #555 0%, #333 100%); cursor: not-allowed; opacity: 0.6; }
+    .battle-log{ background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%); border: 3px solid #4a90e2; border-radius: 0.7rem; margin-top: 1.5rem; height: 18rem; overflow-y: auto; white-space: pre-wrap; padding: 1rem; font-size: 0.9rem; line-height: 1.5; box-shadow: inset 0 2px 8px rgba(0,0,0,0.3); word-break: break-word; }
+    .battle-log::-webkit-scrollbar { width: 6px; } .battle-log::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 3px; } .battle-log::-webkit-scrollbar-thumb { background: #4a90e2; border-radius: 3px; }
+    .log-hit { text-shadow: 1px 1px 2px rgba(0,0,0,0.8); } .log-critical { color: #ff4757; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); animation: flash 0.5s; } .log-win { color: #2ed573; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); animation: glow 1s infinite alternate; } .log-round { color: #4a90e2; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); } .log-name { color: #ffd700; }
+    @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    @keyframes glow { from { text-shadow: 1px 1px 2px rgba(0,0,0,0.8), 0 0 10px #2ed573; } to { text-shadow: 1px 1px 2px rgba(0,0,0,0.8), 0 0 20px #2ed573, 0 0 30px #2ed573; } }
+    .loser { opacity: 0.4; filter: grayscale(80%); transition: opacity 1s, filter 1s; }
+    .winner-effect { animation: winner-glow 1.5s infinite alternate; }
+    @keyframes winner-glow { from { box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ffd700, 0 0 20px #ffd700; transform: scale(1); } to { box-shadow: 0 0 10px #fff, 0 0 20px #ffd700, 0 0 30px #ffd700, 0 0 40px #ffd700; transform: scale(1.05); } }
+    
+    #pause-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); color: #fff; font-size: 5rem; display: flex; align-items: center; justify-content: center; z-index: 9999; text-shadow: 3px 3px 0 #000; animation: pulse 2s infinite; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>バトル・オブ・ネームス<br>～キミの名に宿る力～</h1>
+  
+  <a href="rules.html" class="rules-link">ルール説明はこちら</a>
+
+  <div class="window">
+    <div class="battle-field">
+      <div class="character-container">
+        <div class="input-area">
+          <div class="name-input-wrapper">
+            <input type="text" id="name1" class="name-input" placeholder="なまえ1">
+            <button class="gender-btn active" data-char="1" data-gender="male">♂</button>
+            <button class="gender-btn" data-char="1" data-gender="female">♀</button>
+          </div>
+        </div>
+        <div id="stats1" class="stats-display"><div></div></div>
+        <div id="skill1" class="skill-display"></div>
+        <canvas id="canvas1" width="100" height="100"></canvas>
+        <div class="hp-bar-container">
+          <div id="hpBar1" class="hp-bar high"></div>
+          <div class="hp-text" id="hpText1"></div>
+        </div>
+      </div>
+      <div class="vs-section">
+        <div class="vs-text">VS</div>
+        <button id="battleBtn" disabled>たたかう！</button>
+      </div>
+      <div class="character-container">
+        <div class="input-area">
+          <div class="name-input-wrapper">
+            <input type="text" id="name2" class="name-input" placeholder="なまえ2">
+            <button class="gender-btn active" data-char="2" data-gender="male">♂</button>
+            <button class="gender-btn" data-char="2" data-gender="female">♀</button>
+          </div>
+        </div>
+        <div id="stats2" class="stats-display"><div></div></div>
+        <div id="skill2" class="skill-display"></div>
+        <canvas id="canvas2" width="100" height="100"></canvas>
+        <div class="hp-bar-container">
+          <div id="hpBar2" class="hp-bar high"></div>
+          <div class="hp-text" id="hpText2"></div>
+        </div>
+      </div>
+    </div>
+    <div id="logWindow" class="battle-log"></div>
+  </div>
+
+  <div id="pause-overlay" style="display: none;">PAUSE</div>
+
+<script>
+// --- Game Logic ---
+const SKILLS = [ "ギガントブレイク", "トールハンマー", "メテオストライク", "インフェルノ", "ブリザードストーム", "サンダーボルト", "ホーリーライト", "ダークマター", "ライフスティール", "ソウルイーター", "アーマーピアス", "ポイズンバイト", "ドラゴンブレス", "スターダストレイン", "アースクエイク", "ヴォーテックス", "クイックステップ", "ミラージュアタック", "パワーブースト", "マジックバリア", "リジェネレーション", "ミラクルギフト", "ファイナルジャッジ", "ゼログラビティ" ];
+let char1 = null, char2 = null; let isPaused = false;
+let audioCtx; function initAudio() { if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { console.error("Web Audio API is not supported in this browser"); } } } function playSE(type) { if (!audioCtx) return; const time = audioCtx.currentTime; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); gain.gain.setValueAtTime(0, time); let vol = 0.1, dur = 0.3; osc.type = 'square'; switch (type) { case 'start': dur=0.6; vol=0.08; gain.gain.linearRampToValueAtTime(vol, time+0.05); osc.frequency.setValueAtTime(261.63, time); osc.frequency.setValueAtTime(329.63, time+0.15); osc.frequency.setValueAtTime(392.00, time+0.3); break; case 'round_start': dur=0.3; vol=0.07; gain.gain.linearRampToValueAtTime(vol, time+0.01); osc.frequency.setValueAtTime(523.25, time); osc.frequency.setValueAtTime(659.25, time+0.1); break; case 'attack': dur=0.2; vol=0.15; osc.type='sawtooth'; gain.gain.linearRampToValueAtTime(vol, time+0.02); osc.frequency.setValueAtTime(440, time); osc.frequency.exponentialRampToValueAtTime(200, time+dur); break; case 'guard': dur=0.4; vol=0.12; gain.gain.linearRampToValueAtTime(vol, time+0.02); osc.frequency.setValueAtTime(130.81, time); break; case 'dodge': dur=0.2; vol=0.08; osc.type='sine'; gain.gain.linearRampToValueAtTime(vol, time+0.02); osc.frequency.setValueAtTime(440, time); osc.frequency.exponentialRampToValueAtTime(880, time+dur); break; case 'critical': dur=0.3; vol=0.18; gain.gain.linearRampToValueAtTime(vol, time+0.01); osc.frequency.setValueAtTime(880, time); break; case 'damage': dur=0.25; vol=0.1; osc.type='sawtooth'; gain.gain.linearRampToValueAtTime(vol, time+0.01); osc.frequency.setValueAtTime(200, time); osc.frequency.exponentialRampToValueAtTime(100, time+dur); break; case 'ko': dur=0.8; vol=0.12; osc.type='sawtooth'; gain.gain.linearRampToValueAtTime(vol, time+0.01); osc.frequency.setValueAtTime(150, time); osc.frequency.exponentialRampToValueAtTime(50, time+dur); break; case 'win': dur=1.2; vol=0.1; osc.type='triangle'; gain.gain.linearRampToValueAtTime(vol, time+0.05); osc.frequency.setValueAtTime(392.00, time); osc.frequency.setValueAtTime(523.25, time+0.2); osc.frequency.setValueAtTime(659.25, time+0.4); osc.frequency.setValueAtTime(783.99, time+0.6); break; case 'draw': dur=1.5; vol=0.1; osc.type='sine'; gain.gain.linearRampToValueAtTime(vol, time+0.05); osc.frequency.setValueAtTime(330, time); osc.frequency.linearRampToValueAtTime(220, time+dur); break; default: osc.disconnect(); gain.disconnect(); return; } gain.gain.exponentialRampToValueAtTime(0.00001, time + dur); osc.start(time); osc.stop(time + dur); }
+function hashString(str){ let hash = 0; if (str.length === 0) return hash; for(let i=0;i<str.length;i++){hash=(hash<<5)-hash+str.charCodeAt(i);hash|=0;} return Math.abs(hash);}
+function generateStats(name, gender) { if (!name) return null; const seed = hashString(name); const nameLen = name.length; let baseTotal = 400 + (seed % 201); const r1 = (seed >> 24) & 0xFF, r2 = (seed >> 16) & 0xFF, r3 = (seed >> 8) & 0xFF, r4 = seed & 0xFF; let hpRatio = 100 + r1, atkRatio = 50 + r2, defRatio = 50 + r3, spdRatio = 50 + r4; hpRatio += nameLen * 5; atkRatio += nameLen * 2; defRatio += nameLen * 2; spdRatio -= nameLen * 1; const totalRatio = hpRatio + atkRatio + defRatio + spdRatio; const hp = Math.floor(baseTotal * (hpRatio / totalRatio)) + (name.charCodeAt(0) % 20) - 10; const atk = Math.floor(baseTotal * (atkRatio / totalRatio)) + (name.charCodeAt(name.length - 1) % 20) - 10; const def = Math.floor(baseTotal * (defRatio / totalRatio)); const spd = Math.floor(baseTotal * (spdRatio / totalRatio)); let luckSeed = 0; for (let i = 0; i < name.length; i++) { luckSeed += name.charCodeAt(i); } const luck = Math.floor(Math.max(10, Math.min(100, (luckSeed % 91) + 10))); const specialSkillId = seed % SKILLS.length; return { name, gender, hp: Math.max(10, hp), atk: Math.max(5, atk), def: Math.max(5, def), spd: Math.max(5, spd), luck, curHp: Math.max(10, hp), specialSkillId, hasUsedSpecial: false };}
+function drawCharacter(canvasId, name, gender) { const canvas = document.getElementById(canvasId); const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); if (!name) return; const seed = hashString(name); const rng = (s) => { s = Math.sin(s) * 10000; return s - Math.floor(s); }; const centerX = canvas.width / 2, centerY = canvas.height / 2 + 10; const r = Math.floor(rng(seed) * 150) + 50, g = Math.floor(rng(seed+1) * 150) + 50, b = Math.floor(rng(seed+2) * 150) + 50; if (gender === 'male') { ctx.fillStyle = `rgb(${r},${g},${b})`; ctx.strokeStyle = `rgb(${r-40},${g-40},${b-40})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.rect(centerX - 15, centerY - 20, 30, 40); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.rect(centerX - 12, centerY - 40, 24, 22); ctx.fill(); ctx.stroke(); ctx.fillStyle = `rgb(${r+50},${g+50},${b-50})`; ctx.beginPath(); ctx.moveTo(centerX, centerY - 40); ctx.lineTo(centerX + 5, centerY - 50); ctx.lineTo(centerX - 5, centerY - 50); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#000'; ctx.fillRect(centerX - 10, centerY - 32, 20, 5); if (rng(seed+4) > 0.2) { ctx.save(); ctx.translate(centerX + 20, centerY); ctx.rotate(0.2); ctx.fillStyle = '#c0c0c0'; ctx.strokeStyle = '#555'; ctx.lineWidth = 2; ctx.fillRect(-3, -45, 6, 40); ctx.fillStyle = '#8B4513'; ctx.fillRect(-8, -5, 16, 5); ctx.restore(); } if (rng(seed+3) > 0.4) { ctx.save(); ctx.translate(centerX - 20, centerY); ctx.fillStyle = `rgb(${r-20},${g-20},${b-20})`; ctx.strokeStyle = `rgb(${r+20},${g+20},${b+20})`; ctx.lineWidth = 3; ctx.beginPath(); if (rng(seed + 5) > 0.5) { ctx.arc(0, 0, 18, 0, Math.PI * 2); } else { ctx.moveTo(0, -20); ctx.quadraticCurveTo(20, 0, 0, 20); ctx.quadraticCurveTo(-20, 0, 0, -20); } ctx.fill(); ctx.stroke(); ctx.restore(); } } else { ctx.fillStyle = `rgb(${r},${g},${b})`; ctx.strokeStyle = `rgb(${r-40},${g-40},${b-40})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(centerX - 20, centerY + 20); ctx.lineTo(centerX, centerY - 25); ctx.lineTo(centerX + 20, centerY + 20); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#F0E68C'; ctx.beginPath(); ctx.arc(centerX, centerY - 20, 8, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = `rgb(${r+20},${g-50},${b+20})`; ctx.beginPath(); ctx.moveTo(centerX, centerY - 45); ctx.lineTo(centerX + 20, centerY - 25); ctx.lineTo(centerX - 20, centerY - 25); ctx.closePath(); ctx.fill(); if (rng(seed+4) > 0.2) { ctx.save(); ctx.translate(centerX + 15, centerY-5); ctx.rotate(-0.2); ctx.strokeStyle = '#8B4513'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(0, 20); ctx.stroke(); ctx.fillStyle = '#0ff'; ctx.beginPath(); ctx.arc(0, -25, 4, 0, 2 * Math.PI); ctx.fill(); ctx.restore(); } }}
+function updateHPBar(charNum, curHp, maxHp){ const hpBar=document.getElementById(`hpBar${charNum}`); const hpText=document.getElementById(`hpText${charNum}`); if(maxHp <= 0 || isNaN(maxHp)){ hpBar.style.width = '0%'; hpText.textContent = ''; return; } const percentage=(curHp/maxHp)*100; hpBar.style.width=percentage+'%'; hpText.textContent=`${curHp}/${maxHp}`; hpBar.classList.remove('high','medium'); if(percentage>60)hpBar.classList.add('high'); else if(percentage>30)hpBar.classList.add('medium');}
+function log(text, cls=""){ const logDiv=document.getElementById('logWindow'); const line=document.createElement('div'); line.innerHTML=text; if(cls)line.className=cls; logDiv.appendChild(line); logDiv.scrollTop=logDiv.scrollHeight;}
+function checkReady(){ document.getElementById('battleBtn').disabled = !(char1 && char2); }
+function sleep(ms) { return new Promise(async (resolve) => { let remaining = ms; while (remaining > 0) { if (isPaused) { while (isPaused) { await new Promise(r => setTimeout(r, 100)); } } const waitTime = Math.min(remaining, 100); await new Promise(r => setTimeout(r, waitTime)); remaining -= waitTime; } resolve(); });}
+function setupCharacterControls(charNum) { const nameInput = document.getElementById(`name${charNum}`); const genderBtns = document.querySelectorAll(`.gender-btn[data-char="${charNum}"]`); let gender = 'male'; function updateCharacter() { const name = nameInput.value.trim().substring(0, 12); nameInput.value = name; const statsDisplay = document.getElementById(`stats${charNum}`); const skillDisplay = document.getElementById(`skill${charNum}`); if (name) { const stats = generateStats(name, gender); if (charNum === 1) char1 = stats; else char2 = stats; drawCharacter(`canvas${charNum}`, name, gender); statsDisplay.firstElementChild.innerHTML=`<div class="stat-name">${stats.name}</div><div class="stat-line">HP: <span class="stat-value">${stats.hp}</span></div><div class="stat-line">ATK: <span class="stat-value">${stats.atk}</span></div><div class="stat-line">DEF: <span class="stat-value">${stats.def}</span></div><div class="stat-line">SPD: <span class="stat-value">${stats.spd}</span></div>`; skillDisplay.textContent = SKILLS[stats.specialSkillId]; updateHPBar(charNum, stats.hp, stats.hp); } else { if (charNum === 1) char1 = null; else char2 = null; drawCharacter(`canvas${charNum}`, null, gender); statsDisplay.firstElementChild.innerHTML = ""; skillDisplay.textContent = ""; updateHPBar(charNum, 0, 0); } checkReady(); } nameInput.addEventListener('input', updateCharacter); genderBtns.forEach(btn => { btn.addEventListener('click', () => { genderBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active'); gender = btn.dataset.gender; updateCharacter(); }); }); updateCharacter(); }
+setupCharacterControls(1); setupCharacterControls(2);
+document.getElementById('battleBtn').addEventListener('click', async () => { initAudio(); playSE('start'); document.getElementById('battleBtn').disabled = true; document.getElementById('logWindow').textContent = ""; ['canvas1', 'canvas2'].forEach(id => document.getElementById(id).classList.remove('loser', 'winner-effect')); char1 = generateStats(char1.name, char1.gender); char2 = generateStats(char2.name, char2.gender); updateHPBar(1, char1.hp, char1.hp); updateHPBar(2, char2.hp, char2.hp); log("バトルスタート！", "log-hit"); await sleep(1500); await battle(JSON.parse(JSON.stringify(char1)), JSON.parse(JSON.stringify(char2))); document.getElementById('battleBtn').disabled = false; });
+let isDecisiveMode = false;
+async function battle(p1, p2){ let round = 1; isDecisiveMode = false; while(p1.curHp > 0 && p2.curHp > 0){ if (round > 30) { log("30ラウンド経過... ひきわけ！", "log-round"); break; } if (round === 12 && !isDecisiveMode) { isDecisiveMode = true; playSE('critical'); log("--- 決戦モード突入！ ---", "log-critical"); log("こうげきが はげしくなる！", "log-hit"); await sleep(2000); } playSE('round_start'); log(`-- ラウンド ${round} --`, "log-round"); await sleep(1200); let [first, second] = p1.spd >= p2.spd ? [p1, p2] : [p2, p1]; const determineTurns = (a, d) => { let r=a.spd/d.spd; if (r>=2.5&&Math.random()<0.15)return 3; if (r>=1.5&&Math.random()<(r>=2?0.6:0.3))return 2; return 1;}; const logMultiAttack = (p, t) => { if(t > 1){ log(`<span class="log-name">${p.name}</span> の ${t===3?'超スピードで 3回攻撃！！':'すばやさで 2回攻撃！'}`, t===3?'log-critical':'log-hit');}}; let firstTurns = determineTurns(first, second); logMultiAttack(first, firstTurns); if(firstTurns > 1) await sleep(1000); for(let i=0; i<firstTurns && second.curHp>0; i++){ await attack(first, second, p1, p2); await sleep(1200); } if(second.curHp > 0){ let secondTurns = determineTurns(second, first); logMultiAttack(second, secondTurns); if(secondTurns > 1) await sleep(1000); for(let i=0; i<secondTurns && first.curHp>0; i++){ await attack(second, first, p1, p2); await sleep(1200); } } await sleep(1000); round++; } if ((p1.curHp <= 0 && p2.curHp <= 0) || round > 30) { playSE('draw'); log("ひきわけ！", "log-win"); } else if (p1.curHp > 0 || p2.curHp > 0) { const winner = p1.curHp > 0 ? p1 : p2; const winnerId = p1.curHp > 0 ? 1 : 2; playSE('win'); await sleep(800); document.getElementById(`canvas${winnerId}`).classList.add('winner-effect'); document.getElementById(`canvas${winnerId===1?2:1}`).classList.add('loser'); log(`★ <span class="log-name">${winner.name}</span> の かち！ ★`, "log-win"); } }
+async function attack(att, def, p1, p2){
+    const attCharNum = (att.name === p1.name) ? 1 : 2;
+    const defCharNum = (def.name === p1.name) ? 1 : 2;
+    const attCanvas = document.getElementById(`canvas${attCharNum}`);
+    const defCanvas = document.getElementById(`canvas${defCharNum}`);
+
+    const attackAnimation = async () => {
+        attCanvas.style.transition = 'transform 0.1s ease-out';
+        attCanvas.style.transform = 'translateY(-10px) scale(1.05)';
+        await sleep(200);
+        attCanvas.style.transform = '';
+        await sleep(100);
+    };
+
+    const damageAnimation = async () => {
+        defCanvas.style.transform = 'translateX(-8px) scale(1.05)'; await sleep(100);
+        defCanvas.style.transform = 'translateX(8px) scale(1.05)'; await sleep(100);
+        defCanvas.style.transform = '';
+    };
+
+    // ★必殺技発動率アップ
+    const specialTriggerChance = (att.luck / 600);
+    if (!att.hasUsedSpecial && Math.random() < specialTriggerChance && att.curHp > 0) {
+        att.hasUsedSpecial = true; 
+        log(`必殺！ <span class="log-name">${att.name}</span> の <span class="log-critical">${SKILLS[att.specialSkillId]}！</span>`, "log-hit");
+        await sleep(500);
+        await attackAnimation();
+        playSE('critical');
+        await sleep(500);
+        
+        let dmg = 0, heal = 0, boost = 0;
+        switch(att.specialSkillId) { case 0: dmg = Math.floor(att.atk * 1.8); break; case 1: dmg = Math.floor(att.atk * 1.2 + 40); break; case 2: dmg = Math.floor(att.atk + def.def * 0.5); break; case 3: dmg = Math.floor(att.atk * 0.8 + 50); break; case 4: dmg = Math.floor(att.atk * 0.8 + 20); def.spd = Math.max(5, def.spd - 20); log(`<span class="log-name">${def.name}</span> のすばやさが下がった！`); break; case 5: dmg = Math.floor(att.atk * 0.7); def.def = Math.max(5, def.def - 20); log(`<span class="log-name">${def.name}</span> のぼうぎょが下がった！`); break; case 6: heal = Math.floor(att.hp * 0.3); att.curHp = Math.min(att.hp, att.curHp + heal); log(`<span class="log-name">${att.name}</span> は ${heal} 回復！`); break; case 7: dmg = Math.floor(def.curHp * 0.25); log(`相手の生命力をうばう！`); break; case 8: dmg = Math.floor(att.atk); heal = Math.floor(dmg * 0.5); att.curHp = Math.min(att.hp, att.curHp + heal); log(`<span class="log-name">${att.name}</span> は ${heal} 吸収！`); break; case 9: dmg = Math.floor(att.atk * 0.5); heal = Math.floor(dmg); att.curHp = Math.min(att.hp, att.curHp + heal); log(`魂を吸い取り ${heal} 回復！`); break; case 10: dmg = Math.floor(att.atk * 1.5 - def.def * 0.2); log(`装甲を貫通！`); break; case 11: dmg = Math.floor(att.atk * 0.6); def.atk = Math.max(5, def.atk - 20); log(`<span class="log-name">${def.name}</span> のこうげきが下がった！`); break; case 12: dmg = Math.floor(att.atk + att.def * 0.5); log(`竜の息吹！`); break; case 13: dmg = Math.floor(att.atk * 0.4); for(let i=0;i<2;i++){ def.curHp=Math.max(0,def.curHp-dmg); await sleep(300); } log(`星屑の2回攻撃！`); break; case 14: dmg = Math.floor(p1.def + p2.def); log(`大地が揺れる！`); p1.curHp=Math.max(0,p1.curHp-Math.floor(dmg*0.2)); p2.curHp=Math.max(0,p2.curHp-Math.floor(dmg*0.2)); break; case 15: dmg = Math.floor((p1.curHp + p2.curHp) * 0.15); log(`空間が歪む！`); p1.curHp=Math.max(0,p1.curHp-dmg); p2.curHp=Math.max(0,p2.curHp-dmg); break; case 16: boost = Math.floor(att.spd * 0.5); att.spd += boost; log(`<span class="log-name">${att.name}</span>のすばやさが上がった！`); return; case 17: dmg = Math.floor(att.spd * 1.5); log(`素早い一撃！`); break; case 18: boost = Math.floor(att.atk * 0.3); att.atk += boost; log(`<span class="log-name">${att.name}</span>のこうげきが上がった！`); return; case 19: boost = Math.floor(att.def * 0.4); att.def += boost; log(`<span class="log-name">${att.name}</span>のぼうぎょが上がった！`); return; case 20: heal = Math.floor(att.hp * 0.15); att.curHp = Math.min(att.hp, att.curHp + heal); log(`HPが少し回復！`); await sleep(500); att.curHp = Math.min(att.hp, att.curHp + heal); log(`HPがさらに回復！`); break; case 21: boost = Math.floor(att.luck * 0.5); att.luck = Math.min(100, att.luck+boost); log(`<span class="log-name">${att.name}</span>のうんのよさが上がった！`); return; case 22: dmg = Math.floor((def.hp - def.curHp) * 0.8); log(`最後の審判！`); break; case 23: dmg = Math.floor(att.def*0.5 + def.def*0.5); def.def = Math.max(5, def.def-att.def*0.5); log(`守りを力に変える！`); break; }
+        dmg = Math.max(1, Math.floor(dmg)); const hpBefore = def.curHp; def.curHp = Math.max(0, def.curHp - dmg); if(dmg > 0) log(`<span class="log-name">${def.name}</span> に ${dmg} ダメージ！`, "log-critical"); playSE('damage'); await sleep(500); updateHPBar(1, p1.curHp, p1.hp); updateHPBar(2, p2.curHp, p2.hp); if (def.curHp <= 0 && hpBefore > 0) playSE('ko'); log(`<span class="log-name">${def.name}</span> HP: ${def.curHp}/${def.hp}`); return;
+    }
+    
+    await attackAnimation();
+    playSE('attack');
+    await damageAnimation();
+
+    if(Math.random() < (def.spd / 800) * (def.luck / 100)){ playSE('dodge'); log(`<span class="log-name">${def.name}</span> は こうげきを かわした！`, "log-hit"); return; }
+    let dmg = Math.max(1, att.atk - def.def * 0.7); if(def.def>=65 && Math.random() < (0.1+(def.def-65)/200)*(def.luck/30)){ playSE('guard'); dmg/=2; log(`ガード！ <span class="log-name">${def.name}</span> が たてで ぼうぎょ！`, "log-hit");}
+    dmg = Math.floor(dmg + (Math.random()*10));
+    if(att.atk>=65 && Math.random() < 0.1 * (att.luck/30)){ playSE('critical'); dmg*=2; log("会心のいちげき！！", "log-critical"); await sleep(800); }
+    // ★決戦モードのダメージ倍率アップ
+    if (isDecisiveMode) { dmg = Math.floor(dmg * 2.5); }
+    const hpBefore = def.curHp; def.curHp = Math.max(0, def.curHp - dmg);
+    playSE('damage'); log(`<span class="log-name">${att.name}</span> の こうげき！ <span class="log-name">${def.name}</span> に ${dmg} ダメージ`, "log-hit");
+    await sleep(500); updateHPBar(defCharNum, def.curHp, def.hp);
+    if (def.curHp <= 0 && hpBefore > 0) playSE('ko');
+    log(`<span class="log-name">${def.name}</span> HP: ${def.curHp}/${def.hp}`);
+}
+function togglePause() { if (document.getElementById('battleBtn').disabled) { isPaused = !isPaused; document.getElementById('pause-overlay').style.display = isPaused ? 'flex' : 'none'; } }
+document.getElementById('logWindow').addEventListener('click', togglePause);
+document.getElementById('pause-overlay').addEventListener('click', togglePause);
+</script>
+</body>
+</html>
