@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>褒めゲーム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            text-align: center;
+            color: #8b4513;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .player-setup {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f0f8ff;
+            border-radius: 10px;
+            border: 2px solid #b3d9f2;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c5282;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #b3d9f2;
+            border-radius: 8px;
+            font-size: 16px;
+            background: #f7fbff;
+        }
+
+        .gender-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .gender-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #b3d9f2;
+            background: #f7fbff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #2c5282;
+        }
+
+        .gender-btn.selected {
+            background: #63b3ed;
+            color: white;
+            border-color: #4299e1;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #63b3ed 0%, #4299e1 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* ▼ 変更点1: 決定ボタンのスタイルを追加 */
+        .confirm-btn {
+            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+        }
+
+        .confirm-btn:hover {
+             background: linear-gradient(135deg, #ff687c 0%, #ff71a3 100%);
+        }
+        /* ▲ 変更点1 */
+
+
+        .keyword-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .keyword-btn {
+            padding: 15px;
+            border: 2px solid #b3d9f2;
+            background: #f7fbff;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 16px;
+            transition: all 0.3s;
+            color: #2c5282;
+        }
+
+        .keyword-btn:hover {
+            background: #f0f8ff;
+            border-color: #93c5fd;
+        }
+
+        .keyword-btn.selected {
+            background: #63b3ed;
+            color: white;
+            border-color: #4299e1;
+        }
+
+        .player-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .player-card {
+            padding: 15px;
+            background: #f0f8ff;
+            border-radius: 10px;
+            border: 2px solid #b3d9f2;
+            text-align: center;
+            color: #2c5282;
+        }
+
+        .player-card.parent {
+            background: linear-gradient(135deg, #63b3ed 0%, #4299e1 100%);
+            color: white;
+            border-color: #3182ce;
+        }
+
+        .current-turn {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #ebf8ff;
+            border-radius: 10px;
+            border-left: 4px solid #63b3ed;
+            color: #2c5282;
+        }
+
+        .results {
+            margin: 20px 0;
+        }
+
+        .result-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f0f8ff;
+            border-radius: 10px;
+            border-left: 4px solid #63b3ed;
+            color: #2c5282;
+        }
+
+        .winner {
+            background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+            color: #1e3a8a;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .reset-btn {
+            background: #60a5fa;
+            margin-left: 10px;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .error {
+            color: #dc2626;
+            margin-top: 10px;
+            padding: 10px;
+            background: #fef2f2;
+            border-radius: 5px;
+        }
+        
+        /* ▼ 変更点2: キーワード個別表示画面のスタイルを追加 */
+        .keyword-reveal-box {
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        #revealedKeyword {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #8b4513;
+            padding: 20px 40px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .fade-in-zoom {
+            animation: fadeInZoom 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes fadeInZoom {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        /* ▲ 変更点2 */
+
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .keyword-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            #revealedKeyword {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <p style="font-size: 0.9em; color: #8b4513; margin-bottom: 10px;">みんなで自己肯定感UP！</p>
+            <h1>✨ 友達褒めゲーム ✨</h1>
+        </div>
+
+        <!-- プレイヤー設定画面 -->
+        <div id="setupScreen" class="screen active">
+            <div id="playerInputs"></div>
+            <div class="controls">
+                <button class="btn" onclick="addPlayer()">プレイヤー追加</button>
+                <button class="btn" onclick="removePlayer()">プレイヤー削除</button>
+                <button class="btn" onclick="startGame()">ゲーム開始</button>
+            </div>
+            <div id="setupError" class="error" style="display: none;"></div>
+        </div>
+
+        <!-- 親選択画面 -->
+        <div id="parentScreen" class="screen">
+            <h2>今回の親を選んでください</h2>
+            <div id="parentSelection" class="player-list"></div>
+            <div class="controls">
+                <button class="btn" onclick="selectParent()">決定</button>
+            </div>
+        </div>
+
+        <!-- 次のプレイヤー確認画面 -->
+        <div id="nextPlayerScreen" class="screen">
+            <div class="current-turn">
+                <h2 id="nextPlayerMessage"></h2>
+                <p style="margin-top: 15px;">準備ができたら「OK」ボタンを押してください</p>
+            </div>
+            <div class="controls">
+                <button class="btn" onclick="proceedToKeywordSelection()">OK</button>
+            </div>
+        </div>
+        <div id="keywordScreen" class="screen">
+            <div id="currentPlayer" class="current-turn"></div>
+            <h3>親に合うキーワードを選んでください</h3>
+            <div id="keywordOptions" class="keyword-grid"></div>
+            <div class="controls">
+                <!-- ▼ 変更点1: ボタンにクラスを追加 -->
+                <button class="btn confirm-btn" onclick="selectKeyword()">選択</button>
+                <!-- ▲ 変更点1 -->
+                <button class="btn reset-btn" onclick="resetKeywords()" id="resetBtn">キーワード変更</button>
+            </div>
+        </div>
+
+        <!-- 投票完了確認画面 -->
+        <div id="voteCompleteScreen" class="screen">
+            <div class="current-turn">
+                <h2>すべての投票が終わりました</h2>
+                <p style="margin-top: 15px;">キーワード一覧を表示します</p>
+                <p style="margin-top: 10px; font-size: 0.9em;">親の方は準備ができたら「OK」ボタンを押してください</p>
+            </div>
+            <div class="controls">
+                <!-- ▼ 変更点2: 呼び出す関数を変更 -->
+                <button class="btn" onclick="proceedToIndividualKeywordReveal()">OK</button>
+                <!-- ▲ 変更点2 -->
+            </div>
+        </div>
+
+        <!-- ▼ 変更点2: キーワード個別表示画面を新規追加 -->
+        <div id="individualKeywordScreen" class="screen">
+            <h2 id="individualKeywordParentName" style="text-align: center; color: #2c5282; margin-bottom: 20px;"></h2>
+            <div class="keyword-reveal-box">
+                <p id="revealedKeyword"></p>
+            </div>
+            <div class="controls">
+                <button class="btn" id="nextKeywordBtn" onclick="nextKeywordReveal()">次へ</button>
+            </div>
+        </div>
+        <!-- ▲ 変更点2 -->
+
+        <div id="resultScreen" class="screen">
+            <h2 id="parentName"></h2>
+            <p>以下のキーワードから一番嬉しいものを選んでください</p>
+            <div id="selectedKeywords" class="keyword-grid"></div>
+            <div class="controls">
+                <!-- ▼ 変更点1: ボタンにクラスを追加 -->
+                <button class="btn confirm-btn" onclick="selectWinner()">決定</button>
+                <!-- ▲ 変更点1 -->
+            </div>
+        </div>
+
+        <!-- 勝者発表画面 -->
+        <div id="winnerScreen" class="screen">
+            <div id="winnerAnnouncement" class="winner"></div>
+            <div class="results">
+                <h3 style="text-align: center; color: #2c5282; margin-bottom: 15px;">選ばれたキーワード一覧</h3>
+                <div id="allSelectedKeywords" class="keyword-grid"></div>
+            </div>
+            <div class="controls">
+                <button class="btn" onclick="playAgain()">もう一度遊ぶ</button>
+                <button class="btn" onclick="resetGame()">最初から</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // キーワードデータ
+        const keywords = {
+            male: [
+                'かっこいい', 'イケメン', '頼もしい', '優しい', '面白い', '賢い', 'センスがいい',
+                '男らしい', 'ダンディ', 'スタイリッシュ', '魅力的', '素敵', 'クール', 'ワイルド',
+                '紳士的', '器が大きい', '包容力がある', '責任感が強い', '決断力がある', '行動力がある',
+                'リーダーシップがある', '信頼できる', '誠実', '正義感が強い', '努力家', '向上心がある',
+                'ポジティブ', '明るい', 'ユーモアがある', '気配りができる', '思いやりがある', '温和',
+                '穏やか', '知的', '博学', '創造的', 'アイデアマン', 'センスがある', 'おしゃれ',
+                '洗練されている', '品がある', 'エレガント', 'シャープ', 'スマート', '有能',
+                '才能がある', '技術力がある', '専門性が高い', '経験豊富', '知識が豊富', '教養がある',
+                '国際的', 'グローバル', '先進的', '革新的', 'チャレンジ精神がある', '冒険心がある',
+                'バイタリティがある', 'エネルギッシュ', 'アクティブ', 'スポーティ', '健康的',
+                '力強い', 'たくましい', '安心感がある', '頼れる', '支えになる', '心強い',
+                '話し上手', 'コミュニケーション能力が高い', '聞き上手', '相談しやすい', '親しみやすい',
+                'フレンドリー', '社交的', '人望がある', '人気者', 'カリスマ性がある', '存在感がある',
+                '印象的', '記憶に残る', 'インパクトがある', '個性的', 'ユニーク', 'オリジナリティがある',
+                '自分らしい', '自然体', '等身大', '飾らない', '素直', '純粋', '真面目', '一生懸命',
+                '熱心', '集中力がある', '継続力がある', '忍耐強い', '粘り強い', '最後までやり抜く',
+                '完璧主義', '丁寧', '几帳面', '整理整頓が得意', '時間を守る', 'ルールを守る',
+                '協調性がある', 'チームワークを大切にする', '仲間思い', '家族思い', '愛情深い',
+                'ロマンチック', 'かわいい', '情熱的', '熱い', 'パッション', '夢がある', '目標がある', 'ビジョンがある'
+            ],
+            female: [
+                '美しい', 'かわいい', '素敵', 'きれい', '上品', 'エレガント', 'おしゃれ',
+                '優しい', '思いやりがある', '温かい', '包容力がある', '母性的', '癒し系', '天使みたい',
+                '笑顔が素敵', '明るい', 'ポジティブ', '元気', 'パワフル', 'エネルギッシュ', 'バイタリティがある',
+                '賢い', '知的', '教養がある', '博学', '洞察力がある', '判断力がある', '冷静',
+                '気配りができる', '細やかな心遣い', 'サービス精神', 'ホスピタリティ', '親切', '世話好き',
+                'センスがいい', 'センス抜群', 'ファッションセンスがいい', 'コーディネート上手', 'スタイルがいい',
+                '女性らしい', 'フェミニン', '上品', '品がある', '洗練されている', 'シック', 'モダン',
+                '魅力的', 'チャーミング', 'キュート', 'ラブリー', 'プリティ', 'ゴージャス', 'グラマラス',
+                'クール', 'かっこいい', 'スタイリッシュ', 'シャープ', 'スマート', 'インテリジェント',
+                '創造的', 'クリエイティブ', 'アーティスティック', '感性豊か', '想像力豊か', 'ロマンチック',
+                '努力家', '向上心がある', 'チャレンジ精神', '積極的', '前向き', '頑張り屋', '一生懸命',
+                '才能がある', '能力が高い', '技術力がある', '専門性が高い', '経験豊富', 'プロフェッショナル',
+                '話し上手', 'コミュニケーション能力が高い', '聞き上手', '相談しやすい', '親しみやすい',
+                'フレンドリー', '社交的', '人気者', '愛されキャラ', 'ムードメーカー', '場を盛り上げる',
+                '個性的', 'ユニーク', 'オリジナリティがある', '自分らしい', '自然体', '飾らない',
+                '素直', '純粋', '真面目', '誠実', '正直', '裏表がない', 'ストレート', 'まっすぐ',
+                '協調性がある', 'チームワークを大切にする', '仲間思い', '友達思い', '家族思い',
+                '健康的', 'ヘルシー', 'アクティブ', 'スポーティ', 'フレッシュ', '若々しい',
+                '穏やか', '落ち着いている', '安らぎを与える', '心の支え', '精神的支柱', '頼りになる',
+                '完璧主義', '丁寧', '几帳面', '整理整頓が得意', '時間を守る', 'マナーがいい',
+                '愛情深い', '情熱的', '熱心', '集中力がある', '継続力がある', '忍耐強い', '粘り強い'
+            ]
+        };
+
+        // ゲーム状態管理
+        let gameState = {
+            players: [],
+            currentParent: null,
+            currentPlayerIndex: 0,
+            selectedKeywords: [],
+            currentKeywordSet: [],
+            hasReset: false,
+            votes: [],
+            // ▼ 変更点2: 新しいプロパティを追加
+            shuffledKeywordsForReveal: [],
+            revealedKeywordIndex: 0
+            // ▲ 変更点2
+        };
+
+        // 初期化
+        function initGame() {
+            addPlayer();
+            addPlayer();
+            addPlayer();
+        }
+
+        // プレイヤー追加
+        function addPlayer() {
+            if (gameState.players.length >= 20) {
+                showError('プレイヤーは最大20人まで追加できます');
+                return;
+            }
+
+            const playerIndex = gameState.players.length;
+            gameState.players.push({ name: '', gender: 'male' });
+            
+            const container = document.getElementById('playerInputs');
+            const playerDiv = document.createElement('div');
+            playerDiv.className = 'player-setup';
+            playerDiv.id = `player${playerIndex}`;
+            
+            playerDiv.innerHTML = `
+                <h3>プレイヤー ${playerIndex + 1}</h3>
+                <div class="form-group">
+                    <label>名前:</label>
+                    <input type="text" id="name${playerIndex}" placeholder="名前を入力">
+                </div>
+                <div class="form-group">
+                    <label>性別:</label>
+                    <div class="gender-buttons">
+                        <div class="gender-btn selected" onclick="selectGender(${playerIndex}, 'male')">男性</div>
+                        <div class="gender-btn" onclick="selectGender(${playerIndex}, 'female')">女性</div>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(playerDiv);
+        }
+
+        // プレイヤー削除
+        function removePlayer() {
+            if (gameState.players.length <= 3) {
+                showError('プレイヤーは最低3人必要です');
+                return;
+            }
+
+            const lastIndex = gameState.players.length - 1;
+            gameState.players.splice(lastIndex, 1);
+            
+            const playerElement = document.getElementById(`player${lastIndex}`);
+            if (playerElement) {
+                playerElement.remove();
+            }
+        }
+
+        // 性別選択
+        function selectGender(playerIndex, gender) {
+            gameState.players[playerIndex].gender = gender;
+            
+            const playerDiv = document.getElementById(`player${playerIndex}`);
+            const buttons = playerDiv.querySelectorAll('.gender-btn');
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            
+            if (gender === 'male') {
+                buttons[0].classList.add('selected');
+            } else {
+                buttons[1].classList.add('selected');
+            }
+        }
+
+        // ゲーム開始
+        function startGame() {
+            // プレイヤー名前取得・バリデーション
+            let valid = true;
+            const names = [];
+            
+            for (let i = 0; i < gameState.players.length; i++) {
+                const nameInput = document.getElementById(`name${i}`);
+                const name = nameInput.value.trim();
+                
+                if (name === '') {
+                    showError('すべてのプレイヤーの名前を入力してください');
+                    valid = false;
+                    break;
+                }
+                
+                if (names.includes(name)) {
+                    showError('同じ名前のプレイヤーがいます');
+                    valid = false;
+                    break;
+                }
+                
+                names.push(name);
+                gameState.players[i].name = name;
+            }
+            
+            if (!valid) return;
+            
+            hideError();
+            showParentSelection();
+        }
+
+        // 親選択画面表示
+        function showParentSelection() {
+            hideAllScreens();
+            document.getElementById('parentScreen').classList.add('active');
+            
+            const container = document.getElementById('parentSelection');
+            container.innerHTML = '';
+            
+            gameState.players.forEach((player, index) => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'player-card';
+                playerDiv.innerHTML = `
+                    <h3>${player.name}</h3>
+                    <p>${player.gender === 'male' ? '男性' : '女性'}</p>
+                `;
+                playerDiv.onclick = () => selectParentCard(index, playerDiv);
+                container.appendChild(playerDiv);
+            });
+        }
+
+        // 親選択
+        function selectParentCard(index, element) {
+            // 他の選択を解除
+            document.querySelectorAll('.player-card').forEach(card => {
+                card.classList.remove('parent');
+            });
+            
+            // 選択した親をハイライト
+            element.classList.add('parent');
+            gameState.currentParent = index;
+        }
+
+        // 親決定
+        function selectParent() {
+            if (gameState.currentParent === null) {
+                alert('親を選択してください');
+                return;
+            }
+            
+            // 子プレイヤーのリストを作成（親以外）
+            gameState.childPlayers = gameState.players.filter((_, index) => index !== gameState.currentParent);
+            gameState.currentPlayerIndex = 0;
+            gameState.selectedKeywords = [];
+            gameState.votes = [];
+            
+            showNextPlayerScreen();
+        }
+
+        // 投票完了確認画面表示
+        function showVoteCompleteScreen() {
+            hideAllScreens();
+            document.getElementById('voteCompleteScreen').classList.add('active');
+        }
+
+        // ▼ 変更点2: 新しい関数を追加
+        // キーワード個別表示画面へ進む
+        function proceedToIndividualKeywordReveal() {
+            // キーワードをシャッフルして、順番を固定
+            gameState.shuffledKeywordsForReveal = [...gameState.selectedKeywords].sort(() => Math.random() - 0.5);
+            gameState.revealedKeywordIndex = 0;
+            showIndividualKeywordScreen();
+        }
+
+        // キーワードを1つずつ表示する
+        function showIndividualKeywordScreen() {
+            hideAllScreens();
+            document.getElementById('individualKeywordScreen').classList.add('active');
+
+            const parent = gameState.players[gameState.currentParent];
+            document.getElementById('individualKeywordParentName').textContent = `${parent.name}さんは...`;
+
+            const keywordItem = gameState.shuffledKeywordsForReveal[gameState.revealedKeywordIndex];
+            const keywordP = document.getElementById('revealedKeyword');
+            
+            // アニメーションをリセットして再実行
+            keywordP.classList.remove('fade-in-zoom');
+            void keywordP.offsetWidth; // DOMリフローをトリガー
+            
+            keywordP.textContent = `「${keywordItem.keyword}」`;
+            keywordP.classList.add('fade-in-zoom');
+
+            // 「次へ」ボタンのテキストを更新
+            const nextBtn = document.getElementById('nextKeywordBtn');
+            if (gameState.revealedKeywordIndex === gameState.shuffledKeywordsForReveal.length - 1) {
+                nextBtn.textContent = '一覧から選ぶ';
+            } else {
+                nextBtn.textContent = '次へ';
+            }
+        }
+
+        // 次のキーワードを表示、または結果画面へ
+        function nextKeywordReveal() {
+            gameState.revealedKeywordIndex++;
+            if (gameState.revealedKeywordIndex < gameState.shuffledKeywordsForReveal.length) {
+                showIndividualKeywordScreen();
+            } else {
+                // 全てのキーワードを表示し終わったら結果画面へ
+                showResults();
+            }
+        }
+        // ▲ 変更点2
+
+        function showNextPlayerScreen() {
+            hideAllScreens();
+            document.getElementById('nextPlayerScreen').classList.add('active');
+            
+            const currentPlayer = gameState.childPlayers[gameState.currentPlayerIndex];
+            const parent = gameState.players[gameState.currentParent];
+            
+            document.getElementById('nextPlayerMessage').innerHTML = 
+                `次は <strong>${currentPlayer.name}</strong> さんの番です<br>
+                親: ${parent.name}さんを褒める言葉を選んでください`;
+        }
+
+        // キーワード選択画面に進む
+        function proceedToKeywordSelection() {
+            showKeywordSelection();
+        }
+        function showKeywordSelection() {
+            hideAllScreens();
+            document.getElementById('keywordScreen').classList.add('active');
+            
+            const currentPlayer = gameState.childPlayers[gameState.currentPlayerIndex];
+            const parent = gameState.players[gameState.currentParent];
+            
+            document.getElementById('currentPlayer').innerHTML = 
+                `<strong>${currentPlayer.name}</strong>さんの番です<br>
+                親: ${parent.name}さん（${parent.gender === 'male' ? '男性' : '女性'}）`;
+            
+            generateKeywords();
+            gameState.hasReset = false;
+            document.getElementById('resetBtn').disabled = false;
+        }
+
+        // キーワード生成
+        function generateKeywords() {
+            const parent = gameState.players[gameState.currentParent];
+            const keywordList = keywords[parent.gender];
+            const shuffled = [...keywordList].sort(() => Math.random() - 0.5);
+            gameState.currentKeywordSet = shuffled.slice(0, 6);
+            
+            const container = document.getElementById('keywordOptions');
+            container.innerHTML = '';
+            
+            gameState.currentKeywordSet.forEach((keyword, index) => {
+                const keywordDiv = document.createElement('div');
+                keywordDiv.className = 'keyword-btn';
+                keywordDiv.textContent = keyword;
+                keywordDiv.onclick = () => selectKeywordCard(index, keywordDiv);
+                container.appendChild(keywordDiv);
+            });
+        }
+
+        // キーワード選択
+        function selectKeywordCard(index, element) {
+            // 他の選択を解除
+            document.querySelectorAll('#keywordOptions .keyword-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // 選択したキーワードをハイライト
+            element.classList.add('selected');
+            gameState.selectedKeywordIndex = index;
+        }
+
+        // キーワード確定
+        function selectKeyword() {
+            if (gameState.selectedKeywordIndex === undefined) {
+                alert('キーワードを選択してください');
+                return;
+            }
+            
+            const selectedKeyword = gameState.currentKeywordSet[gameState.selectedKeywordIndex];
+            const currentPlayer = gameState.childPlayers[gameState.currentPlayerIndex];
+            
+            gameState.selectedKeywords.push({
+                keyword: selectedKeyword,
+                player: currentPlayer
+            });
+            
+            gameState.currentPlayerIndex++;
+            gameState.selectedKeywordIndex = undefined;
+            
+            if (gameState.currentPlayerIndex < gameState.childPlayers.length) {
+                showNextPlayerScreen();
+            } else {
+                showVoteCompleteScreen();
+            }
+        }
+
+        // キーワードリセット
+        function resetKeywords() {
+            if (gameState.hasReset) {
+                alert('キーワードの変更は1回までです');
+                return;
+            }
+            
+            generateKeywords();
+            gameState.hasReset = true;
+            document.getElementById('resetBtn').disabled = true;
+        }
+
+        // ▼ 変更点2: showResults関数を修正
+        // 結果画面表示
+        function showResults() {
+            hideAllScreens();
+            document.getElementById('resultScreen').classList.add('active');
+            
+            const parent = gameState.players[gameState.currentParent];
+            document.getElementById('parentName').textContent = `${parent.name}さん`;
+            
+            const container = document.getElementById('selectedKeywords');
+            container.innerHTML = '';
+            
+            // 個別表示で使ったシャッフル済みのキーワードリストを使用
+            const shuffledKeywords = gameState.shuffledKeywordsForReveal;
+            
+            shuffledKeywords.forEach((item) => {
+                // 元の selectedKeywords 配列でのインデックスを検索
+                const originalIndex = gameState.selectedKeywords.findIndex(originalItem => originalItem === item);
+                const keywordDiv = document.createElement('div');
+                keywordDiv.className = 'keyword-btn';
+                keywordDiv.innerHTML = `<div><strong>${item.keyword}</strong></div>`;
+                keywordDiv.onclick = () => selectWinnerCard(originalIndex, keywordDiv);
+                container.appendChild(keywordDiv);
+            });
+        }
+        // ▲ 変更点2
+
+        // 勝者選択
+        function selectWinnerCard(index, element) {
+            // 他の選択を解除
+            document.querySelectorAll('#selectedKeywords .keyword-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // 選択したキーワードをハイライト
+            element.classList.add('selected');
+            gameState.winnerIndex = index;
+        }
+
+        // 勝者決定
+        function selectWinner() {
+            if (gameState.winnerIndex === undefined) {
+                alert('キーワードを選択してください');
+                return;
+            }
+            
+            const winner = gameState.selectedKeywords[gameState.winnerIndex];
+            showWinner(winner);
+        }
+
+        // ▼ 変更点3: showWinner関数を修正
+        // 勝者発表
+        function showWinner(winner) {
+            hideAllScreens();
+            document.getElementById('winnerScreen').classList.add('active');
+            
+            const parent = gameState.players[gameState.currentParent];
+            document.getElementById('winnerAnnouncement').innerHTML = `
+                  勝者は ${winner.player.name}さん！  <br>
+                選ばれたキーワード: 「${winner.keyword}」<br>
+                親の ${parent.name}さんが一番喜んでくれました！
+            `;
+            
+            // すべてのキーワードを表示
+            const allKeywordsContainer = document.getElementById('allSelectedKeywords');
+            allKeywordsContainer.innerHTML = '';
+            
+            gameState.selectedKeywords.forEach((item) => {
+                const keywordDiv = document.createElement('div');
+                keywordDiv.className = 'keyword-btn';
+                if (item === winner) {
+                    keywordDiv.classList.add('selected');
+                }
+                // プレイヤー名の表示を削除
+                keywordDiv.innerHTML = `
+                    <div><strong>${item.keyword}</strong></div>
+                `;
+                allKeywordsContainer.appendChild(keywordDiv);
+            });
+        }
+        // ▲ 変更点3
+
+        // もう一度遊ぶ
+        function playAgain() {
+            gameState.currentParent = null;
+            gameState.currentPlayerIndex = 0;
+            gameState.selectedKeywords = [];
+            gameState.votes = [];
+            gameState.winnerIndex = undefined;
+            // ▼ 変更点2: プロパティをリセット
+            gameState.shuffledKeywordsForReveal = [];
+            gameState.revealedKeywordIndex = 0;
+            // ▲ 変更点2
+            showParentSelection();
+        }
+
+        // 最初から
+        function resetGame() {
+            gameState = {
+                players: [],
+                currentParent: null,
+                currentPlayerIndex: 0,
+                selectedKeywords: [],
+                currentKeywordSet: [],
+                hasReset: false,
+                votes: [],
+                // ▼ 変更点2: プロパティをリセット
+                shuffledKeywordsForReveal: [],
+                revealedKeywordIndex: 0
+                // ▲ 変更点2
+            };
+            
+            document.getElementById('playerInputs').innerHTML = '';
+            hideAllScreens();
+            document.getElementById('setupScreen').classList.add('active');
+            initGame();
+        }
+
+        // ユーティリティ関数
+        function hideAllScreens() {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('setupError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            const errorDiv = document.getElementById('setupError');
+            errorDiv.style.display = 'none';
+        }
+
+        // ゲーム初期化
+        initGame();
+    </script>
+</body>
+</html>
