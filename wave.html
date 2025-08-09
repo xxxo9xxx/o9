@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
+    <title>ウェーブレングス（修正版）</title>
+    <style>
+        :root{
+            --zone-4-color:#03A9F4;
+            --zone-3-color:#FF9800;
+            --zone-2-color:#FFC107;
+            --needle-color:#F44336;
+            --bg-color:#F0F2F5;
+            --dial-bg-color:#E0E5EC;
+            --text-color:#333;
+            --dial-frame-color:#3D4A5E;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+            background:var(--bg-color);
+            min-height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:16px;
+            color:var(--text-color);
+        }
+        .game-container{
+            width:100%;
+            max-width:480px;
+            background:#fff;
+            border-radius:16px;
+            padding:20px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.08);
+        }
+        .header{text-align:center;margin-bottom:14px;border-bottom:1px solid #eee;padding-bottom:12px;}
+        .title{font-size:1.6rem;color:var(--dial-frame-color)}
+        .topic-display{background:#f8f9fa;border-radius:10px;padding:12px;margin-bottom:16px}
+        .topic-text{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:1.1rem}
+        .phase-content{text-align:center}
+        .phase-description{color:#666;margin-bottom:10px}
+        .hint-input{width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;margin-bottom:10px}
+        .hint-display{background:var(--zone-2-color);border-radius:8px;padding:8px 12px;margin:10px 0}
+        .hint-text{color:white;font-weight:700}
+        .btn{width:100%;padding:10px;border:none;border-radius:40px;background:linear-gradient(45deg,#2196F3,#03A9F4);color:white;font-weight:700;cursor:pointer}
+        .btn-secondary{background:linear-gradient(45deg,#673AB7,#9C27B0)}
+        .hidden{display:none}
+
+        /* 半円ダイヤル共通 */
+        .wavelength-dial{
+            position:relative;
+            width:320px;
+            max-width:100%;
+            height:160px; /* 半円の高さ = 半径 */
+            margin:10px auto 6px;
+            border-top-left-radius:160px;
+            border-top-right-radius:160px;
+            background:var(--dial-bg-color);
+            border:8px solid var(--dial-frame-color);
+            overflow:visible;
+        }
+
+        /* SVGを全面に */
+        .wavelength-dial svg{
+            position:absolute;
+            left:0;
+            top:0;
+            width:100%;
+            height:100%;
+            overflow:visible;
+        }
+
+        /* 針（CSSで回転） */
+        .needle{
+            position:absolute;
+            left:50%;
+            bottom:0;
+            width:4px;
+            height:140px; /* 針の長さ（調整可） */
+            background:var(--needle-color);
+            transform-origin:50% 100%;
+            transform:translateX(-50%) rotate(0deg);
+            box-shadow:0 0 10px rgba(0,0,0,0.18);
+            z-index:6;
+            border-radius:2px;
+        }
+
+        /* ノブ（円） — JSで弧上に移動 */
+        .knob{
+            position:absolute;
+            width:32px;
+            height:32px;
+            border-radius:50%;
+            background:var(--needle-color);
+            border:4px solid #fff;
+            box-shadow:0 6px 14px rgba(0,0,0,0.15);
+            transform:translate(-50%,-50%);
+            z-index:7;
+            touch-action:none;
+            cursor:grab;
+        }
+        .knob:active{cursor:grabbing}
+
+        .gauge-value{font-weight:700;margin:6px 0}
+        .score-display{font-size:1.6rem;font-weight:800;margin-top:12px}
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <div class="title">ウェーブレングス（修正版）</div>
+        </div>
+
+        <div class="topic-display">
+            <div class="topic-text" id="topicText"><span>-</span><span>⇔</span><span>-</span></div>
+        </div>
+
+        <!-- フェーズ1 -->
+        <div class="game-phase" id="phase-start">
+            <div class="phase-content">
+                <p class="phase-description">新しいゲームを始めましょう</p>
+                <button class="btn" onclick="startGame()">ゲーム開始</button>
+            </div>
+        </div>
+
+        <!-- フェーズ2: ヒント出し役に見せる（正解ゾーン）-->
+        <div class="game-phase hidden" id="phase-psychic">
+            <div class="phase-content">
+                <h3>ヒント出し役へ</h3>
+                <p class="phase-description">この正解エリアを見てヒントを出してください</p>
+                <div class="wavelength-dial" id="psychic-dial">
+                    <svg id="psychic-svg" viewBox="0 0 320 160" preserveAspectRatio="none" aria-hidden="true"></svg>
+                </div>
+                <button class="btn" style="margin-top:12px" onclick="goToHintPhase()">OK、ヒントを考える</button>
+            </div>
+        </div>
+
+        <!-- フェーズ3: ヒント入力 -->
+        <div class="game-phase hidden" id="phase-hint">
+            <div class="phase-content">
+                <h3>ヒントを入力</h3>
+                <input id="hintInput" class="hint-input" placeholder="例: ぬるま湯" />
+                <button class="btn" onclick="submitHint()">ヒントを出す</button>
+            </div>
+        </div>
+
+        <!-- フェーズ4: 推測（回答者）-->
+        <div class="game-phase hidden" id="phase-guess">
+            <div class="phase-content">
+                <h3>回答者は推測してください</h3>
+                <div class="hint-display"><div class="hint-text" id="displayHint">ヒント: </div></div>
+
+                <div class="wavelength-dial" id="guess-dial">
+                    <svg id="guess-svg" viewBox="0 0 320 160" preserveAspectRatio="none" aria-hidden="true"></svg>
+                    <div class="needle" id="needle"></div>
+                    <div class="knob" id="knob" role="slider" aria-valuemin="0" aria-valuemax="100" tabindex="0"></div>
+                </div>
+
+                <div class="gauge-value">推測値: <span id="gaugeValue">50</span></div>
+                <button class="btn" onclick="submitGuess()">これで決定！</button>
+            </div>
+        </div>
+
+        <!-- フェーズ5: 結果 -->
+        <div class="game-phase hidden" id="phase-result">
+            <div class="phase-content">
+                <h3>結果発表！</h3>
+                <div class="hint-display"><div class="hint-text" id="resultHint">ヒント: </div></div>
+
+                <div class="wavelength-dial" id="result-dial">
+                    <svg id="result-svg" viewBox="0 0 320 160" preserveAspectRatio="none" aria-hidden="true"></svg>
+                    <div class="needle" id="result-needle"></div>
+                </div>
+
+                <div class="score-display" id="scoreDisplay">得点: ?</div>
+                <button class="btn btn-secondary" onclick="newGame()">新しいゲームを始める</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // --- DOM ---
+    const topicTextEl = document.getElementById('topicText');
+    const hintInputEl = document.getElementById('hintInput');
+    const displayHintEl = document.getElementById('displayHint');
+    const resultHintEl = document.getElementById('resultHint');
+    const gaugeValueEl = document.getElementById('gaugeValue');
+    const scoreDisplayEl = document.getElementById('scoreDisplay');
+
+    const guessDial = document.getElementById('guess-dial');
+    const guessSvg = document.getElementById('guess-svg');
+    const psychicSvg = document.getElementById('psychic-svg');
+    const resultSvg = document.getElementById('result-svg');
+
+    const needleEl = document.getElementById('needle');
+    const knobEl = document.getElementById('knob');
+    const resultNeedleEl = document.getElementById('result-needle');
+
+    // --- 状態 ---
+    const gameState = {
+        topic: null,
+        targetAngle: 0, // -90 .. +90
+        hint: '',
+        guessAngle: 0,  // -90 .. +90
+        score: 0
+    };
+
+    const dialState = { isDragging:false };
+
+    // 設定（角度幅は度）
+    const scoreZones = [
+        { points:4, width:10, color: 'var(--zone-4-color)' },
+        { points:3, width:20, color: 'var(--zone-3-color)' },
+        { points:2, width:30, color: 'var(--zone-2-color)' }
+    ];
+
+    const topics = [
+        {left:"下手", right:"上手"}, {left:"アナログ", right:"デジタル"},
+        {left:"無名", right:"有名"}, {left:"悪", right:"善"},
+        {left:"ダサい", right:"おしゃれ"}, {left:"必須", right:"不要"},
+        {left:"冷たい", right:"熱い"}, {left:"汚い", right:"きれい"},
+        {left:"普通", right:"変わってる"}, {left:"軽犯罪", right:"重罪"}
+    ];
+
+    // --- フェーズ操作 ---
+    function showPhase(phaseId){
+        document.querySelectorAll('.game-phase').forEach(p => p.classList.add('hidden'));
+        document.getElementById(phaseId).classList.remove('hidden');
+    }
+
+    function startGame(){
+        gameState.topic = topics[Math.floor(Math.random()*topics.length)];
+        // ターゲット角度: -80..+80
+        gameState.targetAngle = Math.random()*160 - 80;
+
+        topicTextEl.innerHTML = `<span>${gameState.topic.left}</span><span>⇔</span><span>${gameState.topic.right}</span>`;
+
+        // 描画（心理役用）
+        drawScoreZonesSVG(psychicSvg, gameState.targetAngle);
+
+        // reset
+        hintInputEl.value = '';
+        gameState.hint = '';
+        gameState.guessAngle = 0;
+        updateNeedle(needleEl, 0);
+        updateGaugeValue(0);
+
+        showPhase('phase-psychic');
+    }
+
+    function goToHintPhase(){
+        showPhase('phase-hint');
+    }
+
+    function submitHint(){
+        const h = hintInputEl.value.trim();
+        if(!h){ alert('ヒントを入力してください'); return; }
+        gameState.hint = h;
+        displayHintEl.textContent = `ヒント: ${h}`;
+
+        // Guess用ダイヤルにも（視覚的に補助を入れるが得点ゾーンは隠しておきたい場合はコメントアウト）
+        drawScoreZonesSVG(guessSvg, null); // nullでゾーン非表示（外部に見せない）
+        // result用は後で描く
+
+        gameState.guessAngle = 0;
+        updateNeedle(needleEl, 0);
+        updateGaugeValue(0);
+        positionKnobByAngle(knobEl, guessDial, 0);
+
+        showPhase('phase-guess');
+    }
+
+    function submitGuess(){
+        // 得点計算
+        calculateScore();
+
+        // 表示更新
+        resultHintEl.textContent = `ヒント: ${gameState.hint}`;
+        scoreDisplayEl.textContent = `${gameState.score}点 獲得！`;
+
+        // 結果ダイヤル（見せる）
+        drawScoreZonesSVG(resultSvg, gameState.targetAngle);
+        updateNeedle(resultNeedleEl, gameState.guessAngle);
+
+        showPhase('phase-result');
+    }
+
+    function newGame(){
+        hintInputEl.value = '';
+        showPhase('phase-start');
+    }
+
+    // --- SVG描画（半円に放射状扇形） ---
+    // svgEl: <svg> 要素
+    // centerAngle: 中心角度（-90..+90）; null ならゾーンを表示しない（クリア）
+    function drawScoreZonesSVG(svgEl, centerAngle){
+        // viewBoxは 0 0 320 160（width=320 height=半径=160）
+        svgEl.innerHTML = ''; // クリア
+        if (centerAngle === null || centerAngle === undefined) return;
+
+        const W = 320, H = 160;
+        const cx = W/2, cy = H;
+        const r = W/2; // 半円の半径
+
+        // helper: 度->座標
+        const degToPoint = (angleDeg) => {
+            // angleDeg: -90(left) .. 0(top) .. +90(right), convert to svg rad
+            const rad = (angleDeg - 90) * Math.PI / 180; // 説明で使用した式
+            const x = cx + r * Math.cos(rad);
+            const y = cy + r * Math.sin(rad);
+            return {x,y};
+        };
+
+        scoreZones.slice().sort((a,b)=>b.points - a.points).forEach(zone=>{
+            const half = zone.width/2;
+            let start = Math.max(-90, centerAngle - half);
+            let end   = Math.min(90, centerAngle + half);
+            if (end <= start) return;
+
+            const p1 = degToPoint(start);
+            const p2 = degToPoint(end);
+
+            // arc flags
+            const largeArc = (Math.abs(end - start) > 180) ? 1 : 0;
+            const sweep = 1; // clockwise
+
+            // path: move to center, line to p1, arc to p2, close
+            const d = `M ${cx} ${cy} L ${p1.x} ${p1.y} A ${r} ${r} 0 ${largeArc} ${sweep} ${p2.x} ${p2.y} Z`;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+            path.setAttribute('d', d);
+            path.setAttribute('fill', zone.color);
+            path.setAttribute('opacity', 0.95);
+            svgEl.appendChild(path);
+        });
+
+        // Optional: draw semicircle outline
+        const outline = document.createElementNS('http://www.w3.org/2000/svg','path');
+        const left = degToPoint(-90), right = degToPoint(90);
+        outline.setAttribute('d', `M ${left.x} ${left.y} A ${r} ${r} 0 0 1 ${right.x} ${right.y}`);
+        outline.setAttribute('stroke','rgba(61,74,94,0.9)');
+        outline.setAttribute('stroke-width','4');
+        outline.setAttribute('fill','none');
+        svgEl.appendChild(outline);
+    }
+
+    // --- スコア計算 ---
+    function calculateScore(){
+        const diff = Math.abs(gameState.guessAngle - gameState.targetAngle);
+        let score = 0;
+        scoreZones.slice().sort((a,b)=>a.width - b.width).forEach(zone=>{
+            if (diff <= zone.width/2){
+                if (zone.points > score) score = zone.points;
+            }
+        });
+        gameState.score = score;
+    }
+
+    // --- 針・ゲージ更新 ---
+    function updateNeedle(el, angle){
+        if(!el) return;
+        // angle は -90..+90
+        el.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+    }
+    function updateGaugeValue(angle){
+        const val = Math.round(((angle + 90) / 180) * 100);
+        if (gaugeValueEl) gaugeValueEl.textContent = val;
+    }
+
+    // --- ノブを弧上に移動させる ---
+    function positionKnobByAngle(knob, dialEl, angle){
+        // dialEl の実サイズを参照して位置を決定（%に変換）
+        const rect = dialEl.getBoundingClientRect();
+        const W = 320, H = 160; // viewBox基準に合わせる（CSSで幅が変わっても比率は保つ）
+        const cx = W/2, cy = H, r = W/2;
+        const rad = (angle - 90) * Math.PI / 180;
+        const x = cx + r * Math.cos(rad); // SVG座標
+        const y = cy + r * Math.sin(rad);
+        // 求めた x,y を dialEl 内のパーセンテージに変換
+        const leftPct = (x / W) * 100;
+        const topPct  = (y / H) * 100;
+        knob.style.left = `${leftPct}%`;
+        knob.style.top  = `${topPct}%`;
+    }
+
+    // --- ダイヤル操作（knob をドラッグ） ---
+    function handleDragStart(e){
+        if (e.type === 'touchstart') e.preventDefault();
+        dialState.isDragging = true;
+        knobEl.style.cursor = 'grabbing';
+    }
+
+    function handleDragMove(e){
+        if (!dialState.isDragging) return;
+        if (e.type === 'touchmove') e.preventDefault();
+
+        // どのダイヤルのノブかを基準にする（knobEl.closest）
+        const knob = knobEl;
+        const dial = knob.closest('.wavelength-dial');
+        if (!dial) return;
+        const rect = dial.getBoundingClientRect();
+
+        const clientX = (e.touches ? e.touches[0].clientX : e.clientX);
+        const clientY = (e.touches ? e.touches[0].clientY : e.clientY);
+
+        // 半円の底辺中心を基点
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height;
+
+        // 上方向を正にするため centerY - clientY
+        const dx = clientX - centerX;
+        const dy = centerY - clientY;
+
+        // atan2(dy, dx) -> rad, map to our angle definition (-90..+90)
+        // formula: angleDeg = atan2(dy, dx) * 180/PI
+        let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        // angle range is -180..+180; for our semicircle we want -90..+90
+        angle = Math.max(-90, Math.min(90, angle));
+
+        gameState.guessAngle = angle;
+        updateNeedle(needleEl, angle);
+        updateGaugeValue(angle);
+        positionKnobByAngle(knob, dial, angle);
+    }
+
+    function handleDragEnd(e){
+        dialState.isDragging = false;
+        knobEl.style.cursor = 'grab';
+    }
+
+    // キーボード操作（アクセシビリティで左右）
+    knobEl.addEventListener('keydown', (e)=>{
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowDown'){
+            gameState.guessAngle = Math.max(-90, gameState.guessAngle - 2);
+        } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp'){
+            gameState.guessAngle = Math.min(90, gameState.guessAngle + 2);
+        } else return;
+        updateNeedle(needleEl, gameState.guessAngle);
+        updateGaugeValue(gameState.guessAngle);
+        positionKnobByAngle(knobEl, guessDial, gameState.guessAngle);
+        e.preventDefault();
+    });
+
+    // イベント登録
+    knobEl.addEventListener('mousedown', handleDragStart);
+    knobEl.addEventListener('touchstart', handleDragStart, {passive:false});
+    window.addEventListener('mousemove', handleDragMove);
+    window.addEventListener('touchmove', handleDragMove, {passive:false});
+    window.addEventListener('mouseup', handleDragEnd);
+    window.addEventListener('touchend', handleDragEnd);
+
+    // ウィンドウリサイズ時にノブを再配置
+    window.addEventListener('resize', ()=>{
+        // guessフェーズで表示されているときはノブの位置を更新
+        positionKnobByAngle(knobEl, guessDial, gameState.guessAngle);
+    });
+
+    // 初期表示
+    showPhase('phase-start');
+
+    // 画面遷移や初期化でノブ位置を合わせる（念のため）
+    // （心理役用のゾーン描画は startGame() 内で行う）
+    </script>
+</body>
+</html>
