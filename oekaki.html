@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>線画チャレンジ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 900px;
+            width: 90%;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .start-button, .restart-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin: 20px 10px;
+        }
+
+        .start-button:hover, .restart-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        canvas {
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            background: white;
+            margin: 20px auto;
+            display: block;
+            cursor: crosshair;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .timer {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .phase-text {
+            font-size: 1.5rem;
+            margin: 15px 0;
+            color: #2c3e50;
+        }
+
+        .score {
+            font-size: 2.5rem;
+            color: #27ae60;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .instructions {
+            background: rgba(103, 126, 234, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+        }
+
+        .result-overlay {
+            position: relative;
+        }
+
+        .overlay-canvas {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 3px solid #e74c3c;
+            border-radius: 15px;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 20px;
+                width: 95%;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            canvas {
+                width: 300px;
+                height: 225px;
+            }
+            
+            .timer {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- スタート画面 -->
+        <div id="startScreen" class="screen active">
+            <h1>🎨 線画チャレンジ 🎨</h1>
+            <div class="instructions">
+                <p><strong>ゲームの遊び方：</strong></p>
+                <p>1. お題の絵を5秒間見て覚えよう！</p>
+                <p>2. 記憶を頼りに絵を描こう！</p>
+                <p>3. どれだけ上手に描けるかな？</p>
+            </div>
+            <button class="start-button" onclick="startGame()">ゲームスタート！</button>
+        </div>
+
+        <!-- お題表示フェーズ -->
+        <div id="showScreen" class="screen">
+            <h2>お題をよく見て覚えよう！</h2>
+            <canvas id="showCanvas" width="400" height="300"></canvas>
+            <div class="timer" id="showTimer">5</div>
+            <div class="phase-text">このお題を覚えてね！</div>
+            <button class="start-button" id="startDrawButton" onclick="startDrawing()" style="display: none; margin-top: 15px;">描画スタート！</button>
+        </div>
+
+        <!-- 描画フェーズ -->
+        <div id="drawScreen" class="screen">
+            <h2>思い出して描いてみよう！</h2>
+            <canvas id="drawCanvas" width="400" height="300"></canvas>
+            <div class="timer" id="drawTimer">30</div>
+            <div class="phase-text">マウスやタッチで絵を描こう！</div>
+            <button class="start-button" id="completeButton" onclick="completeDrawing()" style="margin-top: 15px;">完成！</button>
+        </div>
+
+        <!-- 結果フェーズ -->
+        <div id="resultScreen" class="screen">
+            <h2>結果発表！</h2>
+            <div class="result-overlay">
+                <canvas id="resultCanvas" width="400" height="300"></canvas>
+                <canvas id="overlayCanvas" class="overlay-canvas" width="400" height="300"></canvas>
+            </div>
+            <div class="score" id="finalScore">0点</div>
+            <div class="phase-text" id="scoreComment">がんばったね！</div>
+            <button class="restart-button" onclick="startGame()">もう一度チャレンジ！</button>
+        </div>
+    </div>
+
+    <script>
+        // グローバル変数
+        var currentPhase = 'start';
+        var currentSubject = null;
+        var playerDrawing = [];
+        var isDrawing = false;
+        var lastPoint = null;
+        var drawTimer = null;
+
+        // お題データ
+        var subjects = [
+            {
+                name: '家',
+                draw: function(ctx) {
+                    ctx.beginPath();
+                    ctx.rect(150, 180, 100, 80);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(140, 180);
+                    ctx.lineTo(200, 130);
+                    ctx.lineTo(260, 180);
+                    ctx.closePath();
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.rect(180, 220, 20, 40);
+                    ctx.stroke();
+                },
+                points: [
+                    {x: 150, y: 180}, {x: 250, y: 180}, {x: 250, y: 260}, {x: 150, y: 260},
+                    {x: 150, y: 180}, {x: 200, y: 130}, {x: 250, y: 180}, {x: 190, y: 220}
+                ]
+            },
+            {
+                name: '顔',
+                draw: function(ctx) {
+                    ctx.beginPath();
+                    ctx.arc(200, 180, 60, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(180, 160, 8, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(220, 160, 8, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(200, 200, 20, 0, Math.PI);
+                    ctx.stroke();
+                },
+                points: [
+                    {x: 200, y: 120}, {x: 240, y: 150}, {x: 250, y: 180}, {x: 240, y: 210},
+                    {x: 200, y: 240}, {x: 160, y: 210}, {x: 150, y: 180}, {x: 160, y: 150}
+                ]
+            },
+            {
+                name: '星',
+                draw: function(ctx) {
+                    ctx.beginPath();
+                    ctx.moveTo(200, 130);
+                    ctx.lineTo(210, 165);
+                    ctx.lineTo(245, 165);
+                    ctx.lineTo(220, 190);
+                    ctx.lineTo(230, 225);
+                    ctx.lineTo(200, 205);
+                    ctx.lineTo(170, 225);
+                    ctx.lineTo(180, 190);
+                    ctx.lineTo(155, 165);
+                    ctx.lineTo(190, 165);
+                    ctx.closePath();
+                    ctx.stroke();
+                },
+                points: [
+                    {x: 200, y: 130}, {x: 210, y: 165}, {x: 245, y: 165}, {x: 220, y: 190},
+                    {x: 230, y: 225}, {x: 200, y: 205}, {x: 170, y: 225}, {x: 180, y: 190}
+                ]
+            },
+            {
+                name: 'ハート',
+                draw: function(ctx) {
+                    ctx.beginPath();
+                    ctx.arc(180, 160, 25, 0, Math.PI, true);
+                    ctx.arc(220, 160, 25, 0, Math.PI, true);
+                    ctx.lineTo(200, 220);
+                    ctx.closePath();
+                    ctx.stroke();
+                },
+                points: [
+                    {x: 155, y: 160}, {x: 180, y: 135}, {x: 200, y: 140}, {x: 220, y: 135},
+                    {x: 245, y: 160}, {x: 230, y: 180}, {x: 200, y: 220}, {x: 170, y: 180}
+                ]
+            },
+            {
+                name: '車',
+                draw: function(ctx) {
+                    ctx.beginPath();
+                    ctx.rect(140, 200, 120, 40);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.rect(160, 180, 80, 20);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(170, 250, 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(230, 250, 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                },
+                points: [
+                    {x: 140, y: 200}, {x: 260, y: 200}, {x: 260, y: 240}, {x: 140, y: 240},
+                    {x: 160, y: 180}, {x: 240, y: 180}, {x: 170, y: 235}, {x: 230, y: 235}
+                ]
+            }
+        ];
+
+        // キャンバス要素とコンテキスト
+        var showCanvas, drawCanvas, resultCanvas, overlayCanvas;
+        var showCtx, drawCtx, resultCtx, overlayCtx;
+
+        // 初期化
+        function init() {
+            showCanvas = document.getElementById('showCanvas');
+            drawCanvas = document.getElementById('drawCanvas');
+            resultCanvas = document.getElementById('resultCanvas');
+            overlayCanvas = document.getElementById('overlayCanvas');
+
+            showCtx = showCanvas.getContext('2d');
+            drawCtx = drawCanvas.getContext('2d');
+            resultCtx = resultCanvas.getContext('2d');
+            overlayCtx = overlayCanvas.getContext('2d');
+
+            // キャンバス設定
+            setupCanvas(showCtx);
+            setupCanvas(drawCtx);
+            setupCanvas(resultCtx);
+            setupCanvas(overlayCtx);
+
+            // 描画イベント設定
+            setupDrawing();
+        }
+
+        function setupCanvas(ctx) {
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = '#000';
+        }
+
+        function setupDrawing() {
+            drawCanvas.addEventListener('mousedown', startDraw);
+            drawCanvas.addEventListener('mousemove', draw);
+            drawCanvas.addEventListener('mouseup', endDraw);
+            drawCanvas.addEventListener('touchstart', handleTouch);
+            drawCanvas.addEventListener('touchmove', handleTouch);
+            drawCanvas.addEventListener('touchend', endDraw);
+        }
+
+        function getEventPos(e) {
+            var rect = drawCanvas.getBoundingClientRect();
+            var scaleX = drawCanvas.width / rect.width;
+            var scaleY = drawCanvas.height / rect.height;
+            
+            if (e.touches) {
+                e.preventDefault();
+                return {
+                    x: (e.touches[0].clientX - rect.left) * scaleX,
+                    y: (e.touches[0].clientY - rect.top) * scaleY
+                };
+            }
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        function startDraw(e) {
+            if (currentPhase !== 'draw') return;
+            isDrawing = true;
+            lastPoint = getEventPos(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing || currentPhase !== 'draw') return;
+            var pos = getEventPos(e);
+            
+            drawCtx.beginPath();
+            drawCtx.moveTo(lastPoint.x, lastPoint.y);
+            drawCtx.lineTo(pos.x, pos.y);
+            drawCtx.stroke();
+            
+            playerDrawing.push({x: pos.x, y: pos.y});
+            lastPoint = pos;
+        }
+
+        function endDraw() {
+            isDrawing = false;
+        }
+
+        function handleTouch(e) {
+            switch(e.type) {
+                case 'touchstart':
+                    startDraw(e);
+                    break;
+                case 'touchmove':
+                    draw(e);
+                    break;
+            }
+        }
+
+        function showScreen(screenId) {
+            var screens = document.querySelectorAll('.screen');
+            for (var i = 0; i < screens.length; i++) {
+                screens[i].classList.remove('active');
+            }
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function countdown(elementId, seconds, callback) {
+            var element = document.getElementById(elementId);
+            var timeLeft = seconds;
+            
+            var timer = setInterval(function() {
+                element.textContent = timeLeft;
+                timeLeft--;
+                
+                if (timeLeft < 0) {
+                    clearInterval(timer);
+                    callback();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            // ランダムなお題選択
+            currentSubject = subjects[Math.floor(Math.random() * subjects.length)];
+            playerDrawing = [];
+            
+            // キャンバスクリア
+            showCtx.clearRect(0, 0, showCanvas.width, showCanvas.height);
+            drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+            resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+            overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            
+            // ボタンとタイマーをリセット
+            document.getElementById('startDrawButton').style.display = 'none';
+            document.getElementById('showTimer').style.display = 'block';
+            document.querySelector('#showScreen .phase-text').textContent = 'このお題を覚えてね！';
+            
+            // お題表示フェーズ
+            currentPhase = 'show';
+            showScreen('showScreen');
+            currentSubject.draw(showCtx);
+            
+            countdown('showTimer', 5, function() {
+                // 描画スタートボタンを表示
+                document.getElementById('startDrawButton').style.display = 'inline-block';
+                document.getElementById('showTimer').style.display = 'none';
+                document.querySelector('#showScreen .phase-text').textContent = '覚えたら描画スタートボタンを押してね！';
+            });
+        }
+
+        function startDrawing() {
+            currentPhase = 'draw';
+            showScreen('drawScreen');
+            
+            var timeLeft = 30;
+            var timerElement = document.getElementById('drawTimer');
+            drawTimer = setInterval(function() {
+                timerElement.textContent = timeLeft;
+                timeLeft--;
+                
+                if (timeLeft < 0) {
+                    clearInterval(drawTimer);
+                    completeDrawing();
+                }
+            }, 1000);
+        }
+
+        function completeDrawing() {
+            if (currentPhase !== 'draw') return;
+            if (drawTimer) {
+                clearInterval(drawTimer);
+            }
+            currentPhase = 'result';
+            showResult();
+        }
+
+        function showResult() {
+            showScreen('resultScreen');
+            
+            // お題を再描画
+            currentSubject.draw(resultCtx);
+            
+            // プレイヤーの描画を重ね合わせ
+            if (playerDrawing.length > 0) {
+                overlayCtx.strokeStyle = '#e74c3c';
+                overlayCtx.beginPath();
+                overlayCtx.moveTo(playerDrawing[0].x, playerDrawing[0].y);
+                for (var i = 1; i < playerDrawing.length; i++) {
+                    overlayCtx.lineTo(playerDrawing[i].x, playerDrawing[i].y);
+                }
+                overlayCtx.stroke();
+            }
+            
+            // スコア計算
+            var score = calculateScore();
+            document.getElementById('finalScore').textContent = score + '点';
+            
+            // コメント表示
+            var comment = getScoreComment(score);
+            document.getElementById('scoreComment').textContent = comment;
+        }
+
+        function calculateScore() {
+            if (playerDrawing.length === 0) return 0;
+            
+            var subjectPoints = currentSubject.points;
+            var matchedPoints = 0;
+            var totalPossiblePoints = subjectPoints.length;
+            
+            for (var i = 0; i < subjectPoints.length; i++) {
+                var subjectPoint = subjectPoints[i];
+                var minDistance = Infinity;
+                
+                for (var j = 0; j < playerDrawing.length; j++) {
+                    var playerPoint = playerDrawing[j];
+                    var distance = Math.sqrt(
+                        Math.pow(playerPoint.x - subjectPoint.x, 2) + 
+                        Math.pow(playerPoint.y - subjectPoint.y, 2)
+                    );
+                    minDistance = Math.min(minDistance, distance);
+                }
+                
+                if (minDistance <= 30) {
+                    matchedPoints += 1;
+                } else if (minDistance <= 60) {
+                    matchedPoints += 0.7;
+                } else if (minDistance <= 90) {
+                    matchedPoints += 0.4;
+                } else if (minDistance <= 120) {
+                    matchedPoints += 0.1;
+                }
+            }
+            
+            var drawingDensity = playerDrawing.length;
+            var penaltyMultiplier = 1;
+            if (drawingDensity > 200) {
+                penaltyMultiplier = 0.8;
+            } else if (drawingDensity < 20) {
+                penaltyMultiplier = 0.6;
+            }
+            
+            var baseScore = (matchedPoints / totalPossiblePoints) * 100;
+            var finalScore = Math.max(0, Math.min(100, Math.round(baseScore * penaltyMultiplier)));
+            
+            return finalScore;
+        }
+
+        function getScoreComment(score) {
+            if (score >= 85) return '素晴らしい！完璧だね！🌟';
+            if (score >= 70) return 'とても上手！よくできました！👏';
+            if (score >= 55) return 'いいね！なかなか上手だよ！😊';
+            if (score >= 40) return 'がんばったね！もう少しだった！💪';
+            if (score >= 25) return '惜しい！次はもっと上手に描けるよ！🎨';
+            if (score >= 10) return '大丈夫！練習すればきっと上手になる！📝';
+            return 'もう一度チャレンジしてみよう！きっとできる！✨';
+        }
+
+        // ページ読み込み後に初期化
+        window.onload = function() {
+            init();
+        };
+    </script>
+</body>
+</html>
