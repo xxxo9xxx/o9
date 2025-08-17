@@ -1,0 +1,1291 @@
+import React, { useState, useEffect, useCallback } from 'react';
+
+const ShootingGame = () => {
+  const [score, setScore] = useState(0);
+  const [bullets, setBullets] = useState(999); // 実質無制限
+  const [timeLeft, setTimeLeft] = useState(60); // 60秒の制限時間
+  const [targets, setTargets] = useState([]);
+  const [items, setItems] = useState([]);
+  const [gameActive, setGameActive] = useState(false);
+  const [crosshair, setCrosshair] = useState({ x: 0, y: 0 });
+  const [showCrosshair, setShowCrosshair] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState('beginner');
+  const [showLevelSelect, setShowLevelSelect] = useState(true);
+
+  // レベル設定
+  const levelSettings = {
+    beginner: {
+      name: '初級',
+      emoji: '🟢',
+      description: 'ゆっくりと大きめの的',
+      targetInterval: 2500,
+      maxTargets: 5,
+      minSize: 60,
+      maxSize: 100,
+      timeLimit: 90, // 90秒
+      targetLifetime: 4000,
+      theme: {
+        title: '🌳 森の射的場',
+        background: 'linear-gradient(to bottom, #87CEEB 0%, #98FB98 40%, #8FBC8F 70%, #228B22 100%)',
+        groundColor: 'from-green-800 to-green-900',
+        borderColor: 'border-amber-800',
+        description: '静かな森での練習'
+      }
+    },
+    intermediate: {
+      name: '中級',
+      emoji: '🟡',
+      description: '標準的な速度とサイズ',
+      targetInterval: 1500,
+      maxTargets: 6,
+      minSize: 40,
+      maxSize: 80,
+      timeLimit: 60, // 60秒
+      targetLifetime: 3000,
+      theme: {
+        title: '🏙️ 都市の射的場',
+        background: 'linear-gradient(to bottom, #FFB347 0%, #FF8C69 30%, #696969 60%, #2F4F4F 100%)',
+        groundColor: 'from-gray-700 to-gray-900',
+        borderColor: 'border-gray-600',
+        description: '都市の屋上での訓練'
+      }
+    },
+    advanced: {
+      name: '上級',
+      emoji: '🔴',
+      description: '高速で小さな的',
+      targetInterval: 1000,
+      maxTargets: 8,
+      minSize: 25,
+      maxSize: 60,
+      timeLimit: 45, // 45秒
+      targetLifetime: 2000,
+      theme: {
+        title: '🌌 宇宙の射的場',
+        background: 'linear-gradient(to bottom, #000428 0%, #004e92 30%, #0a0a0a 60%, #1a1a2e 100%)',
+        groundColor: 'from-purple-900 to-black',
+        borderColor: 'border-purple-500',
+        description: '宇宙ステーションでの特訓'
+      }
+    }
+  };
+
+  const currentLevel = levelSettings[selectedLevel];
+
+  // タイマー管理
+  useEffect(() => {
+    if (!gameActive) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          setGameActive(false);
+          setShowCrosshair(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [gameActive]);
+
+  // 効果音を再生する関数
+  const playSound = (type) => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      if (type === 'hit') {
+        // 的命中音 - 高い音から低い音へ
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.3);
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        oscillator.type = 'triangle';
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.3);
+      } else if (type === 'moving') {
+        // 動く的命中音 - 華やかな上昇音
+        oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.4);
+        gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+        oscillator.type = 'sine';
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.4);
+      } else if (type === 'negative') {
+        // マイナス的命中音 - 不協和音
+        oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(140, audioContext.currentTime + 0.1);
+        oscillator.frequency.setValueAtTime(130, audioContext.currentTime + 0.2);
+        gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+        oscillator.type = 'sawtooth';
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.4);
+      } else if (type === 'timeBomb') {
+        // 時間爆弾音 - 爆発音
+        oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.5);
+        gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        oscillator.type = 'square';
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.5);
+      } else if (type === 'item') {
+        // アイテム取得音 - キラキラ音
+        oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.1);
+        oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.2);
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        oscillator.type = 'sine';
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.3);
+      }
+    } catch (error) {
+      // 効果音が再生できない場合は無視
+      console.log('Audio not supported');
+    }
+  };
+
+  // 爆発エフェクトを作成する関数
+  const createExplosion = (x, y, gameArea, type = 'normal') => {
+    if (type === 'negative') {
+      // マイナス的用の暗いエフェクト
+      const explosion = document.createElement('div');
+      explosion.style.position = 'absolute';
+      explosion.style.left = (x - 25) + 'px';
+      explosion.style.top = (y - 25) + 'px';
+      explosion.style.width = '50px';
+      explosion.style.height = '50px';
+      explosion.style.background = 'radial-gradient(circle, #8B0000 0%, #4B0000 30%, #2B0000 60%, transparent 100%)';
+      explosion.style.borderRadius = '50%';
+      explosion.style.pointerEvents = 'none';
+      explosion.style.zIndex = '999';
+      explosion.className = 'explosion';
+      gameArea.appendChild(explosion);
+
+      // 暗い火花エフェクト
+      for (let i = 0; i < 6; i++) {
+        const spark = document.createElement('div');
+        const angle = (i / 6) * Math.PI * 2;
+        const distance = 25 + Math.random() * 15;
+        const sparkX = x + Math.cos(angle) * distance;
+        const sparkY = y + Math.sin(angle) * distance;
+        
+        spark.style.position = 'absolute';
+        spark.style.left = sparkX + 'px';
+        spark.style.top = sparkY + 'px';
+        spark.style.width = '4px';
+        spark.style.height = '4px';
+        spark.style.background = ['#8B0000', '#4B0000', '#2B0000'][Math.floor(Math.random() * 3)];
+        spark.style.borderRadius = '50%';
+        spark.style.pointerEvents = 'none';
+        spark.style.zIndex = '998';
+        spark.className = 'sparkle';
+        spark.style.animationDelay = (Math.random() * 0.2) + 's';
+        gameArea.appendChild(spark);
+        
+        setTimeout(() => {
+          if (spark.parentNode) {
+            spark.parentNode.removeChild(spark);
+          }
+        }, 800);
+      }
+
+      setTimeout(() => {
+        if (explosion.parentNode) {
+          explosion.parentNode.removeChild(explosion);
+        }
+      }, 600);
+    } else if (type === 'moving') {
+      // 動く的用の豪華なオレンジエフェクト
+      const explosion = document.createElement('div');
+      explosion.style.position = 'absolute';
+      explosion.style.left = (x - 35) + 'px';
+      explosion.style.top = (y - 35) + 'px';
+      explosion.style.width = '70px';
+      explosion.style.height = '70px';
+      explosion.style.background = 'radial-gradient(circle, #FFD700 0%, #FF6B35 30%, #FF4500 60%, transparent 100%)';
+      explosion.style.borderRadius = '50%';
+      explosion.style.pointerEvents = 'none';
+      explosion.style.zIndex = '999';
+      explosion.className = 'explosion';
+      explosion.style.boxShadow = '0 0 30px #FF6B35';
+      gameArea.appendChild(explosion);
+
+      // 豪華なオレンジ火花エフェクト
+      for (let i = 0; i < 12; i++) {
+        const spark = document.createElement('div');
+        const angle = (i / 12) * Math.PI * 2;
+        const distance = 40 + Math.random() * 30;
+        const sparkX = x + Math.cos(angle) * distance;
+        const sparkY = y + Math.sin(angle) * distance;
+        
+        spark.style.position = 'absolute';
+        spark.style.left = sparkX + 'px';
+        spark.style.top = sparkY + 'px';
+        spark.style.width = '8px';
+        spark.style.height = '8px';
+        spark.style.background = ['#FFD700', '#FF6B35', '#FF4500', '#FFA500'][Math.floor(Math.random() * 4)];
+        spark.style.borderRadius = '50%';
+        spark.style.pointerEvents = 'none';
+        spark.style.zIndex = '998';
+        spark.style.boxShadow = `0 0 10px ${spark.style.background}`;
+        spark.className = 'sparkle';
+        spark.style.animationDelay = (Math.random() * 0.3) + 's';
+        gameArea.appendChild(spark);
+        
+        setTimeout(() => {
+          if (spark.parentNode) {
+            spark.parentNode.removeChild(spark);
+          }
+        }, 1200);
+      }
+
+      setTimeout(() => {
+        if (explosion.parentNode) {
+          explosion.parentNode.removeChild(explosion);
+        }
+      }, 800);
+    } else if (type === 'timeBomb') {
+      // 時間爆弾用の紫のエフェクト
+      const explosion = document.createElement('div');
+      explosion.style.position = 'absolute';
+      explosion.style.left = (x - 30) + 'px';
+      explosion.style.top = (y - 30) + 'px';
+      explosion.style.width = '60px';
+      explosion.style.height = '60px';
+      explosion.style.background = 'radial-gradient(circle, #4B0082 0%, #2F004F 30%, #1A002E 60%, transparent 100%)';
+      explosion.style.borderRadius = '50%';
+      explosion.style.pointerEvents = 'none';
+      explosion.style.zIndex = '999';
+      explosion.className = 'explosion';
+      gameArea.appendChild(explosion);
+
+      // 紫の火花エフェクト
+      for (let i = 0; i < 10; i++) {
+        const spark = document.createElement('div');
+        const angle = (i / 10) * Math.PI * 2;
+        const distance = 35 + Math.random() * 25;
+        const sparkX = x + Math.cos(angle) * distance;
+        const sparkY = y + Math.sin(angle) * distance;
+        
+        spark.style.position = 'absolute';
+        spark.style.left = sparkX + 'px';
+        spark.style.top = sparkY + 'px';
+        spark.style.width = '8px';
+        spark.style.height = '8px';
+        spark.style.background = ['#4B0082', '#8A2BE2', '#9932CC', '#6A0DAD'][Math.floor(Math.random() * 4)];
+        spark.style.borderRadius = '50%';
+        spark.style.pointerEvents = 'none';
+        spark.style.zIndex = '998';
+        spark.className = 'sparkle';
+        spark.style.animationDelay = (Math.random() * 0.3) + 's';
+        gameArea.appendChild(spark);
+        
+        setTimeout(() => {
+          if (spark.parentNode) {
+            spark.parentNode.removeChild(spark);
+          }
+        }, 1000);
+      }
+
+      setTimeout(() => {
+        if (explosion.parentNode) {
+          explosion.parentNode.removeChild(explosion);
+        }
+      }, 600);
+    } else {
+      // 通常の爆発エフェクト
+      const explosion = document.createElement('div');
+      explosion.style.position = 'absolute';
+      explosion.style.left = (x - 25) + 'px';
+      explosion.style.top = (y - 25) + 'px';
+      explosion.style.width = '50px';
+      explosion.style.height = '50px';
+      explosion.style.background = 'radial-gradient(circle, #ffff00 0%, #ff8c00 30%, #ff4500 60%, transparent 100%)';
+      explosion.style.borderRadius = '50%';
+      explosion.style.pointerEvents = 'none';
+      explosion.style.zIndex = '999';
+      explosion.className = 'explosion';
+      gameArea.appendChild(explosion);
+
+      // 火花エフェクト
+      for (let i = 0; i < 8; i++) {
+        const spark = document.createElement('div');
+        const angle = (i / 8) * Math.PI * 2;
+        const distance = 30 + Math.random() * 20;
+        const sparkX = x + Math.cos(angle) * distance;
+        const sparkY = y + Math.sin(angle) * distance;
+        
+        spark.style.position = 'absolute';
+        spark.style.left = sparkX + 'px';
+        spark.style.top = sparkY + 'px';
+        spark.style.width = '6px';
+        spark.style.height = '6px';
+        spark.style.background = ['#ffff00', '#ff8c00', '#ff4500', '#ff1493'][Math.floor(Math.random() * 4)];
+        spark.style.borderRadius = '50%';
+        spark.style.pointerEvents = 'none';
+        spark.style.zIndex = '998';
+        spark.className = 'sparkle';
+        spark.style.animationDelay = (Math.random() * 0.2) + 's';
+        gameArea.appendChild(spark);
+        
+        setTimeout(() => {
+          if (spark.parentNode) {
+            spark.parentNode.removeChild(spark);
+          }
+        }, 800);
+      }
+
+      setTimeout(() => {
+        if (explosion.parentNode) {
+          explosion.parentNode.removeChild(explosion);
+        }
+      }, 600);
+    }
+  };
+
+  // アイテムを生成する関数
+  const createItem = () => {
+    const gameArea = document.getElementById('game-area');
+    if (!gameArea) return null;
+    
+    const rect = gameArea.getBoundingClientRect();
+    const size = 30; // アイテムのサイズは固定
+    const x = Math.random() * (rect.width - size);
+    const y = Math.random() * (rect.height - size);
+    
+    // タイムアタック用のアイテム
+    const itemTypes = [
+      { type: 'timeBonus', emoji: '⏰', timeBonus: 10, color: '#FF9800', name: '時間延長' },
+      { type: 'scoreBonus', emoji: '⭐', scoreBonus: 50, color: '#FFD700', name: 'スコアボーナス' },
+      { type: 'multiShot', emoji: '🎆', scoreMultiplier: 2, duration: 5000, color: '#E91E63', name: '2倍スコア' }
+    ];
+    
+    const itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+    
+    return {
+      id: Date.now() + Math.random(),
+      x,
+      y,
+      size,
+      createdAt: Date.now(),
+      ...itemType
+    };
+  };
+
+  // アイテムを定期的に生成
+  useEffect(() => {
+    if (!gameActive) return;
+
+    const interval = setInterval(() => {
+      // 20%の確率でアイテム生成
+      if (Math.random() < 0.2) {
+        const newItem = createItem();
+        if (newItem) {
+          setItems(prev => [...prev, newItem]);
+        }
+      }
+    }, 3000); // 3秒ごとにチェック
+
+    return () => clearInterval(interval);
+  }, [gameActive]);
+
+  // 古いアイテムを削除
+  useEffect(() => {
+    if (!gameActive) return;
+
+    const cleanup = setInterval(() => {
+      const now = Date.now();
+      setItems(prev => prev.filter(item => 
+        (now - item.createdAt < 8000) // 8秒で消失
+      ));
+    }, 1000);
+
+    return () => clearInterval(cleanup);
+  }, [gameActive]);
+
+  // 的を生成する関数
+  const createTarget = () => {
+    const gameArea = document.getElementById('game-area');
+    if (!gameArea) return null;
+    
+    const rect = gameArea.getBoundingClientRect();
+    const sizeRange = currentLevel.maxSize - currentLevel.minSize;
+    const size = Math.random() * sizeRange + currentLevel.minSize;
+    const x = Math.random() * (rect.width - size);
+    const y = Math.random() * (rect.height - size);
+    
+    const random = Math.random();
+    
+    if (random < 0.15) {
+      // 15%の確率で動く的を生成（確率をさらに上げて動きを確認しやすく）
+      const movementTypes = ['vertical', 'horizontal', 'circular', 'zigzag']; // verticalを最初に
+      const movementType = movementTypes[Math.floor(Math.random() * movementTypes.length)];
+      
+      // 初期方向を明確に設定
+      let initialDirection;
+      switch (movementType) {
+        case 'horizontal':
+          initialDirection = Math.random() > 0.5 ? 1 : -1; // 右向き(1)または左向き(-1)
+          break;
+        case 'vertical':
+          initialDirection = Math.random() > 0.5 ? 1 : -1; // 下向き(1)または上向き(-1)
+          break;
+        case 'circular':
+          initialDirection = 0; // 円運動では使わない
+          break;
+        case 'zigzag':
+          initialDirection = Math.random() * Math.PI * 2; // ランダム方向
+          break;
+        default:
+          initialDirection = 1;
+      }
+      
+      return {
+        id: Date.now() + Math.random(),
+        x,
+        y,
+        size,
+        points: Math.floor(200 / (size / 10)) + 150, // 動く的は超高得点
+        color: '#FF6B35', // オレンジ色
+        createdAt: Date.now(),
+        isMoving: true,
+        movementType,
+        speed: 3 + Math.random() * 4, // 3-7の高速度
+        direction: initialDirection,
+        centerX: x + size/2,
+        centerY: y + size/2,
+        radius: 50 + Math.random() * 70 // 円運動用の半径
+      };
+    } else if (random < 0.20) {
+      // 5%の確率で時間減少的を生成
+      return {
+        id: Date.now() + Math.random(),
+        x,
+        y,
+        size,
+        points: 0, // ポイントなし
+        timePenalty: Math.floor(5 + Math.random() * 10), // 5-15秒減少
+        color: '#4B0082', // インディゴ
+        createdAt: Date.now(),
+        isTimeBomb: true
+      };
+    } else if (random < 0.30) {
+      // 10%の確率でマイナス的を生成（元の10%を維持）
+      return {
+        id: Date.now() + Math.random(),
+        x,
+        y,
+        size,
+        points: -Math.floor(50 + (size / 2)), // マイナスポイント（大きい的ほど大きなマイナス）
+        color: '#8B0000', // ダークレッド
+        createdAt: Date.now(),
+        isNegative: true
+      };
+    } else {
+      // 通常の的
+      return {
+        id: Date.now() + Math.random(),
+        x,
+        y,
+        size,
+        points: Math.floor(150 / (size / 10)), // 小さい的ほど高得点、レベルに応じて調整
+        color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+        createdAt: Date.now(),
+        isNegative: false
+      };
+    }
+  };
+
+  // 的を定期的に生成
+  useEffect(() => {
+    if (!gameActive) return;
+
+    const interval = setInterval(() => {
+      const newTarget = createTarget();
+      if (newTarget) {
+        setTargets(prev => [...prev, newTarget]);
+      }
+    }, currentLevel.targetInterval);
+
+    return () => clearInterval(interval);
+  }, [gameActive, selectedLevel]);
+
+  // 古い的を削除（レベルに応じた生存時間）
+  useEffect(() => {
+    if (!gameActive) return;
+
+    const cleanup = setInterval(() => {
+      const now = Date.now();
+      setTargets(prev => prev.filter(target => 
+        (now - target.createdAt < currentLevel.targetLifetime) && 
+        prev.indexOf(target) < currentLevel.maxTargets
+      ));
+    }, 500);
+
+    return () => clearInterval(cleanup);
+  }, [gameActive, selectedLevel]);
+
+  // 動く的の位置を更新
+  useEffect(() => {
+    if (!gameActive) return;
+
+    const moveTargets = setInterval(() => {
+      const gameArea = document.getElementById('game-area');
+      if (!gameArea) return;
+      
+      const rect = gameArea.getBoundingClientRect();
+      
+      setTargets(prev => prev.map(target => {
+        if (!target.isMoving) return target;
+        
+        const now = Date.now();
+        const elapsed = (now - target.createdAt) / 1000; // 経過時間（秒）
+        
+        let newX = target.x;
+        let newY = target.y;
+        let newDirection = target.direction;
+        let newSpeed = target.speed;
+        
+        switch (target.movementType) {
+          case 'horizontal':
+            // 左右に移動
+            newX = target.x + (newDirection > 0 ? newSpeed * 4 : -newSpeed * 4);
+            // 端に到達したら反転
+            if (newX <= 0) {
+              newX = 0;
+              newDirection = 1; // 右向き
+            } else if (newX >= rect.width - target.size) {
+              newX = rect.width - target.size;
+              newDirection = -1; // 左向き
+            }
+            break;
+            
+          case 'vertical':
+            // 上下に移動
+            newY = target.y + (newDirection > 0 ? newSpeed * 4 : -newSpeed * 4);
+            // 端に到達したら反転
+            if (newY <= 0) {
+              newY = 0;
+              newDirection = 1; // 下向き
+            } else if (newY >= rect.height - target.size) {
+              newY = rect.height - target.size;
+              newDirection = -1; // 上向き
+            }
+            break;
+            
+          case 'circular':
+            const angle = elapsed * newSpeed * 0.8;
+            newX = target.centerX + Math.cos(angle) * target.radius - target.size/2;
+            newY = target.centerY + Math.sin(angle) * target.radius - target.size/2;
+            
+            // 境界チェックして中心位置を調整
+            if (newX < 0) {
+              target.centerX = target.radius + 10;
+            } else if (newX > rect.width - target.size) {
+              target.centerX = rect.width - target.radius - 10;
+            }
+            
+            if (newY < 0) {
+              target.centerY = target.radius + 10;
+            } else if (newY > rect.height - target.size) {
+              target.centerY = rect.height - target.radius - 10;
+            }
+            
+            // 再計算
+            newX = target.centerX + Math.cos(angle) * target.radius - target.size/2;
+            newY = target.centerY + Math.sin(angle) * target.radius - target.size/2;
+            break;
+            
+          case 'zigzag':
+            const zigzagAngle = elapsed * 4; // ジグザグの頻度
+            newX = target.x + Math.cos(target.direction) * newSpeed * 2;
+            newY = target.y + Math.sin(target.direction + Math.sin(zigzagAngle) * 1.5) * newSpeed * 2;
+            
+            // 端に到達したら方向変更
+            if (newX <= 0 || newX >= rect.width - target.size || 
+                newY <= 0 || newY >= rect.height - target.size) {
+              newDirection = Math.random() * Math.PI * 2; // 完全にランダムな新方向
+            }
+            break;
+        }
+        
+        // 境界内に強制的に収める
+        newX = Math.max(0, Math.min(rect.width - target.size, newX));
+        newY = Math.max(0, Math.min(rect.height - target.size, newY));
+        
+        return {
+          ...target,
+          x: newX,
+          y: newY,
+          direction: newDirection,
+          speed: newSpeed
+        };
+      }));
+    }, 16); // 60FPSで更新（さらに滑らか）
+
+    return () => clearInterval(moveTargets);
+  }, [gameActive]);
+
+  // マウスの動きを追跡
+  const handleMouseMove = useCallback((e) => {
+    if (!gameActive) return;
+    
+    const gameArea = document.getElementById('game-area');
+    if (!gameArea) return;
+    
+    const rect = gameArea.getBoundingClientRect();
+    setCrosshair({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  }, [gameActive]);
+
+  // ゲームエリアにマウスが入った時
+  const handleMouseEnter = () => {
+    if (gameActive) {
+      setShowCrosshair(true);
+    }
+  };
+
+  // ゲームエリアからマウスが出た時
+  const handleMouseLeave = () => {
+    setShowCrosshair(false);
+  };
+
+  // クリックで射撃
+  const handleShoot = (e) => {
+    if (!gameActive) return;
+
+    const gameArea = document.getElementById('game-area');
+    if (!gameArea) return;
+
+    const rect = gameArea.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    let hit = false;
+    let itemHit = false;
+
+    // アイテムに当たったかチェック
+    setItems(prev => {
+      return prev.filter(item => {
+        const distance = Math.sqrt(
+          Math.pow(clickX - (item.x + item.size/2), 2) + 
+          Math.pow(clickY - (item.y + item.size/2), 2)
+        );
+        
+        if (distance <= item.size/2) {
+          // アイテム効果を適用
+          if (item.type === 'timeBonus') {
+            setTimeLeft(prevTime => prevTime + item.timeBonus);
+          } else if (item.type === 'scoreBonus') {
+            setScore(prevScore => prevScore + item.scoreBonus);
+          } else if (item.type === 'multiShot') {
+            // マルチプライヤー効果（簡単な実装）
+            setScore(prevScore => prevScore + 100);
+          }
+          
+          // アイテム取得音を再生
+          playSound('item');
+          
+          itemHit = true;
+          
+          // アイテム取得エフェクト
+          const itemEffect = document.createElement('div');
+          if (item.type === 'timeBonus') {
+            itemEffect.innerHTML = `+${item.timeBonus}秒`;
+          } else if (item.type === 'scoreBonus') {
+            itemEffect.innerHTML = `+${item.scoreBonus}点`;
+          } else {
+            itemEffect.innerHTML = '2倍スコア!';
+          }
+          itemEffect.style.position = 'absolute';
+          itemEffect.style.left = (clickX - 30) + 'px';
+          itemEffect.style.top = (clickY - 10) + 'px';
+          itemEffect.style.color = item.color;
+          itemEffect.style.fontWeight = 'bold';
+          itemEffect.style.fontSize = '16px';
+          itemEffect.style.pointerEvents = 'none';
+          itemEffect.style.zIndex = '1000';
+          itemEffect.style.animation = 'fadeUp 1s ease-out forwards';
+          gameArea.appendChild(itemEffect);
+          
+          setTimeout(() => {
+            if (itemEffect.parentNode) {
+              itemEffect.parentNode.removeChild(itemEffect);
+            }
+          }, 1000);
+          
+          return false; // アイテムを削除
+        }
+        return true;
+      });
+    });
+
+    // 的に当たったかチェック（アイテムに当たっていない場合のみ）
+    if (!itemHit) {
+      setTargets(prev => {
+        return prev.filter(target => {
+          const distance = Math.sqrt(
+            Math.pow(clickX - (target.x + target.size/2), 2) + 
+            Math.pow(clickY - (target.y + target.size/2), 2)
+          );
+          
+          if (distance <= target.size/2) {
+            // 的の種類に応じて処理を分ける
+            if (target.isTimeBomb) {
+              // 時間減少的の処理
+              setTimeLeft(prevTime => Math.max(0, prevTime - target.timePenalty));
+              createExplosion(target.x + target.size/2, target.y + target.size/2, gameArea, 'timeBomb');
+              playSound('timeBomb');
+              
+              // 時間減少エフェクト
+              const timeEffect = document.createElement('div');
+              timeEffect.innerHTML = `-${target.timePenalty}秒`;
+              timeEffect.style.position = 'absolute';
+              timeEffect.style.left = (clickX - 30) + 'px';
+              timeEffect.style.top = (clickY - 10) + 'px';
+              timeEffect.style.color = '#4B0082';
+              timeEffect.style.fontWeight = 'bold';
+              timeEffect.style.fontSize = '18px';
+              timeEffect.style.pointerEvents = 'none';
+              timeEffect.style.zIndex = '1000';
+              timeEffect.style.animation = 'fadeUp 1.5s ease-out forwards';
+              gameArea.appendChild(timeEffect);
+              
+              setTimeout(() => {
+                if (timeEffect.parentNode) {
+                  timeEffect.parentNode.removeChild(timeEffect);
+                }
+              }, 1500);
+            } else {
+              // 通常の的またはマイナス的の処理
+              let finalPoints = target.points;
+              
+              // 動く的なら点数を2倍に！
+              if (target.isMoving) {
+                finalPoints = target.points * 2;
+                
+                // 2倍得点エフェクト
+                const doubleEffect = document.createElement('div');
+                doubleEffect.innerHTML = `2倍! +${finalPoints}点`;
+                doubleEffect.style.position = 'absolute';
+                doubleEffect.style.left = (clickX - 40) + 'px';
+                doubleEffect.style.top = (clickY - 20) + 'px';
+                doubleEffect.style.color = '#FF6B35';
+                doubleEffect.style.fontWeight = 'bold';
+                doubleEffect.style.fontSize = '20px';
+                doubleEffect.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
+                doubleEffect.style.pointerEvents = 'none';
+                doubleEffect.style.zIndex = '1000';
+                doubleEffect.style.animation = 'fadeUp 2s ease-out forwards';
+                gameArea.appendChild(doubleEffect);
+                
+                setTimeout(() => {
+                  if (doubleEffect.parentNode) {
+                    doubleEffect.parentNode.removeChild(doubleEffect);
+                  }
+                }, 2000);
+              }
+              
+              setScore(prevScore => prevScore + finalPoints);
+              
+              // 爆発エフェクトと効果音（マイナス的かどうかで分ける）
+              createExplosion(target.x + target.size/2, target.y + target.size/2, gameArea, target.isNegative ? 'negative' : target.isMoving ? 'moving' : 'normal');
+              playSound(target.isNegative ? 'negative' : target.isMoving ? 'moving' : 'hit');
+            }
+            
+            hit = true;
+            return false; // 的を削除
+          }
+          return true;
+        });
+      });
+    }
+
+    // 当たった時の基本的な視覚効果（爆発エフェクトに加えて）
+    if (hit || itemHit) {
+      const hitEffect = document.createElement('div');
+      hitEffect.style.position = 'absolute';
+      hitEffect.style.left = clickX + 'px';
+      hitEffect.style.top = clickY + 'px';
+      hitEffect.style.width = '10px';
+      hitEffect.style.height = '10px';
+      hitEffect.style.background = itemHit ? '#4CAF50' : '#FFD700';
+      hitEffect.style.borderRadius = '50%';
+      hitEffect.style.pointerEvents = 'none';
+      hitEffect.style.zIndex = '1000';
+      hitEffect.style.boxShadow = `0 0 10px ${itemHit ? '#4CAF50' : '#FFD700'}`;
+      gameArea.appendChild(hitEffect);
+      
+      setTimeout(() => {
+        if (hitEffect.parentNode) {
+          hitEffect.parentNode.removeChild(hitEffect);
+        }
+      }, 200);
+    }
+  };
+
+  // ゲーム開始
+  const startGame = () => {
+    setGameActive(true);
+    setScore(0);
+    setBullets(999); // 実質無制限
+    setTimeLeft(currentLevel.timeLimit);
+    setTargets([]);
+    setItems([]);
+    setShowLevelSelect(false);
+  };
+
+  // ゲーム終了
+  const endGame = () => {
+    setGameActive(false);
+    setShowCrosshair(false);
+    setTargets([]);
+    setItems([]);
+    setShowLevelSelect(true);
+  };
+
+  // レベル選択
+  const selectLevel = (level) => {
+    setSelectedLevel(level);
+  };
+
+  // 時間切れでゲーム終了の処理
+  useEffect(() => {
+    if (gameActive && timeLeft <= 0) {
+      setTimeout(() => {
+        setGameActive(false);
+        setShowCrosshair(false);
+      }, 100);
+    }
+  }, [timeLeft, gameActive]);
+
+  return (
+    <div className="flex flex-col items-center min-h-screen bg-gradient-to-b from-blue-900 to-blue-600 p-4">
+      <style>{`
+        @keyframes fadeUp {
+          0% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-30px); }
+        }
+        @keyframes explode {
+          0% { transform: scale(0) rotate(0deg); opacity: 1; }
+          50% { transform: scale(1.5) rotate(180deg); opacity: 0.8; }
+          100% { transform: scale(2) rotate(360deg); opacity: 0; }
+        }
+        @keyframes sparkle {
+          0% { transform: scale(0); opacity: 1; }
+          50% { transform: scale(1); opacity: 1; }
+          100% { transform: scale(0); opacity: 0; }
+        }
+        .explosion {
+          animation: explode 0.6s ease-out forwards;
+        }
+        .sparkle {
+          animation: sparkle 0.8s ease-out forwards;
+        }
+      `}</style>
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-4 w-full max-w-4xl">
+        <h1 className="text-3xl font-bold text-center text-gray-800 mb-4">🎯 射的ゲーム</h1>
+        
+        {/* スコアと情報表示 */}
+        <div className="flex justify-between items-center mb-4 text-lg font-semibold">
+          <div className="text-blue-600">スコア: {score}点</div>
+          <div className="text-purple-600">
+            {currentLevel.theme.title}
+          </div>
+          <div className={`text-red-600 ${timeLeft <= 10 ? 'animate-pulse font-bold text-xl' : ''}`}>
+            ⏰ 残り時間: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+          </div>
+          {!gameActive && score > 0 && (
+            <div className="text-green-600">最終スコア: {score}点</div>
+          )}
+        </div>
+
+        {/* ゲームエリア */}
+        <div 
+          id="game-area"
+          className={`relative w-full h-96 ${currentLevel.theme.borderColor} border-4 rounded-lg overflow-hidden`}
+          style={{ 
+            cursor: gameActive ? 'none' : 'default',
+            background: currentLevel.theme.background
+          }}
+          onMouseMove={handleMouseMove}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onClick={handleShoot}
+        >
+          {/* 背景装飾 */}
+          <div className={`absolute bottom-0 w-full h-20 bg-gradient-to-t ${currentLevel.theme.groundColor} opacity-50`}></div>
+          
+          {/* レベル別の背景装飾 */}
+          {selectedLevel === 'beginner' && (
+            <>
+              {/* 森の背景装飾 */}
+              <div className="absolute bottom-0 left-10 w-8 h-16 bg-amber-800 rounded-t-lg opacity-70"></div>
+              <div className="absolute bottom-16 left-8 w-12 h-8 bg-green-600 rounded-full opacity-60"></div>
+              <div className="absolute bottom-0 right-20 w-6 h-12 bg-amber-800 rounded-t-lg opacity-70"></div>
+              <div className="absolute bottom-12 right-18 w-10 h-6 bg-green-600 rounded-full opacity-60"></div>
+              <div className="absolute top-10 left-1/4 w-2 h-2 bg-yellow-300 rounded-full opacity-80 animate-pulse"></div>
+              <div className="absolute top-16 right-1/3 w-1 h-1 bg-yellow-300 rounded-full opacity-80 animate-pulse"></div>
+            </>
+          )}
+          
+          {selectedLevel === 'intermediate' && (
+            <>
+              {/* 都市の背景装飾 */}
+              <div className="absolute bottom-0 left-8 w-12 h-24 bg-gray-700 opacity-70"></div>
+              <div className="absolute bottom-0 left-24 w-8 h-32 bg-gray-600 opacity-70"></div>
+              <div className="absolute bottom-0 right-16 w-10 h-20 bg-gray-800 opacity-70"></div>
+              <div className="absolute bottom-0 right-32 w-6 h-28 bg-gray-500 opacity-70"></div>
+              <div className="absolute top-6 left-12 w-2 h-1 bg-yellow-400 opacity-90"></div>
+              <div className="absolute top-10 left-28 w-1 h-1 bg-yellow-400 opacity-90"></div>
+              <div className="absolute top-8 right-20 w-1 h-2 bg-yellow-400 opacity-90"></div>
+            </>
+          )}
+          
+          {selectedLevel === 'advanced' && (
+            <>
+              {/* 宇宙の背景装飾 */}
+              <div className="absolute top-4 left-1/4 w-1 h-1 bg-white rounded-full opacity-90 animate-pulse"></div>
+              <div className="absolute top-8 left-3/4 w-1 h-1 bg-blue-300 rounded-full opacity-80 animate-pulse"></div>
+              <div className="absolute top-16 left-1/2 w-0.5 h-0.5 bg-white rounded-full opacity-70"></div>
+              <div className="absolute top-12 left-1/6 w-0.5 h-0.5 bg-purple-300 rounded-full opacity-80"></div>
+              <div className="absolute top-20 right-1/4 w-1 h-1 bg-cyan-300 rounded-full opacity-90 animate-pulse"></div>
+              <div className="absolute top-6 right-1/6 w-0.5 h-0.5 bg-white rounded-full opacity-60"></div>
+              <div className="absolute top-24 left-2/3 w-0.5 h-0.5 bg-pink-300 rounded-full opacity-70"></div>
+              <div className="absolute bottom-20 left-10 w-16 h-8 bg-gray-600 rounded opacity-40"></div>
+              <div className="absolute bottom-24 right-12 w-12 h-6 bg-gray-700 rounded opacity-30"></div>
+            </>
+          )}
+
+          {/* アイテムを表示 */}
+          {items.map(item => (
+            <div
+              key={item.id}
+              className="absolute rounded-lg border-2 border-white shadow-lg transform transition-all duration-300 hover:scale-110 animate-bounce"
+              style={{
+                left: item.x,
+                top: item.y,
+                width: item.size,
+                height: item.size,
+                backgroundColor: item.color,
+                background: `linear-gradient(45deg, ${item.color}, ${item.color}dd)`
+              }}
+            >
+              <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg">
+                {item.emoji}
+              </div>
+              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-bold text-white bg-black bg-opacity-60 px-1 rounded">
+                {item.type === 'timeBonus' && `+${item.timeBonus}秒`}
+                {item.type === 'scoreBonus' && `+${item.scoreBonus}`}
+                {item.type === 'multiShot' && '2倍'}
+              </div>
+            </div>
+          ))}
+
+          {/* 時間警告表示 */}
+          {gameActive && timeLeft <= 10 && timeLeft > 0 && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-4xl font-bold text-red-500 animate-pulse bg-white bg-opacity-80 px-4 py-2 rounded-lg">
+              {timeLeft}
+            </div>
+          )}
+
+          {/* ゲーム終了時の表示 */}
+          {!gameActive && !showLevelSelect && timeLeft === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70">
+              <div className="bg-white p-8 rounded-lg text-center">
+                <h2 className="text-3xl font-bold mb-4 text-red-600">⏰ TIME UP!</h2>
+                <p className="text-2xl font-bold text-blue-600 mb-4">最終スコア: {score}点</p>
+                <p className="text-gray-600 mb-4">{currentLevel.theme.title}での挑戦でした</p>
+                <button
+                  onClick={() => setShowLevelSelect(true)}
+                  className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors"
+                >
+                  再挑戦
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 的を表示 */}
+          {targets.map(target => (
+            <div
+              key={target.id}
+              className={`absolute rounded-full border-4 shadow-lg transform transition-all duration-300 hover:scale-110 ${
+                target.isNegative ? 'animate-pulse' : 
+                target.isTimeBomb ? 'animate-bounce' : 
+                target.isMoving ? 'animate-spin' : ''
+              }`}
+              style={{
+                left: target.x,
+                top: target.y,
+                width: target.size,
+                height: target.size,
+                backgroundColor: target.color,
+                background: target.isTimeBomb
+                  ? `radial-gradient(circle at 30% 30%, ${target.color}, #000)`
+                  : target.isNegative 
+                    ? `radial-gradient(circle at 30% 30%, ${target.color}, #000)`
+                    : target.isMoving
+                      ? `radial-gradient(circle at 30% 30%, ${target.color}, #FF4500)`
+                      : `radial-gradient(circle at 30% 30%, ${target.color}, #000)`,
+                borderColor: target.isTimeBomb ? '#4B0082' : 
+                           target.isNegative ? '#FF0000' : 
+                           target.isMoving ? '#FF6B35' : '#FFFFFF',
+                boxShadow: target.isMoving ? '0 0 15px rgba(255, 107, 53, 0.6)' : 'none'
+              }}
+            >
+              {target.isTimeBomb ? (
+                // 時間爆弾的のデザイン
+                <>
+                  <div className="absolute inset-2 rounded-full bg-indigo-900 opacity-80"></div>
+                  <div className="absolute inset-4 rounded-full bg-purple-600"></div>
+                  <div className="absolute inset-6 rounded-full bg-indigo-900 opacity-80"></div>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <span className="text-white font-bold text-lg">💣</span>
+                  </div>
+                  <div 
+                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-1/4 text-purple-300 font-bold text-xs"
+                    style={{ fontSize: Math.max(target.size / 12, 6) }}
+                  >
+                    -{target.timePenalty}s
+                  </div>
+                </>
+              ) : target.isNegative ? (
+                // マイナス的のデザイン
+                <>
+                  <div className="absolute inset-2 rounded-full bg-black opacity-80"></div>
+                  <div className="absolute inset-4 rounded-full bg-red-600"></div>
+                  <div className="absolute inset-6 rounded-full bg-black opacity-80"></div>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <span className="text-white font-bold text-lg">💀</span>
+                  </div>
+                  <div 
+                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-1/4 text-red-300 font-bold text-xs"
+                    style={{ fontSize: Math.max(target.size / 10, 6) }}
+                  >
+                    {target.points}
+                  </div>
+                </>
+              ) : target.isMoving ? (
+                // 動く的のデザイン
+                <>
+                  <div className="absolute inset-2 rounded-full bg-orange-200 opacity-90"></div>
+                  <div className="absolute inset-4 rounded-full bg-orange-500"></div>
+                  <div className="absolute inset-6 rounded-full bg-orange-200 opacity-90"></div>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <span className="text-white font-bold text-lg">⚡</span>
+                  </div>
+                  <div 
+                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-1/4 text-orange-200 font-bold text-xs"
+                    style={{ fontSize: Math.max(target.size / 8, 8) }}
+                  >
+                    {target.points}
+                  </div>
+                  {/* 動きの軌跡エフェクト */}
+                  <div className="absolute inset-0 rounded-full border-2 border-orange-300 opacity-50 animate-ping"></div>
+                  {/* 追加の動きエフェクト */}
+                  <div className="absolute inset-1 rounded-full border border-yellow-400 opacity-70 animate-pulse"></div>
+                </>
+              ) : (
+                // 通常の的のデザイン
+                <>
+                  <div className="absolute inset-2 rounded-full bg-white opacity-80"></div>
+                  <div className="absolute inset-4 rounded-full bg-red-500"></div>
+                  <div className="absolute inset-6 rounded-full bg-white opacity-80"></div>
+                  <div 
+                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white font-bold text-xs"
+                    style={{ fontSize: Math.max(target.size / 8, 8) }}
+                  >
+                    {target.points}
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+
+          {/* クロスヘア（照準） */}
+          {showCrosshair && gameActive && (
+            <div
+              className="absolute pointer-events-none z-50"
+              style={{
+                left: crosshair.x - 15,
+                top: crosshair.y - 15,
+                width: 30,
+                height: 30
+              }}
+            >
+              <div className="absolute w-full h-0.5 bg-red-500 top-1/2 transform -translate-y-1/2"></div>
+              <div className="absolute h-full w-0.5 bg-red-500 left-1/2 transform -translate-x-1/2"></div>
+              <div className="absolute inset-2 border-2 border-red-500 rounded-full"></div>
+            </div>
+          )}
+
+          {/* レベル選択画面 */}
+          {showLevelSelect && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70">
+              <div className="bg-white p-8 rounded-lg text-center max-w-lg">
+                <h2 className="text-2xl font-bold mb-6">🎯 ステージを選択してください</h2>
+                <div className="space-y-4">
+                  {Object.entries(levelSettings).map(([key, level]) => (
+                    <button
+                      key={key}
+                      onClick={() => selectLevel(key)}
+                      className={`w-full p-4 rounded-lg border-2 transition-all ${
+                        selectedLevel === key
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="text-left">
+                          <div className="text-lg font-bold">
+                            {level.theme.title}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {level.theme.description}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {level.description}
+                          </div>
+                        </div>
+                        <div className="text-right text-sm text-gray-500">
+                          <div>制限時間: {level.timeLimit}秒</div>
+                          <div>的の数: 最大{level.maxTargets}個</div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-6 p-4 bg-gray-100 rounded-lg text-sm text-gray-700">
+                  <h3 className="font-bold mb-2">選択中: {currentLevel.theme.title}</h3>
+                  <p>{currentLevel.theme.description}</p>
+                  <p className="mt-1">{currentLevel.description}</p>
+                  <p className="mt-1">制限時間: {currentLevel.timeLimit}秒 | 最大的数: {currentLevel.maxTargets}個</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ゲーム開始前の説明（レベル選択後） */}
+          {!gameActive && !showLevelSelect && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white p-6 rounded-lg text-center">
+                <h2 className="text-xl font-bold mb-4">
+                  {currentLevel.theme.title}
+                </h2>
+                <p className="mb-2 text-gray-600">{currentLevel.theme.description}</p>
+                <p className="mb-2">🎯 的をクリックして撃ち落とそう！</p>
+                <p className="mb-2">⚡ オレンジの動く的は点数2倍！</p>
+                <p className="mb-2">💀 赤い枠の的は危険！マイナスポイント</p>
+                <p className="mb-2">💣 紫の枠の的は時間爆弾！時間が減る</p>
+                <p className="mb-2">⏰ アイテムで時間延長＆スコアアップ！</p>
+                <p className="mb-2">💫 小さい的ほど高得点</p>
+                <p className="mb-2">🔫 弾数は無制限！</p>
+                <p className="mb-4">⏰ 制限時間: {currentLevel.timeLimit}秒</p>
+                <p className="text-sm text-gray-600">動く的を狙って2倍得点を獲得しよう！</p>
+                <button
+                  onClick={() => setShowLevelSelect(true)}
+                  className="mt-4 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors"
+                >
+                  ステージ変更
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* コントロールボタン */}
+        <div className="flex justify-center gap-4 mt-6">
+          {!gameActive ? (
+            <div className="flex gap-4">
+              {!showLevelSelect && (
+                <button
+                  onClick={startGame}
+                  className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors"
+                >
+                  🎮 ゲーム開始
+                </button>
+              )}
+              <button
+                onClick={() => setShowLevelSelect(!showLevelSelect)}
+                className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors"
+              >
+                {showLevelSelect ? '✅ ステージ確定' : '⚙️ ステージ選択'}
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={endGame}
+              className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors"
+            >
+              🛑 ゲーム終了
+            </button>
+          )}
+        </div>
+
+        {/* ルール説明 */}
+        <div className="mt-6 p-4 bg-gray-100 rounded-lg text-sm text-gray-700">
+          <h3 className="font-bold mb-2">🎯 ステージ別ルール説明:</h3>
+          <div className="grid md:grid-cols-3 gap-4">
+            {Object.entries(levelSettings).map(([key, level]) => (
+              <div key={key} className={`p-3 rounded-lg ${selectedLevel === key ? 'bg-blue-100 border border-blue-300' : 'bg-white'}`}>
+                <h4 className="font-semibold text-center mb-2">{level.theme.title}</h4>
+                <p className="text-xs text-gray-600 mb-2">{level.theme.description}</p>
+                <ul className="space-y-1 text-xs">
+                  <li>• 制限時間: {level.timeLimit}秒</li>
+                  <li>• 最大的数: {level.maxTargets}個</li>
+                  <li>• 的の大きさ: {level.minSize}-{level.maxSize}px</li>
+                  <li>• 生存時間: {level.targetLifetime/1000}秒</li>
+                  <li>• 出現間隔: {level.targetInterval/1000}秒</li>
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 text-center">
+            <p className="font-semibold">💡 コツ: 動く的🎯を狙って大量得点！危険な的💀💣は避けよう！</p>
+            <div className="mt-2 flex justify-center gap-3 text-xs">
+              <span className="flex items-center gap-1">
+                <span className="w-4 h-4 bg-orange-500 rounded flex items-center justify-center">⏰</span>
+                時間延長 +10秒
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-4 h-4 bg-yellow-500 rounded flex items-center justify-center">⭐</span>
+                スコアボーナス +50点
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-4 h-4 bg-pink-500 rounded flex items-center justify-center">🎆</span>
+                2倍スコア
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-4 h-4 bg-orange-600 rounded flex items-center justify-center border border-orange-800">🎯</span>
+                動く的（高得点）
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-4 h-4 bg-red-600 rounded flex items-center justify-center border border-red-800">💀</span>
+                マイナス的
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-4 h-4 bg-purple-600 rounded flex items-center justify-center border border-purple-800">💣</span>
+                時間爆弾
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ShootingGame;
