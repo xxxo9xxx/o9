@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>エレメンタル・アリーナ V10</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .screen {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            margin: 20px 0;
+        }
+
+        .turn-indicator {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .turn-indicator.player1 { background: linear-gradient(135deg, #4ecdc4, #45b7aa); }
+        .turn-indicator.player2 { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
+        
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-height: 600px;
+        }
+
+        .game-area.player2-turn-view { flex-direction: column-reverse; }
+
+        .player-area {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.5s ease;
+            position: relative;
+        }
+
+        .player-area.inactive {
+            opacity: 0.6;
+            transform: scale(0.95);
+        }
+
+        .player-area.current-turn {
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .boost-indicator {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff9f43, #ff6b6b);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 159, 67, 0.8);
+            animation: pulse 1.5s infinite;
+        }
+        
+        /* NEW: 2倍ブースト用のインジケータ */
+        .tears-boost-indicator {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background: linear-gradient(135deg, #ef476f, #f78c6b);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(239, 71, 111, 0.8);
+            animation: pulse 1s infinite;
+        }
+
+
+        .damage-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: #ff4757;
+            text-shadow: 2px 2px 4px black;
+            z-index: 10;
+            animation: fadeUp 1.5s ease-out forwards;
+            pointer-events: none;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes fadeUp {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
+            100% { opacity: 0; transform: translate(-50%, -150%) scale(1.2); }
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .hp-bar {
+            width: 200px;
+            height: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4757, #ffa502, #2ed573);
+            transition: width 0.3s ease;
+        }
+
+        .hp-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            font-size: 12px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .hand-count {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .element-count {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .element-icon { font-size: 24px; margin-bottom: 5px; }
+        .cards { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; min-height: 105px; }
+
+        .card {
+            width: 80px; height: 100px; border-radius: 10px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; cursor: pointer; transition: all 0.3s ease;
+            border: 3px solid transparent; font-size: 32px; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .card.selected, .card.boost-active {
+            border-color: #ffd700; transform: translateY(-10px); box-shadow: 0 10px 20px rgba(255, 215, 0, 0.4);
+        }
+        .card.disabled { opacity: 0.3; cursor: not-allowed; }
+        .card.disabled:hover { transform: none; box-shadow: none; }
+
+        .card.fire { background: linear-gradient(135deg, #ff6b6b, #ee5a24); }
+        .card.water { background: linear-gradient(135deg, #4ecdc4, #45b7aa); }
+        .card.earth { background: linear-gradient(135deg, #f0932b, #eb4d4b); }
+        .card.wind { background: linear-gradient(135deg, #6c5ce7, #a55eea); }
+        .card.refresh { background: linear-gradient(135deg, #2ed573, #1dd1a1); }
+        .card.boost { background: linear-gradient(135deg, #ff9f43, #ff6b6b); }
+        .card.master { background: linear-gradient(135deg, #ffd700, #f7b731, #ff9f43); }
+        /* NEW: 2倍ブーストカードのスタイル */
+        .card.tears_boost { background: linear-gradient(135deg, #ef476f, #f78c6b); }
+
+
+        .battle-area {
+            background: rgba(255,255,255,0.2); border-radius: 15px; padding: 30px; display: flex;
+            justify-content: space-around; align-items: center; position: relative;
+        }
+        .selected-card {
+            width: 120px; height: 150px; border-radius: 15px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; font-size: 48px; color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); border: 3px solid #ffd700;
+        }
+        .vs { font-size: 36px; font-weight: bold; color: #ffd700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        .controls { margin: 20px 0; }
+        .btn {
+            padding: 12px 24px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;
+            margin: 0 10px; transition: all 0.3s ease;
+        }
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .result { margin: 20px 0; font-size: 20px; font-weight: bold; min-height: 30px; }
+        .overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8);
+            display: flex; justify-content: center; align-items: center; z-index: 1000; text-align: center;
+        }
+        .overlay-content {
+            background: linear-gradient(135deg, #667eea, #764ba2); padding: 40px; border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .rules {
+            background: rgba(255,255,255,0.1); border-radius: 10px; padding: 15px;
+            margin: 20px 0; text-align: left;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>⚔️ エレメンタル・アリーナ ⚔️</h1>
+        
+        <div class="screen" id="setup-screen">
+            <h2>🎯 ゲーム開始</h2>
+            <div class="rules">
+                <h3>🎮 ゲームルール</h3>
+                <p><strong>属性相性：</strong> 火🔥→風💨→土🌍→水💧→火🔥 の順で勝利 (それ以外は引き分け)</p>
+                <p><strong>勝利条件：</strong> 相手のHPを0にする</p>
+                <p><strong>ダメージ：</strong> 勝利時25ダメージ、引き分け時5ダメージ</p>
+                <p><strong>手札：</strong> 各プレイヤー11枚。使用後は消費。</p>
+                <p><strong>特殊カード：</strong></p>
+                <ul>
+                    <li>👑 **マスター:** 全ての属性に勝利する最強のカード。(マスター同士は引き分け)</li>
+                    <li>🔄 **リフレッシュ:** ランダムな属性カードを2枚補充する。</li>
+                    <li>💥 **ブースト:** 次の攻撃ダメージを1.5倍にする。</li>
+                    <!-- NEW: 新カードの説明 -->
+                    <li>😭 **ティアーズブースト:** 次の攻撃ダメージを2倍にする。</li>
+                </ul>
+            </div>
+            <h3>先攻・後攻を選択してください</h3>
+            <button class="btn btn-primary" onclick="startGame(true)">🚀 先攻で開始</button>
+            <button class="btn btn-primary" onclick="startGame(false)">🛡️ 後攻で開始</button>
+        </div>
+
+        <div class="hidden" id="game-screen">
+            <div class="turn-indicator" id="turn-indicator"></div>
+            <div class="game-area" id="game-area">
+                <div class="player-area" id="player2-area">
+                    <div class="damage-indicator hidden" id="p2-damage-indicator"></div>
+                    <div class="boost-indicator hidden" id="p2-boost-indicator">💥 x1.5</div>
+                    <div class="tears-boost-indicator hidden" id="p2-tears-boost-indicator">😭 x2</div>
+                    <div class="player-info">
+                        <h3>プレイヤー2</h3>
+                        <div class="hp-bar">
+                            <div class="hp-fill" id="hp2-fill"></div>
+                            <div class="hp-text" id="hp2-text">300/300</div>
+                        </div>
+                    </div>
+                    <div class="hand-count" id="p2-hand-count"></div>
+                    <div class="cards" id="player2-cards"></div>
+                </div>
+
+                <div class="battle-area">
+                    <div class="selected-card fire hidden" id="p1-selected"><div id="p1-card-icon">🔥</div></div>
+                    <div class="vs">VS</div>
+                    <div class="selected-card water hidden" id="p2-selected"><div id="p2-card-icon">💧</div></div>
+                </div>
+
+                <div class="player-area" id="player1-area">
+                    <div class="damage-indicator hidden" id="p1-damage-indicator"></div>
+                    <div class="boost-indicator hidden" id="p1-boost-indicator">💥 x1.5</div>
+                    <div class="tears-boost-indicator hidden" id="p1-tears-boost-indicator">😭 x2</div>
+                    <div class="player-info">
+                        <h3>プレイヤー1</h3>
+                        <div class="hp-bar">
+                            <div class="hp-fill" id="hp1-fill"></div>
+                            <div class="hp-text" id="hp1-text">300/300</div>
+                        </div>
+                    </div>
+                    <div class="hand-count" id="p1-hand-count"></div>
+                    <div class="cards" id="player1-cards"></div>
+                </div>
+            </div>
+            <div class="controls">
+                <button class="btn btn-primary" id="confirm-btn" onclick="confirmSelection()" disabled>✅ 選択確定</button>
+                <button class="btn btn-primary" onclick="showSetup()">🔄 ゲームリセット</button>
+            </div>
+            <div class="result" id="result"></div>
+        </div>
+    </div>
+
+    <div class="overlay hidden" id="turn-switch-screen">
+        <div class="overlay-content">
+            <h2 id="turn-switch-text"></h2>
+            <p>準備ができたら、ボタンを押してターンを開始してください。</p>
+            <button class="btn btn-primary" onclick="showGameScreen()">ターン開始</button>
+        </div>
+    </div>
+
+    <div class="overlay hidden" id="game-over-screen">
+        <div class="overlay-content">
+            <h2 id="winner-text"></h2>
+            <button class="btn btn-primary" onclick="showSetup()">新しいゲームを始める</button>
+        </div>
+    </div>
+
+    <script>
+        const screens = { setup: document.getElementById('setup-screen'), game: document.getElementById('game-screen'), turnSwitch: document.getElementById('turn-switch-screen'), gameOver: document.getElementById('game-over-screen'), };
+        const gameArea = document.getElementById('game-area');
+        const turnIndicator = document.getElementById('turn-indicator');
+        const confirmBtn = document.getElementById('confirm-btn');
+        const resultDiv = document.getElementById('result');
+
+        let gameState;
+        const MAX_HP = 300;
+
+        const elements = {
+            fire: { type: 'attribute', icon: '🔥', class: 'fire', name: '火' },
+            water: { type: 'attribute', icon: '💧', class: 'water', name: '水' },
+            earth: { type: 'attribute', icon: '🌍', class: 'earth', name: '土' },
+            wind: { type: 'attribute', icon: '💨', class: 'wind', name: '風' },
+            master: { type: 'attribute', icon: '👑', class: 'master', name: 'マスター' },
+            refresh: { type: 'special', icon: '🔄', class: 'refresh', name: 'リフレッシュ' },
+            boost: { type: 'special', icon: '💥', class: 'boost', name: 'ブースト' },
+            tears_boost: { type: 'special', icon: '😭', class: 'tears_boost', name: 'ティアーズブースト' } // NEW
+        };
+        const attributeKeys = Object.keys(elements).filter(k => elements[k].type === 'attribute' && k !== 'master');
+
+        const battleRules = {
+            fire: { winsAgainst: 'wind' },
+            wind: { winsAgainst: 'earth' },
+            earth: { winsAgainst: 'water' },
+            water: { winsAgainst: 'fire' }
+        };
+        
+        function generateHand() {
+            // NEW: ティアーズブーストを追加
+            const hand = { fire: 1, water: 1, earth: 1, wind: 1, refresh: 1, boost: 1, master: 1, tears_boost: 1 };
+            // ランダムな属性カードを3枚追加 (合計11枚)
+            for (let i = 0; i < 3; i++) {
+                const randomAttribute = attributeKeys[Math.floor(Math.random() * attributeKeys.length)];
+                hand[randomAttribute]++;
+            }
+            return hand;
+        }
+
+        function createInitialState() {
+            return {
+                players: [
+                    // NEW: isTearsBoostActiveフラグを追加
+                    { id: 1, name: 'プレイヤー1', hp: MAX_HP, cards: generateHand(), selectedAttributeCard: null, isBoostActive: false, isTearsBoostActive: false },
+                    { id: 2, name: 'プレイヤー2', hp: MAX_HP, cards: generateHand(), selectedAttributeCard: null, isBoostActive: false, isTearsBoostActive: false }
+                ],
+                currentTurn: 1, roundFirstPlayer: 1, gameOver: false,
+            };
+        }
+
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+            if (screens[screenName]) screens[screenName].classList.remove('hidden');
+        }
+
+        function showSetup() {
+            showScreen('setup');
+            document.querySelector('.game-container').classList.remove('hidden');
+        }
+
+        function startGame(player1IsFirst) {
+            gameState = createInitialState();
+            gameState.roundFirstPlayer = player1IsFirst ? 1 : 2;
+            gameState.currentTurn = gameState.roundFirstPlayer;
+            updateAllUI();
+            showTurnSwitchScreen();
+        }
+
+        function showTurnSwitchScreen() {
+            document.querySelector('.game-container').classList.add('hidden');
+            document.getElementById('turn-switch-text').textContent = `プレイヤー${gameState.currentTurn}のターン`;
+            showScreen('turnSwitch');
+        }
+
+        function showGameScreen() {
+            showScreen('game');
+            document.querySelector('.game-container').classList.remove('hidden');
+            updateTurnView();
+        }
+
+        function updateTurnView() {
+            const turnPlayer = gameState.players[gameState.currentTurn - 1];
+            const opponentPlayer = gameState.players[gameState.currentTurn === 1 ? 1 : 0];
+            turnIndicator.textContent = `${turnPlayer.name}のターン - カードを選択してください`;
+            turnIndicator.className = `turn-indicator player${turnPlayer.id}`;
+            gameArea.classList.toggle('player2-turn-view', turnPlayer.id === 2);
+            document.getElementById(`player${turnPlayer.id}-area`).classList.add('current-turn');
+            document.getElementById(`player${turnPlayer.id}-area`).classList.remove('inactive');
+            document.getElementById(`player${opponentPlayer.id}-area`).classList.remove('current-turn');
+            document.getElementById(`player${opponentPlayer.id}-area`).classList.add('inactive');
+            updateCardStates();
+        }
+
+        function createPlayerCards(player) {
+            const cardsContainer = document.getElementById(`player${player.id}-cards`);
+            cardsContainer.innerHTML = '';
+            if (player.id !== gameState.currentTurn) return;
+
+            Object.keys(player.cards).forEach(key => {
+                for (let i = 0; i < player.cards[key]; i++) {
+                    const cardData = elements[key];
+                    if(!cardData) continue;
+                    const card = document.createElement('div');
+                    card.className = `card ${cardData.class}`;
+                    card.innerHTML = cardData.icon;
+                    card.dataset.key = key;
+                    // NEW: 両方のブースト状態を反映
+                    if ((key === 'boost' && player.isBoostActive) || (key === 'tears_boost' && player.isTearsBoostActive)) {
+                        card.classList.add('boost-active');
+                    }
+                    card.onclick = () => handleCardClick(key, card);
+                    cardsContainer.appendChild(card);
+                }
+            });
+        }
+        
+        function createHandCount(player) {
+            const container = document.getElementById(`p${player.id}-hand-count`);
+            container.innerHTML = '';
+            Object.keys(elements).forEach(key => {
+                const elCount = document.createElement('div');
+                elCount.className = 'element-count';
+                elCount.innerHTML = `<div class="element-icon">${elements[key].icon}</div><div>${player.cards[key] || 0}</div>`;
+                container.appendChild(elCount);
+            });
+        }
+
+        function handleCardClick(key, cardElement) {
+            const player = gameState.players[gameState.currentTurn - 1];
+            const cardData = elements[key];
+
+            if (cardData.type === 'attribute') {
+                player.selectedAttributeCard = key;
+                document.querySelectorAll(`#player${player.id}-cards .card`).forEach(c => c.classList.remove('selected'));
+                cardElement.classList.add('selected');
+                confirmBtn.disabled = false;
+            } else if (key === 'refresh') {
+                if (player.cards.refresh > 0 && confirm('手札補充カードを使用しますか？')) {
+                    player.cards.refresh--;
+                    for (let i = 0; i < 2; i++) {
+                        const randomAttr = attributeKeys[Math.floor(Math.random() * attributeKeys.length)];
+                        player.cards[randomAttr]++;
+                    }
+                    updateCardStates();
+                }
+            } else if (key === 'boost') {
+                if (player.cards.boost > 0) {
+                    player.isBoostActive = !player.isBoostActive;
+                    player.isTearsBoostActive = false; // 排他制御
+                    updateBoostUI(player);
+                }
+            } else if (key === 'tears_boost') {
+                if (player.cards.tears_boost > 0) {
+                    player.isTearsBoostActive = !player.isTearsBoostActive;
+                    player.isBoostActive = false; // 排他制御
+                    updateBoostUI(player);
+                }
+            }
+        }
+        
+        // NEW: ブースト関連のUI更新をまとめた関数
+        function updateBoostUI(player) {
+            document.getElementById(`p${player.id}-boost-indicator`).classList.toggle('hidden', !player.isBoostActive);
+            document.getElementById(`p${player.id}-tears-boost-indicator`).classList.toggle('hidden', !player.isTearsBoostActive);
+            updateCardStates();
+        }
+
+
+        function confirmSelection() {
+            const p1 = gameState.players[0];
+            const p2 = gameState.players[1];
+            if (p1.selectedAttributeCard && p2.selectedAttributeCard) {
+                 startBattle();
+            } else {
+                gameState.currentTurn = (gameState.currentTurn === 1) ? 2 : 1;
+                showTurnSwitchScreen();
+            }
+        }
+        
+        function showDamageIndicators(p1Dmg, p2Dmg) {
+            const p1Indicator = document.getElementById('p1-damage-indicator');
+            const p2Indicator = document.getElementById('p2-damage-indicator');
+
+            if (p1Dmg > 0) {
+                p1Indicator.textContent = `-${p1Dmg}`;
+                p1Indicator.classList.remove('hidden');
+                setTimeout(() => p1Indicator.classList.add('hidden'), 1400);
+            }
+            if (p2Dmg > 0) {
+                p2Indicator.textContent = `-${p2Dmg}`;
+                p2Indicator.classList.remove('hidden');
+                setTimeout(() => p2Indicator.classList.add('hidden'), 1400);
+            }
+        }
+
+        function startBattle() {
+            const p1 = gameState.players[0];
+            const p2 = gameState.players[1];
+            const p1Card = p1.selectedAttributeCard;
+            const p2Card = p2.selectedAttributeCard;
+            
+            showBattleCards(p1Card, p2Card);
+
+            setTimeout(() => {
+                let result = 'draw';
+                if (p1Card === 'master' && p2Card !== 'master') { result = 'p1_win'; }
+                else if (p2Card === 'master' && p1Card !== 'master') { result = 'p2_win'; }
+                else if (p1Card === 'master' && p2Card === 'master') { result = 'draw'; }
+                else if (battleRules[p1Card]?.winsAgainst === p2Card) { result = 'p1_win'; }
+                else if (battleRules[p2Card]?.winsAgainst === p1Card) { result = 'p2_win'; }
+
+                let p1Dmg = 0, p2Dmg = 0;
+                const baseWinDmg = 25, baseDrawDmg = 5;
+
+                // UPDATED: ダメージ計算ロジックにティアーズブーストを追加
+                if (result === 'p1_win') {
+                    if (p1.isTearsBoostActive) p2Dmg = baseWinDmg * 2;
+                    else if (p1.isBoostActive) p2Dmg = Math.round(baseWinDmg * 1.5);
+                    else p2Dmg = baseWinDmg;
+                } else if (result === 'p2_win') {
+                    if (p2.isTearsBoostActive) p1Dmg = baseWinDmg * 2;
+                    else if (p2.isBoostActive) p1Dmg = Math.round(baseWinDmg * 1.5);
+                    else p1Dmg = baseWinDmg;
+                } else {
+                    if (p1.isTearsBoostActive) p2Dmg = baseDrawDmg * 2;
+                    else if (p1.isBoostActive) p2Dmg = Math.round(baseDrawDmg * 1.5);
+                    else p2Dmg = baseDrawDmg;
+
+                    if (p2.isTearsBoostActive) p1Dmg = baseDrawDmg * 2;
+                    else if (p2.isBoostActive) p1Dmg = Math.round(baseDrawDmg * 1.5);
+                    else p1Dmg = baseDrawDmg;
+                }
+                
+                showBattleResult(p1Card, p2Card, result, p1Dmg, p2Dmg);
+                showDamageIndicators(p1Dmg, p2Dmg);
+
+                p1.hp = Math.max(0, p1.hp - p1Dmg);
+                p2.hp = Math.max(0, p2.hp - p2Dmg);
+
+                p1.cards[p1Card]--;
+                if (p1.isBoostActive) p1.cards.boost--;
+                if (p1.isTearsBoostActive) p1.cards.tears_boost--;
+                
+                p2.cards[p2Card]--;
+                if (p2.isBoostActive) p2.cards.boost--;
+                if (p2.isTearsBoostActive) p2.cards.tears_boost--;
+
+                setTimeout(() => {
+                    p1.selectedAttributeCard = null; p1.isBoostActive = false; p1.isTearsBoostActive = false;
+                    p2.selectedAttributeCard = null; p2.isBoostActive = false; p2.isTearsBoostActive = false;
+                    
+                    updateAllUI();
+                    
+                    if (checkGameOver()) return;
+
+                    gameState.roundFirstPlayer = (gameState.roundFirstPlayer === 1) ? 2 : 1;
+                    gameState.currentTurn = gameState.roundFirstPlayer;
+                    
+                    showTurnSwitchScreen();
+                }, 3000);
+            }, 1000);
+        }
+
+        function showBattleCards(p1Card, p2Card) {
+            const p1Selected = document.getElementById('p1-selected'), p2Selected = document.getElementById('p2-selected');
+            p1Selected.className = `selected-card ${elements[p1Card].class}`;
+            document.getElementById('p1-card-icon').textContent = elements[p1Card].icon;
+            p1Selected.classList.remove('hidden');
+            p2Selected.className = `selected-card ${elements[p2Card].class}`;
+            document.getElementById('p2-card-icon').textContent = elements[p2Card].icon;
+            p2Selected.classList.remove('hidden');
+        }
+
+        function showBattleResult(p1Card, p2Card, result, p1Dmg, p2Dmg) {
+            let message = `${elements[p1Card].name} VS ${elements[p2Card].name} - `;
+            if (result === 'p1_win') {
+                message += `プレイヤー1の勝利！プレイヤー2に${p2Dmg}ダメージ！`;
+                resultDiv.style.color = '#2ed573';
+            } else if (result === 'p2_win') {
+                message += `プレイヤー2の勝利！プレイヤー1に${p1Dmg}ダメージ！`;
+                resultDiv.style.color = '#ff4757';
+            } else {
+                message += `引き分け！ P1に${p1Dmg}, P2に${p2Dmg}ダメージ`;
+                resultDiv.style.color = '#ffa502';
+            }
+            resultDiv.textContent = message;
+        }
+
+        function updateAllUI() {
+            gameState.players.forEach(p => {
+                updateHPBar(p.id, p.hp);
+                document.getElementById(`p${p.id}-boost-indicator`).classList.add('hidden');
+                document.getElementById(`p${p.id}-tears-boost-indicator`).classList.add('hidden'); // NEW
+            });
+            updateCardStates();
+            document.getElementById('p1-selected').classList.add('hidden');
+            document.getElementById('p2-selected').classList.add('hidden');
+            resultDiv.textContent = '';
+            confirmBtn.disabled = true;
+        }
+
+        function updateHPBar(playerId, hp) {
+            const fill = document.getElementById(`hp${playerId}-fill`), text = document.getElementById(`hp${playerId}-text`);
+            const percentage = (hp / MAX_HP) * 100;
+            fill.style.width = percentage + '%';
+            text.textContent = `${hp}/${MAX_HP}`;
+            if (percentage <= 25) fill.style.background = '#ff4757';
+            else if (percentage <= 50) fill.style.background = '#ffa502';
+            else fill.style.background = '#2ed573';
+        }
+
+        function checkGameOver() {
+            const p1 = gameState.players[0], p2 = gameState.players[1];
+            const p1HasAttributeCards = Object.keys(p1.cards).some(key => elements[key].type === 'attribute' && p1.cards[key] > 0);
+            const p2HasAttributeCards = Object.keys(p2.cards).some(key => elements[key].type === 'attribute' && p2.cards[key] > 0);
+            
+            let winner = null;
+            if (p1.hp <= 0) winner = 2;
+            else if (p2.hp <= 0) winner = 1;
+            else if (!p1HasAttributeCards && !p2HasAttributeCards) winner = p1.hp >= p2.hp ? 1 : 2;
+            else if (!p1HasAttributeCards) winner = 2;
+            else if (!p2HasAttributeCards) winner = 1;
+
+            if (winner) {
+                endGame(winner);
+                return true;
+            }
+            return false;
+        }
+
+        function endGame(winner) {
+            gameState.gameOver = true;
+            document.getElementById('winner-text').textContent = `🎉 プレイヤー${winner}の勝利！ 🎉`;
+            showScreen('gameOver');
+            document.querySelector('.game-container').classList.add('hidden');
+        }
+
+        function updateCardStates() {
+            gameState.players.forEach(player => {
+                createPlayerCards(player);
+                createHandCount(player);
+            });
+        }
+        window.onload = showSetup;
+    </script>
+</body>
+</html>

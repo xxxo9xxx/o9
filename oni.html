@@ -1,0 +1,248 @@
+<!DOACTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>鬼ごっこゲーム（桃太郎 vs 鬼｜シンプル鬼）</title>
+  <style>
+    :root { --bg:#0b0e1a; --goal:#5bff85; --enemy:#ff6b6b; --ob:#4a4a6a; }
+    body { margin: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; }
+    h1 { color: white; margin: 10px 0 6px; font: 600 18px/1.2 system-ui, -apple-system, Segoe UI, Roboto, 'Noto Sans JP', sans-serif; }
+    .hint { color:#cfd3ffcc; font-size:12px; margin-bottom: 6px; }
+    canvas { background: #0f1220; border: 2px solid #ffffff22; margin-top: 6px; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+    #menu { margin:20px; }
+    #menu button, #resetBtn { margin:5px; padding:10px 20px; font-weight:700; border:none; border-radius:6px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <h1>鬼ごっこゲーム（桃太郎 vs 鬼）</h1>
+  <div id="menu">
+    <p style="color:white">人数を選んでください:</p>
+    <button onclick="startGame(1)">1人プレイ</button>
+    <button onclick="startGame(2)">2人プレイ</button>
+  </div>
+  <div class="hint" id="hint" style="display:none;">P1: WASD / P2: 矢印キー / R: リスタート。<br>★クリア条件：<strong>生き残りが二人なら二人ともゴールしないとクリアできません。</strong></div>
+  <canvas id="game" width="900" height="550" style="display:none;"></canvas>
+  <button id="resetBtn" style="display:none;">🔁 リセット</button>
+
+  <!-- 効果音 -->
+  <audio id="clearSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="auto"></audio>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+
+    const resetBtn = document.getElementById('resetBtn');
+    resetBtn.addEventListener('click', ()=>{ reset(); });
+
+    let playerCount = 1;
+    let players = [];
+
+    const goal = { x: W-70, y: H/2-60, w: 50, h: 120 };
+
+    let stage = 1;
+    let enemyCount = 3;
+    const MAX_STAGE = 10;
+    const enemies = [];
+    const obstacles=[];
+
+    function isOnObstacle(x,y,r){
+      for(const o of obstacles){
+        if(x > o.x-r && x < o.x+o.w+r && y > o.y-r && y < o.y+o.h+r){
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function spawnEnemies(){
+      enemies.length=0;
+      for(let i=0;i<enemyCount;i++){
+        let ex,ey;
+        do{
+          ex=W/2+Math.random()*100-50;
+          ey=H/2+Math.random()*100-50;
+        }while(isOnObstacle(ex,ey,12));
+        enemies.push({ x:ex, y:ey, r:12, vx:(Math.random()*2-1)*150, vy:(Math.random()*2-1)*150 });
+      }
+    }
+
+    function spawnObstacles(n=8){
+      obstacles.length=0;
+      for(let i=0;i<n;i++){
+        const w=80+Math.random()*120;
+        const h=30+Math.random()*80;
+        const x=40+Math.random()*(W-80-w);
+        const y=40+Math.random()*(H-80-h);
+        const o={x,y,w,h};
+        const nearStart=(x<140 && Math.abs(y-H/2)<120);
+        const overlapGoal=!(x>goal.x+goal.w+10||x+w<goal.x-10||y>goal.y+goal.h+10||y+h<goal.y-10);
+        if(nearStart||overlapGoal){i--;continue;}
+        obstacles.push(o);
+      }
+    }
+
+    addEventListener('keydown',e=>{
+      players.forEach(p=>{const k=p.keys[e.key];if(k)p.inputs[k]=true;});
+      if(e.key==='r'||e.key==='R')reset();
+    });
+    addEventListener('keyup',e=>{players.forEach(p=>{const k=p.keys[e.key];if(k)p.inputs[k]=false;});});
+
+    let running=true;
+
+    function createPlayers(){
+      players=[];
+      players.push({ x: 40, y: H/2-60, r: 16, speed: 220, vx:0, vy:0, alive:true, inGoal:false, name:"桃太郎", color:'#4aa8ff', inputs:{up:false,down:false,left:false,right:false}, keys:{w:'up',s:'down',a:'left',d:'right'} });
+      if(playerCount>=2){
+        players.push({ x: 40, y: H/2+34, r: 16, speed: 220, vx:0, vy:0, alive:true, inGoal:false, name:"桃太郎2", color:'#ff7070', inputs:{up:false,down:false,left:false,right:false}, keys:{ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'} });
+      }
+    }
+
+    function reset(){
+      createPlayers();
+      players.forEach((p,i)=>{p.x=40; p.y=H/2 + (i*60 - 60); p.vx=0;p.vy=0;p.alive=true;p.inGoal=false;});
+      spawnObstacles();
+      spawnEnemies();
+      running=true;
+    }
+
+    function startGame(count){
+      playerCount = count;
+      document.getElementById('menu').style.display='none';
+      document.getElementById('hint').style.display='block';
+      canvas.style.display='block';
+      resetBtn.style.display='inline-block';
+      reset();
+    }
+
+    function nextStage(){
+      if(stage < MAX_STAGE){
+        stage++;
+        enemyCount++;
+        document.getElementById('clearSound').play();
+        reset();
+      } else {
+        running = false;
+        winner = 'allclear';
+      }
+    }
+
+    function circleRectCollision(cx,cy,cr,o){
+      const nx = Math.max(o.x, Math.min(cx, o.x+o.w));
+      const ny = Math.max(o.y, Math.min(cy, o.y+o.h));
+      const dx=cx-nx, dy=cy-ny;
+      return dx*dx+dy*dy < cr*cr;
+    }
+
+    function update(dt){
+      if(!running) return;
+      for(const p of players){
+        if(!p.alive) continue;
+        const ax=(p.inputs.right?1:0)-(p.inputs.left?1:0);
+        const ay=(p.inputs.down?1:0)-(p.inputs.up?1:0);
+        const nx=p.x+ax*p.speed*dt;
+        const ny=p.y+ay*p.speed*dt;
+        let blocked=false;
+        for(const o of obstacles){ if(circleRectCollision(nx,ny,p.r,o)){blocked=true; break;} }
+        if(!blocked){
+          p.vx=ax*p.speed; p.vy=ay*p.speed;
+          p.x=nx; p.y=ny;
+        } else {
+          p.vx=0; p.vy=0;
+        }
+        if(p.x<p.r)p.x=p.r; if(p.y<p.r)p.y=p.r; if(p.x>W-p.r)p.x=W-p.r; if(p.y>H-p.r)p.y=H-p.r;
+        p.inGoal = (p.x>goal.x && p.x<goal.x+goal.w && p.y>goal.y && p.y<goal.y+goal.h);
+      }
+
+      const alive = players.filter(p=>p.alive);
+      if(alive.length>0 && alive.every(p=>p.inGoal)){
+        running=false;
+        setTimeout(nextStage,1000);
+      }
+
+      for(const e of enemies){
+        let targets=players.filter(pl=>pl.alive);
+        if(targets.length===0){running=false;}
+        else{
+          let t=targets[0];
+          if(targets.length>1){
+            const d0=Math.hypot(targets[0].x-e.x,targets[0].y-e.y);
+            const d1=Math.hypot(targets[1].x-e.x,targets[1].y-e.y);
+            if(d1<d0) t=targets[1];
+          }
+          const dx=t.x-e.x, dy=t.y-e.y;
+          const d=Math.hypot(dx,dy)||1;
+          const ACC=220, MAX=300;
+          e.vx+=(dx/d)*ACC*dt; e.vy+=(dy/d)*ACC*dt;
+          const v=Math.hypot(e.vx,e.vy); if(v>MAX){e.vx=e.vx/v*MAX; e.vy=e.vy/v*MAX;}
+          const nex=e.x+e.vx*dt, ney=e.y+e.vy*dt;
+          let blocked=false;
+          for(const o of obstacles){ if(circleRectCollision(nex,ney,e.r,o)){blocked=true; break;} }
+          if(!blocked){ e.x=nex; e.y=ney; } else { e.vx*=-0.3; e.vy*=-0.3; }
+          if(e.x<e.r){e.x=e.r;e.vx*=-0.7;} if(e.y<e.r){e.y=e.r;e.vy*=-0.7;}
+          if(e.x>W-e.r){e.x=W-e.r;e.vx*=-0.7;} if(e.y>H-e.r){e.y=H-e.r;e.vy*=-0.7;}
+          for(const p of players){
+            if(!p.alive) continue;
+            const hit=Math.hypot(p.x-e.x,p.y-e.y)<p.r+e.r;
+            if(hit){ p.alive=false; p.inGoal=false; }
+          }
+        }
+      }
+    }
+
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      ctx.save(); ctx.strokeStyle='#1a2146'; ctx.globalAlpha=.25; ctx.lineWidth=1;
+      for(let x=0;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+      for(let y=0;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+      ctx.restore();
+
+      ctx.fillStyle='#5bff85';
+      ctx.fillRect(goal.x,goal.y,goal.w,goal.h);
+      ctx.fillStyle='#ffffff66'; ctx.fillRect(12,H/2-60,6,120);
+
+      ctx.fillStyle='#4a4a6a';
+      obstacles.forEach(o=>ctx.fillRect(o.x,o.y,o.w,o.h));
+
+      players.forEach(p=>{
+        ctx.save();
+        if(!p.alive){ ctx.globalAlpha=0.3; }
+        ctx.fillStyle=p.color;
+        ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='red';ctx.lineWidth=3;
+        ctx.beginPath();ctx.moveTo(p.x-p.r/1.2,p.y-2);ctx.lineTo(p.x+p.r/1.2,p.y-2);ctx.stroke();
+        ctx.restore();
+      });
+
+      // 鬼（シンプル：ツノだけ）
+      enemies.forEach(e=>{
+        ctx.fillStyle='#ff6b6b';
+        ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();
+        // ツノ
+        ctx.fillStyle='#ffffff';
+        ctx.beginPath();ctx.moveTo(e.x-5,e.y-e.r);ctx.lineTo(e.x-10,e.y-e.r-15);ctx.lineTo(e.x,e.y-e.r-5);ctx.fill();
+        ctx.beginPath();ctx.moveTo(e.x+5,e.y-e.r);ctx.lineTo(e.x+10,e.y-e.r-15);ctx.lineTo(e.x,e.y-e.r-5);ctx.fill();
+      });
+
+      ctx.fillStyle='white'; ctx.font='16px system-ui'; ctx.textAlign='left';
+      ctx.fillText('Stage: '+stage+" / "+MAX_STAGE, 10, 20);
+
+      if(!running){
+        ctx.fillStyle='white'; ctx.font='700 36px system-ui'; ctx.textAlign='center';
+        if(players.every(p=>!p.alive)){
+          ctx.fillText('GAME OVER',W/2,H/2);
+        } else if(stage>MAX_STAGE){
+          ctx.fillText('ALL STAGES CLEAR!',W/2,H/2);
+        } else {
+          ctx.fillText('STAGE CLEAR!',W/2,H/2);
+        }
+        ctx.font='14px system-ui'; ctx.fillText('R キーでリスタート',W/2,H/2+28);
+      }
+    }
+
+    let last=0; function loop(t){requestAnimationFrame(loop);const dt=(t-last)/1000||0;last=t;update(Math.min(dt,0.033));draw();}
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
