@@ -639,13 +639,14 @@
         
         gameState.roundScore = mainScore;
         
-        // 投票チームの得点計算
+        // 投票チームの得点計算 - 修正：正解エリアの位置で判定
         let voteScore = 0;
         if (gameState.vote) {
-            const isGuessRight = gameState.guessAngle > 0;
+            // 正解エリア（targetAngle）が右寄りか左寄りかで判定
+            const isTargetRight = gameState.targetAngle > 0;
             const voteRight = gameState.vote === 'right';
             
-            if ((isGuessRight && voteRight) || (!isGuessRight && !voteRight)) {
+            if ((isTargetRight && voteRight) || (!isTargetRight && !voteRight)) {
                 voteScore = 1; // 投票が当たった場合
             }
         }
@@ -669,10 +670,14 @@
         const voteResult = gameState.voteScore > 0 ? '正解！' : '不正解';
         const voteText = gameState.vote === 'left' ? gameState.topic.left + '寄り' : gameState.topic.right + '寄り';
         
+        // 正解が実際にどちら寄りだったかを表示
+        const actualSide = gameState.targetAngle > 0 ? gameState.topic.right + '寄り' : gameState.topic.left + '寄り';
+        
         resultSummaryEl.innerHTML = `
             <div class="score-display">
                 ${mainTeamName}: ${gameState.roundScore}点獲得！<br>
-                ${voteTeamName}: ${voteText}に投票 → ${voteResult} (+${gameState.voteScore}点)
+                ${voteTeamName}: ${voteText}に投票<br>
+                正解は${actualSide} → ${voteResult} (+${gameState.voteScore}点)
             </div>
         `;
         
