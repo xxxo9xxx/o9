@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RANK BATTLE</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 10px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 6vw, 4rem);
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            background: linear-gradient(45deg, #f39c12, #e67e22, #d35400);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+            letter-spacing: 3px;
+        }
+
+        .subtitle {
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            color: #bdc3c7;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        .screen {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: clamp(15px, 3vw, 30px);
+            backdrop-filter: blur(10px);
+            margin: 20px 0;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .game-info {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            font-weight: bold;
+            font-size: clamp(14px, 3vw, 18px);
+            padding: 15px;
+            border-radius: 15px;
+            margin: 15px 0;
+            box-shadow: 0 0 20px rgba(243, 156, 18, 0.4);
+        }
+
+        .player-indicator {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            font-weight: bold;
+            font-size: clamp(16px, 3vw, 20px);
+            padding: 12px 25px;
+            border-radius: 20px;
+            margin: 10px 0;
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            font-weight: bold;
+            font-size: clamp(18px, 4vw, 24px);
+            padding: 15px;
+            border-radius: 20px;
+            margin: 15px 0;
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .win-tracker {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 10px 0;
+        }
+
+        .win-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .win-dot.win {
+            background: #2ecc71;
+            border-color: #2ecc71;
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
+        }
+
+        .win-dot.loss {
+            background: #e74c3c;
+            border-color: #e74c3c;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.6);
+        }
+
+        .win-dot.draw {
+            background: #f39c12;
+            border-color: #f39c12;
+            box-shadow: 0 0 10px rgba(243, 156, 18, 0.6);
+        }
+
+        .status-indicator {
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-weight: bold;
+            margin: 10px;
+            display: inline-block;
+        }
+
+        .status-waiting {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .status-ready {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .round-counter {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            font-weight: bold;
+            font-size: clamp(16px, 3vw, 20px);
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 10px 0;
+            box-shadow: 0 0 15px rgba(155, 89, 182, 0.4);
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-height: 400px;
+        }
+
+        .player-area {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: clamp(10px, 2vw, 20px);
+            backdrop-filter: blur(10px);
+            transition: all 0.5s ease;
+            position: relative;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .player-area.current-player {
+            border: 3px solid #f39c12;
+            box-shadow: 0 0 25px rgba(243, 156, 18, 0.4);
+        }
+
+        .player-area.waiting {
+            opacity: 0.7;
+            transform: scale(0.98);
+        }
+
+        .player-area.ready {
+            border: 3px solid #2ecc71;
+            box-shadow: 0 0 25px rgba(46, 204, 113, 0.4);
+        }
+
+        .crystal-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 28px;
+            transition: all 0.3s ease;
+        }
+
+        .crystal-status.available {
+            animation: sparkle 2s infinite;
+            filter: drop-shadow(0 0 10px #3498db);
+        }
+
+        .crystal-status.used {
+            opacity: 0.3;
+            filter: grayscale(100%);
+        }
+
+        @keyframes sparkle {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.15) rotate(180deg); }
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .cards {
+            display: flex;
+            justify-content: center;
+            gap: clamp(5px, 1.5vw, 10px);
+            flex-wrap: wrap;
+            min-height: clamp(80px, 15vw, 120px);
+        }
+
+        .card {
+            width: clamp(70px, 14vw, 90px);
+            height: clamp(90px, 18vw, 120px);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid rgba(255,255,255,0.2);
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            position: relative;
+            touch-action: manipulation;
+            user-select: none;
+            font-weight: bold;
+        }
+
+        .card:hover, .card:active {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+
+        .card.selected {
+            border-color: #f39c12;
+            transform: translateY(-10px) scale(1.1);
+            box-shadow: 0 15px 30px rgba(243, 156, 18, 0.6);
+        }
+
+        .card.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .card-icon {
+            font-size: clamp(28px, 8vw, 42px);
+            margin-bottom: 5px;
+        }
+
+        .card-name {
+            font-size: clamp(10px, 2vw, 12px);
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .card-rank {
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            font-size: clamp(12px, 3vw, 16px);
+            font-weight: bold;
+            background: rgba(0,0,0,0.7);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 役職別カード色 */
+        .card.slave { 
+            background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+            border-color: rgba(127, 140, 141, 0.7);
+        }
+        .card.citizen { 
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-color: rgba(52, 152, 219, 0.7);
+        }
+        .card.soldier { 
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            border-color: rgba(230, 126, 34, 0.7);
+        }
+        .card.general { 
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            border-color: rgba(155, 89, 182, 0.7);
+        }
+        .card.emperor { 
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            border-color: rgba(241, 196, 15, 0.7);
+        }
+
+        .battle-area {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: clamp(15px, 3vw, 30px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            position: relative;
+            flex-wrap: wrap;
+            gap: 10px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .selected-card {
+            width: clamp(90px, 18vw, 130px);
+            height: clamp(120px, 24vw, 170px);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            border: 4px solid #f39c12;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .selected-card.hidden-card {
+            background: linear-gradient(135deg, #34495e, #2c3e50) !important;
+            border: 4px solid #7f8c8d;
+        }
+
+        .selected-card.hidden-card::after {
+            content: '?';
+            font-size: clamp(40px, 10vw, 60px);
+            color: #bdc3c7;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .selected-card-icon {
+            font-size: clamp(35px, 10vw, 50px);
+            margin-bottom: 8px;
+        }
+
+        .selected-card-name {
+            font-size: clamp(12px, 3vw, 16px);
+            text-align: center;
+        }
+
+        .vs {
+            font-size: clamp(28px, 8vw, 40px);
+            font-weight: bold;
+            color: #f39c12;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            text-transform: uppercase;
+        }
+
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: clamp(10px, 2vw, 15px) clamp(20px, 4vw, 30px);
+            font-size: clamp(14px, 3vw, 18px);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            user-select: none;
+            min-height: 48px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-crystal {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            position: relative;
+        }
+
+        .btn-crystal::before {
+            content: '💎';
+            margin-right: 8px;
+        }
+
+        .btn:hover, .btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result {
+            margin: 20px 0;
+            font-size: clamp(18px, 5vw, 28px);
+            font-weight: bold;
+            min-height: 60px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 15px;
+            transition: all 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result.win {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            animation: celebrateWin 0.6s ease-out;
+            box-shadow: 0 0 30px rgba(46, 204, 113, 0.6);
+        }
+
+        .result.loss {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            animation: showLoss 0.6s ease-out;
+            box-shadow: 0 0 30px rgba(231, 76, 60, 0.6);
+        }
+
+        .result.draw {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            animation: showDraw 0.6s ease-out;
+            box-shadow: 0 0 30px rgba(243, 156, 18, 0.6);
+        }
+
+        @keyframes celebrateWin {
+            0% { transform: scale(0.8) rotate(-5deg); opacity: 0; }
+            50% { transform: scale(1.1) rotate(2deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        @keyframes showLoss {
+            0% { transform: scale(0.9); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes showDraw {
+            0% { transform: translateY(-10px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .url-display {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .url-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+            color: white;
+            font-size: 14px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .url-input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .connection-status {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .rules-display {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: left;
+            font-size: clamp(12px, 2.5vw, 14px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .rules-display h4 {
+            color: #f39c12;
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .hidden { display: none; }
+
+        @media (max-width: 768px) {
+            body { padding: 5px; }
+            .cards { gap: 5px; }
+            .battle-area { flex-direction: column; gap: 15px; }
+            h1 { letter-spacing: 1px; }
+        }
+
+        @media (max-width: 480px) {
+            .player-info { flex-direction: column; gap: 8px; }
+            .controls { gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>RANK BATTLE</h1>
+        <div class="subtitle">階級と革命のカードゲーム</div>
+        
+        <!-- セットアップ画面 -->
+        <div class="screen" id="setup-screen">
+            <h2>⚔️ 戦場へようこそ</h2>
+            
+            <div class="rules-display">
+                <h4>📋 ゲームルール</h4>
+                <p><strong>🎯 目標:</strong> 先に4勝した方の勝利！</p>
+                <p><strong>🎴 手札:</strong> 奴隷(0)×1, 市民(1)×2, 兵士(2)×2, 将軍(3)×1, 皇帝(4)×1</p>
+                <p><strong>⚡ 特殊:</strong> 奴隷は皇帝に「反逆」で勝利！</p>
+                <p><strong>💎 クリスタル:</strong> 1回だけカードを1ランクアップ！</p>
+                <p><strong>🏆 勝敗:</strong> 役職が高い方（数字が大きい方）が勝利、4勝で即座にゲーム終了</p>
+            </div>
+            
+            <div class="url-display">
+                <h3>👤 プレイヤー名設定</h3>
+                <input type="text" class="url-input" id="player-name-input" placeholder="あなたの名前を入力してください" maxlength="10">
+            </div>
+            
+            <div class="url-display">
+                <h3>🔗 ゲーム参加</h3>
+                <input type="text" class="url-input" id="game-id-input" placeholder="ゲームIDを入力してください">
+                <br>
+                <button class="btn btn-primary" onclick="joinGame()">ゲームに参加</button>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-success" onclick="createNewGame()">🚀 新しいゲームを作成</button>
+                <button class="btn btn-primary" onclick="quickStart()">⚡ クイックスタート</button>
+            </div>
+            
+            <div class="connection-status" id="connection-status">
+                Firebase接続中...
+            </div>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div class="hidden" id="game-screen">
+            <div class="game-info" id="game-info">ゲーム準備中...</div>
+            <div class="player-indicator" id="player-indicator">あなた: 観戦者</div>
+            
+            <div class="score-display">
+                <div>🏆 スコア</div>
+                <div style="display: flex; justify-content: space-around; margin-top: 10px;">
+                    <div>
+                        <div>プレイヤー1</div>
+                        <div id="p1-score">0勝</div>
+                        <div class="win-tracker" id="p1-tracker"></div>
+                    </div>
+                    <div>
+                        <div>プレイヤー2</div>
+                        <div id="p2-score">0勝</div>
+                        <div class="win-tracker" id="p2-tracker"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="round-counter" id="round-counter">ラウンド 1</div>
+            
+            <div class="url-display">
+                <h4>🔗 友達を招待</h4>
+                <input type="text" class="url-input" id="share-game-id" readonly onclick="this.select()">
+                <br>
+                <button class="btn btn-primary" onclick="copyGameId()">ゲームIDをコピー</button>
+            </div>
+            
+            <div class="game-area">
+                <div class="player-area" id="player1-area">
+                    <div class="crystal-status available" id="p1-crystal">💎</div>
+                    <div class="player-info">
+                        <h3>プレイヤー1 <span class="status-indicator status-waiting" id="p1-status">待機中</span></h3>
+                    </div>
+                    <div class="cards" id="player1-cards"></div>
+                </div>
+
+                <div class="battle-area">
+                    <div class="selected-card citizen hidden hidden-card" id="p1-selected">
+                        <div class="selected-card-icon" id="p1-card-icon">👤</div>
+                        <div class="selected-card-name" id="p1-card-name">市民</div>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="selected-card soldier hidden hidden-card" id="p2-selected">
+                        <div class="selected-card-icon" id="p2-card-icon">⚔️</div>
+                        <div class="selected-card-name" id="p2-card-name">兵士</div>
+                    </div>
+                </div>
+
+                <div class="player-area" id="player2-area">
+                    <div class="crystal-status available" id="p2-crystal">💎</div>
+                    <div class="player-info">
+                        <h3>プレイヤー2 <span class="status-indicator status-waiting" id="p2-status">待機中</span></h3>
+                    </div>
+                    <div class="cards" id="player2-cards"></div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-crystal" id="crystal-btn" onclick="useCrystal()" disabled>ランクアップ</button>
+                <button class="btn btn-success" id="ready-btn" onclick="setReady()" disabled>準備完了</button>
+                <button class="btn btn-primary" onclick="resetGame()">ゲームリセット</button>
+                <button class="btn btn-danger" onclick="leaveGame()">ゲームを出る</button>
+            </div>
+            
+            <div class="result" id="result"></div>
+        </div>
+
+        <!-- ゲーム終了画面 -->
+        <div class="hidden" id="game-over-screen">
+            <div class="screen">
+                <h2 id="winner-text">🎉 ゲーム終了！</h2>
+                <div id="game-stats"></div>
+                <button class="btn btn-primary" onclick="showSetup()">新しいゲームを始める</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+        // Firebase設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyAof5t2SxKA86cgAOdAX_GZTktduqpnCl4",
+            authDomain: "my-card-game-2024.firebaseapp.com",
+            databaseURL: "https://my-card-game-2024-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "my-card-game-2024",
+            storageBucket: "my-card-game-2024.firebasestorage.app",
+            messagingSenderId: "943669833378",
+            appId: "1:943669833378:web:c97589236cc42b195e31fb"
+        };
+
+        // Firebase初期化
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // ゲーム状態
+        let currentGameId = null;
+        let myPlayerId = null;
+        let gameState = null;
+        let selectedCard = null;
+        let crystalUsed = false;
+
+        // 画面要素
+        const screens = {
+            setup: document.getElementById('setup-screen'),
+            game: document.getElementById('game-screen'),
+            gameOver: document.getElementById('game-over-screen')
+        };
+
+        // 役職カード定義
+        const rankCards = {
+            slave: { rank: 0, icon: '⛓️', name: '奴隷', class: 'slave' },
+            citizen: { rank: 1, icon: '👤', name: '市民', class: 'citizen' },
+            soldier: { rank: 2, icon: '⚔️', name: '兵士', class: 'soldier' },
+            general: { rank: 3, icon: '🎖️', name: '将軍', class: 'general' },
+            emperor: { rank: 4, icon: '👑', name: '皇帝', class: 'emperor' }
+        };
+
+        // 初期化
+        window.onload = function() {
+            document.getElementById('connection-status').textContent = 'Firebase接続完了！';
+            
+            // URL からゲームIDを取得
+            const urlParams = new URLSearchParams(window.location.search);
+            const gameId = urlParams.get('game');
+            if (gameId) {
+                document.getElementById('game-id-input').value = gameId;
+                joinGame();
+            }
+        };
+
+        // ゲーム作成
+        window.createNewGame = function() {
+            const playerName = document.getElementById('player-name-input').value.trim() || 'プレイヤー1';
+            
+            const gameRef = push(ref(database, 'games'));
+            currentGameId = gameRef.key;
+            myPlayerId = generatePlayerId();
+            
+            const initialState = {
+                id: currentGameId,
+                status: 'waiting',
+                round: 1,
+                players: {
+                    [myPlayerId]: {
+                        id: myPlayerId,
+                        name: playerName,
+                        position: 1,
+                        cards: generateDeck(),
+                        selectedCard: null,
+                        ready: false,
+                        crystalUsed: false,
+                        wins: 0,
+                        results: []
+                    }
+                },
+                created: Date.now()
+            };
+
+            set(gameRef, initialState).then(() => {
+                crystalUsed = false;
+                updateShareUrl();
+                showScreen('game');
+                startGameListener();
+                updatePlayerIndicator();
+            });
+        };
+
+        // デッキ生成
+        function generateDeck() {
+            return {
+                slave: 1,
+                citizen: 2,
+                soldier: 2,
+                general: 1,
+                emperor: 1
+            };
+        }
+
+        // プレイヤーID生成
+        function generatePlayerId() {
+            return 'player_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // クイックスタート
+        window.quickStart = function() {
+            createNewGame();
+        };
+
+        // ゲーム参加
+        window.joinGame = function() {
+            const gameId = document.getElementById('game-id-input').value.trim();
+            if (!gameId) {
+                alert('ゲームIDを入力してください');
+                return;
+            }
+
+            const playerName = document.getElementById('player-name-input').value.trim() || 'プレイヤー2';
+
+            currentGameId = gameId;
+            myPlayerId = generatePlayerId();
+
+            const gameRef = ref(database, `games/${gameId}`);
+            onValue(gameRef, (snapshot) => {
+                const game = snapshot.val();
+                if (!game) {
+                    alert('ゲームが見つかりません');
+                    return;
+                }
+
+                const playerCount = Object.keys(game.players || {}).length;
+                
+                if (playerCount < 2) {
+                    const updateData = {};
+                    updateData[`games/${gameId}/players/${myPlayerId}`] = {
+                        id: myPlayerId,
+                        name: playerName,
+                        position: 2,
+                        cards: generateDeck(),
+                        selectedCard: null,
+                        ready: false,
+                        crystalUsed: false,
+                        wins: 0,
+                        results: []
+                    };
+                    
+                    update(ref(database), updateData);
+                }
+
+                crystalUsed = false;
+                updateShareUrl();
+                showScreen('game');
+                startGameListener();
+                updatePlayerIndicator();
+            }, { onlyOnce: true });
+        };
+
+        // ゲーム状態監視
+        function startGameListener() {
+            const gameRef = ref(database, `games/${currentGameId}`);
+            onValue(gameRef, (snapshot) => {
+                gameState = snapshot.val();
+                if (gameState) {
+                    updateGameUI();
+                }
+            });
+
+            // 切断時の処理
+            const playerRef = ref(database, `games/${currentGameId}/players/${myPlayerId}`);
+            onDisconnect(playerRef).remove();
+        }
+
+        // 画面切り替え
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+            if (screens[screenName]) {
+                screens[screenName].classList.remove('hidden');
+            }
+        }
+
+        // 共有URL更新
+        function updateShareUrl() {
+            const gameUrl = `${window.location.origin}${window.location.pathname}?game=${currentGameId}`;
+            document.getElementById('share-game-id').value = currentGameId;
+            
+            // URLを更新（履歴に残さない）
+            window.history.replaceState({}, '', gameUrl);
+        }
+
+        // ゲームIDコピー
+        window.copyGameId = function() {
+            const gameIdInput = document.getElementById('share-game-id');
+            gameIdInput.select();
+            document.execCommand('copy');
+            alert('ゲームIDがコピーされました！友達に送ってください。');
+        };
+
+        // プレイヤー表示更新
+        function updatePlayerIndicator() {
+            const indicator = document.getElementById('player-indicator');
+            if (!gameState || !myPlayerId) return;
+
+            const myPlayer = gameState.players[myPlayerId];
+            if (myPlayer) {
+                indicator.textContent = `あなた: ${myPlayer.name}`;
+                indicator.className = 'player-indicator';
+            } else {
+                indicator.textContent = 'あなた: 観戦者';
+                indicator.className = 'player-indicator';
+            }
+        }
+
+        // ゲームUI更新
+        function updateGameUI() {
+            if (!gameState) return;
+
+            updateGameInfo();
+            updateScoreDisplay();
+            updatePlayerAreas();
+            updateBattleArea();
+            updateControls();
+            updateCrystalStatus();
+            checkGameEnd();
+        }
+
+        // ゲーム情報更新
+        function updateGameInfo() {
+            const playerCount = Object.keys(gameState.players || {}).length;
+            let infoText = `ゲームID: ${currentGameId} | プレイヤー: ${playerCount}/2`;
+            
+            if (gameState.status === 'playing') {
+                infoText += ` | ラウンド進行中`;
+            } else if (gameState.status === 'waiting') {
+                infoText += ' | プレイヤーを待機中...';
+            }
+
+            document.getElementById('game-info').textContent = infoText;
+            document.getElementById('round-counter').textContent = `ラウンド ${gameState.round}`;
+        }
+
+        // スコア表示更新
+        function updateScoreDisplay() {
+            const players = Object.values(gameState.players || {}).sort((a, b) => a.position - b.position);
+            
+            players.forEach((player, index) => {
+                const scoreEl = document.getElementById(`p${index + 1}-score`);
+                const trackerEl = document.getElementById(`p${index + 1}-tracker`);
+                
+                if (scoreEl) {
+                    scoreEl.textContent = `${player.wins}勝`;
+                }
+                
+                if (trackerEl) {
+                    trackerEl.innerHTML = '';
+                    const results = player.results || [];
+                    for (let i = 0; i < 7; i++) {
+                        const dot = document.createElement('div');
+                        dot.className = 'win-dot';
+                        if (results[i] === 'win') dot.classList.add('win');
+                        else if (results[i] === 'loss') dot.classList.add('loss');
+                        else if (results[i] === 'draw') dot.classList.add('draw');
+                        trackerEl.appendChild(dot);
+                    }
+                }
+            });
+        }
+
+        // プレイヤーエリア更新
+        function updatePlayerAreas() {
+            const players = Object.values(gameState.players || {});
+            
+            players.forEach(player => {
+                updatePlayerArea(player);
+                updatePlayerCards(player);
+            });
+        }
+
+        function updatePlayerArea(player) {
+            const areaId = `player${player.position}-area`;
+            const statusId = `p${player.position}-status`;
+
+            const area = document.getElementById(areaId);
+            const status = document.getElementById(statusId);
+
+            if (!area || !status) return;
+
+            // ステータス更新
+            if (player.ready) {
+                status.textContent = '準備完了';
+                status.className = 'status-indicator status-ready';
+                area.classList.add('ready');
+                area.classList.remove('waiting');
+            } else {
+                status.textContent = '選択中';
+                status.className = 'status-indicator status-waiting';
+                area.classList.add('waiting');
+                area.classList.remove('ready');
+            }
+
+            // 現在のプレイヤーをハイライト
+            if (player.id === myPlayerId) {
+                area.classList.add('current-player');
+            } else {
+                area.classList.remove('current-player');
+            }
+        }
+
+        // プレイヤーカード更新（役職順に並べる）
+        function updatePlayerCards(player) {
+            const cardsContainer = document.getElementById(`player${player.position}-cards`);
+            if (!cardsContainer) return;
+
+            cardsContainer.innerHTML = '';
+
+            // 自分のカードのみ表示
+            if (player.id === myPlayerId && player.cards) {
+                // 役職順に並べる（奴隷→皇帝）
+                const cardOrder = ['slave', 'citizen', 'soldier', 'general', 'emperor'];
+                
+                cardOrder.forEach(cardType => {
+                    const count = player.cards[cardType] || 0;
+                    for (let i = 0; i < count; i++) {
+                        const card = createCardElement(cardType);
+                        cardsContainer.appendChild(card);
+                    }
+                });
+            }
+        }
+
+        // カード要素作成
+        function createCardElement(cardType) {
+            const cardData = rankCards[cardType];
+            const card = document.createElement('div');
+            card.className = `card ${cardData.class}`;
+            card.dataset.type = cardType;
+            card.innerHTML = `
+                <div class="card-rank">${cardData.rank}</div>
+                <div class="card-icon">${cardData.icon}</div>
+                <div class="card-name">${cardData.name}</div>
+            `;
+            card.onclick = () => selectCard(cardType, card);
+            return card;
+        }
+
+        // カード選択
+        function selectCard(cardType, cardElement) {
+            if (!gameState || gameState.status !== 'playing') return;
+            
+            const myPlayer = gameState.players[myPlayerId];
+            if (!myPlayer || myPlayer.ready) return;
+
+            selectedCard = cardType;
+            
+            // カード選択UI更新
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            cardElement.classList.add('selected');
+            
+            document.getElementById('ready-btn').disabled = false;
+            document.getElementById('crystal-btn').disabled = crystalUsed;
+        }
+
+        // クリスタル使用
+        window.useCrystal = function() {
+            if (!selectedCard || crystalUsed) return;
+
+            const cardData = rankCards[selectedCard];
+            const nextRanks = ['citizen', 'soldier', 'general', 'emperor'];
+            
+            if (cardData.rank < 4) {
+                crystalUsed = true;
+                document.getElementById('crystal-btn').disabled = true;
+                
+                // UI上でランクアップ表示
+                const selectedCardEl = document.querySelector('.card.selected');
+                if (selectedCardEl) {
+                    const newRank = nextRanks[cardData.rank];
+                    const newCardData = rankCards[newRank];
+                    
+                    selectedCardEl.className = `card ${newCardData.class} selected`;
+                    selectedCardEl.innerHTML = `
+                        <div class="card-rank">${newCardData.rank}</div>
+                        <div class="card-icon">${newCardData.icon}</div>
+                        <div class="card-name">${newCardData.name}</div>
+                    `;
+                    
+                    // データも更新
+                    selectedCard = newRank;
+                }
+            }
+        };
+
+        // 準備完了
+        window.setReady = function() {
+            if (!selectedCard || !myPlayerId) return;
+
+            const updateData = {};
+            updateData[`games/${currentGameId}/players/${myPlayerId}/selectedCard`] = selectedCard;
+            updateData[`games/${currentGameId}/players/${myPlayerId}/ready`] = true;
+            updateData[`games/${currentGameId}/players/${myPlayerId}/crystalUsed`] = crystalUsed;
+
+            update(ref(database), updateData);
+            
+            document.getElementById('ready-btn').disabled = true;
+            document.getElementById('crystal-btn').disabled = true;
+        };
+
+        // クリスタル状態更新
+        function updateCrystalStatus() {
+            const players = Object.values(gameState.players || {});
+            
+            players.forEach(player => {
+                const crystalEl = document.getElementById(`p${player.position}-crystal`);
+                if (crystalEl) {
+                    if (player.crystalUsed) {
+                        crystalEl.className = 'crystal-status used';
+                    } else {
+                        crystalEl.className = 'crystal-status available';
+                    }
+                }
+            });
+        }
+
+        // バトルエリア更新
+        function updateBattleArea() {
+            const players = Object.values(gameState.players || {}).sort((a, b) => a.position - b.position);
+            
+            players.forEach((player, index) => {
+                const selectedCardEl = document.getElementById(`p${index + 1}-selected`);
+                const cardIconEl = document.getElementById(`p${index + 1}-card-icon`);
+                const cardNameEl = document.getElementById(`p${index + 1}-card-name`);
+                
+                if (!selectedCardEl || !cardIconEl || !cardNameEl) return;
+
+                if (player.selectedCard) {
+                    selectedCardEl.classList.remove('hidden');
+                    
+                    // 両プレイヤーが準備完了している場合のみカードを表示
+                    const allReady = players.every(p => p.ready);
+                    if (allReady) {
+                        const cardData = rankCards[player.selectedCard];
+                        selectedCardEl.className = `selected-card ${cardData.class}`;
+                        cardIconEl.textContent = cardData.icon;
+                        cardNameEl.textContent = cardData.name;
+                        selectedCardEl.classList.remove('hidden-card');
+                    } else {
+                        selectedCardEl.classList.add('hidden-card');
+                        cardIconEl.textContent = '';
+                        cardNameEl.textContent = '';
+                    }
+                } else {
+                    selectedCardEl.classList.add('hidden');
+                }
+            });
+
+            // 両プレイヤーが準備完了している場合は戦闘開始
+            if (players.length === 2 && players.every(p => p.ready)) {
+                setTimeout(processBattle, 1500);
+            }
+        }
+
+        // 戦闘処理
+        function processBattle() {
+            const players = Object.values(gameState.players || {}).sort((a, b) => a.position - b.position);
+            if (players.length !== 2 || !players.every(p => p.ready)) return;
+
+            const p1 = players[0];
+            const p2 = players[1];
+
+            const result = determineBattleResult(p1.selectedCard, p2.selectedCard);
+            
+            // 結果表示
+            showBattleResult(p1.selectedCard, p2.selectedCard, result);
+
+            // カード消費とスコア更新
+            setTimeout(() => {
+                const newP1Cards = { ...p1.cards };
+                const newP2Cards = { ...p2.cards };
+                
+                newP1Cards[p1.selectedCard]--;
+                newP2Cards[p2.selectedCard]--;
+
+                const newP1Results = [...(p1.results || [])];
+                const newP2Results = [...(p2.results || [])];
+
+                let newP1Wins = p1.wins;
+                let newP2Wins = p2.wins;
+
+                if (result === 'p1_win') {
+                    newP1Wins++;
+                    newP1Results.push('win');
+                    newP2Results.push('loss');
+                } else if (result === 'p2_win') {
+                    newP2Wins++;
+                    newP1Results.push('loss');
+                    newP2Results.push('win');
+                } else {
+                    newP1Results.push('draw');
+                    newP2Results.push('draw');
+                }
+
+                const updateData = {};
+                updateData[`games/${currentGameId}/players/${p1.id}/cards`] = newP1Cards;
+                updateData[`games/${currentGameId}/players/${p2.id}/cards`] = newP2Cards;
+                updateData[`games/${currentGameId}/players/${p1.id}/selectedCard`] = null;
+                updateData[`games/${currentGameId}/players/${p2.id}/selectedCard`] = null;
+                updateData[`games/${currentGameId}/players/${p1.id}/ready`] = false;
+                updateData[`games/${currentGameId}/players/${p2.id}/ready`] = false;
+                updateData[`games/${currentGameId}/players/${p1.id}/wins`] = newP1Wins;
+                updateData[`games/${currentGameId}/players/${p2.id}/wins`] = newP2Wins;
+                updateData[`games/${currentGameId}/players/${p1.id}/results`] = newP1Results;
+                updateData[`games/${currentGameId}/players/${p2.id}/results`] = newP2Results;
+
+                // ゲーム終了チェック
+                if (newP1Wins >= 4 || newP2Wins >= 4) {
+                    updateData[`games/${currentGameId}/status`] = 'finished';
+                    updateData[`games/${currentGameId}/winner`] = newP1Wins >= 4 ? p1.id : p2.id;
+                } else {
+                    updateData[`games/${currentGameId}/round`] = gameState.round + 1;
+                }
+
+                update(ref(database), updateData);
+                selectedCard = null;
+                crystalUsed = false;
+            }, 2000);
+        }
+
+        // 戦闘結果判定
+        function determineBattleResult(card1, card2) {
+            const rank1 = rankCards[card1].rank;
+            const rank2 = rankCards[card2].rank;
+            
+            // 奴隷の反逆：奴隷 vs 皇帝 = 奴隷の勝利
+            if (card1 === 'slave' && card2 === 'emperor') return 'p1_win';
+            if (card2 === 'slave' && card1 === 'emperor') return 'p2_win';
+            
+            // 通常の比較
+            if (rank1 > rank2) return 'p1_win';
+            if (rank2 > rank1) return 'p2_win';
+            return 'draw';
+        }
+
+        // 戦闘結果表示（演出を強化）
+        function showBattleResult(card1, card2, result) {
+            const card1Data = rankCards[card1];
+            const card2Data = rankCards[card2];
+            const resultDiv = document.getElementById('result');
+            
+            let message = `${card1Data.name}(${card1Data.rank}) VS ${card2Data.name}(${card2Data.rank}) - `;
+            let resultClass = '';
+            
+            // 反逆の特別メッセージ
+            if (card1 === 'slave' && card2 === 'emperor') {
+                message = `🔥 ${card1Data.name} VS ${card2Data.name} - 反逆成功！ `;
+            } else if (card2 === 'slave' && card1 === 'emperor') {
+                message = `🔥 ${card1Data.name} VS ${card2Data.name} - 反逆成功！ `;
+            }
+            
+            // 結果に応じてメッセージとスタイルを設定
+            const myPlayer = gameState.players[myPlayerId];
+            const isMyWin = (result === 'p1_win' && myPlayer.position === 1) || 
+                           (result === 'p2_win' && myPlayer.position === 2);
+            
+            switch (result) {
+                case 'p1_win':
+                    message += `🎉 プレイヤー1の勝利！`;
+                    resultClass = isMyWin ? 'win' : 'loss';
+                    break;
+                case 'p2_win':
+                    message += `🎉 プレイヤー2の勝利！`;
+                    resultClass = isMyWin ? 'win' : 'loss';
+                    break;
+                default:
+                    message += `🤝 引き分け！`;
+                    resultClass = 'draw';
+                    break;
+            }
+            
+            // アニメーション付きで結果表示
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${resultClass}`;
+            
+            setTimeout(() => {
+                resultDiv.textContent = '';
+                resultDiv.className = 'result';
+            }, 4000);
+        }
+
+        // コントロール更新
+        function updateControls() {
+            const myPlayer = gameState.players[myPlayerId];
+            const readyBtn = document.getElementById('ready-btn');
+            const crystalBtn = document.getElementById('crystal-btn');
+            
+            if (myPlayer && gameState.status === 'playing' && !myPlayer.ready) {
+                readyBtn.disabled = !selectedCard;
+                crystalBtn.disabled = !selectedCard || crystalUsed;
+            } else {
+                readyBtn.disabled = true;
+                crystalBtn.disabled = true;
+            }
+
+            // ゲーム開始チェック
+            const playerCount = Object.keys(gameState.players || {}).length;
+            if (playerCount === 2 && gameState.status === 'waiting') {
+                const updateData = {};
+                updateData[`games/${currentGameId}/status`] = 'playing';
+                update(ref(database), updateData);
+            }
+        }
+
+        // ゲーム終了チェック
+        function checkGameEnd() {
+            if (gameState.status === 'finished') {
+                showGameOver();
+            }
+        }
+
+        // ゲーム終了画面
+        function showGameOver() {
+            const winner = gameState.players[gameState.winner];
+            const players = Object.values(gameState.players || {});
+            
+            document.getElementById('winner-text').textContent = 
+                winner ? `🎉 ${winner.name}の勝利！` : '🎮 ゲーム終了';
+            
+            const statsHtml = players.map(player => 
+                `<p>${player.name}: ${player.wins}勝</p>`
+            ).join('');
+            
+            document.getElementById('game-stats').innerHTML = `
+                <p>最終結果:</p>
+                ${statsHtml}
+                <p>総ラウンド数: ${gameState.round - 1}</p>
+            `;
+            
+            showScreen('gameOver');
+        }
+
+        // ゲームリセット
+        window.resetGame = function() {
+            if (confirm('ゲームをリセットして新しいゲームIDで再開しますか？')) {
+                leaveGame();
+                setTimeout(createNewGame, 500);
+            }
+        };
+
+        // ゲーム退出
+        window.leaveGame = function() {
+            if (currentGameId && myPlayerId) {
+                remove(ref(database, `games/${currentGameId}/players/${myPlayerId}`));
+            }
+            currentGameId = null;
+            myPlayerId = null;
+            gameState = null;
+            selectedCard = null;
+            crystalUsed = false;
+            showSetup();
+        };
+
+        // セットアップ画面に戻る
+        window.showSetup = function() {
+            leaveGame();
+            showScreen('setup');
+            
+            // URLをクリア
+            window.history.replaceState({}, '', window.location.pathname);
+            document.getElementById('game-id-input').value = '';
+        };
+
+        // キーボードショートカット
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const readyBtn = document.getElementById('ready-btn');
+                if (!readyBtn.disabled) {
+                    setReady();
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
