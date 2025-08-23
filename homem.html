@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase マルチプレイヤー褒めゲーム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .status-online {
+            color: #10b981;
+        }
+
+        .status-offline {
+            color: #ef4444;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+        }
+
+        .game-code-display {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .game-code {
+            font-size: 3em;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .gender-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .gender-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .gender-btn.selected {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .player-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .player-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .player-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .player-card.selected {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+        }
+
+        .player-card.parent {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border-color: transparent;
+        }
+
+        .current-turn {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .keyword-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .keyword-btn {
+            padding: 20px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .keyword-btn:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+            transform: translateY(-2px);
+        }
+
+        .keyword-btn.selected {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+        }
+
+        .reveal-box {
+            background: linear-gradient(135deg, #ffecd2, #fcb69f);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 30px 0;
+            border: 3px solid #ff9a9e;
+        }
+
+        .revealed-keyword {
+            font-size: 3em;
+            font-weight: bold;
+            color: #8b4513;
+            animation: bounce 0.8s ease;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% {
+                transform: translate3d(0,0,0);
+            }
+            40%, 43% {
+                transform: translate3d(0,-30px,0);
+            }
+            70% {
+                transform: translate3d(0,-15px,0);
+            }
+            90% {
+                transform: translate3d(0,-4px,0);
+            }
+        }
+
+        .winner-announcement {
+            background: linear-gradient(135deg, #ffd89b, #19547b);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+
+        .waiting-message {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .keyword-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .game-code {
+                font-size: 2em;
+            }
+
+            .revealed-keyword {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ 友達褒めゲーム ✨</h1>
+            <div class="connection-status" id="connectionStatus">
+                <span id="statusIcon">🔌</span>
+                <span id="statusText">接続確認中...</span>
+            </div>
+            <p style="color: #666; font-size: 0.9em;">みんなで自己肯定感UP！</p>
+        </div>
+
+        <!-- メニュー画面 -->
+        <div id="menuScreen" class="screen active">
+            <div style="text-align: center; margin: 40px 0;">
+                <div style="font-size: 4em; margin-bottom: 20px;">🎮</div>
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="startHostGame()">
+                        🏠 ゲームを作成
+                    </button>
+                    <button class="btn btn-secondary" onclick="showJoinScreen()">
+                        🚪 ゲームに参加
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ホスト画面 -->
+        <div id="hostScreen" class="screen">
+            <div style="text-align: center;">
+                <h2>ゲームコード</h2>
+                <div class="game-code-display">
+                    <div class="game-code" id="gameCodeDisplay"></div>
+                    <button class="btn" onclick="copyGameCode()" style="margin-top: 15px;">
+                        📋 コードをコピー
+                    </button>
+                </div>
+                <p style="color: #666; margin-bottom: 30px;">友達にこのコードを教えて参加してもらいましょう</p>
+                
+                <div style="max-width: 400px; margin: 0 auto;">
+                    <div class="form-group">
+                        <label>あなたの名前</label>
+                        <input type="text" id="hostName" class="form-input" placeholder="名前を入力してください">
+                    </div>
+                    <div class="form-group">
+                        <label>性別</label>
+                        <div class="gender-buttons">
+                            <div class="gender-btn selected" onclick="selectGender('host', 'male')">👨 男性</div>
+                            <div class="gender-btn" onclick="selectGender('host', 'female')">👩 女性</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-success" onclick="joinAsHost()">参加する</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 参加画面 -->
+        <div id="joinScreen" class="screen">
+            <div style="text-align: center;">
+                <h2>ゲームに参加</h2>
+                <div style="max-width: 400px; margin: 0 auto;">
+                    <div class="form-group">
+                        <label>ゲームコード</label>
+                        <input type="text" id="joinGameCode" class="form-input" placeholder="6桁のコードを入力" maxlength="6" style="text-align: center; text-transform: uppercase; font-family: monospace;">
+                    </div>
+                    <div class="form-group">
+                        <label>あなたの名前</label>
+                        <input type="text" id="joinName" class="form-input" placeholder="名前を入力してください">
+                    </div>
+                    <div class="form-group">
+                        <label>性別</label>
+                        <div class="gender-buttons">
+                            <div class="gender-btn selected" onclick="selectGender('join', 'male')">👨 男性</div>
+                            <div class="gender-btn" onclick="selectGender('join', 'female')">👩 女性</div>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-success" onclick="joinGame()">参加する</button>
+                        <button class="btn" onclick="showMenuScreen()">戻る</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ロビー画面 -->
+        <div id="lobbyScreen" class="screen">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2>参加者一覧 (<span id="playerCount">0</span>人)</h2>
+                <div style="color: #666; font-family: monospace;">コード: <span id="lobbyGameCode"></span></div>
+            </div>
+            
+            <div id="playersList" class="player-list"></div>
+            
+            <div id="parentSelection" style="display: none;">
+                <h3 style="text-align: center; margin: 20px 0;">親を選んでください</h3>
+                <div id="parentOptions" class="player-list"></div>
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="startGame()" id="startGameBtn" disabled>ゲーム開始</button>
+                </div>
+            </div>
+
+            <div id="waitingForHost" class="waiting-message" style="display: none;">
+                ホストが親を選択しています...
+            </div>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div id="gameScreen" class="screen">
+            <!-- 投票フェーズ -->
+            <div id="votingPhase" style="display: none;">
+                <div id="votingTurn" class="current-turn"></div>
+                <div id="keywordSelection" style="display: none;">
+                    <h3 style="text-align: center; margin: 20px 0;">親を褒めるキーワードを選んでください</h3>
+                    <div id="keywordOptions" class="keyword-grid"></div>
+                    <div class="controls">
+                        <button class="btn" onclick="resetKeywords()" id="resetKeywordsBtn">キーワード変更（1回まで）</button>
+                    </div>
+                </div>
+                <div id="waitingForVote" class="waiting-message" style="display: none;">
+                    他のプレイヤーが投票中です...
+                </div>
+            </div>
+
+            <!-- リビールフェーズ -->
+            <div id="revealPhase" style="display: none;">
+                <div style="text-align: center;">
+                    <h2 id="revealParentName"></h2>
+                    <div id="revealBox" class="reveal-box">
+                        <div id="revealedKeyword" class="revealed-keyword"></div>
+                    </div>
+                    <div id="revealControls" class="controls" style="display: none;">
+                        <button class="btn btn-primary" onclick="nextReveal()">次へ</button>
+                    </div>
+                    <div id="waitingForReveal" class="waiting-message" style="display: none;">
+                        ホストが進行中です...
+                    </div>
+                </div>
+            </div>
+
+            <!-- 結果フェーズ -->
+            <div id="resultPhase" style="display: none;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h2 id="resultParentName"></h2>
+                    <p>一番嬉しいキーワードを選んでください</p>
+                </div>
+                <div id="resultKeywords" class="keyword-grid"></div>
+                <div id="waitingForResult" class="waiting-message" style="display: none;">
+                    親が選択中です...
+                </div>
+            </div>
+
+            <!-- 勝者発表 -->
+            <div id="winnerPhase" style="display: none;">
+                <div id="winnerAnnouncement" class="winner-announcement"></div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <h3>全てのキーワード</h3>
+                    <div id="allKeywords" class="keyword-grid"></div>
+                </div>
+                <div id="hostControls" class="controls" style="display: none;">
+                    <button class="btn btn-secondary" onclick="newRound()">もう一度遊ぶ</button>
+                    <button class="btn" onclick="endGame()">終了</button>
+                </div>
+                <div id="waitingForHost2" class="waiting-message" style="display: none;">
+                    ホストが次のアクションを選択中...
+                </div>
+            </div>
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+        // Firebase設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyAAIHomOgar3jFGm3aGhvODUovpptLCAkY",
+            authDomain: "home-b8b3f.firebaseapp.com",
+            databaseURL: "https://home-b8b3f-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "home-b8b3f",
+            storageBucket: "home-b8b3f.firebasestorage.app",
+            messagingSenderId: "974096301624",
+            appId: "1:974096301624:web:b35f4ffc8b69db9007b0cd"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // キーワードデータ
+        const keywords = {
+            male: [
+                'かっこいい', 'イケメン', '頼もしい', '優しい', '面白い', '賢い', 'センスがいい',
+                '男らしい', 'ダンディ', 'スタイリッシュ', '魅力的', '素敵', 'クール', 'ワイルド',
+                '紳士的', '器が大きい', '包容力がある', '責任感が強い', '決断力がある', '行動力がある',
+                'リーダーシップがある', '信頼できる', '誠実', '正義感が強い', '努力家', '向上心がある',
+                'ポジティブ', '明るい', 'ユーモアがある', '気配りができる', '思いやりがある', '温和'
+            ],
+            female: [
+                '美しい', 'かわいい', '素敵', 'きれい', '上品', 'エレガント', 'おしゃれ',
+                '優しい', '思いやりがある', '温かい', '包容力がある', '母性的', '癒し系', '天使みたい',
+                '笑顔が素敵', '明るい', 'ポジティブ', '元気', 'パワフル', 'エネルギッシュ', 'バイタリティがある',
+                '賢い', '知的', '教養がある', '博学', '洞察力がある', '判断力がある', '冷静',
+                '気配りができる', '細やかな心遣い', 'サービス精神', 'ホスピタリティ', '親切', '世話好き'
+            ]
+        };
+
+        // グローバル変数
+        let currentGameCode = '';
+        let myPlayerId = '';
+        let isHost = false;
+        let gameData = null;
+        let unsubscribe = null;
+        let selectedGender = { host: 'male', join: 'male' };
+        let selectedKeywordIndex = -1;
+        let hasReset = false;
+
+        // 接続状態更新
+        function updateConnectionStatus(connected) {
+            const statusIcon = document.getElementById('statusIcon');
+            const statusText = document.getElementById('statusText');
+            const status = document.getElementById('connectionStatus');
+            
+            if (connected) {
+                statusIcon.textContent = '🟢';
+                statusText.textContent = 'Firebase接続中';
+                status.className = 'connection-status status-online';
+            } else {
+                statusIcon.textContent = '🔴';
+                statusText.textContent = '接続エラー';
+                status.className = 'connection-status status-offline';
+            }
+        }
+
+        // 初期接続確認
+        setTimeout(() => updateConnectionStatus(true), 1000);
+
+        // ゲームコード生成
+        function generateGameCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        // 画面切り替え
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // エラー表示
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // ホストゲーム開始
+        window.startHostGame = function() {
+            currentGameCode = generateGameCode();
+            isHost = true;
+            document.getElementById('gameCodeDisplay').textContent = currentGameCode;
+            showScreen('hostScreen');
+        }
+
+        // 参加画面表示
+        window.showJoinScreen = function() {
+            showScreen('joinScreen');
+        }
+
+        // メニュー画面表示
+        window.showMenuScreen = function() {
+            if (unsubscribe) unsubscribe();
+            showScreen('menuScreen');
+        }
+
+        // 性別選択
+        window.selectGender = function(type, gender) {
+            selectedGender[type] = gender;
+            const buttons = document.querySelectorAll(`#${type}Screen .gender-btn`);
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        // ホスト参加
+        window.joinAsHost = async function() {
+            const name = document.getElementById('hostName').value.trim();
+            if (!name) {
+                showError('名前を入力してください');
+                return;
+            }
+
+            myPlayerId = Date.now().toString();
+            
+            const initialGameData = {
+                gameCode: currentGameCode,
+                host: myPlayerId,
+                phase: 'lobby',
+                players: [{
+                    id: myPlayerId,
+                    name: name,
+                    gender: selectedGender.host,
+                    isHost: true,
+                    joinedAt: Date.now()
+                }],
+                parent: null,
+                currentVoter: 0,
+                votes: [],
+                keywordSet: [],
+                revealedKeywords: [],
+                revealIndex: 0,
+                winner: null,
+                createdAt: Date.now()
+            };
+
+            try {
+                await setDoc(doc(db, 'games', currentGameCode), initialGameData);
+                subscribeToGame();
+                showScreen('lobbyScreen');
+            } catch (error) {
+                showError('ゲーム作成に失敗しました: ' + error.message);
+            }
+        }
+
+        // ゲーム参加
+        window.joinGame = async function() {
+            const gameCode = document.getElementById('joinGameCode').value.trim().toUpperCase();
+            const name = document.getElementById('joinName').value.trim();
+            
+            if (!gameCode || !name) {
+                showError('ゲームコードと名前を入力してください');
+                return;
+            }
+
+            currentGameCode = gameCode;
+            myPlayerId = Date.now().toString();
+
+            const newPlayer = {
+                id: myPlayerId,
+                name: name,
+                gender: selectedGender.join,
+                isHost: false,
+                joinedAt: Date.now()
+            };
+
+            try {
+                await updateDoc(doc(db, 'games', currentGameCode), {
+                    players: arrayUnion(newPlayer)
+                });
+                
+                subscribeToGame();
+                showScreen('lobbyScreen');
+            } catch (error) {
+                showError('ゲーム参加に失敗しました: ' + error.message);
+            }
+        }
+
+        // Firebase購読開始
+        function subscribeToGame() {
+            if (unsubscribe) unsubscribe();
+            
+            unsubscribe = onSnapshot(doc(db, 'games', currentGameCode), (doc) => {
+                if (doc.exists()) {
+                    gameData = doc.data();
+                    updateUI();
+                    updateConnectionStatus(true);
+                } else {
+                    showError('ゲームが見つかりません');
+                    updateConnectionStatus(false);
+                }
+            }, (error) => {
+                showError('接続エラー: ' + error.message);
+                updateConnectionStatus(false);
+            });
+        }
+
+        // UI更新
+        function updateUI() {
+            if (!gameData) return;
+
+            const phase = gameData.phase;
+            const players = gameData.players || [];
+            const myPlayer = players.find(p => p.id === myPlayerId);
+            
+            if (!myPlayer) return;
+
+            isHost = myPlayer.isHost;
+
+            if (phase === 'lobby') {
+                updateLobby();
+            } else if (phase === 'voting') {
+                showScreen('gameScreen');
+                updateVoting();
+            } else if (phase === 'reveal') {
+                showScreen('gameScreen');
+                updateReveal();
+            } else if (phase === 'result') {
+                showScreen('gameScreen');
+                updateResult();
+            } else if (phase === 'winner') {
+                showScreen('gameScreen');
+                updateWinner();
+            }
+        }
+
+        // ロビー更新
+        function updateLobby() {
+            const players = gameData.players || [];
+            document.getElementById('playerCount').textContent = players.length;
+            document.getElementById('lobbyGameCode').textContent = currentGameCode;
+            
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = players.map(player => `
+                <div class="player-card">
+                    <h3>${player.name} ${player.isHost ? '👑' : ''}</h3>
+                    <p>${player.gender === 'male' ? '👨 男性' : '👩 女性'}</p>
+                </div>
+            `).join('');
+
+            // ホストの場合、親選択を表示
+            if (isHost && players.length >= 3) {
+                document.getElementById('parentSelection').style.display = 'block';
+                document.getElementById('waitingForHost').style.display = 'none';
+                
+                const parentOptions = document.getElementById('parentOptions');
+                parentOptions.innerHTML = players.map(player => `
+                    <div class="player-card ${gameData.parent?.id === player.id ? 'parent' : ''}" onclick="selectParent('${player.id}')">
+                        <h3>${player.name}</h3>
+                        <p>${player.gender === 'male' ? '👨 男性' : '👩 女性'}</p>
+                    </div>
+                `).join('');
+
+                document.getElementById('startGameBtn').disabled = !gameData.parent;
+            } else if (!isHost) {
+                document.getElementById('parentSelection').style.display = 'none';
+                document.getElementById('waitingForHost').style.display = players.length >= 3 ? 'block' : 'none';
+            }
+        }
+
+        // 親選択
+        window.selectParent = async function(playerId) {
+            const parent = gameData.players.find(p => p.id === playerId);
+            try {
+                await updateDoc(doc(db, 'games', currentGameCode), {
+                    parent: parent
+                });
+            } catch (error) {
+                showError('親の選択に失敗しました');
+            }
+        }
+
+        // ゲーム開始
+        window.startGame = async function() {
+            if (!gameData.parent) {
+                showError('親を選択してください');
+                return;
+            }
+
+            const keywordList = keywords[gameData.parent.

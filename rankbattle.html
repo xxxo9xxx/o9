@@ -562,20 +562,17 @@
             </div>
             
             <div class="url-display">
-                <h3>👤 プレイヤー名設定</h3>
+                <h3>👤 プレイヤー設定</h3>
                 <input type="text" class="url-input" id="player-name-input" placeholder="あなたの名前を入力してください" maxlength="10">
-            </div>
-            
-            <div class="url-display">
-                <h3>🔗 ゲーム参加</h3>
+                <br><br>
+                <h3>🔗 既存ゲームに参加する場合</h3>
                 <input type="text" class="url-input" id="game-id-input" placeholder="ゲームIDを入力してください">
                 <br>
-                <button class="btn btn-primary" onclick="joinGame()">ゲームに参加</button>
+                <button class="btn btn-primary" onclick="joinGameWithName()">ゲームに参加</button>
             </div>
             
             <div class="controls">
-                <button class="btn btn-success" onclick="createNewGame()">🚀 新しいゲームを作成</button>
-                <button class="btn btn-primary" onclick="quickStart()">⚡ クイックスタート</button>
+                <button class="btn btn-success" onclick="createGameWithName()">🚀 新しいゲームを作成</button>
             </div>
             
             <div class="connection-status" id="connection-status">
@@ -715,12 +712,12 @@
             const gameId = urlParams.get('game');
             if (gameId) {
                 document.getElementById('game-id-input').value = gameId;
-                joinGame();
+                // 自動参加はしない（名前入力を促す）
             }
         };
 
-        // ゲーム作成
-        window.createNewGame = function() {
+        // ゲーム作成（名前付き）
+        window.createGameWithName = function() {
             const playerName = document.getElementById('player-name-input').value.trim() || 'プレイヤー1';
             
             const gameRef = push(ref(database, 'games'));
@@ -753,32 +750,14 @@
                 showScreen('game');
                 startGameListener();
                 updatePlayerIndicator();
+            }).catch((error) => {
+                console.error('ゲーム作成エラー:', error);
+                alert('ゲーム作成に失敗しました: ' + error.message);
             });
         };
 
-        // デッキ生成
-        function generateDeck() {
-            return {
-                slave: 1,
-                citizen: 2,
-                soldier: 2,
-                general: 1,
-                emperor: 1
-            };
-        }
-
-        // プレイヤーID生成
-        function generatePlayerId() {
-            return 'player_' + Math.random().toString(36).substr(2, 9);
-        }
-
-        // クイックスタート
-        window.quickStart = function() {
-            createNewGame();
-        };
-
-        // ゲーム参加
-        window.joinGame = function() {
+        // ゲーム参加（名前付き）
+        window.joinGameWithName = function() {
             const gameId = document.getElementById('game-id-input').value.trim();
             if (!gameId) {
                 alert('ゲームIDを入力してください');
@@ -814,16 +793,37 @@
                         results: []
                     };
                     
-                    update(ref(database), updateData);
+                    update(ref(database), updateData).then(() => {
+                        crystalUsed = false;
+                        updateShareUrl();
+                        showScreen('game');
+                        startGameListener();
+                        updatePlayerIndicator();
+                    }).catch((error) => {
+                        console.error('ゲーム参加エラー:', error);
+                        alert('ゲーム参加に失敗しました: ' + error.message);
+                    });
+                } else {
+                    alert('ゲームは満員です');
                 }
-
-                crystalUsed = false;
-                updateShareUrl();
-                showScreen('game');
-                startGameListener();
-                updatePlayerIndicator();
             }, { onlyOnce: true });
         };
+
+        // デッキ生成
+        function generateDeck() {
+            return {
+                slave: 1,
+                citizen: 2,
+                soldier: 2,
+                general: 1,
+                emperor: 1
+            };
+        }
+
+        // プレイヤーID生成
+        function generatePlayerId() {
+            return 'player_' + Math.random().toString(36).substr(2, 9);
+        }
 
         // ゲーム状態監視
         function startGameListener() {
@@ -1310,7 +1310,7 @@
         window.resetGame = function() {
             if (confirm('ゲームをリセットして新しいゲームIDで再開しますか？')) {
                 leaveGame();
-                setTimeout(createNewGame, 500);
+                setTimeout(createGameWithName, 500);
             }
         };
 
