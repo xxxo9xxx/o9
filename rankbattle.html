@@ -503,13 +503,30 @@
             color: rgba(255,255,255,0.7);
         }
 
-        .connection-status {
-            background: rgba(255,255,255,0.1);
+        .mobile-warning {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 15px;
             border-radius: 10px;
-            padding: 10px;
+            margin: 15px 0;
+            font-size: clamp(12px, 3vw, 14px);
+            border: 2px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .mobile-warning h4 {
+            margin: 0 0 8px 0;
+            color: #ffd700;
+        }
+
+        .reconnect-status {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
             margin: 10px 0;
-            font-size: 14px;
-            border: 1px solid rgba(255,255,255,0.2);
+            font-weight: bold;
+            text-align: center;
+            animation: pulse 2s infinite;
         }
 
         .rules-display {
@@ -575,8 +592,19 @@
                 <button class="btn btn-success" onclick="createGameWithName()">🚀 新しいゲームを作成</button>
             </div>
             
+            <div class="mobile-warning" id="mobile-warning" style="display: none;">
+                <h4>📱 LINEアプリご利用の方へ</h4>
+                <p>• ゲームIDをコピーした後、LINEアプリに戻ってもゲームは継続されます</p>
+                <p>• 相手が参加したら、このページに戻ってきてください</p>
+                <p>• 通信が切れても自動で再接続されます</p>
+            </div>
+            
             <div class="connection-status" id="connection-status">
                 Firebase接続中...
+            </div>
+            
+            <div class="reconnect-status hidden" id="reconnect-status">
+                🔄 再接続中...
             </div>
         </div>
 
@@ -687,6 +715,9 @@
         let gameState = null;
         let selectedCard = null;
         let crystalUsed = false;
+        let reconnectAttempts = 0;
+        let gameStateBackup = null;
+        let isReconnecting = false;
 
         // 画面要素
         const screens = {
@@ -708,6 +739,16 @@
         window.onload = function() {
             document.getElementById('connection-status').textContent = 'Firebase接続完了！';
             
+            // モバイル/LINEブラウザ検出
+            detectMobileBrowser();
+            
+            // ページ復帰時の処理
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+            window.addEventListener('focus', handleWindowFocus);
+            
+            // LocalStorageから状態復帰を試行
+            tryRestoreGameState();
+            
             // URL からゲームIDを取得
             const urlParams = new URLSearchParams(window.location.search);
             const gameId = urlParams.get('game');
@@ -716,6 +757,111 @@
                 // 自動参加はしない（名前入力を促す）
             }
         };
+
+        // モバイルブラウザ検出
+        function detectMobileBrowser() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const isLineApp = userAgent.includes('line');
+            const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
+            
+            if (isLineApp || isMobile) {
+                document.getElementById('mobile-warning').style.display = 'block';
+            }
+        }
+
+        // ページ復帰時の処理
+        function handleVisibilityChange() {
+            if (!document.hidden && currentGameId && myPlayerId) {
+                // ページが再表示された時に再接続を試行
+                setTimeout(attemptReconnect, 1000);
+            }
+        }
+
+        function handleWindowFocus() {
+            if (currentGameId && myPlayerId) {
+                setTimeout(attemptReconnect, 500);
+            }
+        }
+
+        // ゲーム状態の保存
+        function saveGameStateToLocal() {
+            if (currentGameId && myPlayerId) {
+                const backup = {
+                    gameId: currentGameId,
+                    playerId: myPlayerId,
+                    crystalUsed: crystalUsed,
+                    selectedCard: selectedCard,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('rankBattleBackup', JSON.stringify(backup));
+            }
+        }
+
+        // ゲーム状態の復帰を試行
+        function tryRestoreGameState() {
+            try {
+                const backup = localStorage.getItem('rankBattleBackup');
+                if (backup) {
+                    const data = JSON.parse(backup);
+                    // 30分以内のデータのみ復帰
+                    if (Date.now() - data.timestamp < 30 * 60 * 1000) {
+                        currentGameId = data.gameId;
+                        myPlayerId = data.playerId;
+                        crystalUsed = data.crystalUsed || false;
+                        selectedCard = data.selectedCard;
+                        
+                        // 自動再接続を試行
+                        setTimeout(attemptReconnect, 2000);
+                    } else {
+                        localStorage.removeItem('rankBattleBackup');
+                    }
+                }
+            } catch (e) {
+                console.error('状態復帰エラー:', e);
+                localStorage.removeItem('rankBattleBackup');
+            }
+        }
+
+        // 再接続処理
+        function attemptReconnect() {
+            if (isReconnecting) return;
+            isReconnecting = true;
+            reconnectAttempts++;
+            
+            document.getElementById('reconnect-status').classList.remove('hidden');
+            
+            if (currentGameId && myPlayerId) {
+                const gameRef = ref(database, `games/${currentGameId}`);
+                onValue(gameRef, (snapshot) => {
+                    const game = snapshot.val();
+                    if (game && game.players && game.players[myPlayerId]) {
+                        // 再接続成功
+                        gameState = game;
+                        showScreen('game');
+                        updateGameUI();
+                        updatePlayerIndicator();
+                        document.getElementById('reconnect-status').classList.add('hidden');
+                        isReconnecting = false;
+                        console.log('再接続成功');
+                    } else if (reconnectAttempts < 3) {
+                        // リトライ
+                        setTimeout(() => {
+                            isReconnecting = false;
+                            attemptReconnect();
+                        }, 2000);
+                    } else {
+                        // 諦めてセットアップに戻る
+                        document.getElementById('reconnect-status').classList.add('hidden');
+                        isReconnecting = false;
+                        showSetup();
+                        alert('ゲームへの再接続に失敗しました。新しいゲームを開始してください。');
+                    }
+                }, { onlyOnce: true });
+            } else {
+                document.getElementById('reconnect-status').classList.add('hidden');
+                isReconnecting = false;
+            }
+        }
 
         // ゲーム作成（名前付き）
         window.createGameWithName = function() {
@@ -747,6 +893,7 @@
 
             set(gameRef, initialState).then(() => {
                 crystalUsed = false;
+                saveGameStateToLocal();
                 updateShareUrl();
                 showScreen('game');
                 startGameListener();
@@ -796,6 +943,7 @@
                     
                     update(ref(database), updateData).then(() => {
                         crystalUsed = false;
+                        saveGameStateToLocal();
                         updateShareUrl();
                         showScreen('game');
                         startGameListener();
@@ -826,19 +974,20 @@
             return 'player_' + Math.random().toString(36).substr(2, 9);
         }
 
-        // ゲーム状態監視
+        // ゲーム状態監視（onDisconnect削除）
         function startGameListener() {
             const gameRef = ref(database, `games/${currentGameId}`);
             onValue(gameRef, (snapshot) => {
                 gameState = snapshot.val();
                 if (gameState) {
+                    gameStateBackup = { ...gameState };
+                    saveGameStateToLocal();
                     updateGameUI();
                 }
             });
 
-            // 切断時の処理
-            const playerRef = ref(database, `games/${currentGameId}/players/${myPlayerId}`);
-            onDisconnect(playerRef).remove();
+            // onDisconnectは削除（LINEアプリ対応）
+            // モバイルでの一時的な切断を許容
         }
 
         // 画面切り替え
@@ -1078,6 +1227,9 @@
             
             document.getElementById('ready-btn').disabled = true;
             document.getElementById('crystal-btn').disabled = true;
+            
+            // 状態を保存
+            saveGameStateToLocal();
         };
 
         // クリスタル状態更新
@@ -1197,6 +1349,9 @@
                 update(ref(database), updateData);
                 selectedCard = null;
                 crystalUsed = false;
+                
+                // 状態を保存
+                saveGameStateToLocal();
             }, 2000);
         }
 
@@ -1315,6 +1470,9 @@
         // ゲームリセット（修正版）
         window.resetGame = function() {
             if (confirm('ゲームをリセットして新しいゲームIDで再開しますか？')) {
+                // LocalStorage をクリア
+                localStorage.removeItem('rankBattleBackup');
+                
                 // 現在のゲームから完全に削除
                 if (currentGameId && myPlayerId) {
                     remove(ref(database, `games/${currentGameId}/players/${myPlayerId}`)).then(() => {
@@ -1324,6 +1482,7 @@
                         gameState = null;
                         selectedCard = null;
                         crystalUsed = false;
+                        reconnectAttempts = 0;
                         
                         // URLクリア
                         window.history.replaceState({}, '', window.location.pathname);
@@ -1340,6 +1499,7 @@
                         gameState = null;
                         selectedCard = null;
                         crystalUsed = false;
+                        reconnectAttempts = 0;
                         createGameWithName();
                     });
                 } else {
@@ -1352,6 +1512,9 @@
         // ゲーム退出（修正版）
         window.leaveGame = function() {
             if (confirm('本当にゲームを退出しますか？')) {
+                // LocalStorage をクリア
+                localStorage.removeItem('rankBattleBackup');
+                
                 if (currentGameId && myPlayerId) {
                     remove(ref(database, `games/${currentGameId}/players/${myPlayerId}`)).then(() => {
                         // 完全に初期化
@@ -1360,6 +1523,7 @@
                         gameState = null;
                         selectedCard = null;
                         crystalUsed = false;
+                        reconnectAttempts = 0;
                         
                         // セットアップ画面に戻る
                         showSetup();
@@ -1371,6 +1535,7 @@
                         gameState = null;
                         selectedCard = null;
                         crystalUsed = false;
+                        reconnectAttempts = 0;
                         showSetup();
                     });
                 } else {
@@ -1381,12 +1546,17 @@
 
         // セットアップ画面に戻る（修正版）
         window.showSetup = function() {
+            // LocalStorage をクリア
+            localStorage.removeItem('rankBattleBackup');
+            
             // 完全初期化
             currentGameId = null;
             myPlayerId = null;
             gameState = null;
             selectedCard = null;
             crystalUsed = false;
+            reconnectAttempts = 0;
+            isReconnecting = false;
             
             // 画面をセットアップに切り替え
             showScreen('setup');
@@ -1397,6 +1567,9 @@
             // 入力欄をクリア
             const gameIdInput = document.getElementById('game-id-input');
             if (gameIdInput) gameIdInput.value = '';
+            
+            // 再接続表示を隠す
+            document.getElementById('reconnect-status').classList.add('hidden');
             
             // プレイヤー名は保持（ユーザビリティのため）
             
