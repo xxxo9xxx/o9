@@ -589,12 +589,12 @@
                 <div>🏆 スコア</div>
                 <div style="display: flex; justify-content: space-around; margin-top: 10px;">
                     <div>
-                        <div>プレイヤー1</div>
+                        <div id="p1-name">プレイヤー1</div>
                         <div id="p1-score">0勝</div>
                         <div class="win-tracker" id="p1-tracker"></div>
                     </div>
                     <div>
-                        <div>プレイヤー2</div>
+                        <div id="p2-name">プレイヤー2</div>
                         <div id="p2-score">0勝</div>
                         <div class="win-tracker" id="p2-tracker"></div>
                     </div>
@@ -602,13 +602,6 @@
             </div>
             
             <div class="round-counter" id="round-counter">ラウンド 1</div>
-            
-            <div class="url-display">
-                <h4>🔗 友達を招待</h4>
-                <input type="text" class="url-input" id="share-game-id" readonly onclick="this.select()">
-                <br>
-                <button class="btn btn-primary" onclick="copyGameId()">ゲームIDをコピー</button>
-            </div>
             
             <div class="game-area">
                 <div class="player-area" id="player1-area">
@@ -648,6 +641,14 @@
             </div>
             
             <div class="result" id="result"></div>
+            
+            <!-- ゲームID表示を一番下に移動 -->
+            <div class="url-display">
+                <h4>🔗 友達を招待</h4>
+                <input type="text" class="url-input" id="share-game-id" readonly onclick="this.select()">
+                <br>
+                <button class="btn btn-primary" onclick="copyGameId()">ゲームIDをコピー</button>
+            </div>
         </div>
 
         <!-- ゲーム終了画面 -->
@@ -908,13 +909,18 @@
             document.getElementById('round-counter').textContent = `ラウンド ${gameState.round}`;
         }
 
-        // スコア表示更新
+        // スコア表示更新（プレイヤー名も表示）
         function updateScoreDisplay() {
             const players = Object.values(gameState.players || {}).sort((a, b) => a.position - b.position);
             
             players.forEach((player, index) => {
+                const nameEl = document.getElementById(`p${index + 1}-name`);
                 const scoreEl = document.getElementById(`p${index + 1}-score`);
                 const trackerEl = document.getElementById(`p${index + 1}-tracker`);
+                
+                if (nameEl) {
+                    nameEl.textContent = player.name || `プレイヤー${index + 1}`;
+                }
                 
                 if (scoreEl) {
                     scoreEl.textContent = `${player.wins}勝`;
@@ -1306,35 +1312,101 @@
             showScreen('gameOver');
         }
 
-        // ゲームリセット
+        // ゲームリセット（修正版）
         window.resetGame = function() {
             if (confirm('ゲームをリセットして新しいゲームIDで再開しますか？')) {
-                leaveGame();
-                setTimeout(createGameWithName, 500);
+                // 現在のゲームから完全に削除
+                if (currentGameId && myPlayerId) {
+                    remove(ref(database, `games/${currentGameId}/players/${myPlayerId}`)).then(() => {
+                        // 完全に初期化
+                        currentGameId = null;
+                        myPlayerId = null;
+                        gameState = null;
+                        selectedCard = null;
+                        crystalUsed = false;
+                        
+                        // URLクリア
+                        window.history.replaceState({}, '', window.location.pathname);
+                        
+                        // 少し待ってから新ゲーム作成
+                        setTimeout(() => {
+                            createGameWithName();
+                        }, 1000);
+                    }).catch((error) => {
+                        console.error('リセットエラー:', error);
+                        // エラーでも強制的にリセット
+                        currentGameId = null;
+                        myPlayerId = null;
+                        gameState = null;
+                        selectedCard = null;
+                        crystalUsed = false;
+                        createGameWithName();
+                    });
+                } else {
+                    // ゲーム状態がない場合はそのまま新ゲーム
+                    createGameWithName();
+                }
             }
         };
 
-        // ゲーム退出
+        // ゲーム退出（修正版）
         window.leaveGame = function() {
-            if (currentGameId && myPlayerId) {
-                remove(ref(database, `games/${currentGameId}/players/${myPlayerId}`));
+            if (confirm('本当にゲームを退出しますか？')) {
+                if (currentGameId && myPlayerId) {
+                    remove(ref(database, `games/${currentGameId}/players/${myPlayerId}`)).then(() => {
+                        // 完全に初期化
+                        currentGameId = null;
+                        myPlayerId = null;
+                        gameState = null;
+                        selectedCard = null;
+                        crystalUsed = false;
+                        
+                        // セットアップ画面に戻る
+                        showSetup();
+                    }).catch((error) => {
+                        console.error('退出エラー:', error);
+                        // エラーでも強制的に初期化
+                        currentGameId = null;
+                        myPlayerId = null;
+                        gameState = null;
+                        selectedCard = null;
+                        crystalUsed = false;
+                        showSetup();
+                    });
+                } else {
+                    showSetup();
+                }
             }
+        };
+
+        // セットアップ画面に戻る（修正版）
+        window.showSetup = function() {
+            // 完全初期化
             currentGameId = null;
             myPlayerId = null;
             gameState = null;
             selectedCard = null;
             crystalUsed = false;
-            showSetup();
-        };
-
-        // セットアップ画面に戻る
-        window.showSetup = function() {
-            leaveGame();
+            
+            // 画面をセットアップに切り替え
             showScreen('setup');
             
             // URLをクリア
             window.history.replaceState({}, '', window.location.pathname);
-            document.getElementById('game-id-input').value = '';
+            
+            // 入力欄をクリア
+            const gameIdInput = document.getElementById('game-id-input');
+            if (gameIdInput) gameIdInput.value = '';
+            
+            // プレイヤー名は保持（ユーザビリティのため）
+            
+            // スコア表示をリセット
+            document.getElementById('p1-name').textContent = 'プレイヤー1';
+            document.getElementById('p2-name').textContent = 'プレイヤー2';
+            document.getElementById('p1-score').textContent = '0勝';
+            document.getElementById('p2-score').textContent = '0勝';
+            document.getElementById('p1-tracker').innerHTML = '';
+            document.getElementById('p2-tracker').innerHTML = '';
         };
 
         // キーボードショートカット
