@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>サニーさんサバイバー</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: #1a1a2e; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+      font-family: monospace; 
+      color: #fff;
+      overflow: hidden;
+      touch-action: none;
+    }
+    #gameContainer { 
+      position: relative; 
+      border: 3px solid #4a4a8a; 
+      border-radius: 10px;
+      max-width: 100vw;
+      max-height: 100vh;
+    }
+    canvas { 
+      display: block; 
+      background: #16213e; 
+      border-radius: 7px;
+      touch-action: none;
+    }
+    #ui { 
+      position: absolute; 
+      top: 10px; 
+      left: 10px; 
+      right: 10px;
+      z-index: 10; 
+      background: rgba(0,0,0,.8); 
+      padding: 8px; 
+      border-radius: 5px; 
+      font-size: 12px;
+      text-align: center;
+    }
+    #gameTitle {
+      font-size: 16px;
+      font-weight: bold;
+      color: #ffd700;
+      margin-bottom: 4px;
+    }
+    #itemInfo {
+      margin-top: 4px;
+      font-size: 10px;
+      color: #ccc;
+    }
+    #weaponSelect {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,.9);
+      border: 2px solid #ffd700;
+      border-radius: 10px;
+      padding: 20px;
+      z-index: 100;
+      text-align: center;
+    }
+    #levelUpModal {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,.9);
+      border: 2px solid #ffd700;
+      border-radius: 10px;
+      padding: 20px;
+      display: none;
+      z-index: 100;
+      max-width: 90vw;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 12px;
+      background: #4a4a8a;
+      border: none;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 12px;
+      text-align: left;
+    }
+    .btn:hover, .btn:active {
+      background: #6a6aaa;
+    }
+    #bossWarning {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      display: none;
+      z-index: 50;
+    }
+    @media (max-width: 480px) {
+      #ui { font-size: 10px; padding: 6px; }
+      .btn { font-size: 14px; padding: 14px; }
+      #gameTitle { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui">
+      <div id="gameTitle">サニーさんサバイバー - 10分生き残れ！</div>
+      <div>HP: <span id="hp">100</span>/<span id="maxHp">100</span> | Lv: <span id="level">1</span> | EXP: <span id="exp">0</span>/<span id="expMax">10</span> | Score: <span id="score">0</span> | <span id="time">0</span>s</div>
+      <div id="itemInfo">🟢EXP 🔵磁石 ⚪一掃</div>
+    </div>
+
+    <div id="weaponSelect">
+      <h3>武器を選択してください</h3>
+      <button class="btn" onclick="selectWeapon('auto')">🎯 オートショット<br><small>自動で最も近い敵を狙撃</small></button>
+      <button class="btn" onclick="selectWeapon('direct')">➡️ ダイレクトショット<br><small>移動方向に弾を発射</small></button>
+      <button class="btn" onclick="selectWeapon('multi')">🔄 マルチショット<br><small>8方向に弾をばらまき攻撃</small></button>
+    </div>
+
+    <div id="levelUpModal">
+      <h3>レベルアップ！</h3>
+      <div id="upgradeOptions"></div>
+    </div>
+
+    <div id="bossWarning">
+      <div>⚠️ BOSS WARNING ⚠️</div>
+      <div id="bossType">ラウンド1ボス出現！</div>
+    </div>
+  </div>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // レスポンシブキャンバスサイズ
+  function resizeCanvas() {
+    const container = document.getElementById('gameContainer');
+    const maxWidth = window.innerWidth - 20;
+    const maxHeight = window.innerHeight - 20;
+    
+    // スマホ縦画面を基準に
+    let width, height;
+    if (window.innerWidth < window.innerHeight) {
+      // 縦画面
+      width = Math.min(360, maxWidth);
+      height = Math.min(640, maxHeight);
+    } else {
+      // 横画面
+      width = Math.min(640, maxWidth);
+      height = Math.min(360, maxHeight);
+    }
+    
+    canvas.width = width;
+    canvas.height = height;
+  }
+  
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  // 画像読み込み
+  const characterImages = { normal: null, orbs: null, damaged: null };
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => {
+        console.warn('画像読み込み失敗:', src);
+        resolve(null);
+      };
+      img.src = src;
+    });
+  }
+
+  async function loadCharacterImages() {
+    try {
+      const [normal, orbs, damaged] = await Promise.all([
+        loadImage('https://xxxo9xxx.github.io/o9/sunny/image1.png'),
+        loadImage('https://xxxo9xxx.github.io/o9/sunny/image2.png'),
+        loadImage('https://xxxo9xxx.github.io/o9/sunny/image3.png')
+      ]);
+      characterImages.normal = normal;
+      characterImages.orbs = orbs;
+      characterImages.damaged = damaged;
+      
+      console.log('画像読み込み結果:', {
+        normal: !!normal,
+        orbs: !!orbs,
+        damaged: !!damaged
+      });
+    } catch (e) {
+      console.warn('画像読み込みエラー:', e);
+    }
+  }
+
+  // 難易度ディレクター
+  function getDifficulty(gameFrames) {
+    const sec = gameFrames / 60;
+    const min = sec / 60;
+    const t = Math.min(min / 10, 1);
+
+    return {
+      sec, min, t,
+      spawnInterval: Math.round(110 - t * 60),
+      batchSize: 1 + Math.floor(t * 6),
+      maxEnemies: Math.floor(30 + t * 60),
+      enemyHP: Math.round(22 + t * 78),
+      enemySpd: 1.0 + t * 1.2,
+      enemyDmg: Math.round(12 + t * 10),
+      expValue: 2 + Math.floor(t * 3),
+      baseFireRate: Math.round(800 - t * 480),
+      baseDamage: Math.round(22 + t * 14)
+    };
+  }
+
+  // ゲーム状態
+  let gameState = {
+    player: null,
+    enemies: [],
+    bullets: [],
+    particles: [],
+    items: [],
+    keys: {},
+    touch: { active: false, startX: 0, startY: 0, currentX: 0, currentY: 0 },
+    gameTime: 0,
+    lastEnemySpawn: 0,
+    isPaused: false,
+    gameStarted: false,
+    currentRound: 0,
+    lastBossTime: 0,
+    bossActive: false
+  };
+
+  // アイテムタイプ
+  const ITEM_TYPES = {
+    EXP: 'exp',
+    MAGNET: 'magnet',
+    CLEAR: 'clear'
+  };
+
+  // 武器タイプ
+  const WEAPON_TYPES = {
+    AUTO: 'auto',
+    DIRECT: 'direct',
+    MULTI: 'multi',
+    MELEE: 'melee',
+    LASER: 'laser',
+    FUNNEL: 'funnel'
+  };
+
+  // プレイヤークラス
+  class Player {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.imageScale = 0.6;
+      this.size = 20;
+      this.speed = 3;
+      this.maxHp = 100;
+      this.hp = this.maxHp;
+      this.level = 1;
+      this.exp = 0;
+      this.expMax = 10;
+      this.score = 0;
+      this.lastShot = 0;
+      this.invulnerable = 0;
+      this.orbRotation = 0;
+      this.isMoving = false;
+      this.weapons = [];
+      this.moveDirection = { x: 0, y: 0 };
+    }
+
+    addWeapon(type) {
+      const weapon = new Weapon(type);
+      this.weapons.push(weapon);
+    }
+
+    updateCollisionSizeFromImage() {
+      if (characterImages.normal) {
+        this.size = (characterImages.normal.width * this.imageScale) / 2;
+      }
+    }
+
+    update() {
+      // 移動処理
+      this.isMoving = this.moveDirection.x !== 0 || this.moveDirection.y !== 0;
+      
+      if (this.isMoving) {
+        // 正規化
+        const len = Math.hypot(this.moveDirection.x, this.moveDirection.y);
+        if (len > 0) {
+          const normalizedX = (this.moveDirection.x / len) * this.speed;
+          const normalizedY = (this.moveDirection.y / len) * this.speed;
+          
+          this.x = Math.max(this.size, Math.min(canvas.width - this.size, this.x + normalizedX));
+          this.y = Math.max(this.size, Math.min(canvas.height - this.size, this.y + normalizedY));
+        }
+        this.orbRotation += 0.1;
+      }
+
+      if (this.invulnerable > 0) this.invulnerable--;
+
+      // 武器攻撃
+      this.weapons.forEach(weapon => weapon.update(this));
+    }
+
+    takeDamage(damage) {
+      if (this.invulnerable > 0) return;
+      this.hp = Math.max(0, this.hp - damage);
+      this.invulnerable = 60;
+      for (let i = 0; i < 5; i++) {
+        gameState.particles.push(new Particle(this.x, this.y, '#f00'));
+      }
+    }
+
+    gainExp(value) {
+      this.exp += value;
+      this.score += value * 10;
+      if (this.exp >= this.expMax) this.levelUp();
+    }
+
+    levelUp() {
+      this.level++;
+      this.exp -= this.expMax;
+      this.expMax = Math.floor(this.expMax * 1.5);
+      this.showLevelUpModal();
+    }
+
+    showLevelUpModal() {
+      const modal = document.getElementById('levelUpModal');
+      const options = document.getElementById('upgradeOptions');
+      options.innerHTML = '';
+
+      // アップグレードオプション生成
+      const upgrades = this.generateUpgradeOptions();
+      upgrades.forEach(upgrade => {
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.innerHTML = upgrade.html;
+        btn.onclick = () => this.selectUpgrade(upgrade.type, upgrade.data);
+        options.appendChild(btn);
+      });
+
+      modal.style.display = 'block';
+      gameState.isPaused = true;
+    }
+
+    generateUpgradeOptions() {
+      const options = [];
+      
+      // 基本ステータス強化
+      options.push(
+        { type: 'speed', html: '🏃 移動速度アップ<br><small>移動速度 +0.5</small>' },
+        { type: 'health', html: '❤️ 最大HP +20<br><small>HPも20回復</small>' },
+        { type: 'damage', html: '⚔️ 攻撃力アップ<br><small>全武器のダメージ +10</small>' }
+      );
+
+      // 武器追加（まだ持っていない場合）
+      const weaponTypes = [WEAPON_TYPES.MELEE, WEAPON_TYPES.LASER, WEAPON_TYPES.FUNNEL];
+      weaponTypes.forEach(type => {
+        if (!this.weapons.find(w => w.type === type)) {
+          const names = {
+            [WEAPON_TYPES.MELEE]: '🗡️ メレーアタック',
+            [WEAPON_TYPES.LASER]: '⚡ レーザービーム', 
+            [WEAPON_TYPES.FUNNEL]: '🛸 ファンネル'
+          };
+          options.push({ 
+            type: 'weapon', 
+            data: type,
+            html: `${names[type]}<br><small>新しい武器を獲得</small>` 
+          });
+        }
+      });
+
+      // 武器強化
+      this.weapons.forEach(weapon => {
+        if (weapon.level < 5) {
+          options.push({
+            type: 'weapon_upgrade',
+            data: weapon,
+            html: `🔧 ${weapon.getName()} 強化<br><small>Lv${weapon.level} → Lv${weapon.level + 1}</small>`
+          });
+        }
+      });
+
+      return options.slice(0, 3); // 3つまで
+    }
+
+    selectUpgrade(type, data) {
+      switch (type) {
+        case 'speed':
+          this.speed += 0.5;
+          break;
+        case 'health':
+          this.maxHp += 20;
+          this.hp = Math.min(this.hp + 20, this.maxHp);
+          break;
+        case 'damage':
+          this.weapons.forEach(weapon => weapon.baseDamage += 10);
+          break;
+        case 'weapon':
+          this.addWeapon(data);
+          break;
+        case 'weapon_upgrade':
+          data.levelUp();
+          break;
+      }
+
+      document.getElementById('levelUpModal').style.display = 'none';
+      gameState.isPaused = false;
+    }
+
+    draw() {
+      ctx.save();
+      let damaged = false;
+      if (this.invulnerable > 0) {
+        if (Math.floor(this.invulnerable / 10) % 2 === 0) damaged = true;
+        ctx.globalAlpha = 0.8;
+      }
+
+      // 画像が読み込まれている場合
+      if (characterImages.normal && characterImages.orbs && characterImages.damaged) {
+        // オーブ描画（常時表示、移動時のみ回転が進む）
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.orbRotation);
+        const orbSize = characterImages.orbs.width * this.imageScale;
+        ctx.drawImage(characterImages.orbs, -orbSize/2, -orbSize/2, orbSize, orbSize);
+        ctx.restore();
+
+        // キャラクター描画
+        const img = damaged ? characterImages.damaged : characterImages.normal;
+        const imgSize = img.width * this.imageScale;
+        ctx.drawImage(img, this.x - imgSize/2, this.y - imgSize/2, imgSize, imgSize);
+      } else {
+        // フォールバック描画（元の仕様に戻す）
+        ctx.fillStyle = damaged ? '#ffaa00' : '#ffcc00';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = '#000';
+        ctx.font = `${this.size}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(damaged ? '😞' : '😊', this.x, this.y);
+      }
+
+      // HPバー
+      const barW = 40, barH = 4, barY = this.y - this.size - 15;
+      ctx.fillStyle = '#f00';
+      ctx.fillRect(this.x - barW/2, barY, barW, barH);
+      ctx.fillStyle = '#0f0';
+      ctx.fillRect(this.x - barW/2, barY, barW * (this.hp / this.maxHp), barH);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(this.x - barW/2, barY, barW, barH);
+
+      ctx.restore();
+    }
+  }
+
+  // 武器クラス
+  class Weapon {
+    constructor(type) {
+      this.type = type;
+      this.level = 1;
+      this.baseDamage = 25;
+      this.lastShot = 0;
+      this.fireRate = 600;
+    }
+
+    getName() {
+      const names = {
+        [WEAPON_TYPES.AUTO]: 'オートショット',
+        [WEAPON_TYPES.DIRECT]: 'ダイレクトショット',
+        [WEAPON_TYPES.MULTI]: 'マルチショット',
+        [WEAPON_TYPES.MELEE]: 'メレーアタック',
+        [WEAPON_TYPES.LASER]: 'レーザービーム',
+        [WEAPON_TYPES.FUNNEL]: 'ファンネル'
+      };
+      return names[this.type] || 'Unknown';
+    }
+
+    levelUp() {
+      this.level++;
+      this.baseDamage += 5;
+      this.fireRate = Math.max(100, this.fireRate - 50);
+    }
+
+    update(player) {
+      if (Date.now() - this.lastShot < this.fireRate) return;
+      
+      switch (this.type) {
+        case WEAPON_TYPES.AUTO:
+          this.shootAuto(player);
+          break;
+        case WEAPON_TYPES.DIRECT:
+          this.shootDirect(player);
+          break;
+        case WEAPON_TYPES.MULTI:
+          this.shootMulti(player);
+          break;
+        case WEAPON_TYPES.MELEE:
+          this.meleeAttack(player);
+          break;
+        case WEAPON_TYPES.LASER:
+          this.shootLaser(player);
+          break;
+        case WEAPON_TYPES.FUNNEL:
+          this.shootFunnel(player);
+          break;
+      }
+    }
+
+    shootAuto(player) {
+      if (gameState.enemies.length === 0) return;
+      let target = null, bestDist = Infinity;
+      
+      gameState.enemies.forEach(enemy => {
+        const dist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
+        if (dist < bestDist) {
+          bestDist = dist;
+          target = enemy;
+        }
+      });
+
+      if (target) {
+        const angle = Math.atan2(target.y - player.y, target.x - player.x);
+        gameState.bullets.push(new Bullet(player.x, player.y, angle, this.baseDamage, true));
+        this.lastShot = Date.now();
+      }
+    }
+
+    shootDirect(player) {
+      if (player.moveDirection.x === 0 && player.moveDirection.y === 0) return;
+      
+      const angle = Math.atan2(player.moveDirection.y, player.moveDirection.x);
+      gameState.bullets.push(new Bullet(player.x, player.y, angle, this.baseDamage, true));
+      this.lastShot = Date.now();
+    }
+
+    shootMulti(player) {
+      const directions = 8;
+      for (let i = 0; i < directions; i++) {
+        const angle = (Math.PI * 2 * i) / directions;
+        gameState.bullets.push(new Bullet(player.x, player.y, angle, this.baseDamage * 0.7, true));
+      }
+      this.lastShot = Date.now();
+    }
+
+    meleeAttack(player) {
+      gameState.enemies.forEach((enemy, index) => {
+        const dist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
+        if (dist < 60) {
+          if (enemy.takeDamage(this.baseDamage * 1.5)) {
+            gameState.enemies.splice(index, 1);
+          }
+        }
+      });
+      this.lastShot = Date.now();
+    }
+
+    shootLaser(player) {
+      if (gameState.enemies.length === 0) return;
+      let target = null, bestDist = Infinity;
+      
+      gameState.enemies.forEach(enemy => {
+        const dist = Math.hypot(enemy.x - player.x, enemy.y - player.y);
+        if (dist < bestDist) {
+          bestDist = dist;
+          target = enemy;
+        }
+      });
+
+      if (target) {
+        const angle = Math.atan2(target.y - player.y, target.x - player.x);
+        gameState.bullets.push(new LaserBullet(player.x, player.y, angle, this.baseDamage * 0.8));
+        this.lastShot = Date.now();
+      }
+    }
+
+    shootFunnel(player) {
+      // 簡易ファンネル実装
+      this.shootAuto(player);
+    }
+  }
+
+  // 敵クラス
+  class Enemy {
+    constructor(x, y, diff, isBoss = false) {
+      this.x = x;
+      this.y = y;
+      this.size = isBoss ? 32 : 16;
+      this.speed = isBoss ? diff.enemySpd * 0.7 : diff.enemySpd;
+      this.hp = isBoss ? diff.enemyHP * 3 : diff.enemyHP;
+      this.maxHp = this.hp;
+      this.damage = isBoss ? diff.enemyDmg * 1.5 : diff.enemyDmg;
+      this.expValue = isBoss ? diff.expValue * 5 : diff.expValue;
+      this.isBoss = isBoss;
+      this.color = isBoss ? '#ff4444' : `hsl(${Math.random()*60+300},70%,50%)`;
+      this.lastShot = 0;
+    }
+
+    update() {
+      const dx = gameState.player.x - this.x;
+      const dy = gameState.player.y - this.y;
+      const dist = Math.hypot(dx, dy);
+      
+      if (dist > 0) {
+        this.x += (dx / dist) * this.speed;
+        this.y += (dy / dist) * this.speed;
+      }
+
+      if (dist < this.size + gameState.player.size) {
+        gameState.player.takeDamage(this.damage);
+      }
+
+      // ボスの弾攻撃
+      if (this.isBoss && Date.now() - this.lastShot > 1000) {
+        const angle = Math.atan2(dy, dx);
+        gameState.bullets.push(new Bullet(this.x, this.y, angle, this.damage, false));
+        this.lastShot = Date.now();
+      }
+    }
+
+    takeDamage(damage) {
+      this.hp -= damage;
+      for (let i = 0; i < 3; i++) {
+        gameState.particles.push(new Particle(this.x, this.y, this.color));
+      }
+      
+      if (this.hp <= 0) {
+        gameState.items.push(new Item(this.x, this.y, ITEM_TYPES.EXP, this.expValue));
+        
+        // ボス撃破時の特別アイテム
+        if (this.isBoss) {
+          gameState.items.push(new Item(this.x + 20, this.y, ITEM_TYPES.MAGNET));
+          gameState.items.push(new Item(this.x - 20, this.y, ITEM_TYPES.CLEAR));
+          gameState.bossActive = false;
+        }
+        
+        return true;
+      }
+      return false;
+    }
+
+    draw() {
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      
+      if (this.isBoss) {
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+
+      // 目
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(this.x - this.size/3, this.y - this.size/3, this.size/6, 0, Math.PI * 2);
+      ctx.arc(this.x + this.size/3, this.y - this.size/3, this.size/6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // HPバー
+      if (this.hp < this.maxHp) {
+        const w = this.size * 1.5, h = 4;
+        ctx.fillStyle = '#f00';
+        ctx.fillRect(this.x - w/2, this.y - this.size - 10, w, h);
+        ctx.fillStyle = '#0f0';
+        ctx.fillRect(this.x - w/2, this.y - this.size - 10, w * (this.hp / this.maxHp), h);
+      }
+    }
+  }
+
+  // 弾クラス
+  class Bullet {
+    constructor(x, y, angle, damage, isPlayerBullet = false) {
+      this.x = x;
+      this.y = y;
+      this.vx = Math.cos(angle) * (isPlayerBullet ? 8 : 4);
+      this.vy = Math.sin(angle) * (isPlayerBullet ? 8 : 4);
+      this.damage = damage;
+      this.isPlayerBullet = isPlayerBullet;
+      this.life = 120;
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life--;
+
+      if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height || this.life <= 0) {
+        return true;
+      }
+
+      if (this.isPlayerBullet) {
+        for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+          const enemy = gameState.enemies[i];
+          const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+          if (dist < enemy.size) {
+            if (enemy.takeDamage(this.damage)) {
+              gameState.enemies.splice(i, 1);
+            }
+            return true;
+          }
+        }
+      } else {
+        // 敵の弾がプレイヤーに当たる
+        const dist = Math.hypot(gameState.player.x - this.x, gameState.player.y - this.y);
+        if (dist < gameState.player.size) {
+          gameState.player.takeDamage(this.damage);
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    draw() {
+      ctx.fillStyle = this.isPlayerBullet ? '#ff0' : '#f00';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // レーザー弾クラス
+  class LaserBullet extends Bullet {
+    constructor(x, y, angle, damage) {
+      super(x, y, angle, damage, true);
+      this.penetration = 3; // 貫通回数
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life--;
+
+      if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height || this.life <= 0) {
+        return true;
+      }
+
+      for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+        const enemy = gameState.enemies[i];
+        const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+        if (dist < enemy.size) {
+          if (enemy.takeDamage(this.damage)) {
+            gameState.enemies.splice(i, 1);
+          }
+          this.penetration--;
+          if (this.penetration <= 0) return true;
+        }
+      }
+
+      return false;
+    }
+
+    draw() {
+      ctx.fillStyle = '#0ff';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // レーザートレイル
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x - this.vx, this.y - this.vy);
+      ctx.stroke();
+    }
+  }
+
+  // パーティクルクラス
+  class Particle {
+    constructor(x, y, color) {
+      this.x = x;
+      this.y = y;
+      this.vx = (Math.random() - 0.5) * 4;
+      this.vy = (Math.random() - 0.5) * 4;
+      this.color = color;
+      this.life = 30;
+      this.maxLife = 30;
+      this.size = Math.random() * 3 + 1;
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.vx *= 0.98;
+      this.vy *= 0.98;
+      this.life--;
+      return this.life <= 0;
+    }
+
+    draw() {
+      const alpha = this.life / this.maxLife;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // アイテムクラス
+  class Item {
+    constructor(x, y, type, value = 1) {
+      this.x = x;
+      this.y = y;
+      this.type = type;
+      this.value = value;
+      this.size = 6;
+      this.bobOffset = Math.random() * Math.PI * 2;
+    }
+
+    update() {
+      const dx = gameState.player.x - this.x;
+      const dy = gameState.player.y - this.y;
+      const dist = Math.hypot(dx, dy);
+
+      // マグネット効果
+      if (dist < 80) {
+        this.x += (dx / dist) * 4;
+        this.y += (dy / dist) * 4;
+      }
+
+      if (dist < this.size + gameState.player.size) {
+        this.collect();
+        return true;
+      }
+      return false;
+    }
+
+    collect() {
+      switch (this.type) {
+        case ITEM_TYPES.EXP:
+          gameState.player.gainExp(this.value);
+          break;
+        case ITEM_TYPES.MAGNET:
+          this.magnetEffect();
+          break;
+        case ITEM_TYPES.CLEAR:
+          this.clearEffect();
+          break;
+      }
+    }
+
+    magnetEffect() {
+      gameState.items.forEach(item => {
+        if (item.type === ITEM_TYPES.EXP) {
+          const dx = gameState.player.x - item.x;
+          const dy = gameState.player.y - item.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist > 0) {
+            item.x = gameState.player.x;
+            item.y = gameState.player.y;
+          }
+        }
+      });
+    }
+
+    clearEffect() {
+      for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+        const enemy = gameState.enemies[i];
+        if (!enemy.isBoss) {
+          gameState.items.push(new Item(enemy.x, enemy.y, ITEM_TYPES.EXP, enemy.expValue));
+          gameState.enemies.splice(i, 1);
+        }
+      }
+    }
+
+    draw() {
+      const bob = Math.sin(Date.now() * 0.005 + this.bobOffset) * 2;
+      let color = '#0f0';
+      
+      switch (this.type) {
+        case ITEM_TYPES.EXP:
+          color = '#0f0';
+          break;
+        case ITEM_TYPES.MAGNET:
+          color = '#00f';
+          break;
+        case ITEM_TYPES.CLEAR:
+          color = '#fff';
+          break;
+      }
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y + bob, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }
+
+  // ボススポーン
+  function spawnBoss(round) {
+    gameState.bossActive = true;
+    const diff = getDifficulty(gameState.gameTime);
+    
+    showBossWarning(round);
+    
+    setTimeout(() => {
+      switch (round) {
+        case 1:
+          // 囲み込み攻撃
+          for (let i = 0; i < 12; i++) {
+            const angle = (Math.PI * 2 * i) / 12;
+            const x = gameState.player.x + Math.cos(angle) * 200;
+            const y = gameState.player.y + Math.sin(angle) * 200;
+            gameState.enemies.push(new Enemy(x, y, diff, false));
+          }
+          break;
+        case 2:
+          // 大型単体ボス
+          gameState.enemies.push(new Enemy(canvas.width / 2, 50, diff, true));
+          break;
+        case 3:
+          // 複合ボス
+          gameState.enemies.push(new Enemy(canvas.width / 2, 50, diff, true));
+          for (let i = 0; i < 8; i++) {
+            const angle = (Math.PI * 2 * i) / 8;
+            const x = gameState.player.x + Math.cos(angle) * 150;
+            const y = gameState.player.y + Math.sin(angle) * 150;
+            gameState.enemies.push(new Enemy(x, y, diff, false));
+          }
+          break;
+        case 4:
+          // 最終ボス
+          const finalBoss = new Enemy(canvas.width / 2, canvas.height / 2, diff, true);
+          finalBoss.hp *= 2;
+          finalBoss.maxHp = finalBoss.hp;
+          finalBoss.size = 48;
+          gameState.enemies.push(finalBoss);
+          break;
+      }
+    }, 2000);
+  }
+
+  function showBossWarning(round) {
+    const warning = document.getElementById('bossWarning');
+    const typeText = document.getElementById('bossType');
+    
+    const messages = [
+      '', 
+      'ラウンド1ボス - 囲み込み攻撃！',
+      'ラウンド2ボス - 大型敵出現！', 
+      'ラウンド3ボス - 複合攻撃！',
+      '最終ボス - 弾幕地獄！'
+    ];
+    
+    typeText.textContent = messages[round] || 'ボス出現！';
+    warning.style.display = 'block';
+    
+    setTimeout(() => {
+      warning.style.display = 'none';
+    }, 2000);
+  }
+
+  // 敵スポーン
+  function spawnEnemy() {
+    const diff = getDifficulty(gameState.gameTime);
+    if (gameState.enemies.length >= diff.maxEnemies) return;
+
+    const side = Math.floor(Math.random() * 4);
+    let x, y;
+
+    if (side === 0) { // 上
+      x = Math.random() * canvas.width;
+      y = -20;
+    } else if (side === 1) { // 右
+      x = canvas.width + 20;
+      y = Math.random() * canvas.height;
+    } else if (side === 2) { // 下
+      x = Math.random() * canvas.width;
+      y = canvas.height + 20;
+    } else { // 左
+      x = -20;
+      y = Math.random() * canvas.height;
+    }
+
+    gameState.enemies.push(new Enemy(x, y, diff, false));
+  }
+
+  // 武器選択
+  window.selectWeapon = function(type) {
+    if (!gameState.player) return;
+    gameState.player.addWeapon(type);
+    document.getElementById('weaponSelect').style.display = 'none';
+    gameState.gameStarted = true;
+    gameState.isPaused = false;
+  };
+
+  // UI更新
+  function updateUI() {
+    const p = gameState.player;
+    document.getElementById('hp').textContent = p.hp;
+    document.getElementById('maxHp').textContent = p.maxHp;
+    document.getElementById('level').textContent = p.level;
+    document.getElementById('exp').textContent = p.exp;
+    document.getElementById('expMax').textContent = p.expMax;
+    document.getElementById('score').textContent = p.score;
+    document.getElementById('time').textContent = Math.floor(gameState.gameTime / 60);
+  }
+
+  // タッチ操作
+  function setupTouchControls() {
+    // prevent scrolling
+    document.body.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+    document.body.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
+    document.body.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+    
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (!gameState.gameStarted) return;
+      
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      gameState.touch.active = true;
+      gameState.touch.startX = touch.clientX - rect.left;
+      gameState.touch.startY = touch.clientY - rect.top;
+      gameState.touch.currentX = gameState.touch.startX;
+      gameState.touch.currentY = gameState.touch.startY;
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!gameState.touch.active || !gameState.gameStarted) return;
+      
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      gameState.touch.currentX = touch.clientX - rect.left;
+      gameState.touch.currentY = touch.clientY - rect.top;
+
+      const deltaX = gameState.touch.currentX - gameState.touch.startX;
+      const deltaY = gameState.touch.currentY - gameState.touch.startY;
+
+      // 移動方向設定
+      const sensitivity = 0.05;
+      gameState.player.moveDirection.x = Math.max(-1, Math.min(1, deltaX * sensitivity));
+      gameState.player.moveDirection.y = Math.max(-1, Math.min(1, deltaY * sensitivity));
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      gameState.touch.active = false;
+      if (gameState.player) {
+        gameState.player.moveDirection.x = 0;
+        gameState.player.moveDirection.y = 0;
+      }
+    }, { passive: false });
+  }
+
+  // キーボード操作
+  function setupKeyboardControls() {
+    document.addEventListener('keydown', (e) => {
+      gameState.keys[e.key.toLowerCase()] = true;
+      if (e.key.toLowerCase() === 'r' && gameState.player.hp <= 0) {
+        initGame();
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      gameState.keys[e.key.toLowerCase()] = false;
+    });
+  }
+
+  // キーボード移動更新
+  function updateKeyboardMovement() {
+    if (!gameState.player) return;
+    
+    let dx = 0, dy = 0;
+    if (gameState.keys['w'] || gameState.keys['arrowup']) dy -= 1;
+    if (gameState.keys['s'] || gameState.keys['arrowdown']) dy += 1;
+    if (gameState.keys['a'] || gameState.keys['arrowleft']) dx -= 1;
+    if (gameState.keys['d'] || gameState.keys['arrowright']) dx += 1;
+
+    gameState.player.moveDirection.x = dx;
+    gameState.player.moveDirection.y = dy;
+  }
+
+  // ゲームループ
+  function gameLoop() {
+    if (!gameState.isPaused && gameState.gameStarted) {
+      gameState.gameTime++;
+      updateKeyboardMovement();
+
+      // ボスラウンドチェック（2分間隔）
+      const currentMinute = Math.floor(gameState.gameTime / 3600); // 60fps * 60sec = 3600frames per minute
+      if (currentMinute >= 2 && currentMinute % 2 === 0 && currentMinute <= 8) {
+        const round = Math.floor(currentMinute / 2);
+        if (round !== gameState.currentRound && !gameState.bossActive) {
+          gameState.currentRound = round;
+          spawnBoss(round);
+        }
+      }
+
+      // 10分でゲームクリア
+      if (gameState.gameTime >= 36000) { // 10分 = 600秒 = 36000フレーム
+        gameState.player.hp = -1; // ゲーム終了をトリガー
+        gameState.player.score += 10000; // クリアボーナス
+      }
+
+      // 通常敵スポーン
+      if (!gameState.bossActive) {
+        const diff = getDifficulty(gameState.gameTime);
+        const since = gameState.gameTime - gameState.lastEnemySpawn;
+        if (since > diff.spawnInterval) {
+          for (let i = 0; i < diff.batchSize; i++) {
+            spawnEnemy();
+          }
+          gameState.lastEnemySpawn = gameState.gameTime;
+        }
+      }
+
+      // ランダムアイテムスポーン
+      if (Math.random() < 0.001) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const types = [ITEM_TYPES.MAGNET, ITEM_TYPES.CLEAR];
+        const type = types[Math.floor(Math.random() * types.length)];
+        gameState.items.push(new Item(x, y, type));
+      }
+
+      // 更新
+      if (gameState.player.hp > 0) {
+        gameState.player.update();
+      }
+      
+      gameState.enemies.forEach(enemy => enemy.update());
+      gameState.bullets = gameState.bullets.filter(bullet => !bullet.update());
+      gameState.particles = gameState.particles.filter(particle => !particle.update());
+      gameState.items = gameState.items.filter(item => !item.update());
+
+      updateUI();
+    }
+
+    // 描画
+    ctx.fillStyle = '#16213e';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // グリッド
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 50) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += 50) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    // ゲーム要素描画
+    gameState.items.forEach(item => item.draw());
+    gameState.particles.forEach(particle => particle.draw());
+    gameState.enemies.forEach(enemy => enemy.draw());
+    gameState.bullets.forEach(bullet => bullet.draw());
+
+    if (gameState.player && gameState.player.hp > 0) {
+      gameState.player.draw();
+    }
+
+    // ゲームオーバー
+    if (gameState.player && gameState.player.hp <= 0) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = '32px monospace';
+      ctx.textAlign = 'center';
+      
+      const message = gameState.gameTime >= 36000 ? 'GAME CLEAR!' : 'GAME OVER';
+      ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+      
+      ctx.font = '18px monospace';
+      ctx.fillText(`Final Score: ${gameState.player.score}`, canvas.width / 2, canvas.height / 2 + 40);
+      ctx.fillText('Press R to Restart', canvas.width / 2, canvas.height / 2 + 70);
+    }
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  // ゲーム初期化
+  async function initGame() {
+    await loadCharacterImages();
+    
+    gameState.player = new Player(canvas.width / 2, canvas.height / 2);
+    gameState.player.updateCollisionSizeFromImage(); // 画像読み込み後にサイズ更新
+    gameState.enemies = [];
+    gameState.bullets = [];
+    gameState.particles = [];
+    gameState.items = [];
+    gameState.gameTime = 0;
+    gameState.lastEnemySpawn = 0;
+    gameState.isPaused = true;
+    gameState.gameStarted = false;
+    gameState.currentRound = 0;
+    gameState.bossActive = false;
+
+    document.getElementById('weaponSelect').style.display = 'block';
+    document.getElementById('levelUpModal').style.display = 'none';
+    document.getElementById('bossWarning').style.display = 'none';
+  }
+
+  // ゲーム開始
+  setupTouchControls();
+  setupKeyboardControls();
+  initGame().then(() => gameLoop());
+</script>
+
+</body>
+</html>
