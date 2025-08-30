@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ダダサバイバー風ゲーム</title>
+  <style>
+    body { margin:0; padding:0; background:#1a1a2e; display:flex; justify-content:center; align-items:center; min-height:100vh; font-family:monospace; color:#fff; }
+    #gameContainer { position:relative; border:3px solid #4a4a8a; border-radius:10px; }
+    canvas { display:block; background:#16213e; border-radius:7px; }
+    #ui { position:absolute; top:10px; left:10px; z-index:10; background:rgba(0,0,0,.7); padding:10px; border-radius:5px; font-size:14px; }
+    #controls { position:absolute; bottom:-60px; left:0; right:0; text-align:center; font-size:12px; color:#aaa; }
+    #levelUpModal { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,.9); border:2px solid #ffd700; border-radius:10px; padding:20px; display:none; z-index:100; }
+    .upgrade-btn { display:block; width:100%; margin:5px 0; padding:10px; background:#4a4a8a; border:none; color:#fff; border-radius:5px; cursor:pointer; font-family:monospace; }
+    .upgrade-btn:hover { background:#6a6aaa; }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <div id="ui">
+      <div>HP: <span id="hp">100</span>/100</div>
+      <div>Level: <span id="level">1</span></div>
+      <div>EXP: <span id="exp">0</span>/<span id="expMax">10</span></div>
+      <div>Score: <span id="score">0</span></div>
+      <div>Time: <span id="time">0</span>s</div>
+    </div>
+
+    <div id="levelUpModal">
+      <h3>レベルアップ！</h3>
+      <button class="upgrade-btn" onclick="selectUpgrade('speed')">移動速度アップ</button>
+      <button class="upgrade-btn" onclick="selectUpgrade('attack')">攻撃力アップ</button>
+      <button class="upgrade-btn" onclick="selectUpgrade('health')">最大HP +20</button>
+      <button class="upgrade-btn" onclick="selectUpgrade('fire_rate')">攻撃速度アップ</button>
+    </div>
+
+    <div id="controls">
+      WASD または 矢印キー: 移動 | 自動攻撃 | マウス: 攻撃方向
+    </div>
+  </div>
+
+ <!-- 省略: <head> / UI / CSS は前回のままでOK -->
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // 画像
+  const characterImages = { normal:null, orbs:null, damaged:null };
+  function loadImage(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
+  async function loadCharacterImages(){
+    try{
+      const [n,o,d]=await Promise.all([loadImage('image1.png'),loadImage('image2.png'),loadImage('image3.png')]);
+      characterImages.normal=n; characterImages.orbs=o; characterImages.damaged=d; return true;
+    }catch(e){ console.warn('画像読み込み失敗',e); return false; }
+  }
+
+  //========= 難易度ディレクター =========
+  function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
+  function lerp(a,b,t){ return a + (b-a)*clamp(t,0,1); }
+  function getDifficulty(gameFrames){
+    const sec = gameFrames/60;          // 経過秒
+    const min = sec/60;                  // 経過分（0〜10を想定）
+    const t = clamp(min/10, 0, 1);       // 0→1で10分
+
+    // 湧き間隔（フレーム）: 1.8秒→0.83秒へ
+    const spawnInterval = Math.round(lerp(110, 50, t));
+
+    // 同時湧き数：1 → 7
+    const batchSize = 1 + Math.floor(lerp(0, 6, t));
+
+    // 同時存在上限：30 → 90
+    const maxEnemies = Math.floor(lerp(30, 90, t));
+
+    // 敵ステータススケーリング
+    const enemyHP   = Math.round(lerp(22, 100, t));        // 22 → 100
+    const enemySpd  = lerp(1.0, 2.2, t);                   // 1.0 → 2.2
+    const enemyDmg  = Math.round(lerp(12, 22, t));         // 12 → 22（終盤は少し痛い）
+    const expValue  = 2 + Math.floor(lerp(0, 3, t));       // 2 → 5
+
+    // プレイヤー側の“自然成長”も少し（レベルアップ以外で微補正）
+    const baseFireRate = Math.round(lerp(800, 320, t));    // 0.8秒 → 0.32秒
+    const baseDamage   = Math.round(lerp(22, 36, t));      // 22 → 36
+
+    return { sec, min, t, spawnInterval, batchSize, maxEnemies, enemyHP, enemySpd, enemyDmg, expValue, baseFireRate, baseDamage };
+  }
+
+  //========= ゲーム状態 =========
+  let gameState = {
+    player:null, enemies:[], bullets:[], particles:[], items:[],
+    keys:{}, mouse:{x:0,y:0},
+    gameTime:0, lastEnemySpawn:0, isPaused:false
+  };
+
+  //========= プレイヤー =========
+  class Player{
+    constructor(x,y){
+      this.x=x; this.y=y;
+      this.imageScale=0.8;            // ★ 指定スケール
+      this.size=32*this.imageScale;   // 画像読込後に再計算
+      this.speed=3;
+      this.maxHp=100; this.hp=this.maxHp;
+      this.level=1; this.exp=0; this.expMax=10; this.score=0;
+      this.lastShot=0;
+      this.fireRate=800;              // 初期は遅め、時間で自動短縮
+      this.damage=22;                 // ベースダメージ（時間で微増）
+      this.invulnerable=0;
+      this.orbRotation=0;
+      this.isMoving=false;
+    }
+    updateCollisionSizeFromImage(){
+      if (characterImages.normal){
+        this.size = (characterImages.normal.width * this.imageScale) / 2;
+      }
+    }
+    update(){
+      // 難易度に合わせて自然成長（レベルアップとは別枠）
+      const diff = getDifficulty(gameState.gameTime);
+      this.fireRate = Math.min(this.fireRate, diff.baseFireRate);
+      this.damage   = Math.max(this.damage, diff.baseDamage);
+
+      let dx=0, dy=0;
+      if (gameState.keys['w']||gameState.keys['arrowup']) dy -= this.speed;
+      if (gameState.keys['s']||gameState.keys['arrowdown']) dy += this.speed;
+      if (gameState.keys['a']||gameState.keys['arrowleft']) dx -= this.speed;
+      if (gameState.keys['d']||gameState.keys['arrowright']) dx += this.speed;
+      this.isMoving = dx!==0 || dy!==0;
+      if (dx!==0 && dy!==0){ dx*=0.707; dy*=0.707; }
+
+      // 端まで行ける（中心が半径分だけ内側）
+      const r=this.size;
+      this.x = Math.max(r, Math.min(canvas.width  - r, this.x + dx));
+      this.y = Math.max(r, Math.min(canvas.height - r, this.y + dy));
+
+      if (this.isMoving) this.orbRotation += 0.1;
+      if (this.invulnerable>0) this.invulnerable--;
+
+      if (Date.now()-this.lastShot > this.fireRate && gameState.enemies.length>0){
+        this.shoot(); this.lastShot=Date.now();
+      }
+    }
+    shoot(){
+      let target=null, best=Infinity;
+      for(const e of gameState.enemies){
+        const d=Math.hypot(e.x-this.x,e.y-this.y);
+        if (d<best){ best=d; target=e; }
+      }
+      if(!target) return;
+      const ang=Math.atan2(target.y-this.y, target.x-this.x);
+      gameState.bullets.push(new Bullet(this.x,this.y,ang,this.damage,true));
+    }
+    takeDamage(d){ if(this.invulnerable>0) return; this.hp=Math.max(0,this.hp-d); this.invulnerable=60; for(let i=0;i<5;i++) gameState.particles.push(new Particle(this.x,this.y,'#f00')); }
+    gainExp(v){ this.exp+=v; this.score+=v*10; if(this.exp>=this.expMax) this.levelUp(); }
+    levelUp(){ this.level++; this.exp-=this.expMax; this.expMax=Math.floor(this.expMax*1.5); document.getElementById('levelUpModal').style.display='block'; gameState.isPaused=true; }
+    draw(){
+      ctx.save();
+      let damaged=false;
+      if (this.invulnerable>0){ if(Math.floor(this.invulnerable/10)%2===0) damaged=true; ctx.globalAlpha=0.8; }
+
+      if (characterImages.normal && characterImages.orbs && characterImages.damaged){
+        // オーブは常時表示（回転は移動時のみ角度が進む）
+        ctx.save(); ctx.translate(this.x,this.y); ctx.rotate(this.orbRotation);
+        const os = characterImages.orbs.width * this.imageScale;
+        ctx.drawImage(characterImages.orbs, -os/2, -os/2, os, os); ctx.restore();
+
+        const img = damaged? characterImages.damaged : characterImages.normal;
+        const isz = img.width * this.imageScale;
+        ctx.drawImage(img, this.x - isz/2, this.y - isz/2, isz, isz);
+      } else {
+        // フォールバック
+        ctx.fillStyle = damaged ? '#ffaa00' : '#ffcc00';
+        ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.stroke();
+        ctx.fillStyle='#000'; ctx.font=`${this.size}px Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(damaged?'😞':'😊', this.x, this.y);
+      }
+
+      // HPバー
+      const barW=40, barH=4, barY=this.y - (this.size+15);
+      ctx.fillStyle='#f00'; ctx.fillRect(this.x-barW/2,barY,barW,barH);
+      ctx.fillStyle='#0f0'; ctx.fillRect(this.x-barW/2,barY,barW*(this.hp/this.maxHp),barH);
+      ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.strokeRect(this.x-barW/2,barY,barW,barH);
+      ctx.restore();
+    }
+  }
+
+  //========= 敵 =========
+  class Enemy{
+    constructor(x,y, diff){
+      this.x=x; this.y=y;
+      this.size=16;
+      this.speed=diff.enemySpd;
+      this.hp=diff.enemyHP; this.maxHp=this.hp;
+      this.damage=diff.enemyDmg;
+      this.expValue=diff.expValue;
+      this.color=`hsl(${Math.random()*60+300},70%,50%)`;
+    }
+    update(){
+      const dx=gameState.player.x-this.x, dy=gameState.player.y-this.y;
+      const dist=Math.hypot(dx,dy);
+      if (dist>0){ this.x+=(dx/dist)*this.speed; this.y+=(dy/dist)*this.speed; }
+      if (dist < this.size + gameState.player.size){ gameState.player.takeDamage(this.damage); }
+    }
+    takeDamage(d){
+      this.hp -= d;
+      for(let i=0;i<3;i++) gameState.particles.push(new Particle(this.x,this.y,this.color));
+      if(this.hp<=0){ gameState.items.push(new ExpItem(this.x,this.y,this.expValue)); return true; }
+      return false;
+    }
+    draw(){
+      ctx.fillStyle=this.color; ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(this.x-4,this.y-4,2,0,Math.PI*2); ctx.arc(this.x+4,this.y-4,2,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(this.x-4,this.y-4,1,0,Math.PI*2); ctx.arc(this.x+4,this.y-4,1,0,Math.PI*2); ctx.fill();
+      if(this.hp<this.maxHp){
+        const w=20,h=3; ctx.fillStyle='#f00'; ctx.fillRect(this.x-w/2,this.y-this.size-8,w,h);
+        ctx.fillStyle='#0f0'; ctx.fillRect(this.x-w/2,this.y-this.size-8,w*(this.hp/this.maxHp),h);
+      }
+    }
+  }
+
+  //========= 弾 =========
+  class Bullet{
+    constructor(x,y,ang,damage,isPlayerBullet=false){
+      this.x=x; this.y=y; this.vx=Math.cos(ang)*8; this.vy=Math.sin(ang)*8;
+      this.damage=damage; this.isPlayerBullet=isPlayerBullet; this.life=120;
+    }
+    update(){
+      this.x+=this.vx; this.y+=this.vy; this.life--;
+      if(this.x<0||this.x>canvas.width||this.y<0||this.y>canvas.height||this.life<=0) return true;
+      if(this.isPlayerBullet){
+        for(let i=gameState.enemies.length-1;i>=0;i--){
+          const e=gameState.enemies[i];
+          const d=Math.hypot(e.x-this.x,e.y-this.y);
+          if(d<e.size){
+            if(e.takeDamage(this.damage)) gameState.enemies.splice(i,1);
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    draw(){
+      ctx.fillStyle=this.isPlayerBullet?'#ff0':'#f00';
+      ctx.beginPath(); ctx.arc(this.x,this.y,3,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle=this.isPlayerBullet?'rgba(255,255,0,.3)':'rgba(255,0,0,.3)';
+      ctx.beginPath(); ctx.arc(this.x-this.vx,this.y-this.vy,2,0,Math.PI*2); ctx.fill();
+    }
+  }
+
+  //========= パーティクル / 経験値 =========
+  class Particle{
+    constructor(x,y,color){ this.x=x; this.y=y; this.vx=(Math.random()-0.5)*4; this.vy=(Math.random()-0.5)*4; this.color=color; this.life=30; this.maxLife=30; this.size=Math.random()*3+1; }
+    update(){ this.x+=this.vx; this.y+=this.vy; this.vx*=0.98; this.vy*=0.98; this.life--; return this.life<=0; }
+    draw(){ const a=this.life/this.maxLife; ctx.save(); ctx.globalAlpha=a; ctx.fillStyle=this.color; ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+  }
+  class ExpItem{
+    constructor(x,y,v){ this.x=x; this.y=y; this.value=v; this.size=4; this.bobOffset=Math.random()*Math.PI*2; }
+    update(){
+      const dx=gameState.player.x-this.x, dy=gameState.player.y-this.y, dist=Math.hypot(dx,dy);
+      if(dist<50){ this.x+=(dx/dist)*3; this.y+=(dy/dist)*3; }
+      if(dist < this.size + gameState.player.size){ gameState.player.gainExp(this.value); return true; }
+      return false;
+    }
+    draw(){
+      const bob=Math.sin(Date.now()*0.005 + this.bobOffset)*2;
+      ctx.fillStyle='#0f0'; ctx.beginPath(); ctx.arc(this.x,this.y+bob,this.size,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.stroke();
+    }
+  }
+
+  //========= スポーン制御 =========
+  function spawnEnemy(){
+    const diff = getDifficulty(gameState.gameTime);
+    // 上限に達していたら湧かさない
+    if (gameState.enemies.length >= diff.maxEnemies) return;
+
+    const side=Math.floor(Math.random()*4);
+    let x,y;
+    if(side===0){ x=Math.random()*canvas.width; y=-20; }
+    else if(side===1){ x=canvas.width+20; y=Math.random()*canvas.height; }
+    else if(side===2){ x=Math.random()*canvas.width; y=canvas.height+20; }
+    else { x=-20; y=Math.random()*canvas.height; }
+
+    gameState.enemies.push(new Enemy(x,y,diff));
+  }
+
+  //========= アップグレード =========
+  function selectUpgrade(type){
+    const p=gameState.player;
+    if (type==='speed') p.speed+=0.5;
+    else if (type==='attack') p.damage+=10;
+    else if (type==='health'){ p.maxHp+=20; p.hp=Math.min(p.hp+20,p.maxHp); }
+    else if (type==='fire_rate'){ p.fireRate=Math.max(50,p.fireRate-40); }
+    document.getElementById('levelUpModal').style.display='none';
+    gameState.isPaused=false;
+  }
+  window.selectUpgrade=selectUpgrade;
+
+  //========= UI =========
+  function updateUI(){
+    const p=gameState.player;
+    hp.textContent=p.hp; level.textContent=p.level; exp.textContent=p.exp;
+    expMax.textContent=p.expMax; score.textContent=p.score;
+    time.textContent=Math.floor(gameState.gameTime/60);
+  }
+
+  //========= ループ =========
+  function gameLoop(){
+    if(!gameState.isPaused){
+      gameState.gameTime++;
+
+      const diff = getDifficulty(gameState.gameTime);
+      const since = gameState.gameTime - gameState.lastEnemySpawn;
+      if (since > diff.spawnInterval){
+        for(let i=0;i<diff.batchSize;i++) spawnEnemy();
+        gameState.lastEnemySpawn = gameState.gameTime;
+      }
+
+      if (gameState.player.hp>0) gameState.player.update();
+      gameState.enemies.forEach(e=>e.update());
+      gameState.bullets = gameState.bullets.filter(b=>!b.update());
+      gameState.particles = gameState.particles.filter(p=>!p.update());
+      gameState.items = gameState.items.filter(it=>!it.update());
+
+      updateUI();
+    }
+
+    // 描画（背景グリッドは前回同様）
+    ctx.fillStyle='#16213e'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
+    for(let x=0;x<canvas.width;x+=50){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+    for(let y=0;y<canvas.height;y+=50){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+
+    gameState.items.forEach(it=>it.draw());
+    gameState.particles.forEach(p=>p.draw());
+    gameState.enemies.forEach(e=>e.draw());
+    gameState.bullets.forEach(b=>b.draw());
+
+    if(gameState.player.hp>0) gameState.player.draw();
+    if(gameState.player.hp<=0){
+      ctx.fillStyle='rgba(0,0,0,.7)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle='#fff'; ctx.font='48px monospace'; ctx.textAlign='center';
+      ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2);
+      ctx.font='24px monospace';
+      ctx.fillText(`Final Score: ${gameState.player.score}`, canvas.width/2, canvas.height/2+50);
+      ctx.fillText('Press R to Restart', canvas.width/2, canvas.height/2+100);
+    }
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  //========= 入力 =========
+  document.addEventListener('keydown',(e)=>{ gameState.keys[e.key.toLowerCase()]=true; if(e.key.toLowerCase()==='r'&&gameState.player.hp<=0) initGame(); });
+  document.addEventListener('keyup',(e)=>{ gameState.keys[e.key.toLowerCase()]=false; });
+  canvas.addEventListener('mousemove',(e)=>{ const r=canvas.getBoundingClientRect(); gameState.mouse.x=e.clientX-r.left; gameState.mouse.y=e.clientY-r.top; });
+
+  //========= 初期化 =========
+  async function initGame(){
+    await loadCharacterImages();
+    gameState.player=new Player(canvas.width/2, canvas.height/2);
+    gameState.player.updateCollisionSizeFromImage();
+    gameState.enemies=[]; gameState.bullets=[]; gameState.particles=[]; gameState.items=[];
+    gameState.gameTime=0; gameState.lastEnemySpawn=0; gameState.isPaused=false;
+    document.getElementById('levelUpModal').style.display='none';
+  }
+  initGame().then(()=>gameLoop());
+</script>
+
+</body>
+</html>
