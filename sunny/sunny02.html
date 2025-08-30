@@ -129,9 +129,9 @@
 
     <div id="weaponSelect">
       <h3>武器を選択してください</h3>
-      <button class="btn" onclick="selectWeapon('auto')">🎯 オートショット<br><small>自動で最も近い敵を狙撃</small></button>
-      <button class="btn" onclick="selectWeapon('direct')">➡️ ダイレクトショット<br><small>移動方向に弾を発射</small></button>
-      <button class="btn" onclick="selectWeapon('multi')">🔄 マルチショット<br><small>8方向に弾をばらまき攻撃</small></button>
+      <button class="btn" ontouchend="selectWeapon('auto')" onclick="selectWeapon('auto')">🎯 オートショット<br><small>自動で最も近い敵を狙撃（射撃間隔：長い）</small></button>
+      <button class="btn" ontouchend="selectWeapon('direct')" onclick="selectWeapon('direct')">➡️ ダイレクトショット<br><small>最後の移動方向に継続射撃（射撃間隔：短い）</small></button>
+      <button class="btn" ontouchend="selectWeapon('multi')" onclick="selectWeapon('multi')">🔄 マルチショット<br><small>8方向に弾をばらまき攻撃</small></button>
     </div>
 
     <div id="levelUpModal">
@@ -284,6 +284,7 @@
       this.isMoving = false;
       this.weapons = [];
       this.moveDirection = { x: 0, y: 0 };
+      this.lastMoveDirection = { x: 0, y: 0 }; // 最後の移動方向を保存
     }
 
     addWeapon(type) {
@@ -302,6 +303,10 @@
       this.isMoving = this.moveDirection.x !== 0 || this.moveDirection.y !== 0;
       
       if (this.isMoving) {
+        // 最後の移動方向を保存
+        this.lastMoveDirection.x = this.moveDirection.x;
+        this.lastMoveDirection.y = this.moveDirection.y;
+        
         // 正規化
         const len = Math.hypot(this.moveDirection.x, this.moveDirection.y);
         if (len > 0) {
@@ -1010,11 +1015,16 @@
 
   // 武器選択
   window.selectWeapon = function(type) {
-    if (!gameState.player) return;
+    console.log('武器選択:', type);
+    if (!gameState.player) {
+      console.log('プレイヤーが存在しません');
+      return;
+    }
     gameState.player.addWeapon(type);
     document.getElementById('weaponSelect').style.display = 'none';
     gameState.gameStarted = true;
     gameState.isPaused = false;
+    console.log('ゲーム開始');
   };
 
   // UI更新
