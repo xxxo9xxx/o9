@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no"/>
+<title>サニーさんサバイバー MVP+LvUP</title>
+<style>
+  html,body {margin:0;padding:0;height:100%;background:#0f1629;color:#fff;overflow:hidden;font-family:sans-serif;}
+  #gameCanvas {display:block;width:100%;height:100%;background:#16213e;}
+  #ui {
+    position:absolute;top:8px;left:8px;
+    background:rgba(0,0,0,0.4);padding:6px 10px;border-radius:8px;
+    font-size:14px;line-height:1.4;
+  }
+  #levelUp {
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    background:#222;padding:20px;border-radius:12px;display:none;z-index:10;
+  }
+  #levelUp h2 {margin-top:0;text-align:center;}
+  #choices {display:flex;flex-direction:column;gap:8px;}
+  .choice {padding:10px;background:#444;color:#fff;border-radius:6px;cursor:pointer;text-align:center;}
+  .choice:hover {background:#666;}
+  #centerMsg {
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    font-size:32px;font-weight:bold;text-align:center;display:none;
+  }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<div id="ui">
+  <div>HP: <span id="hp">100</span></div>
+  <div>Lv: <span id="lv">1</span> (EXP <span id="exp">0</span>/<span id="expMax">10</span>)</div>
+  <div>時間: <span id="time">0</span>s</div>
+  <div>スコア: <span id="score">0</span></div>
+</div>
+<div id="levelUp">
+  <h2>レベルアップ！</h2>
+  <div id="choices"></div>
+</div>
+<div id="centerMsg"></div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+window.addEventListener("resize",resize);resize();
+
+const hpEl=document.getElementById("hp");
+const lvEl=document.getElementById("lv");
+const expEl=document.getElementById("exp");
+const expMaxEl=document.getElementById("expMax");
+const timeEl=document.getElementById("time");
+const scoreEl=document.getElementById("score");
+const centerMsg=document.getElementById("centerMsg");
+const levelUpBox=document.getElementById("levelUp");
+const choicesDiv=document.getElementById("choices");
+
+let keys={},touchMove={active:false,x:0,y:0};
+document.addEventListener("keydown",e=>{keys[e.key]=true;});
+document.addEventListener("keyup",e=>{keys[e.key]=false;});
+canvas.addEventListener("touchstart",e=>{if(e.touches.length>0){const t=e.touches[0];touchMove={active:true,x:t.clientX,y:t.clientY};}},{passive:false});
+canvas.addEventListener("touchmove",e=>{if(e.touches.length>0){const t=e.touches[0];touchMove={active:true,x:t.clientX,y:t.clientY};}},{passive:false});
+canvas.addEventListener("touchend",()=>{touchMove.active=false;},{passive:false});
+
+// ==== Player ====
+const player={
+  x:W/2,y:H/2,r:16,speed:3,
+  hp:100,maxHp:100,
+  lv:1,exp:0,expMax:10,
+  lastShot:0,fireRate:600, //ms
+  baseDmg:20,bulletSpeed:6,
+  branch:null, // "rapid","spread","laser"
+  branchLv:1
+};
+
+let bullets=[],enemies=[],score=0;
+let startTime=Date.now();
+let gameOver=false,gameClear=false;
+let paused=false;
+
+// ==== Functions ====
+function shoot(){
+  const now=Date.now();
+  if(now-player.lastShot<player.fireRate)return;
+  if(enemies.length===0)return;
+  player.lastShot=now;
+  let target=null,minDist=1e9;
+  for(const e of enemies){
+    const d=Math.hypot(e.x-player.x,e.y-player.y);
+    if(d<minDist){minDist=d;target=e;}
+  }
+  if(!target)return;
+  const ang=Math.atan2(target.y-player.y,target.x-player.x);
+  if(player.branch==="rapid"){
+    let count= (player.branchLv>=5)?3:(player.branchLv>=3)?2:1;
+    for(let i=0;i<count;i++){
+      bullets.push({x:player.x,y:player.y,vx:Math.cos(ang)*player.bulletSpeed,vy:Math.sin(ang)*player.bulletSpeed,r:4,life:100,dmg:player.baseDmg});
+    }
+  }else if(player.branch==="spread"){
+    let count=(player.branchLv>=5)?7:(player.branchLv>=3)?3:1;
+    let spread=(player.branchLv>=5)?0.7:(player.branchLv>=3)?0.3:0;
+    for(let i=0;i<count;i++){
+      let offset=(i-(count-1)/2)*(spread);
+      let a=ang+offset;
+      bullets.push({x:player.x,y:player.y,vx:Math.cos(a)*player.bulletSpeed,vy:Math.sin(a)*player.bulletSpeed,r:4,life:80,dmg:player.baseDmg*0.8});
+    }
+  }else if(player.branch==="laser"){
+    // レーザー = 長い弾（描画時に太く）
+    let dmg=(player.branchLv>=3)?80:60;
+    let life=(player.branchLv>=5)?40:20;
+    bullets.push({x:player.x,y:player.y,vx:Math.cos(ang)*15,vy:Math.sin(ang)*15,r:(player.branchLv>=5)?12:6,life:life,dmg:dmg,laser:true,angle:ang});
+  }else{
+    // basic bullet
+    bullets.push({x:player.x,y:player.y,vx:Math.cos(ang)*player.bulletSpeed,vy:Math.sin(ang)*player.bulletSpeed,r:4,life:100,dmg:player.baseDmg});
+  }
+}
+
+function spawnEnemy(){
+  const side=Math.floor(Math.random()*4);
+  let x,y;
+  if(side===0){x=Math.random()*W;y=-20;}
+  else if(side===1){x=W+20;y=Math.random()*H;}
+  else if(side===2){x=Math.random()*W;y=H+20;}
+  else {x=-20;y=Math.random()*H;}
+  let hp=20+Math.floor((Date.now()-startTime)/10000); //時間で強化
+  enemies.push({x,y,r:14,hp:hp,speed:1.2});
+}
+
+function gainExp(n){
+  player.exp+=n;
+  if(player.exp>=player.expMax){
+    player.exp-=player.expMax;
+    player.lv++;
+    player.expMax=Math.floor(player.expMax*1.4);
+    openLevelUp();
+  }
+}
+
+function openLevelUp(){
+  paused=true;
+  choicesDiv.innerHTML="";
+  let opts=[];
+  // 通常弾強化 or 身体強化
+  if(player.branch==null && player.lv>=3){
+    opts.push({name:"速射型へ進化",action:()=>{player.branch="rapid";player.branchLv=3;}});
+    opts.push({name:"弾幕型へ進化",action:()=>{player.branch="spread";player.branchLv=3;}});
+    opts.push({name:"レーザー型へ進化",action:()=>{player.branch="laser";player.branchLv=3;}});
+  }else{
+    opts.push({name:"HP上限+20",action:()=>{player.maxHp+=20;player.hp+=20;}});
+    opts.push({name:"移動速度+5%",action:()=>{player.speed*=1.05;}});
+    opts.push({name:"攻撃力+10%",action:()=>{player.baseDmg*=1.1;}});
+  }
+  for(const o of opts){
+    const div=document.createElement("div");
+    div.className="choice";div.textContent=o.name;
+    div.onclick=()=>{o.action();closeLevelUp();};
+    choicesDiv.appendChild(div);
+  }
+  levelUpBox.style.display="block";
+}
+function closeLevelUp(){paused=false;levelUpBox.style.display="none";}
+
+// ==== Game Loop ====
+function update(){
+  if(gameOver||gameClear||paused)return;
+  const now=Date.now();
+  const elapsed=Math.floor((now-startTime)/1000);
+  timeEl.textContent=elapsed;
+  if(elapsed>=600){gameClear=true;centerMsg.textContent="CLEAR!";centerMsg.style.display="block";return;}
+  // move
+  let dx=0,dy=0;
+  if(keys["w"]||keys["ArrowUp"])dy-=1;
+  if(keys["s"]||keys["ArrowDown"])dy+=1;
+  if(keys["a"]||keys["ArrowLeft"])dx-=1;
+  if(keys["d"]||keys["ArrowRight"])dx+=1;
+  if(touchMove.active){
+    dx=touchMove.x-player.x;dy=touchMove.y-player.y;
+    const len=Math.hypot(dx,dy);if(len>0){dx/=len;dy/=len;}
+  }
+  if(dx||dy){
+    if(dx&&dy){dx*=0.707;dy*=0.707;}
+    player.x=Math.max(player.r,Math.min(W-player.r,player.x+dx*player.speed));
+    player.y=Math.max(player.r,Math.min(H-player.r,player.y+dy*player.speed));
+  }
+  shoot();
+  // bullets
+  for(let i=bullets.length-1;i>=0;i--){
+    const b=bullets[i];b.x+=b.vx;b.y+=b.vy;b.life--;
+    if(b.life<=0||b.x<0||b.y<0||b.x>W||b.y>H){bullets.splice(i,1);continue;}
+    for(let j=enemies.length-1;j>=0;j--){
+      const e=enemies[j];
+      const d=Math.hypot(e.x-b.x,e.y-b.y);
+      if(d<e.r){
+        e.hp-=b.dmg;bullets.splice(i,1);
+        if(e.hp<=0){enemies.splice(j,1);score+=10;gainExp(1);}
+        break;
+      }
+    }
+  }
+  // enemies
+  for(const e of enemies){
+    const dx=player.x-e.x,dy=player.y-e.y;const d=Math.hypot(dx,dy);
+    if(d>0){e.x+=dx/d*e.speed;e.y+=dy/d*e.speed;}
+    if(d<e.r+player.r){player.hp-=0.2;if(player.hp<=0){gameOver=true;centerMsg.textContent="GAME OVER";centerMsg.style.display="block";}}
+  }
+  if(Math.random()<0.02+elapsed*0.0001){spawnEnemy();}
+  // ui
+  hpEl.textContent=Math.floor(player.hp);
+  lvEl.textContent=player.lv;expEl.textContent=player.exp;expMaxEl.textContent=player.expMax;
+  scoreEl.textContent=score;
+}
+function draw(){
+  ctx.fillStyle="#16213e";ctx.fillRect(0,0,W,H);
+  ctx.fillStyle="yellow";
+  for(const b of bullets){ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle="red";
+  for(const e of enemies){ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle="lime";
+  ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();
+}
+function loop(){update();draw();requestAnimationFrame(loop);}
+loop();
+</script>
+</body>
+</html>
