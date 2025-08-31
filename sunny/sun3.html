@@ -48,14 +48,15 @@
       <div>EXP: <span id="exp">0</span>/<span id="expMax">10</span></div>
       <div>Score: <span id="score">0</span></div>
       <div>Time: <span id="time">0</span>s</div>
+      <div>武器: <span id="weapon">速射Lv1</span></div>
     </div>
 
     <div id="levelUpModal">
       <h3>レベルアップ！</h3>
+      <button class="upgrade-btn" onclick="selectUpgrade('weapon')">武器強化</button>
+      <button class="upgrade-btn" onclick="selectUpgrade('weapon_change')">武器変更</button>
       <button class="upgrade-btn" onclick="selectUpgrade('speed')">移動速度アップ</button>
-      <button class="upgrade-btn" onclick="selectUpgrade('attack')">攻撃力アップ</button>
       <button class="upgrade-btn" onclick="selectUpgrade('health')">最大HP +20</button>
-      <button class="upgrade-btn" onclick="selectUpgrade('fire_rate')">攻撃速度アップ</button>
     </div>
 
     <div id="controls">
@@ -212,6 +213,13 @@
       gameTime:0, lastEnemySpawn:0, isPaused:false
     };
 
+    // ===== 武器システム定数 =====
+    const WeaponType = {
+      SPEED: 'speed',    // 速射型
+      SPREAD: 'spread',  // 弾幕型  
+      LASER: 'laser'     // レーザー型
+    };
+
     // ===== クラス =====
     class Player{
       constructor(x,y){
@@ -227,6 +235,7 @@
         this.invulnerable=0;
         this.orbRotation=0;
         this.isMoving=false;
+        this.weapon = new WeaponSystem();    // 武器システム追加
       }
       updateCollisionSizeFromImage(){
         if (characterImages.normal){
@@ -249,15 +258,19 @@
         if (this.isMoving) this.orbRotation += 0.1;
         if (this.invulnerable>0) this.invulnerable--;
 
-        // 完全オート攻撃
-        if (Date.now() - this.lastShot > this.fireRate && gameState.enemies.length>0){
+        // 武器システムを使った攻撃
+        const currentFireRate = this.weapon.getFireRate(this.fireRate);
+        if (Date.now() - this.lastShot > currentFireRate && gameState.enemies.length>0){
           this.shoot(); this.lastShot=Date.now();
         }
       }
       shoot(){
         const ang = getAutoAimAngle(this);
         if (ang==null) return;
-        gameState.bullets.push(new Bullet(this.x,this.y,ang,this.damage,true));
+        
+        // 武器システムから弾を生成
+        const bullets = this.weapon.getShootPattern(this.x, this.y, ang, this.damage);
+        bullets.forEach(bullet => gameState.bullets.push(bullet));
       }
       takeDamage(d){ 
         if(this.invulnerable>0) return; 
@@ -425,6 +438,218 @@
       }
     }
 
+    // ===== レーザー弾クラス =====
+    class LaserBullet extends Bullet {
+      constructor(x, y, angle, damage, isPlayerBullet, speed = 10, pierce = false, reflect = false) {
+        super(x, y, angle, damage, isPlayerBullet);
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.pierce = pierce;
+        this.reflect = reflect;
+        this.hitTargets = new Set(); // 貫通時の重複ヒット防止
+        this.life = 180; // レーザーは長寿命
+        this.reflectCount = 0;
+        this.maxReflects = 3;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life--;
+        
+        const W = canvas.clientWidth, H = canvas.clientHeight;
+        
+        // 反射処理
+        if (this.reflect && this.reflectCount < this.maxReflects) {
+          if (this.x <= 0 || this.x >= W) {
+            this.vx *= -1;
+            this.x = Math.max(0, Math.min(W, this.x));
+            this.reflectCount++;
+          }
+          if (this.y <= 0 || this.y >= H) {
+            this.vy *= -1;
+            this.y = Math.max(0, Math.min(H, this.y));
+            this.reflectCount++;
+          }
+        } else {
+          // 通常の境界チェック
+          if (this.x < 0 || this.x > W || this.y < 0 || this.y > H || this.life <= 0) {
+            return true;
+          }
+        }
+
+        // 敵との当たり判定
+        if (this.isPlayerBullet) {
+          for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+            const e = gameState.enemies[i];
+            const d = Math.hypot(e.x - this.x, e.y - this.y);
+            
+            if (d < e.size && !this.hitTargets.has(e)) {
+              if (this.pierce) {
+                this.hitTargets.add(e);
+              }
+              
+              if (e.takeDamage(this.damage)) {
+                gameState.enemies.splice(i, 1);
+              }
+              
+              if (!this.pierce) {
+                return true; // 貫通しない場合は消滅
+              }
+            }
+          }
+        }
+        
+        return false;
+      }
+
+      draw() {
+        ctx.save();
+        // レーザーらしい描画
+        const angle = Math.atan2(this.vy, this.vx);
+        const length = Math.hypot(this.vx, this.vy) * 2;
+        
+        ctx.translate(this.x, this.y);
+        ctx.rotate(angle);
+        
+        // コア部分（明るい）
+        ctx.fillStyle = this.isPlayerBullet ? '#ff00ff' : '#ff0000';
+        ctx.fillRect(-length/2, -2, length, 4);
+        
+        // 外側（薄い）
+        ctx.fillStyle = this.isPlayerBullet ? 'rgba(255,0,255,0.3)' : 'rgba(255,0,0,0.3)';
+        ctx.fillRect(-length/2, -4, length, 8);
+        
+        ctx.restore();
+      }
+    }
+
+    // ===== 武器システム =====
+    class WeaponSystem {
+      constructor() {
+        this.type = WeaponType.SPEED; // 初期武器
+        this.level = 1;
+        this.maxLevel = 5;
+      }
+
+      // 武器レベルアップ
+      levelUp() {
+        if (this.level < this.maxLevel) {
+          this.level++;
+          return true;
+        }
+        return false;
+      }
+
+      // 武器切り替え（レベル引き継ぎ）
+      switchWeapon(newType) {
+        this.type = newType;
+        // レベルは維持される
+      }
+
+      // 射撃パターンを取得
+      getShootPattern(x, y, angle, damage) {
+        switch(this.type) {
+          case WeaponType.SPEED:
+            return this.getSpeedPattern(x, y, angle, damage);
+          case WeaponType.SPREAD:
+            return this.getSpreadPattern(x, y, angle, damage);
+          case WeaponType.LASER:
+            return this.getLaserPattern(x, y, angle, damage);
+          default:
+            return [];
+        }
+      }
+
+      // 速射型パターン
+      getSpeedPattern(x, y, angle, damage) {
+        const bullets = [];
+        if (this.level >= 3) {
+          // Lv3: 2連射
+          const offset = 0.1;
+          bullets.push(new Bullet(x, y, angle - offset, damage, true));
+          bullets.push(new Bullet(x, y, angle + offset, damage, true));
+        }
+        if (this.level >= 5) {
+          // Lv5: 3連射（中央追加）
+          bullets.push(new Bullet(x, y, angle, damage, true));
+        }
+        if (bullets.length === 0) {
+          // Lv1-2: 単発
+          bullets.push(new Bullet(x, y, angle, damage, true));
+        }
+        return bullets;
+      }
+
+      // 弾幕型パターン  
+      getSpreadPattern(x, y, angle, damage) {
+        const bullets = [];
+        if (this.level >= 5) {
+          // Lv5: 7-9way大弾幕
+          const ways = 9;
+          const spread = Math.PI / 3; // 60度範囲
+          for (let i = 0; i < ways; i++) {
+            const a = angle - spread/2 + (spread / (ways-1)) * i;
+            bullets.push(new Bullet(x, y, a, damage * 0.8, true)); // 威力少し下げる
+          }
+        } else if (this.level >= 3) {
+          // Lv3: 拡散＋中央直進弾
+          bullets.push(new Bullet(x, y, angle, damage, true)); // 中央
+          const ways = 5;
+          const spread = Math.PI / 4; // 45度範囲
+          for (let i = 0; i < ways; i++) {
+            const a = angle - spread/2 + (spread / (ways-1)) * i;
+            bullets.push(new Bullet(x, y, a, damage * 0.7, true));
+          }
+        } else {
+          // Lv1-2: 3way
+          bullets.push(new Bullet(x, y, angle - 0.3, damage * 0.8, true));
+          bullets.push(new Bullet(x, y, angle, damage, true));
+          bullets.push(new Bullet(x, y, angle + 0.3, damage * 0.8, true));
+        }
+        return bullets;
+      }
+
+      // レーザー型パターン
+      getLaserPattern(x, y, angle, damage) {
+        const bullets = [];
+        const speed = this.level >= 3 ? 12 : 10; // Lv3+で高速
+        const pierce = this.level >= 3; // Lv3+で貫通
+        const reflect = this.level >= 5; // Lv5で反射
+        
+        const bullet = new LaserBullet(x, y, angle, damage * 1.5, true, speed, pierce, reflect);
+        bullets.push(bullet);
+        return bullets;
+      }
+
+      // 連射速度取得
+      getFireRate(baseRate) {
+        switch(this.type) {
+          case WeaponType.SPEED:
+            // 速射型は連射速度最優先
+            return Math.max(100, baseRate - (this.level * 80));
+          case WeaponType.SPREAD:
+            // 弾幕型は標準的な連射速度
+            return Math.max(200, baseRate - (this.level * 40));
+          case WeaponType.LASER:
+            // レーザー型は低連射だが高威力
+            return Math.max(400, baseRate - (this.level * 20));
+          default:
+            return baseRate;
+        }
+      }
+
+      // 武器名取得
+      getWeaponName() {
+        const names = {
+          [WeaponType.SPEED]: '速射',
+          [WeaponType.SPREAD]: '弾幕', 
+          [WeaponType.LASER]: 'レーザー'
+        };
+        return `${names[this.type]}Lv${this.level}`;
+      }
+    }
+
     class Particle{
       constructor(x,y,color){ 
         this.x=x; this.y=y; 
@@ -527,10 +752,21 @@
     // ===== アップグレード =====
     function selectUpgrade(type){
       const p=gameState.player;
-      if (type==='speed') p.speed+=0.5;
-      else if (type==='attack') p.damage+=10;
-      else if (type==='health'){ p.maxHp+=20; p.hp=Math.min(p.hp+20,p.maxHp); }
-      else if (type==='fire_rate'){ p.fireRate=Math.max(50,p.fireRate-40); }
+      if (type==='weapon') {
+        // 武器レベルアップ
+        p.weapon.levelUp();
+      } else if (type==='weapon_change') {
+        // 武器タイプ変更（サイクル）
+        const types = [WeaponType.SPEED, WeaponType.SPREAD, WeaponType.LASER];
+        const currentIndex = types.indexOf(p.weapon.type);
+        const nextIndex = (currentIndex + 1) % types.length;
+        p.weapon.switchWeapon(types[nextIndex]);
+      } else if (type==='speed') {
+        p.speed+=0.5;
+      } else if (type==='health') { 
+        p.maxHp+=20; 
+        p.hp=Math.min(p.hp+20,p.maxHp); 
+      }
       document.getElementById('levelUpModal').style.display='none';
       gameState.isPaused=false;
     }
@@ -545,6 +781,7 @@
       document.getElementById('expMax').textContent=p.expMax; 
       document.getElementById('score').textContent=p.score;
       document.getElementById('time').textContent=Math.floor(gameState.gameTime/60);
+      document.getElementById('weapon').textContent=p.weapon.getWeaponName();
     }
 
     // ===== ループ =====
