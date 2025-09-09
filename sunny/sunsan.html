@@ -21,32 +21,6 @@
       background:rgba(0,0,0,.6); padding:8px 10px; border-radius:6px; font-size:14px;
       max-width: 250px;
     }
-    #gameOverUI {
-      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-      background:rgba(0,0,0,.9); border:2px solid #ff4444; border-radius:10px;
-      padding:20px; display:none; z-index:100; text-align:center;
-    }
-    #gameClearUI {
-      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-      background:rgba(0,50,0,.9); border:2px solid #44ff44; border-radius:10px;
-      padding:20px; display:none; z-index:100; text-align:center; color:#44ff44;
-    }
-    .upgrade-progress {
-      display:flex; align-items:center; margin:2px 0; font-size:12px;
-    }
-    .progress-bar {
-      display:flex; margin-left:5px;
-    }
-    .progress-dot {
-      width:8px; height:8px; margin:1px; border-radius:2px;
-    }
-    .filled { background:#4a4a8a; }
-    .empty { background:#222; border:1px solid #444; }
-    .restart-btn {
-      background:#4a4a8a; border:none; color:#fff; border-radius:6px; cursor:pointer;
-      font-family:monospace; font-size:16px; padding:12px 20px; margin:10px;
-    }
-    .restart-btn:hover { background:#6a6aaa; }
     #levelUpModal {
       position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
       background:rgba(0,0,0,.9); border:2px solid #ffd700; border-radius:10px;
@@ -58,6 +32,16 @@
       font-family:monospace; font-size:14px;
     }
     .upgrade-btn:hover { background:#6a6aaa; }
+    #gameClearUI {
+      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+      background:rgba(0,50,0,.9); border:2px solid #44ff44; border-radius:10px;
+      padding:20px; display:none; z-index:100; text-align:center; color:#44ff44;
+    }
+    .restart-btn {
+      background:#4a4a8a; border:none; color:#fff; border-radius:6px; cursor:pointer;
+      font-family:monospace; font-size:16px; padding:12px 20px; margin:10px;
+    }
+    .restart-btn:hover { background:#6a6aaa; }
     #controls {
       position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
       font-size:12px; color:#aaa; text-align:center; background:rgba(0,0,0,.35);
@@ -80,7 +64,6 @@
 
     <div id="levelUpModal">
       <h3>武器を選択！</h3>
-      <!-- ボタンは動的生成 -->
     </div>
 
     <div id="gameClearUI">
@@ -100,7 +83,6 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    // ===== レスポンシブ（画面いっぱい） =====
     function resizeCanvas(){
       const dpr = window.devicePixelRatio || 1;
       const cssW = document.documentElement.clientWidth;
@@ -118,7 +100,6 @@
     }
     window.addEventListener('resize', resizeCanvas);
 
-    // ===== 画像 =====
     const characterImages = { normal:null, orbs:null, damaged:null };
     function loadImage(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
     async function loadCharacterImages(){
@@ -128,14 +109,12 @@
       }catch(e){ console.warn('画像読み込み失敗',e); return false;}
     }
 
-    // ===== 武器システム定数 =====
     const WeaponType = {
       MACHINEGUN: 'machinegun',
       SHOTGUN: 'shotgun',
       LASER: 'laser'
     };
 
-    // ===== 入力（キーボード + タッチ） =====
     const inputState = {
       keys: {},
       move: { id:null, startX:0, startY:0, x:0, y:0, active:false },
@@ -211,42 +190,39 @@
       let target=null, best=Infinity;
       for(const e of gameState.enemies){
         const d=Math.hypot(e.x-player.x, e.y-player.y);
-        if (weaponRange && d > weaponRange) continue; // 射程チェック
+        if (weaponRange && d > weaponRange) continue;
         if (d<best){ best=d; target=e; }
       }
       if (target) return Math.atan2(target.y-player.y, target.x-player.x);
       return null;
     }
 
-    // ===== 難易度ディレクター（5分クリア想定） =====
     function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
     function lerp(a,b,t){ return a + (b-a)*clamp(t,0,1); }
     function getDifficulty(frames){
-      const sec = frames/60, min=sec/60, t=clamp(min/5,0,1); // 5分でmax
-      const spawnInterval = Math.round(lerp(80, 20, t)); // より頻繁
-      const batchSize     = 1 + Math.floor(lerp(0, 8, t)); // より多く
-      const maxEnemies    = Math.floor(lerp(40, 120, t)); // より密集
+      const sec = frames/60, min=sec/60, t=clamp(min/5,0,1);
+      const spawnInterval = Math.round(lerp(80, 20, t));
+      const batchSize     = 1 + Math.floor(lerp(0, 8, t));
+      const maxEnemies    = Math.floor(lerp(40, 120, t));
       const enemyHP  = Math.round(lerp(18, 80, t));
-      const enemySpd = lerp(1.2, 2.8, t); // より高速
-      const enemyDmg = Math.round(lerp(15, 30, t)); // より強力
+      const enemySpd = lerp(1.2, 2.8, t);
+      const enemyDmg = Math.round(lerp(15, 30, t));
       const expValue = 2 + Math.floor(lerp(0, 4, t));
-      const baseFireRate = Math.round(lerp(600, 200, t)); // より高速射撃
+      const baseFireRate = Math.round(lerp(600, 200, t));
       const baseDamage   = Math.round(lerp(25, 45, t));
       return {sec,min,t,spawnInterval,batchSize,maxEnemies,enemyHP,enemySpd,enemyDmg,expValue,baseFireRate,baseDamage};
     }
 
-    // ===== ゲーム状態 =====
     let gameState = {
       player:null, enemies:[], bullets:[], particles:[], items:[],
       gameTime:0, lastEnemySpawn:0, isPaused:false,
-      gameCleared:false, totalGameTime:18000, // 5分 = 18000フレーム
-      // ボスシステム   
+      gameCleared:false, totalGameTime:18000,
+      timeAtDeath:null,
       inBossFight: false,
-      miniBossSpawnTimes: [1800, 5400, 9000, 12600, 16200], // 0.5, 1.5, 2.5, 3.5, 4.5分
+      miniBossSpawnTimes: [1800, 5400, 9000, 12600, 16200],
       bossSpawned: new Set()
     };
 
-    // ===== 弾クラス =====
     class Bullet{
       constructor(x,y,ang,damage,isPlayerBullet=false,speed=8,life=120){
         this.x=x; this.y=y; 
@@ -288,7 +264,6 @@
       }
     }
 
-    // ===== レーザー弾クラス =====
     class LaserBullet extends Bullet {
       constructor(x, y, angle, damage, isPlayerBullet, speed = 10, pierce = false, reflect = false, life = 200) {
         super(x, y, angle, damage, isPlayerBullet, speed, life);
@@ -365,7 +340,6 @@
       }
     }
 
-    // ===== 武器システム =====
     class WeaponSystem {
       constructor() {
         this.type = 'basic';
@@ -399,9 +373,9 @@
         switch(this.type) {
           case WeaponType.MACHINEGUN:
             return {
-              range: maxScreenDistance * 0.4, // 近距離
+              range: maxScreenDistance * 0.4,
               accuracy: 0,
-              damageMultiplier: 1.2, // 近距離高威力
+              damageMultiplier: 1.2,
               color: '#ff8800',
               bulletSpeed: 15,
               bulletLife: Math.floor(maxScreenDistance * 0.4 / 15)
@@ -410,7 +384,7 @@
             return {
               range: maxScreenDistance * 0.6,
               accuracy: 4 * Math.PI / 180,
-              damageMultiplier: 0.6, // 雑魚殲滅用
+              damageMultiplier: 0.6,
               color: '#8888ff',
               bulletSpeed: 10,
               bulletLife: Math.floor(maxScreenDistance * 0.6 / 10)
@@ -419,7 +393,7 @@
             return {
               range: maxScreenDistance,
               accuracy: 8 * Math.PI / 180,
-              damageMultiplier: 1.6, // 大型敵用
+              damageMultiplier: 1.6,
               color: '#ff00ff',
               bulletSpeed: 12,
               bulletLife: Math.floor(maxScreenDistance / 12)
@@ -521,7 +495,7 @@
         const damagePerBullet = damage;
         
         if (this.level >= 10) {
-          const ways = 25; // 雑魚殲滅特化
+          const ways = 25;
           for (let i = 0; i < ways; i++) {
             const a = (Math.PI * 2 / ways) * i;
             bullets.push(new Bullet(x, y, a, damagePerBullet, true, bulletSpeed, stats.bulletLife));
@@ -578,11 +552,11 @@
           case 'basic':
             return baseRate;
           case WeaponType.MACHINEGUN:
-            return Math.max(50, baseRate - (this.level * 60)); // 超高連射
+            return Math.max(50, baseRate - (this.level * 60));
           case WeaponType.SHOTGUN:
             return Math.max(200, baseRate - (this.level * 30));
           case WeaponType.LASER:
-            return Math.max(400, baseRate + (this.level * 30)); // 低連射
+            return Math.max(400, baseRate + (this.level * 30));
           default:
             return baseRate;
         }
@@ -600,18 +574,17 @@
       }
     }
 
-    // ===== プレイヤークラス =====
     class Player{
       constructor(x,y){
         this.x=x; this.y=y;
-        this.imageScale=0.7; // 0.8 -> 0.7に変更                
-        this.size=32*this.imageScale; // 約22.4ピクセル       
+        this.imageScale=0.7;
+        this.size=32*this.imageScale;
         this.speed=3;
         this.maxHp=100; this.hp=this.maxHp;
         this.level=1; this.exp=0; this.expMax=10; this.score=0;
         this.lastShot=0;
-        this.fireRate=600; // 少し高速化                  
-        this.damage=25;                      
+        this.fireRate=600;
+        this.damage=25;
         this.invulnerable=0;
         this.orbRotation=0;
         this.isMoving=false;
@@ -664,6 +637,14 @@
         this.exp+=v; 
         this.score+=v*10; 
         if(this.exp>=this.expMax) this.levelUp(); 
+      }
+      heal(amount) {
+        if (this.hp < this.maxHp) {
+          this.hp = Math.min(this.maxHp, this.hp + amount);
+          for(let i=0;i<8;i++) {
+            gameState.particles.push(new Particle(this.x, this.y, '#66ff66'));
+          }
+        }
       }
       levelUp(){ 
         this.level++; 
@@ -723,7 +704,7 @@
     class Enemy{
       constructor(x,y,diff){
         this.x=x; this.y=y;
-        this.size=16*0.7; // キャラクターと同じく0.7倍
+        this.size=16*0.7;
         this.speed=diff.enemySpd;
         this.hp=diff.enemyHP; this.maxHp=this.hp;
         this.damage=diff.enemyDmg;
@@ -746,6 +727,11 @@
         for(let i=0;i<3;i++) gameState.particles.push(new Particle(this.x,this.y,this.color));
         if(this.hp<=0){ 
           gameState.items.push(new ExpItem(this.x,this.y,this.expValue)); 
+          
+          if(Math.random() < 0.1) {
+            gameState.items.push(new HealItem(this.x, this.y, 20));
+          }
+          
           return true; 
         }
         return false;
@@ -776,16 +762,26 @@
       }
     }
 
-    // ===== 中ボスクラス =====
     class MiniBoss extends Enemy {
       constructor(x, y, diff) {
         super(x, y, diff);
-        this.size = 32*0.7; // こちらも0.7倍
-        this.hp = diff.enemyHP * 12; // 5分用に少し弱く
+        this.size = 32*0.7;
+        this.hp = diff.enemyHP * 12;
         this.maxHp = this.hp;
         this.color = '#ff4444';
         this.expValue = diff.expValue * 6;
         this.isBoss = true;
+      }
+
+      takeDamage(d){
+        this.hp -= d;
+        for(let i=0;i<3;i++) gameState.particles.push(new Particle(this.x,this.y,this.color));
+        if(this.hp<=0){ 
+          gameState.items.push(new ExpItem(this.x,this.y,this.expValue)); 
+          gameState.items.push(new HealItem(this.x, this.y, 50));
+          return true; 
+        }
+        return false;
       }
 
       draw() {
@@ -887,6 +883,51 @@
       }
     }
 
+    class HealItem{
+      constructor(x,y,healAmount=30){ 
+        this.x=x; this.y=y; 
+        this.healAmount=healAmount;
+        this.size=6; 
+        this.bobOffset=Math.random()*Math.PI*2; 
+        this.pulseOffset=Math.random()*Math.PI*2;
+      }
+      update(){
+        const dx=gameState.player.x-this.x, dy=gameState.player.y-this.y, dist=Math.hypot(dx,dy);
+        if(dist<60){ 
+          this.x+=(dx/dist)*2.5; 
+          this.y+=(dy/dist)*2.5; 
+        }
+        if(dist < this.size + gameState.player.size){ 
+          gameState.player.heal(this.healAmount); 
+          return true; 
+        }
+        return false;
+      }
+      draw(){
+        const bob=Math.sin(Date.now()*0.004 + this.bobOffset)*3;
+        const pulse=Math.sin(Date.now()*0.008 + this.pulseOffset)*0.5 + 1;
+        const currentSize = this.size * pulse;
+        
+        ctx.save();
+        ctx.globalAlpha = 0.8;
+        
+        ctx.fillStyle='rgba(255,100,100,0.3)'; 
+        ctx.beginPath(); 
+        ctx.arc(this.x,this.y+bob,currentSize*2,0,Math.PI*2); 
+        ctx.fill();
+        
+        ctx.fillStyle='#ff6666'; 
+        ctx.fillRect(this.x-currentSize*1.2, this.y+bob-currentSize*0.4, currentSize*2.4, currentSize*0.8);
+        ctx.fillRect(this.x-currentSize*0.4, this.y+bob-currentSize*1.2, currentSize*0.8, currentSize*2.4);
+        
+        ctx.fillStyle='#ffffff'; 
+        ctx.fillRect(this.x-currentSize*1.2, this.y+bob-currentSize*0.2, currentSize*2.4, currentSize*0.4);
+        ctx.fillRect(this.x-currentSize*0.2, this.y+bob-currentSize*1.2, currentSize*0.4, currentSize*2.4);
+        
+        ctx.restore();
+      }
+    }
+
     function drawTouchUI(){
       if (inputState.move.active) {
         ctx.save();
@@ -907,7 +948,6 @@
       }
     }
 
-    // ===== スポーン =====
     function spawnEnemy(){
       const diff = getDifficulty(gameState.gameTime);
       if (gameState.enemies.length >= diff.maxEnemies) return;
@@ -922,12 +962,11 @@
       gameState.enemies.push(new Enemy(x,y,diff));
     }
 
-    // ===== 中ボススポーン =====
     function spawnMiniBoss(minute) {
       const diff = getDifficulty(gameState.gameTime);
       const W = canvas.clientWidth, H = canvas.clientHeight;
       
-      const minionCounts = {0.5: 10, 1.5: 15, 2.5: 20, 3.5: 25, 4.5: 30}; // 5分用
+      const minionCounts = {0.5: 10, 1.5: 15, 2.5: 20, 3.5: 25, 4.5: 30};
       const minionCount = minionCounts[minute] || 15;
       
       console.log(`${minute}分: 中ボス + 雑魚${minionCount}体をスポーン`);
@@ -965,7 +1004,6 @@
       }
     }
 
-    // ===== アップグレード =====
     function selectUpgrade(type){
       const p=gameState.player;
       
@@ -1069,7 +1107,6 @@
       }
     }
 
-    // ===== UI =====
     function updateUI(){
       const p=gameState.player;
       document.getElementById('hp').textContent=p.hp; 
@@ -1078,9 +1115,16 @@
       document.getElementById('expMax').textContent=p.expMax; 
       document.getElementById('score').textContent=p.score;
       
-      const remainingFrames = gameState.totalGameTime - gameState.gameTime;
-      const remainingSeconds = Math.max(0, Math.ceil(remainingFrames / 60));
-      document.getElementById('timeLeft').textContent = remainingSeconds;
+      if (p.hp <= 0) {
+        const timeAtDeath = gameState.timeAtDeath || gameState.gameTime;
+        const remainingFrames = gameState.totalGameTime - timeAtDeath;
+        const remainingSeconds = Math.max(0, Math.ceil(remainingFrames / 60));
+        document.getElementById('timeLeft').textContent = remainingSeconds;
+      } else {
+        const remainingFrames = gameState.totalGameTime - gameState.gameTime;
+        const remainingSeconds = Math.max(0, Math.ceil(remainingFrames / 60));
+        document.getElementById('timeLeft').textContent = remainingSeconds;
+      }
       
       document.getElementById('weapon').textContent=p.weapon.getWeaponName();
     }
@@ -1090,9 +1134,8 @@
       document.getElementById('gameClearUI').style.display = 'block';
     }
 
-    // ===== ループ =====
     function gameLoop(){
-      if (!gameState.isPaused && !gameState.gameCleared){
+      if (!gameState.isPaused && !gameState.gameCleared && gameState.player.hp > 0){
         gameState.gameTime++;
         
         if (gameState.gameTime >= gameState.totalGameTime) {
@@ -1102,10 +1145,9 @@
         
         const diff = getDifficulty(gameState.gameTime);
         
-        // 中ボススポーンチェック
         for (const spawnTime of gameState.miniBossSpawnTimes) {
           if (gameState.gameTime === spawnTime && !gameState.bossSpawned.has(spawnTime)) {
-            const minute = spawnTime / 3600; // フレーム数から分に変換
+            const minute = spawnTime / 3600;
             spawnMiniBoss(minute);
             gameState.bossSpawned.add(spawnTime);
             break;
@@ -1118,16 +1160,20 @@
           gameState.lastEnemySpawn = gameState.gameTime;
         }
         
-        if (gameState.player.hp>0) gameState.player.update();
+        gameState.player.update();
         gameState.enemies.forEach(e=>e.update());
         gameState.bullets   = gameState.bullets.filter(b=>!b.update());
         gameState.particles = gameState.particles.filter(p=>!p.update());
         gameState.items     = gameState.items.filter(it=>!it.update());
         
         checkMiniBossDefeated();
-        
-        updateUI();
       }
+      
+      if (gameState.player.hp <= 0 && !gameState.timeAtDeath) {
+        gameState.timeAtDeath = gameState.gameTime;
+      }
+      
+      updateUI();
 
       const W=canvas.clientWidth, H=canvas.clientHeight;
       ctx.fillStyle='#16213e'; 
@@ -1183,7 +1229,6 @@
       requestAnimationFrame(gameLoop);
     }
 
-    // ===== 初期化 =====
     async function initGame(){
       await loadCharacterImages();
       resizeCanvas();
@@ -1192,6 +1237,7 @@
       gameState.enemies=[]; gameState.bullets=[]; gameState.particles=[]; gameState.items=[];
       gameState.gameTime=0; gameState.lastEnemySpawn=0; gameState.isPaused=false;
       gameState.gameCleared=false;
+      gameState.timeAtDeath=null;
       gameState.inBossFight = false;
       gameState.bossSpawned.clear();
       document.getElementById('levelUpModal').style.display='none';
