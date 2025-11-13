@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ドキドキ占いマシーン｜お祭り版</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800;900&display=swap');
+    * { box-sizing: border-box; }
+    body { font-family: 'M PLUS Rounded 1c', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; margin: 0; padding: 20px; min-height: 100vh; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 30px; animation: fadeInDown 0.6s ease-out; }
+    .festival-name { background: white; display: inline-block; padding: 8px 24px; border-radius: 20px; font-size: 18px; font-weight: 800; color: #667eea; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    .main-title { font-size: 56px; font-weight: 900; color: white; text-shadow: 4px 4px 0 rgba(0,0,0,0.3); margin: 10px 0; letter-spacing: 4px; }
+    .main-title::before, .main-title::after { content: '✨'; margin: 0 15px; }
+    .input-card { background: white; border-radius: 30px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin-bottom: 30px; animation: fadeInUp 0.6s ease-out 0.2s both; }
+    .form-group { margin-bottom: 25px; }
+    .label { display: block; font-size: 22px; font-weight: 800; color: #333; margin-bottom: 10px; padding-left: 5px; }
+    .label .emoji { font-size: 28px; margin-right: 8px; }
+    .input-field { width: 100%; font-size: 28px; font-family: inherit; padding: 20px; border: 4px solid #e0e7ff; border-radius: 20px; background: #f8faff; transition: all 0.3s; }
+    .input-field:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1); transform: translateY(-2px); }
+    .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .gender-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .gender-selector label { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; border: 4px solid #e0e7ff; border-radius: 20px; cursor: pointer; transition: all 0.2s; position: relative; }
+    .gender-selector .icon { font-size: 48px; line-height: 1; }
+    .gender-selector .text { font-size: 18px; font-weight: 800; margin-top: 8px; }
+    .gender-selector input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .gender-selector input:checked + label { background-color: #e0e7ff; border-color: #667eea; color: #667eea; transform: translateY(-5px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2); }
+    .button-group { display: flex; gap: 20px; margin-top: 35px; }
+    .btn { flex: 1; font-size: 28px; font-weight: 900; font-family: inherit; padding: 25px; border: none; border-radius: 20px; cursor: pointer; transition: all 0.2s; box-shadow: 0 8px 0 rgba(0,0,0,0.2); position: relative; top: 0; }
+    .btn:active { top: 8px; box-shadow: 0 0 0 rgba(0,0,0,0.2); }
+    .btn-primary { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+    .btn:hover { transform: scale(1.02); }
+    .preview-section { display: none; animation: fadeInUp 0.6s ease-out; }
+    .preview-section.show { display: block; }
+    .preview-header { text-align: center; margin-bottom: 20px; }
+    .preview-title { font-size: 32px; font-weight: 900; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+    .screen-preview-wrapper { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    
+    .print-preview { border: 3px dashed #f472b6; border-radius: 12px; padding: 14mm 7mm; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-width: 515px; margin: 0 auto 30px; background: white; }
+    .preview-head { text-align: center; margin-bottom: 10px; flex-shrink: 0; }
+    .preview-festival { font-size: 14px; color: #667eea; font-weight: 800; margin-bottom: 5px; }
+    .preview-main-title { font-size: 22px; font-weight: 900; color: #ff8c00; margin: 0; }
+    .preview-score { font-size: 24px; font-weight: 900; margin: 8px 0; }
+    .preview-score span { color: #ef4444; font-size: 32px; } 
+    .fortune-grid { display: flex; flex-direction: column; gap: 10px; min-height: 0; margin-top: 15px; }
+    .fortune-item {
+      border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px;
+      display: flex; flex-direction: column;
+      height: 210px;
+    }
+    .fortune-item:nth-child(1) { background: #f0f9ff; } .fortune-item:nth-child(2) { background: #fefce8; } .fortune-item:nth-child(3) { background: #fff1f2; }
+    .fortune-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px dotted #f9a8d4; padding-bottom: 4px; margin-bottom: 6px; flex-shrink: 0; }
+    .fortune-label { font-weight: 700; font-size: 16px; }
+    .fortune-meter { font-size: 20px; letter-spacing: 4px; flex-shrink: 0; }
+    .fortune-text {
+      white-space: pre-wrap; font-family: inherit;
+      font-size: 14px;      
+      line-height: 1.65;
+      margin-top: 6px;
+      overflow: hidden; 
+    }
+    .lucky-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; flex-shrink: 0; }
+    .lucky-box {
+      border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px;
+      background: #dcfce7; text-align: center;
+      height: 85px; 
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .lucky-label { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .lucky-value { font-size: 22px; font-weight: 900; color: #dd571c; }
+    .print-actions { display: flex; gap: 15px; margin-top: 20px; }
+    .btn-print { flex: 2; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; font-size: 32px; padding: 25px; }
+    .btn-back { flex: 1; background: #9ca3af; color: white; font-size: 20px; padding: 25px; }
+    .stats-bar { background: rgba(255,255,255,0.2); border-radius: 15px; padding: 15px; margin-top: 20px; text-align: center; backdrop-filter: blur(10px); }
+    .stats-text { color: white; font-size: 18px; font-weight: 700; }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media print {
+      @page { size: 100mm 148mm; margin: 0; }
+      body { background: white !important; padding: 0 !important; margin: 0 !important; -webkit-font-smoothing: antialiased; }
+      body > .container > main > *:not(.preview-section), body > .container > header, body > .container > footer { display: none !important; }
+      .preview-section, .screen-preview-wrapper { display: block !important; animation: none !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; background: none !important; border: none !important; }
+      .print-actions, .preview-header { display: none !important; }
+
+      .print-preview {
+        position: absolute; top: 0; left: 0; width: 100mm; height: 148mm;
+        margin: 0 !important; padding: 15mm 5mm 5mm 5mm !important;
+        border: none !important; box-shadow: none !important; page-break-after: always;
+        display: flex; flex-direction: column;
+        background: none !important; 
+      }
+      .preview-head { margin-bottom: 1mm; flex-shrink: 0; text-align: center; }
+      .preview-festival, .preview-main-title { display: none !important; }
+      
+      .preview-score { font-size: 15px; margin: 1.5mm 0; line-height: 1.2; }
+      .preview-score span { font-size: 18px; }
+      .preview-score span#previewNameText { color: #ff8c00 !important; }
+      .preview-score span#previewScore { color: #ef4444 !important; font-size: 22px; }
+
+      .fortune-grid { gap: 2mm; margin-top: 1mm; display: flex; flex-direction: column; }
+      
+      .fortune-item {
+        padding: 1mm; border-radius: 0;
+        height: 32mm; 
+        display: flex; flex-direction: column;
+        flex-grow: 0; flex-shrink: 0;
+        border: 1px solid white !important;
+        background: none !important; 
+      }
+      .fortune-header {
+        display: flex; justify-content: space-between; align-items: baseline;
+        padding: 0.8mm; margin: 0.5mm;
+        border-bottom: none !important;
+      }
+      .fortune-label { font-size: 11px; font-weight: bold; }
+      .fortune-meter { font-size: 11px; letter-spacing: 1px; flex-shrink: 0; }
+      .fortune-text {
+        font-size: 10px;      
+        line-height: 1.4; 
+        padding: 0 1.5mm 1.5mm; margin: 0;
+        overflow: hidden; 
+        height: 25mm;         
+      }
+      
+      .lucky-row { margin-top: 2mm; gap: 2mm; flex-shrink: 0; }
+      .lucky-box {
+        padding: 1mm; border-radius: 0;
+        height: 15mm; 
+        border: 1px solid white !important;
+        background: none !important; 
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+      }
+      .lucky-label { font-size: 8px; font-weight: bold; margin-bottom: 0.5mm; }
+      .lucky-value { font-size: 11px; font-weight: 900; }
+      #luckyItem { color: #dd571c !important; } 
+      #luckyColor { color: #dd571c !important; }
+      
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color: black !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="festival-name">🎪 2025年 富塚協働センター祭り 🎪</div>
+      <h1 class="main-title">ドキドキ占いマシーン</h1>
+    </header>
+    <main>
+      <div class="input-card" id="inputSection">
+        <div class="form-group">
+          <label class="label" for="nameInput"><span class="emoji">👤</span>なまえ</label>
+          <input type="text" id="nameInput" class="input-field" placeholder="さんさんライオン">
+        </div>
+        <div class="form-group">
+          <label class="label" for="yearInput"><span class="emoji">🎂</span>生まれた年</label>
+          <input type="number" id="yearInput" class="input-field" min="1900" max="2100" placeholder="2015">
+        </div>
+        <div class="form-group">
+          <label class="label"><span class="emoji">📅</span>誕生日（月と日）</label>
+          <div class="date-row">
+            <select id="monthInput" class="input-field"><option value="" hidden>月</option></select>
+            <select id="dayInput" class="input-field"><option value="" hidden>日</option></select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="label"><span class="emoji">😊</span>きみはどっち？</label>
+          <div class="gender-selector">
+            <input type="radio" name="gender" value="boy" id="gender-boy" checked>
+            <label for="gender-boy"><span class="icon">♂️</span><span class="text">男の子</span></label>
+            <input type="radio" name="gender" value="girl" id="gender-girl">
+            <label for="gender-girl"><span class="icon">♀️</span><span class="text">女の子</span></label>
+            <input type="radio" name="gender" value="neutral" id="gender-neutral">
+            <label for="gender-neutral"><span class="icon">❓</span><span class="text">答えない</span></label>
+          </div>
+        </div>
+        <div class="button-group">
+          <button class="btn btn-primary" id="previewBtn">👀 占い結果を見る！</button>
+        </div>
+      </div>
+      <div class="preview-section" id="previewSection">
+        <div class="preview-header"><div class="preview-title">🎯 占い結果</div></div>
+        <div class="screen-preview-wrapper">
+          <div class="print-preview" id="printPreview">
+            <div class="preview-head">
+              <div class="preview-festival">🎪 2025年 富塚協働センター祭り 🎪</div>
+              <h2 class="preview-main-title">ドキドキ占いマシーン</h2>
+              <div class="preview-score">
+                <span id="previewNameText"></span>さんの運勢は… <span id="previewScore">―</span> 点
+              </div>
+            </div>
+            <div class="fortune-grid">
+              <div class="fortune-item">
+                <div class="fortune-header">
+                  <div class="fortune-label">今日のおまつり運</div>
+                  <div class="fortune-meter" id="meterStudy">―</div>
+                </div>
+                <div class="fortune-text" id="textStudy">―</div>
+              </div>
+              <div class="fortune-item">
+                <div class="fortune-header">
+                  <div class="fortune-label">おこづかい、ごほうび運</div>
+                  <div class="fortune-meter" id="meterMoney">―</div>
+                </div>
+                <div class="fortune-text" id="textMoney">―</div>
+              </div>
+              <div class="fortune-item">
+                <div class="fortune-header">
+                  <div class="fortune-label">ともだち、れんあい運</div>
+                  <div class="fortune-meter" id="meterLove">―</div>
+                </div>
+                <div class="fortune-text" id="textLove">―</div>
+              </div>
+            </div>
+            <div class="lucky-row">
+              <div class="lucky-box"><div class="lucky-label">ラッキーアイテム</div><div class="lucky-value" id="luckyItem">―</div></div>
+              <div class="lucky-box"><div class="lucky-label">ラッキーカラー</div><div class="lucky-value" id="luckyColor">―</div></div>
+            </div>
+          </div>
+          <div class="print-actions">
+            <button class="btn btn-print" id="printBtn">🖨️ 印刷する</button>
+            <button class="btn btn-back" id="backBtn">← 戻る</button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer class="stats-bar">
+      <div class="stats-text">今日の占い: <span id="printCount">0</span> 人目</div>
+    </footer>
+  </div>
+  <script src="./fortunes-age-0-6.js"></script>
+  <script src="./fortunes-age-7-9.js"></script>
+  <script src="./fortunes-age-10-12.js"></script>
+  <script src="./fortunes-age-13-17.js"></script>
+  <script src="./fortunes-age-18-22.js"></script>
+  <script src="./fortunes-age-23-29.js"></script>
+  <script src="./fortunes-age-30-59.js"></script>
+  <script src="./fortunes-age-60-plus.js"></script>
+  <script src="./fortunes-parents.js"></script>
+  <script src="./fortunes-teachers.js"></script>
+  <script src="./special-fortunes.js"></script>
+  <script src="./app.js"></script>
+  <script>
+    const monthSelect = document.getElementById('monthInput');
+    const daySelect = document.getElementById('dayInput');
+    for (let m = 1; m <= 12; m++) { const opt = document.createElement('option'); opt.value = String(m).padStart(2, '0'); opt.textContent = m + '月'; monthSelect.appendChild(opt); }
+    for (let d = 1; d <= 31; d++) { const opt = document.createElement('option'); opt.value = String(d).padStart(2, '0'); opt.textContent = d + '日'; daySelect.appendChild(opt); }
+    let printCounter = parseInt(localStorage.getItem('fortunePrintCount_v1') || '0');
+    document.getElementById('printCount').textContent = printCounter;
+    
+    function meter(el, lv, on, off) {
+      let text;
+      if (lv > 5) {
+        text = on.repeat(lv);
+      } else {
+        text = Array(5).fill(off).map((v, i) => i < lv ? on : v).join('');
+      }
+      el.textContent = text;
+    }
+    
+    document.getElementById('previewBtn').addEventListener('click', () => {
+      const name = document.getElementById('nameInput').value.trim();
+      const year = document.getElementById('yearInput').value;
+      const month = document.getElementById('monthInput').value;
+      const day = document.getElementById('dayInput').value;
+      const gender = document.querySelector('input[name="gender"]:checked').value;
+      if (!name || !year || !month || !day) { alert('すべての項目を入力してください'); return; }
+      const res = window.FortuneEngine.run(name, +year, +month, +day, gender);
+      if(!res) { alert("占いデータが見つかりませんでした。データファイルを確認してください。"); return; }
+      document.getElementById('previewNameText').textContent = name;
+      document.getElementById('previewScore').textContent = res.score;
+      meter(document.getElementById('meterStudy'), res.study_lv, '✏️', '⚪️');
+      meter(document.getElementById('meterMoney'), res.money_lv, '💰', '⚪️');
+      meter(document.getElementById('meterLove'), res.love_lv, '❤️', '⚪️');
+      document.getElementById('textStudy').textContent = res.study_msg;
+      document.getElementById('textMoney').textContent = res.money_msg;
+      document.getElementById('textLove').textContent = res.love_msg;
+      document.getElementById('luckyItem').textContent = res.luckyItem;
+      document.getElementById('luckyColor').textContent = res.luckyColor;
+      document.getElementById('inputSection').style.display = 'none';
+      document.getElementById('previewSection').classList.add('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    document.getElementById('printBtn').addEventListener('click', () => {
+      printCounter++;
+      localStorage.setItem('fortunePrintCount_v1', printCounter);
+      document.getElementById('printCount').textContent = printCounter;
+      window.print();
+    });
+    document.getElementById('backBtn').addEventListener('click', () => {
+      document.getElementById('previewSection').classList.remove('show');
+      document.getElementById('inputSection').style.display = 'block';
+      document.getElementById('nameInput').value = '';
+      document.getElementById('nameInput').focus();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    document.getElementById('nameInput').focus();
+  </script>
+
+<!-- ★★★ 隠しモード操作用のスクリプト ★★★ -->
+<script>
+document.addEventListener('keydown', function(event) {
+// 修飾キーが押されていない場合は無視
+if (!event.ctrlKey || !event.altKey) return;
+
+// キー入力によるデフォルトの動作をキャンセル
+event.preventDefault();
+
+// Ctrl + Alt + H: 高確率モード
+if (event.key === 'h') {
+const currentMode = sessionStorage.getItem('probabilityVaryMode');
+if (currentMode === 'true') {
+sessionStorage.removeItem('probabilityVaryMode');
+alert('高確率モードが無効になりました。\n（通常モードの抽選に戻りました）');
+} else {
+sessionStorage.setItem('probabilityVaryMode', 'true');
+alert('高確率モードが有効になりました！\n（大当たりの確率が約30%になります）');
+}
+}
+// Ctrl + Alt + P: 保護者モード
+else if (event.key === 'p') {
+sessionStorage.removeItem('teacherMode'); // 先生モードをOFF
+sessionStorage.setItem('parentMode', 'true');
+alert('【保護者モード】が有効になりました。\n（保護者向けの占い結果が表示されます）');
+}
+// Ctrl + Alt + T: 先生モード
+else if (event.key === 't') {
+sessionStorage.removeItem('parentMode'); // 保護者モードをOFF
+sessionStorage.setItem('teacherMode', 'true');
+alert('【先生モード】が有効になりました。\n（先生向けの占い結果が表示されます）');
+}
+// Ctrl + Alt + R: 通常モード（全リセット）
+else if (event.key === 'r') {
+sessionStorage.removeItem('probabilityVaryMode');
+sessionStorage.removeItem('parentMode');
+sessionStorage.removeItem('teacherMode');
+alert('全ての特別モードをリセットし【通常モード】に戻りました。');
+}
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>【管理用】占いデータチェックツール</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800;900&display=swap');
+    * { box-sizing: border-box; }
+    body { font-family: 'M PLUS Rounded 1c', sans-serif; background: #f0f2f5; color: #333; margin: 0; padding: 20px; }
+    .tool-container { max-width: 800px; margin: 0 auto; }
+    .tool-header { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+    .tool-header h1 { margin: 0 0 15px; font-size: 24px; color: #667eea; }
+    .tool-controls { display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; }
+    .tool-controls button { font-size: 16px; padding: 8px 16px; font-family: inherit; border-radius: 8px; border: 1px solid #ccc; cursor: pointer; background: #fff; }
+    .tool-controls button:hover { background: #e0e7ff; }
+    .tool-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .info-display { font-size: 16px; font-weight: bold; min-width: 250px; }
+    .management-section { background: white; padding: 20px; border-radius: 12px; margin-top: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+    .management-section h2 { margin: 0 0 15px; font-size: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+    .selector-group { display: flex; gap: 10px; align-items: center; justify-content: center;}
+    .selector-group select, .selector-group input { font-size: 16px; padding: 8px; font-family: inherit; border: 1px solid #ccc; border-radius: 8px; }
+    .selector-group input { width: 70px; text-align: center; }
+    .selector-group .total-count { font-size: 16px; margin-left: -5px; }
+    .reset-section { margin-top: 15px; }
+    .reset-section p { font-size: 14px; color: #666; margin: 5px 0 10px; }
+    .reset-btn { background-color: #f5576c; color: white; border: none; font-weight: bold; font-size: 16px; padding: 10px 20px; font-family: inherit; border-radius: 8px; cursor: pointer; margin: 5px; }
+    .reset-btn:hover { background-color: #d9465a; }
+    .reset-btn.secondary { background-color: #6b7280; }
+    .reset-btn.secondary:hover { background-color: #4b5563; }
+
+    .print-preview { border: 3px solid #667eea; border-radius: 12px; padding: 14mm 7mm; box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; max-width: 510px; margin: 0 auto; background: white; }
+    .preview-head { text-align: center; margin-bottom: 10px; flex-shrink: 0; }
+    .preview-score { font-size: 24px; font-weight: 900; margin: 8px 0; }
+    .preview-score span { color: #ef4444; font-size: 32px; }
+    .fortune-grid { display: flex; flex-direction: column; gap: 10px; min-height: 0; margin-top: 15px; }
+    .fortune-item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; height: 220px; }
+    .fortune-item:nth-child(1) { background: #f0f9ff; } .fortune-item:nth-child(2) { background: #fefce8; } .fortune-item:nth-child(3) { background: #fff1f2; }
+    .fortune-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px dotted #f9a8d4; padding-bottom: 4px; margin-bottom: 6px; flex-shrink: 0; }
+    .fortune-label { font-weight: 700; font-size: 16px; }
+    .fortune-meter { font-size: 20px; letter-spacing: 4px; flex-shrink: 0; }
+    .fortune-text { white-space: pre-wrap; font-family: inherit; font-size: 14px; line-height: 1.7; margin-top: 6px; overflow: hidden; }
+    .lucky-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; flex-shrink: 0; }
+    .lucky-box { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; background: #dcfce7; text-align: center; height: 85px; display: flex; flex-direction: column; justify-content: center; }
+    .lucky-label { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .lucky-value { font-size: 22px; font-weight: 900; color: #dd571c; }
+  </style>
+</head>
+<body>
+  <div class="tool-container">
+    <div class="tool-header">
+      <h1>占いデータ チェックツール</h1>
+      <div class="tool-controls">
+        <button id="prevBtn">&lt; 前へ</button>
+        <div id="infoDisplay" class="info-display">---</div>
+        <button id="nextBtn">次へ &gt;</button>
+      </div>
+    </div>
+    <div class="print-preview" id="printPreview">
+      <div class="preview-head">
+        <div class="preview-score">
+          <span id="previewNameText">チェック太郎</span>さんの運勢は… <span id="previewScore">―</span> 点
+        </div>
+      </div>
+      <div class="fortune-grid">
+        <div class="fortune-item"><div class="fortune-header"><div class="fortune-label">今日のおまつり運</div><div class="fortune-meter" id="meterStudy">―</div></div><div class="fortune-text" id="textStudy">―</div></div>
+        <div class="fortune-item"><div class="fortune-header"><div class="fortune-label">おこづかい、ごほうび運</div><div class="fortune-meter" id="meterMoney">―</div></div><div class="fortune-text" id="textMoney">―</div></div>
+        <div class="fortune-item"><div class="fortune-header"><div class="fortune-label">ともだち、れんあい運</div><div class="fortune-meter" id="meterLove">―</div></div><div class="fortune-text" id="textLove">―</div></div>
+      </div>
+      <div class="lucky-row">
+        <div class="lucky-box"><div class="lucky-label">ラッキーアイテム</div><div class="lucky-value" id="luckyItem">―</div></div>
+        <div class="lucky-box"><div class="lucky-label">ラッキーカラー</div><div class="lucky-value" id="luckyColor">―</div></div>
+      </div>
+    </div>
+    <div class="management-section">
+      <h2>詳細チェック</h2>
+      <div class="tool-controls selector-group">
+        <label for="categorySelector">カテゴリ:</label>
+        <select id="categorySelector"></select>
+        <input type="number" id="indexInput" min="1">
+        <span id="totalCount" class="total-count">/ ---</span>
+        <button id="jumpBtn">ジャンプ</button>
+      </div>
+    </div>
+    
+    <div class="management-section">
+        <h2>占い履歴リセット</h2>
+        <div class="reset-section">
+            <button id="resetFatesBtn" class="reset-btn">全占い履歴（運命の記録）をリセット</button>
+            <p>全員が「初めて占う人」の状態に戻ります。</p>
+        </div>
+        <div class="reset-section">
+            <button id="resetUsedBtn" class="reset-btn secondary">使用済み占いリストをリセット</button>
+            <p>占い結果の重複なし機能（くじ引き箱）を空の状態に戻します。</p>
+        </div>
+    </div>
+
+    <div class="management-section">
+        <h2>カウンター管理</h2>
+        <div class="reset-section">
+            <p>現在のカウント: <strong id="printCount">0</strong> 人目</p>
+            <button id="resetCounterBtn" class="reset-btn">印刷カウンターをリセット</button>
+        </div>
+    </div>
+  </div>
+
+  <script src="./fortunes-age-0-6.js"></script>
+  <script src="./fortunes-age-7-9.js"></script>
+  <script src="./fortunes-age-10-12.js"></script>
+  <script src="./fortunes-age-13-17.js"></script>
+  <script src="./fortunes-age-18-22.js"></script>
+  <script src="./fortunes-age-23-29.js"></script>
+  <script src="./fortunes-age-30-59.js"></script>
+  <script src="./fortunes-age-60-plus.js"></script>
+  <script src="./fortunes-parents.js"></script>
+  <script src="./fortunes-teachers.js"></script>
+  <script src="./special-fortunes.js"></script>
+  
+  <script>
+    let allFortunes = [];
+    let currentIndex = 0;
+    const categoryInfo = {};
+    const categorySelector = document.getElementById('categorySelector');
+    const indexInput = document.getElementById('indexInput');
+    const totalCountEl = document.getElementById('totalCount');
+
+    function structureFortunes() {
+      let globalIndex = 0;
+      const sets = window.FORTUNE_SETS || {};
+      const sortedKeys = Object.keys(sets).sort();
+      for (const categoryKey of sortedKeys) {
+        const categoryData = sets[categoryKey];
+        if (Array.isArray(categoryData)) {
+          const sourceName = `${categoryKey}`;
+          categoryInfo[sourceName] = { startIndex: globalIndex, count: categoryData.length };
+          categoryData.forEach((fortune, index) => {
+            allFortunes.push({ data: fortune, source: sourceName, index: index, total: categoryData.length });
+          });
+          globalIndex += categoryData.length;
+        } else if (typeof categoryData === 'object') {
+          const sortedGenderKeys = Object.keys(categoryData).sort();
+          for (const genderKey of sortedGenderKeys) {
+            const fortuneList = categoryData[genderKey];
+            if (Array.isArray(fortuneList) && fortuneList.length > 0) {
+              const sourceName = `${categoryKey} [${genderKey}]`;
+              categoryInfo[sourceName] = { startIndex: globalIndex, count: fortuneList.length };
+              fortuneList.forEach((fortune, index) => {
+                allFortunes.push({ data: fortune, source: sourceName, index: index, total: fortuneList.length });
+              });
+              globalIndex += fortuneList.length;
+            }
+          }
+        }
+      }
+      const specialData = window.SPECIAL_FORTUNES || {};
+      const specialKeys = Object.keys(specialData);
+      if (specialKeys.length > 0) {
+        const sourceName = "特別占い";
+        categoryInfo[sourceName] = { startIndex: globalIndex, count: specialKeys.length };
+        specialKeys.forEach((name, index) => {
+          allFortunes.push({
+            data: specialData[name],
+            source: sourceName,
+            index: index,
+            total: specialKeys.length,
+            specialName: name
+          });
+        });
+      }
+    }
+
+    function displayFortune(index) {
+      if (index < 0 || index >= allFortunes.length) return;
+      currentIndex = index;
+      const item = allFortunes[index];
+      const res = item.data;
+      document.getElementById('previewNameText').textContent = item.specialName || 'チェック太郎';
+      document.getElementById('previewScore').textContent = res.score;
+      meter(document.getElementById('meterStudy'), res.study_lv, '✏️', '⚪️');
+      meter(document.getElementById('meterMoney'), res.money_lv, '💰', '⚪️');
+      meter(document.getElementById('meterLove'), res.love_lv, '❤️', '⚪️');
+      document.getElementById('textStudy').textContent = res.study_msg;
+      document.getElementById('textMoney').textContent = res.money_msg;
+      document.getElementById('textLove').textContent = res.love_msg;
+      document.getElementById('luckyItem').textContent = res.luckyItem;
+      document.getElementById('luckyColor').textContent = res.luckyColor;
+      document.getElementById('infoDisplay').textContent = `${item.source} : ${item.index + 1} / ${item.total} 件目`;
+      document.getElementById('prevBtn').disabled = (index === 0);
+      document.getElementById('nextBtn').disabled = (index === allFortunes.length - 1);
+      if (categorySelector.value !== item.source) {
+        categorySelector.value = item.source;
+        updateCategoryInfo();
+      }
+      indexInput.value = item.index + 1;
+    }
+
+    function setupSelectors() {
+        const sortedCategories = Object.keys(categoryInfo).sort();
+        for(const sourceName of sortedCategories) {
+            const option = document.createElement('option');
+            option.value = sourceName;
+            option.textContent = sourceName;
+            categorySelector.appendChild(option);
+        }
+    }
+
+    function updateCategoryInfo() {
+        const selectedCategory = categorySelector.value;
+        const info = categoryInfo[selectedCategory];
+        if (info) {
+            totalCountEl.textContent = `/ ${info.count}`;
+            indexInput.max = info.count;
+            indexInput.min = 1;
+        }
+    }
+
+    function meter(el, lv, on, off) {
+      let text;
+      if (lv > 5) {
+        text = on.repeat(lv);
+      } else {
+        text = Array(5).fill(off).map((v, i) => i < lv ? on : v).join('');
+      }
+      el.textContent = text;
+    }
+
+    window.addEventListener('load', () => {
+      structureFortunes();
+      setupSelectors();
+      if (allFortunes.length > 0) { displayFortune(0); }
+      else { document.getElementById('infoDisplay').textContent = "占いデータが見つかりません"; }
+      updatePrintCount();
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', () => displayFortune(currentIndex + 1));
+    document.getElementById('prevBtn').addEventListener('click', () => displayFortune(currentIndex - 1));
+    document.getElementById('jumpBtn').addEventListener('click', () => {
+        const selectedCategory = categorySelector.value;
+        const info = categoryInfo[selectedCategory];
+        let targetIndex = parseInt(indexInput.value, 10) - 1;
+        if (info && targetIndex >= 0 && targetIndex < info.count) {
+            displayFortune(info.startIndex + targetIndex);
+        } else {
+            alert(`1 から ${info.count} までの正しい番号を入力してください。`);
+        }
+    });
+    categorySelector.addEventListener('change', () => {
+        updateCategoryInfo();
+        const selectedCategory = categorySelector.value;
+        const info = categoryInfo[selectedCategory];
+        if (info) {
+           indexInput.value = 1;
+           displayFortune(info.startIndex);
+        }
+    });
+
+    const countEl = document.getElementById('printCount');
+    function updatePrintCount() {
+        const count = localStorage.getItem('fortunePrintCount_v1') || '0';
+        countEl.textContent = count;
+    }
+
+    document.getElementById('resetCounterBtn').addEventListener('click', () => {
+      if (confirm('本番用の「印刷カウンター」を本当にリセットしますか？')) {
+        localStorage.removeItem('fortunePrintCount_v1');
+        updatePrintCount();
+        alert('カウンターをリセットしました。');
+      }
+    });
+    
+    document.getElementById('resetFatesBtn').addEventListener('click', () => {
+      if (confirm('【重要】全ての「運命の記録」（誰がどの占い結果だったか）を本当にリセットしますか？\n全員が「初めて占う人」の状態に戻ります。')) {
+        localStorage.removeItem('fortuneFates_v1');
+        alert('全占い履歴（運命の記録）をリセットしました。');
+      }
+    });
+
+    document.getElementById('resetUsedBtn').addEventListener('click', () => {
+      if (confirm('「使用済み占いリスト」を本当にリセットしますか？\n重複しないように管理しているリストが空になります。')) {
+        localStorage.removeItem('fortuneUsedIndices_v1');
+        alert('使用済み占いリストをリセットしました。');
+      }
+    });
+  </script>
+</body>
+</html>
