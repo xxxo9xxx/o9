@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テーマトーク</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #d63384 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            font-weight: bold;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .topics-container {
+            margin-top: 20px;
+        }
+
+        .topic {
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            color: #2d3748;
+            margin: 15px 0;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            box-shadow: 0 4px 15px rgba(255, 154, 158, 0.3);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideUp 0.5s ease forwards;
+        }
+
+        .topic:nth-child(1) { animation-delay: 0.1s; }
+        .topic:nth-child(2) { animation-delay: 0.2s; }
+        .topic:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .topic-number {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.4);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .button {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+            
+            .topic {
+                padding: 15px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>テーマトーク ジェネレーター</h1>
+        <button class="button" onclick="showTopics()">お題を表示</button>
+        <div id="topics" class="topics-container"></div>
+    </div>
+
+    <script>
+        const topics = [
+            "初恋の思い出はある？",
+            "キュンとする異性のしぐさは？",
+            "好きな異性の髪型は？",
+            "過去の恋愛で一番印象に残っているのは？",
+            "ドキッとする言葉・セリフは？",
+            "恋愛での失敗談はある？",
+            "どんなファッションに惹かれる？",
+            "恋人にされたサプライズは？",
+            "好きな人にどうやってアプローチする？",
+            "恋人に求めるもの3つあげるとしたら？",
+            "異性にされて「これはずるい！」と思ったことは？",
+            "自分の恋愛タイプは？追う派？追われる派？",
+            "好きになる人の共通点は？",
+            "恋愛でやりがちな失敗は？",
+            "元カノ・元カレの忘れられないエピソードは？",
+            "好きな人への効果的なアピール方法は？",
+            "修羅場を経験したことある？",
+            "モテ期はいつだった？",
+            "異性から言われて嬉しかった言葉は？",
+            "デートで行きたい場所は？",
+            "憧れの告白シチュエーションは？",
+            "理想のキスのシチュエーションは？",
+            "どんな人が「色気ある」と感じる？",
+            "浮気はどこから？",
+            "友達の恋愛でびっくりした話は？",
+            "思わずときめいたLINEの内容は？",
+            "過去に告白された回数は？",
+            "恋愛に年の差はアリ？ナシ？",
+            "嫉妬した経験、ありますか？",
+            "どんな異性に警戒する？",
+            "手をつなぐタイミングっていつが自然？",
+            "恋人と喧嘩したとき、どう仲直りする？",
+            "付き合ってから変わったことは？",
+            "恋愛で一番大事にしていることは？",
+            "恋人と一緒に住むならどんなルール作る？",
+            "気になる人に既読スルーされたらどうする？",
+            "男女の友情は成立すると思う？",
+            "恋人とケンカになった原因ランキングは？",
+            "好きな人の前で緊張する？しない？",
+            "恋愛対象に入らないポイントは？",
+            "結婚と恋愛の違いは？",
+            "過去の恋で一番後悔していることは？",
+            "どんな恋愛ソングが好き？",
+            "結婚するならどんな性格の人がいい？",
+            "恋人との記念日、どう祝う？",
+            "夜景デート、昼間デート、どっちが好き？",
+            "失恋したときの立ち直り方は？",
+            "映画やドラマでキュンとしたシーンは？",
+            "相手の「好きサイン」どうやって気づく？",
+            "恋人にされてテンション下がったことは？",
+            "どんな香りの異性に惹かれる？",
+            "どんな声に弱い？",
+            "手をつなぐなら右手派？左手派？",
+            "酔ったときに出る恋愛本音は？",
+            "言われてグッときた褒め言葉は？",
+            "恋愛の駆け引き、使う？使わない？",
+            "どんなときに恋に落ちやすい？",
+            "相手のどんなクセが気になる？",
+            "一緒に寝るときのこだわりは？",
+            "深夜の電話、あり派？なし派？",
+            "恋人との距離感、大事にしてることは？",
+            "笑顔が素敵だと思った異性はどんな人？",
+            "人前で手をつなぐのはOK？",
+            "一番ドキドキしたデートは？",
+            "異性のギャップで惹かれた経験は？",
+            "どんな時に「運命かも」と思う？",
+            "恋人と旅行に行くときの注意点は？",
+            "相手のために変わったことはある？",
+            "初めてのキス、どんな感じだった？",
+            "おうちデートでの理想の過ごし方は？",
+            "好きな人に告白されたらどう返す？",
+            "恋人のSNSチェックする？しない？",
+            "カラオケで歌ってほしいラブソングは？",
+            "初デートでNGな行動は？",
+            "酔った時に恋愛話したくなるタイプ？",
+            "モテる人の特徴って何？",
+            "恋愛がうまくいくコツは？",
+            "自分の恋愛武勇伝があれば教えて！",
+            "相手に幻滅した瞬間は？",
+            "恋愛経験が自分を変えたと思う？",
+            "初対面で一番見てしまうところは？",
+            "「好きになってはいけない人」を好きになったことある？",
+            "どんな恋の終わり方が理想？",
+            "バレンタイン、ホワイトデーの思い出は？",
+            "今までで一番甘かった言葉は？",
+            "恋愛がうまくいってる人の共通点は？",
+            "恋人にしたい芸能人は？",
+            "デート代、どう分ける？",
+            "外見と中身、どっち重視？",
+            "思わず妄想してしまったシチュエーションは？",
+            "恋愛漫画やアニメで共感したセリフは？",
+            "恋人と過ごす理想の休日は？",
+            "ちょっとエッチな話になって笑った経験は？",
+            "過去に聞かれて焦った恋バナは？",
+            "恋愛対象になる年齢差の限界は？",
+            "飲み会で「これは落ちるな」と思った行動は？",
+            "自分の恋愛偏差値ってどのくらい？",
+            "思い出のラブレター、まだ持ってる？",
+            "異性の前で緊張しなくなるにはどうしたらいい？",
+            "恋愛話をしたがる人の特徴は？",
+            "恋と愛の違いってなんだと思う？"
+        ];
+
+        function getRandomTopics() {
+            const shuffled = [...topics].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, 3);
+        }
+
+        function showTopics() {
+            const topicsContainer = document.getElementById('topics');
+            const selectedTopics = getRandomTopics();
+            
+            topicsContainer.innerHTML = '';
+            
+            selectedTopics.forEach((topic, index) => {
+                setTimeout(() => {
+                    const topicDiv = document.createElement('div');
+                    topicDiv.className = 'topic';
+                    topicDiv.innerHTML = `<span class="topic-number">${index + 1}</span>${topic}`;
+                    topicsContainer.appendChild(topicDiv);
+                }, index * 100);
+            });
+        }
+    </script>
+</body>
+</html>
