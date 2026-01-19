@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>みんなのイーブン お題ジェネレーター200</title>
+    <style>
+        :root {
+            --main-bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --p-color: #e91e63;
+            --accent: #2196f3;
+        }
+        body {
+            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: var(--main-bg);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .setup-screen { text-align: center; margin-top: 50px; }
+        .game-screen { display: none; width: 100%; max-width: 600px; text-align: center; }
+        h1 { font-size: 1.5rem; margin-bottom: 20px; }
+        .options { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-size: 1.1rem;
+            font-weight: bold;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card:active { transform: scale(0.98); }
+        .card.is-p { color: var(--p-color); border: 2px solid var(--p-color); }
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.98);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+        #overlay-text { font-size: 2.5rem; font-weight: bold; }
+        .status { margin-top: 15px; font-size: 0.8rem; color: #666; }
+    </style>
+</head>
+<body>
+
+    <div id="setup" class="setup-screen">
+        <h1>みんなのイーブン</h1>
+        <label style="font-size: 1.2rem; cursor: pointer;">
+            <input type="checkbox" id="includeP" style="transform: scale(1.5); margin-right: 10px;">
+            大人向けのお題を含める
+        </label>
+        <br><br>
+        <button class="btn" onclick="startGame()">スタート！</button>
+    </div>
+
+    <div id="game" class="game-screen">
+        <div class="options" id="cardContainer"></div>
+        <button class="btn" onclick="drawCards()">次のお題を出す</button>
+        <div class="status" id="counter"></div>
+        <button onclick="resetGame()" style="margin-top:30px; background:none; border:none; text-decoration:underline; color:#999; cursor:pointer;">最初からやり直す</button>
+    </div>
+
+    <div id="overlay" onclick="this.style.display='none'">
+        <div id="overlay-text"></div>
+    </div>
+
+<script>
+const rawData = `貯金箱いっぱいになるまでお金を貯めたことがある
+靴下は穴が空いたらすぐ捨てる
+使わなくなったものを捨てられない
+ちょっとした特技を持っている
+映画館より図書館の方が好き
+信じる者はダマされると思う
+私は「ノー！」と言える日本人である
+説明がつかない不思議な体験をしたことがある
+洗濯物は夏でも外に干さない
+限定品と言われるとつい買いたくなる
+飛行機に乗るのはちょっと怖い
+休みの日は出掛けるよりも家でゴロゴロしていたい
+スカイダイビングをしてみたい
+間違って同じものを買ってしまうことがある
+横になったらすぐ寝れる
+海に行くより山に行きたい
+人の話を聞くより自分がしゃべる方が好き
+日常生活で年に２回はウソをつく
+３日間くらいなら人としゃべらなくても平気
+会うといつも心が洗われる人がいる
+５年後いまより貯金が増えていると思う
+人生の指針となる座右の銘がある
+ヒマすぎる毎日よりも忙しすぎる毎日の方がいい
+味噌汁の具の定番といえばトウフだ
+うれし泣きをしたことがある
+アイスクリームを冬でも食べる
+観光やお出かけするときは朝からいっぱい巡りたい
+空き缶を思いきり蹴飛ばしたことがある
+毎日お風呂に入るのは面倒くさい
+流れ星を何度も見たことがある
+学校の教科書よりも漫画の方がタメになる
+信号は歩行者の時でも無視しない
+花見より花火の方が好き
+お金より自由の方が価値がある
+ペンギンよりラッコの方が人気者だと思う
+自分だけのとっておきの場所がある
+今なお自分は成長していると思う
+旅行に行くときはしっかり計画を立てる
+自分を鼓舞する応援ソングがある
+髪型を大きく変えてみたことがある
+たびたび旅に行きたくなる
+占いはまったく気にしない
+人のふりを見て我がふりを直したことがある
+納豆大好き
+テントや寝袋でひと晩すごしたことがある
+みんなが喜ぶなら負けても楽しい
+新しいものよりも古いものに惹かれる
+行けるものなら宇宙旅行に行ってみたい
+１日に10キロ以上歩いたことがある
+鳥の名前よりも花の名前をよく知っている
+漫画は読書ではないと思う
+室内で遊ぶよろ外で遊ぶ方が好き
+お守りの中身を見たことがある
+本名を知らない友達がいる
+お化け屋敷があったら入りたい
+最果ての地にはあこがれるものがある
+オシャレな人はよく帽子をかぶっていると思う
+食事は時間をかけずにさっさと済ませたい
+金縛りにあったことがある
+春よりも秋の方が好き
+夏よりも冬の方が好き
+宝くじで７億円当たったら一生働かない
+幽霊はいると思う
+平凡な人生よりもドラマチックな人生を送りたい
+大仕事は任されたくない
+苦手な食べ物が３つ以上ある
+小雨くらいなら傘はささない
+有名人に似ていると言われたことがある
+遠足やイベントの前日はよく眠れない
+お財布やお金を拾って交番に届けなかったことがある
+スポーツはやるより見る方が好き
+鏡を一度も見ない日はない
+なれるなら透明人間になってみたい
+実際の年齢より若くみられることが多い
+吊り橋は怖くない
+トイレに行くのを２時間以上我慢したことがある
+本当にすごいと思う歴史上の人物がいる
+やりたい事をやれていない日常を過ごしている
+景色の美しさよりも食べ物の美味しさに感動することが多い
+人の役にたつのなら自分を安売りしてもかまわない
+超能力はあると思う
+人生の２度目があればいまよりもっと冒険する
+コーヒーよりも紅茶が好き
+昨日の夜なにを食べたかすぐに思い出せる
+日記を書いていた時期がある
+借金はできるだけしたくない
+パワースポットにパワーはない
+食事を作るよりも後片付けの方が面倒くさい
+催眠術にはかからない自信がある
+お祭りが好きだ
+顔よりも声に自信がある
+人に真似されるようなものを作りたい
+悪いことをするとバチが当たるというのは本当だ
+できるだけ長生きしたい
+都会で便利に暮らすよりも田舎でのんびり暮らしたい
+写真は撮るより撮られる方が好き
+才能の本質は遺伝ではなく努力だと思う
+動物園より水族館が好き
+可能なら７歳くらい人生をやり直したい
+死後の世界はあると思う
+好きなおかずは先に食べる
+人生のターニングポイントだったと思う出来事がある
+タイムマシンがあったら過去よりも未来に行ってみたい
+賞味期限は気にしない
+毎年かかさず初詣に行く
+大渋滞にはまっても楽しくやり過ごせる
+もし生まれ変わったら今とは別の性別になってみたい
+明日の準備は明日やればOK
+自分と同じ服を着てる人に会ったことがある
+地図を読むのは苦手だ
+流行には乗っかる方だ
+スポーツマンよりもミュージシャンに憧れる
+夏休みの宿題は最後までやらない
+１日はもっと長い方がいいと思う
+これからの日本の未来は暗いと思う
+毎号かかさず買い続けている雑誌がある
+ペットを飼うなら犬よりネコがいい
+この人のためなら何でもできるという人がいる
+行列に並ぶのは時間の無駄だと思う
+他人に厳しい人は自分にも厳しいと思う
+最近のアイドルの顔の見分けがつかない
+宇宙人はもう地球にきている
+今でも忘れられない幼い頃に見た絵本や物語がある
+大金持ちの友達がいて欲しい
+勉強するのは楽しい
+ジェットコースターよりも観覧車の方が好き
+昨日の夜見た夢を覚えている
+カラオケで歌詞を見なくても歌いきれる曲がある
+年長者の意見には素直に従う派だ
+機会があれば似顔絵を描いてもらいたい
+ラーメンよりもカレーが好き
+自分と同じ誕生日の有名人を知っている
+霊感がある、もしくは霊感がある知人がいる
+うどんよりもそばが好き
+学校の先生が言った忘れられない言葉がある
+人類に30世紀はやってこない
+文章を書くよりも絵を描く方が得意
+２ヵ月に一度は髪を切る
+血液型占いは当たっていると思う
+手相を見てもらったことがある
+プレゼントはもらうよりもあげる方が好き
+何度も引っ越ししたことがある
+日焼けすることは極力避けたい
+自分のことを飽きっぽいと思う
+【p】お金で人の心は買えると思う
+【p】異性を泣かせたことがある
+【p】結婚相手は大人しくて従順な人がよい
+【p】一目ぼれをしたことがある
+【p】おっぱいよりおしりが好き
+【p】気持ちが一瞬で冷めてしまったことがある
+【p】美人は心もきれいだと思う
+【p】忘れられないバレンタインデーの思い出がある
+【p】忘れられないクリスマスの思い出がある
+【p】モテ期を経験したことがある
+【p】混浴風呂に入ったことがある
+【p】遠距離恋愛したことがある
+【p】思い切って告白しとけばよかったという人がいる
+【p】見てはいけないものを見たことがある
+【p】浮気は絶対に許せない
+【p】記念日はわりとどうせもいい
+【p】ワンナイトで終わってしまう恋もある
+【p】好きになるよりも好きになってもらいたい
+【p】初恋相手は同級生だった
+【p】年上よりも年下が好き
+常に効率を考えて動いている
+自分の直感は信じられる方だ
+ぶっちゃけ今の生活に満足している
+人には言えない秘密がひとつはある
+過去の自分にアドバイスしたいことがある
+自分は運がいいと胸を張って言える
+どちらかというと形から入るタイプだ
+多少のルール違反なら状況によっては許せる
+既読スルーされても24時間以内なら気にならない
+初対面の人に壁を作ってしまう
+誰にも理解されないこだわりがある
+集団にいるより一人の方が自分らしくいられる
+褒められると裏があるのではないかと疑う
+聞き上手よりも話し上手だと言われる
+わりと一匹狼なところがある
+人の第一印象はだいたい当たる
+失敗してもなんとかなると思える
+モノを捨てるときの決断は早い
+自分の弱みを見せるのは苦手だ
+世の中結局はタイミングだと思う
+実はかなりの寂しがり屋だ
+人からどう見られているかかなり気になる
+頼られるよりも甘えたい派だ
+昔の自分と今の自分は別人だと思う
+正直今の人間関係を整理したいと思うことがある
+自分だけのルーティンがある
+SNSのフォロワー数は気になる
+休日は完全にオフにしたい
+他人の成功を素直に喜べる
+自分の性格は親に似ていると思う
+努力は必ず報われると思う
+将来の不安より今の楽しみが大事だ
+一人の時間は絶対に必要だ
+一度決めたことは最後までやり抜く
+実はかなり嫉妬深い方だ
+自分は運命論者だと思う
+見た目より機能性を重視する
+多人数での飲み会は苦手だ
+サプライズをされるのは苦手だ
+何事も予習・準備を欠かさない
+ストレス発散法を自分で持っている
+【p】恋人のスマホの中身は絶対に見たくない
+【p】別れた相手のSNSをチェックしたことがある
+【p】愛よりも安心感を重視する
+【p】自分は尽くすよりも尽くされたい派だ
+【p】運命の人は本当にいると思う
+【p】恋人に対して隠し通していることがある
+【p】恋愛において自分は追いたい派だ
+【p】嫉妬心は強いほうだと思う
+【p】過去の恋を引きずりやすいタイプだ
+【p】ぶっちゃけルックスが良ければ中身は二の次だ
+【p】愛があれば年の差は関係ない
+【p】浮気の境界線は人より厳しいと思う
+【p】恋人とは毎日連絡を取り合いたい
+【p】愛していると言葉にするのは照れくさい
+【p】恋人の前では甘えん坊になる`;
+
+let masterList = [];
+let currentList = [];
+
+function startGame() {
+    const includeP = document.getElementById('includeP').checked;
+    const lines = rawData.split('\n');
+    masterList = lines
+        .map(line => line.trim())
+        .filter(line => line !== "")
+        .filter(line => includeP || !line.startsWith('【p】'));
+    currentList = [...masterList];
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('game').style.display = 'block';
+    drawCards();
+}
+
+function drawCards() {
+    const container = document.getElementById('cardContainer');
+    const counter = document.getElementById('counter');
+    container.innerHTML = '';
+    if (currentList.length === 0) {
+        alert("お題をすべて使い切りました！リセットします。");
+        resetGame();
+        return;
+    }
+    const selected = [];
+    const count = Math.min(3, currentList.length);
+    for (let i = 0; i < count; i++) {
+        const randomIndex = Math.floor(Math.random() * currentList.length);
+        selected.push(currentList.splice(randomIndex, 1)[0]);
+    }
+    selected.forEach(text => {
+        const card = document.createElement('div');
+        const isP = text.startsWith('【p】');
+        const displayText = isP ? text.replace('【p】', '') : text;
+        card.className = 'card' + (isP ? ' is-p' : '');
+        card.textContent = displayText;
+        card.onclick = () => showBig(displayText, isP);
+        container.appendChild(card);
+    });
+    counter.textContent = `残りお題: ${currentList.length} / ${masterList.length}`;
+}
+
+function showBig(text, isP) {
+    const overlay = document.getElementById('overlay');
+    const overlayText = document.getElementById('overlay-text');
+    overlayText.textContent = text;
+    overlayText.style.color = isP ? 'var(--p-color)' : 'var(--text-color)';
+    overlay.style.display = 'flex';
+}
+
+function resetGame() {
+    document.getElementById('setup').style.display = 'block';
+    document.getElementById('game').style.display = 'none';
+}
+</script>
+</body>
+</html>
