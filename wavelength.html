@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
-    <title>ウェーブレングス チーム戦</title>
+    <title>ウェーブレングス 完全版</title>
     <style>
         :root{
             --zone-4-color:#03A9F4;
@@ -29,7 +29,6 @@
             transition: background-color 0.5s ease;
         }
         
-        /* チーム背景色 */
         .red-team-turn { background-color: var(--red-team-bg); }
         .blue-team-turn { background-color: var(--blue-team-bg); }
         .neutral-bg { background-color: #F0F2F5; }
@@ -46,7 +45,6 @@
         .header{text-align:center;margin-bottom:14px;border-bottom:1px solid #eee;padding-bottom:12px;}
         .title{font-size:1.6rem;color:var(--dial-frame-color)}
         
-        /* スコアボード */
         .scoreboard{
             display:flex;
             justify-content:space-between;
@@ -62,29 +60,17 @@
             border-radius:8px;
             font-weight:700;
             font-size:1.1rem;
+            flex: 1;
+            margin: 0 5px;
         }
         
-        .red-team-score{
-            background:var(--red-team-bg);
-            color:var(--red-team-color);
-            border:2px solid var(--red-team-color);
-        }
-        
-        .blue-team-score{
-            background:var(--blue-team-bg);
-            color:var(--blue-team-color);
-            border:2px solid var(--blue-team-color);
-        }
-        
-        .current-team{
-            box-shadow:0 4px 12px rgba(0,0,0,0.15);
-            transform:scale(1.05);
-        }
+        .red-team-score{ background:var(--red-team-bg); color:var(--red-team-color); border:2px solid var(--red-team-color); }
+        .blue-team-score{ background:var(--blue-team-bg); color:var(--blue-team-color); border:2px solid var(--blue-team-color); }
+        .current-team{ box-shadow:0 4px 12px rgba(0,0,0,0.15); transform:scale(1.05); }
 
-        .topic-display{background:#f8f9fa;border-radius:10px;padding:12px;margin-bottom:16px}
-        .topic-text{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:1.1rem}
+        .topic-display{background:#3D4A5E; color: white; border-radius:10px; padding:15px; margin-bottom:16px}
+        .topic-text{display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:1.2rem}
         .phase-content{text-align:center}
-        .phase-description{color:#666;margin-bottom:10px}
         
         .team-indicator{
             font-size:1.3rem;
@@ -95,822 +81,325 @@
             display:inline-block;
         }
         
-        .red-team-indicator{
-            background:var(--red-team-color);
-            color:white;
-        }
-        
-        .blue-team-indicator{
-            background:var(--blue-team-color);
-            color:white;
-        }
+        .red-team-indicator{ background:var(--red-team-color); color:white; }
+        .blue-team-indicator{ background:var(--blue-team-color); color:white; }
 
-        .btn{width:100%;padding:12px;border:none;border-radius:40px;background:linear-gradient(45deg,#2196F3,#03A9F4);color:white;font-weight:700;cursor:pointer;margin:8px 0;}
+        .btn{width:100%;padding:12px;border:none;border-radius:40px;background:linear-gradient(45deg,#2196F3,#03A9F4);color:white;font-weight:700;cursor:pointer;margin:8px 0; font-size: 1rem;}
         .btn-secondary{background:linear-gradient(45deg,#673AB7,#9C27B0)}
-        .btn-red{background:linear-gradient(45deg,#F44336,#FF5252)}
-        .btn-blue{background:linear-gradient(45deg,#1976D2,#2196F3)}
+        .btn-change{background:linear-gradient(45deg,#757575,#9E9E9E); margin-top: 15px;}
         
-        .vote-buttons{
-            display:flex;
-            gap:12px;
-            margin:16px 0;
-        }
-        
-        .vote-btn{
-            flex:1;
-            padding:16px;
-            border:none;
-            border-radius:12px;
-            font-weight:700;
-            font-size:1.1rem;
-            cursor:pointer;
-            transition:transform 0.2s ease;
-        }
-        
-        .vote-btn:hover{
-            transform:translateY(-2px);
-        }
-        
-        .vote-left{
-            background:linear-gradient(45deg,#9C27B0,#E91E63);
-            color:white;
-        }
-        
-        .vote-right{
-            background:linear-gradient(45deg,#2196F3,#00BCD4);
-            color:white;
-        }
+        .vote-buttons{ display:flex; gap:12px; margin:16px 0; }
+        .vote-btn{ flex:1; padding:16px; border:none; border-radius:12px; font-weight:700; font-size:1.1rem; cursor:pointer; }
+        .vote-left{ background:linear-gradient(45deg,#9C27B0,#E91E63); color:white; }
+        .vote-right{ background:linear-gradient(45deg,#2196F3,#00BCD4); color:white; }
         
         .hidden{display:none}
 
-        /* 半円ダイヤル */
         .wavelength-dial{
-            position:relative;
-            width:320px;
-            max-width:100%;
-            height:160px;
-            margin:20px auto;
-            border-top-left-radius:160px;
-            border-top-right-radius:160px;
-            background:#E0E5EC;
-            border:8px solid var(--dial-frame-color);
+            position:relative; width:320px; max-width:100%; height:160px; margin:20px auto;
+            border-top-left-radius:160px; border-top-right-radius:160px;
+            background:#E0E5EC; 
             overflow:visible;
         }
+        .wavelength-dial svg{ position:absolute; left:0; top:0; width:100%; height:100%; overflow:visible; }
 
-        .wavelength-dial svg{
-            position:absolute;
-            left:0;
-            top:0;
-            width:100%;
-            height:100%;
-            overflow:visible;
-        }
-
-        /* 針 */
         .needle{
-            position:absolute;
-            left:50%;
-            bottom:0;
-            width:4px;
-            height:140px;
-            background:var(--needle-color);
-            transform-origin:50% 100%;
-            transform:translateX(-50%) rotate(0deg);
-            box-shadow:0 0 10px rgba(0,0,0,0.18);
-            z-index:6;
-            border-radius:2px;
+            position:absolute; left:50%; bottom:0; width:4px; height:140px;
+            background:var(--needle-color); transform-origin:50% 100%;
+            transform:translateX(-50%) rotate(0deg); z-index:6; border-radius:2px;
         }
 
-        /* ノブ（赤い丸） */
         .knob{
-            position:absolute;
-            width:32px;
-            height:32px;
-            border-radius:50%;
-            background:var(--needle-color);
-            border:4px solid #fff;
-            box-shadow:0 6px 14px rgba(0,0,0,0.15);
-            transform:translate(-50%,-50%);
-            z-index:7;
-            touch-action:none;
-            cursor:grab;
-            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            position:absolute; width:32px; height:32px; border-radius:50%;
+            background:var(--needle-color); border:4px solid #fff;
+            box-shadow:0 6px 14px rgba(0,0,0,0.15); transform:translate(-50%,-50%);
+            z-index:7; touch-action:none; cursor:grab;
         }
         
-        .knob:hover{
-            transform:translate(-50%,-50%) scale(1.05);
-            box-shadow:0 8px 18px rgba(0,0,0,0.2);
-        }
-        
-        .knob:active, .knob.dragging{
-            cursor:grabbing;
-            transform:translate(-50%,-50%) scale(1.1);
-            box-shadow:0 10px 20px rgba(0,0,0,0.3);
-        }
-
-        .gauge-value{
-            font-weight:700;
-            margin:10px 0;
-            font-size:1.2rem;
-            color:var(--dial-frame-color);
-        }
-        
-        .score-display{
-            font-size:1.8rem;
-            font-weight:800;
-            margin-top:16px;
-        }
-        
-        .result-summary{
-            background:#f8f9fa;
-            padding:16px;
-            border-radius:10px;
-            margin:16px 0;
-        }
-
-        .zone-legend{
-            display:flex;
-            justify-content:center;
-            gap:20px;
-            margin:15px 0;
-            flex-wrap:wrap;
-        }
-        
-        .zone-item{
-            display:flex;
-            align-items:center;
-            gap:5px;
-            font-size:0.9rem;
-            font-weight:600;
-        }
-        
-        .zone-color{
-            width:20px;
-            height:20px;
-            border-radius:4px;
-        }
-        
-        .instructions{
-            background:#f8f9fa;
-            padding:12px;
-            border-radius:8px;
-            margin:10px 0;
-            font-size:0.95rem;
-            color:#666;
-        }
-        
-        .winner-announcement{
-            font-size:2rem;
-            font-weight:800;
-            margin:20px 0;
-            padding:20px;
-            border-radius:12px;
-            text-align:center;
-        }
-        
-        .red-winner{
-            background:var(--red-team-bg);
-            color:var(--red-team-color);
-            border:3px solid var(--red-team-color);
-        }
-        
-        .blue-winner{
-            background:var(--blue-team-bg);
-            color:var(--blue-team-color);
-            border:3px solid var(--blue-team-color);
-        }
+        .gauge-value{ font-weight:700; margin:10px 0; font-size:1.2rem; color:var(--dial-frame-color); }
+        .result-summary{ background:#f8f9fa; padding:16px; border-radius:10px; margin:16px 0; }
     </style>
 </head>
 <body class="neutral-bg">
     <div class="game-container">
-        <div class="header">
-            <div class="title">ウェーブレングス チーム戦</div>
-        </div>
+        <div class="header"><div class="title">ウェーブレングス</div></div>
 
-        <!-- スコアボード -->
         <div class="scoreboard" id="scoreboard">
-            <div class="team-score red-team-score" id="redTeamScore">
-                <div>赤チーム</div>
-                <div>0点</div>
-            </div>
-            <div class="team-score blue-team-score" id="blueTeamScore">
-                <div>青チーム</div>
-                <div>0点</div>
-            </div>
+            <div class="team-score red-team-score" id="redTeamScore">赤: 0</div>
+            <div class="team-score blue-team-score" id="blueTeamScore">青: 0</div>
         </div>
 
         <div class="topic-display">
-            <div class="topic-text" id="topicText"><span>-</span><span>⇔</span><span>-</span></div>
+            <div class="topic-text" id="topicText"><span>左</span><span>⇔</span><span>右</span></div>
         </div>
 
-        <!-- フェーズ1: ゲーム開始 -->
         <div class="game-phase" id="phase-start">
             <div class="phase-content">
-                <p class="phase-description">新しいチーム戦を始めましょう</p>
-                <div class="instructions">
-                    11点先取で勝利！<br>
-                    同点の場合はサドンデス戦
-                </div>
+                <p>11点先取で勝利！</p>
                 <button class="btn" onclick="startNewGame()">ゲーム開始</button>
             </div>
         </div>
 
-        <!-- フェーズ2: ラウンド開始 -->
         <div class="game-phase hidden" id="phase-round-start">
             <div class="phase-content">
                 <div class="team-indicator" id="currentTeamIndicator">赤チーム</div>
-                <p class="phase-description">新しいラウンドを開始します</p>
-                <button class="btn" id="roundStartBtn" onclick="startRound()">スタート</button>
+                <p>の番です</p>
+                <button class="btn" onclick="startRound()">お題を引く</button>
             </div>
         </div>
 
-        <!-- フェーズ3: お題表示 -->
-        <div class="game-phase hidden" id="phase-topic">
-            <div class="phase-content">
-                <div class="team-indicator" id="topicTeamIndicator">赤チーム</div>
-                <p class="phase-description">お題が決まりました</p>
-                <button class="btn" onclick="goToHintPhase()">ヒント役へ</button>
-            </div>
-        </div>
-
-        <!-- フェーズ4: ヒント出し役用（正解エリア表示）-->
         <div class="game-phase hidden" id="phase-psychic">
             <div class="phase-content">
                 <div class="team-indicator" id="psychicTeamIndicator">赤チーム</div>
-                <h3>ヒント出し役へ</h3>
-                <p class="phase-description">この正解エリアを見て、口頭でヒントを出してください</p>
-                
-                <div class="wavelength-dial" id="psychic-dial">
-                    <svg id="psychic-svg" viewBox="0 0 320 160" preserveAspectRatio="none" aria-hidden="true"></svg>
+                <h3 style="color:red">ヒント役以外は見ないで！</h3>
+                <div class="wavelength-dial">
+                    <svg id="psychic-svg" viewBox="0 0 320 160"></svg>
                 </div>
-                
-                <div class="zone-legend">
-                    <div class="zone-item">
-                        <div class="zone-color" style="background-color:var(--zone-4-color)"></div>
-                        <span>4点</span>
-                    </div>
-                    <div class="zone-item">
-                        <div class="zone-color" style="background-color:var(--zone-3-color)"></div>
-                        <span>3点</span>
-                    </div>
-                    <div class="zone-item">
-                        <div class="zone-color" style="background-color:var(--zone-2-color)"></div>
-                        <span>2点</span>
-                    </div>
-                </div>
-                
-                <button class="btn" onclick="goToVotePhase()">推測フェーズへ</button>
+                <button class="btn" onclick="goToVotePhase()">ヒントを出した</button>
+                <button class="btn btn-change" id="changeTopicBtn" onclick="changeTopic()">お題を変更 (0/3)</button>
             </div>
         </div>
 
-        <!-- フェーズ5: 投票 -->
         <div class="game-phase hidden" id="phase-vote">
             <div class="phase-content">
                 <div class="team-indicator" id="voteTeamIndicator">青チーム</div>
-                <h3>右か左かを投票してください</h3>
-                <p class="phase-description">ヒントを聞いて、答えが右寄りか左寄りかを予想</p>
-                
+                <h3>どちら寄り？</h3>
                 <div class="vote-buttons">
-                    <button class="vote-btn vote-left" onclick="submitVote('left')">
-                        <div id="leftLabel">左寄り</div>
-                    </button>
-                    <button class="vote-btn vote-right" onclick="submitVote('right')">
-                        <div id="rightLabel">右寄り</div>
-                    </button>
+                    <button class="vote-btn vote-left" onclick="submitVote('left')"><div id="leftLabel">左寄り</div></button>
+                    <button class="vote-btn vote-right" onclick="submitVote('right')"><div id="rightLabel">右寄り</div></button>
                 </div>
             </div>
         </div>
 
-        <!-- フェーズ6: 推測（回答者）-->
         <div class="game-phase hidden" id="phase-guess">
             <div class="phase-content">
                 <div class="team-indicator" id="guessTeamIndicator">赤チーム</div>
-                <h3>正確な位置を推測してください</h3>
-                <div class="instructions">
-                    赤い丸をドラッグして、ヒントが示す位置を推測してください
-                </div>
-
+                <h3>正確な位置を狙え！</h3>
                 <div class="wavelength-dial" id="guess-dial">
-                    <svg id="guess-svg" viewBox="0 0 320 160" preserveAspectRatio="none" aria-hidden="true"></svg>
+                    <svg id="guess-svg" viewBox="0 0 320 160"></svg>
                     <div class="needle" id="needle"></div>
-                    <div class="knob" id="knob" role="slider" aria-valuemin="0" aria-valuemax="100" tabindex="0"></div>
+                    <div class="knob" id="knob"></div>
                 </div>
-
-                <div class="gauge-value">推測値: <span id="gaugeValue">50</span>%</div>
-                <button class="btn" onclick="submitGuess()">これで決定！</button>
+                <div class="gauge-value">位置: <span id="gaugeValue">50</span></div>
+                <button class="btn" onclick="submitGuess()">決定！</button>
             </div>
         </div>
 
-        <!-- フェーズ7: 結果 -->
         <div class="game-phase hidden" id="phase-result">
             <div class="phase-content">
-                <h3>結果発表！</h3>
-
-                <div class="wavelength-dial" id="result-dial">
-                    <svg id="result-svg" viewBox="0 0 320 160" preserveAspectRatio="none" aria-hidden="true"></svg>
+                <h3>結果発表</h3>
+                <div class="wavelength-dial">
+                    <svg id="result-svg" viewBox="0 0 320 160"></svg>
                     <div class="needle" id="result-needle"></div>
                 </div>
-
-                <div class="zone-legend">
-                    <div class="zone-item">
-                        <div class="zone-color" style="background-color:var(--zone-4-color)"></div>
-                        <span>4点</span>
-                    </div>
-                    <div class="zone-item">
-                        <div class="zone-color" style="background-color:var(--zone-3-color)"></div>
-                        <span>3点</span>
-                    </div>
-                    <div class="zone-item">
-                        <div class="zone-color" style="background-color:var(--zone-2-color)"></div>
-                        <span>2点</span>
-                    </div>
-                </div>
-
-                <div class="result-summary" id="resultSummary">
-                    <div class="score-display" id="scoreDisplay">結果計算中...</div>
-                </div>
-                
-                <button class="btn btn-secondary" id="nextRoundBtn" onclick="nextRound()">次のラウンド</button>
+                <div class="result-summary" id="resultSummary"></div>
+                <button class="btn btn-secondary" id="nextRoundBtn" onclick="nextRound()">次へ</button>
             </div>
         </div>
 
-        <!-- フェーズ8: 勝敗決定 -->
         <div class="game-phase hidden" id="phase-game-over">
             <div class="phase-content">
-                <div class="winner-announcement" id="winnerAnnouncement">
-                    勝敗決定！
-                </div>
-                
-                <div class="result-summary">
-                    <div id="finalScores"></div>
-                </div>
-                
-                <button class="btn" onclick="startNewGame()">新しいゲームを始める</button>
+                <div id="winnerAnnouncement" style="font-size:2rem; font-weight:800; margin:20px 0;"></div>
+                <button class="btn" onclick="startNewGame()">最初から遊ぶ</button>
             </div>
         </div>
     </div>
 
     <script>
-    // --- DOM ---
-    const topicTextEl = document.getElementById('topicText');
-    const gaugeValueEl = document.getElementById('gaugeValue');
-    const scoreDisplayEl = document.getElementById('scoreDisplay');
-    const redTeamScoreEl = document.getElementById('redTeamScore');
-    const blueTeamScoreEl = document.getElementById('blueTeamScore');
-    const resultSummaryEl = document.getElementById('resultSummary');
-
-    const guessDial = document.getElementById('guess-dial');
-    const guessSvg = document.getElementById('guess-svg');
-    const psychicSvg = document.getElementById('psychic-svg');
-    const resultSvg = document.getElementById('result-svg');
-
-    const needleEl = document.getElementById('needle');
-    const knobEl = document.getElementById('knob');
-    const resultNeedleEl = document.getElementById('result-needle');
-
-    // --- 状態 ---
-    const gameState = {
-        currentTeam: 'red', // 'red' or 'blue'
-        firstTeam: 'red',   // 先行チーム
-        redScore: 0,
-        blueScore: 0,
-        targetScore: 11,
-        isSuddenDeath: false,
-        roundCount: 0,
-        
-        topic: null,
-        targetAngle: 0, // -90 .. +90
-        guessAngle: 0,  // -90 .. +90
-        vote: null,     // 'left' or 'right'
-        roundScore: 0,
-        voteScore: 0
+    // --- ジャンル別お題リスト (合計200個) ---
+    const topicStore = {
+        standard: [
+            {left:"悪い", right:"良い"}, {left:"普通", right:"奇妙"}, {left:"安価", right:"高価"}, {left:"無名", right:"有名"}, {left:"汚い", right:"きれい"}, {left:"使いにくい", right:"使いやすい"}, {left:"役に立たない", right:"役に立つ"}, {left:"簡単", right:"難しい"}, {left:"低品質", right:"高品質"}, {left:"一時的", right:"永続的"}, {left:"現実", right:"空想"}, {left:"過去", right:"未来"}, {left:"地味", right:"派手"}, {left:"狭い", right:"広い"}, {left:"暗い", right:"明るい"}, {left:"軽い", right:"重い"}, {left:"静か", right:"うるさい"}, {left:"弱い", right:"強い"}, {left:"嫌い", right:"好き"}, {left:"偽物", right:"本物"}, {left:"過小評価なアルファベット", right:"過大評価なアルファベット"}
+        ],
+        food: [
+            {left:"おやつ", right:"食事"}, {left:"子供の味", right:"大人の味"}, {left:"和食", right:"洋食"}, {left:"マヨネーズに合う", right:"ケチャップに合う"}, {left:"毎日食べられる", right:"たまにでいい"}, {left:"ご褒美", right:"日常食"}, {left:"スパイシー", right:"マイルド"}, {left:"低カロリー", right:"高カロリー"}, {left:"健康的", right:"不健康（だが美味い）"}, {left:"家で食べる", right:"外で食べる"}, {left:"朝ごはん", right:"晩ごはん"}, {left:"冷たいほうがいい", right:"温かいほうがいい"}, {left:"つまみ", right:"おかず"}, {left:"甘い", right:"しょっぱい"}, {left:"手作り", right:"既製品"}, {left:"柔らかい", right:"硬い"}, {left:"さっぱり", right:"こってり"}, {left:"主役", right:"脇役"}, {left:"飲み物に近い", right:"食べ物に近い"}, {left:"香りがいい", right:"味が強い"}, {left:"高いけど少量", right:"安いけど大量"}, {left:"冬に食べたい", right:"夏に食べたい"}, {left:"太る", right:"痩せる"}, {left:"箸で食べる", right:"スプーンで食べる"}, {left:"高級料理", right:"B級グルメ"}
+        ],
+        human: [
+            {left:"陰キャ", right:"陽キャ"}, {left:"信頼できる", right:"怪しい"}, {left:"甘え上手", right:"しっかり者"}, {left:"友達になりたい", right:"遠くから見てたい"}, {left:"モテそう", right:"モテなさそう"}, {left:"内向的", right:"外向的"}, {left:"お人好し", right:"意地悪"}, {left:"インドア", right:"アウトドア"}, {left:"浪費家", right:"節約家"}, {left:"論理的", right:"感情的"}, {left:"朝型", right:"夜型"}, {left:"聞き上手", right:"話し上手"}, {left:"天然", right:"しっかり者"}, {left:"平和主義", right:"好戦的"}, {left:"センスがある", right:"努力の人"}, {left:"子供っぽい", right:"大人びている"}, {left:"慎重", right:"大胆"}, {left:"器用", right:"不器用"}, {left:"一匹狼", right:"寂しがりや"}, {left:"楽観的", right:"悲観的"}, {left:"嘘が下手", right:"嘘が上手"}, {left:"自信家", right:"謙虚"}, {left:"都会派", right:"田舎派"}, {left:"頑固", right:"素直"}, {left:"天才肌", right:"秀才肌"}, {left:"毒舌", right:"丁寧"}, {left:"遊び人", right:"真面目"}, {left:"ミステリアス", right:"分かりやすい"}, {left:"怖そう", right:"優しそう"}
+        ],
+        life: [
+            {left:"地味な仕事", right:"派手な仕事"}, {left:"運", right:"努力"}, {left:"誰でもできる", right:"職人芸"}, {left:"将来なくなりそう", right:"一生残りそう"}, {left:"趣味", right:"仕事"}, {left:"アナログ", right:"デジタル"}, {left:"都会", right:"田舎"}, {left:"昭和", right:"令和"}, {left:"一人旅", right:"グループ旅行"}, {left:"流行", right:"定番"}, {left:"実用的", right:"芸術的"}, {left:"平日の昼間", right:"休日の夜"}, {left:"徒歩", right:"乗り物"}, {left:"自由", right:"安定"}, {left:"質素", right:"贅沢"}, {left:"面倒くさい", right:"楽しい"}, {left:"効率重視", right:"情緒重視"}, {left:"自分用", right:"プレゼント用"}, {left:"一目惚れ", right:"徐々に好きになる"}, {left:"家事", right:"育児"}, {left:"貯金", right:"投資"}, {left:"副業", right:"本業"}, {left:"スキル", right:"人脈"}, {left:"睡眠", right:"活動"}, {left:"掃除", right:"料理"}
+        ],
+        nuance: [
+            {left:"ゴミ", right:"宝物"}, {left:"ダサかっこいい", right:"ガチでかっこいい"}, {left:"猫っぽい", right:"犬っぽい"}, {left:"怖い", right:"面白い"}, {left:"カジュアル", right:"フォーマル"}, {left:"マニアック", right:"メジャー"}, {left:"セクシー", right:"キュート"}, {left:"エモい", right:"理論的"}, {left:"攻撃的", right:"守備的"}, {left:"男らしい", right:"女らしい"}, {left:"神秘的", right:"科学的"}, {left:"上品", right:"下品"}, {left:"派生作品", right:"オリジナル"}, {left:"脇役", right:"主人公"}, {left:"少年漫画", right:"青年漫画"}, {left:"王道", right:"邪道"}, {left:"懐かしい", right:"斬新"}, {left:"ハードボイルド", right:"メルヘン"}, {left:"知的", right:"肉体的"}, {left:"直感的", right:"計算的"}, {left:"光", right:"影"}, {left:"ドラマチック", right:"淡々としている"}, {left:"奇跡", right:"必然"}, {left:"主観的", right:"客観的"}
+        ],
+        mixed: [
+            {left:"あつい", right:"つめたい"}, {left:"硬い", right:"柔らかい"}, {left:"丸い", right:"尖った"}, {left:"軽い中毒性", right:"高い中毒性"}, {left:"無色", right:"カラフル"}, {left:"風味がない", right:"風味豊か"}, {left:"危険な仕事", right:"安全な仕事"}, {left:"壊れやすい", right:"壊れにくい"}, {left:"不細工", right:"イケメン"}, {left:"毛がない", right:"毛深い"}, {left:"柔軟性がない", right:"柔軟性がある"}, {left:"普通のペット", right:"変わったペット"}, {left:"影が薄い", right:"存在感がある"}, {left:"バイト", right:"職業"}, {left:"嫌われている", right:"愛されている"}, {left:"直線", right:"曲線"}, {left:"歴史的に重要でない", right:"歴史的に重要"}, {left:"綴りが簡単", right:"綴りが難しい"}, {left:"不安定", right:"安定"}, {left:"女っぽい", right:"男らしい"}, {left:"役に立たない体の部位", right:"役に立つ体の部位"}, {left:"ヴィラン", right:"ヒーロー"}, {left:"子供向け", right:"大人向け"}, {left:"有限", right:"無限"}, {left:"秘密", right:"誰もが知っている"}, {left:"小さすぎる", right:"大きすぎる"}, {left:"短い", right:"長い"}, {left:"少数", right:"多数"}, {left:"誤", right:"正"}, {left:"不自然", right:"自然"}, {left:"噂", right:"ニュース"}, {left:"水平", right:"垂直"}, {left:"ビジネス", right:"アート"}, {left:"一発屋", right:"スター"}, {left:"悪いアドバイス", right:"良いアドバイス"}, {left:"伝統的", right:"革新的"}, {left:"違法", right:"合法"}, {left:"浅い考え", right:"深い考え"}, {left:"時間を守らない", right:"時間を守る"}, {left:"名高い", right:"悪名高い"}, {left:"想定内", right:"想定外"}, {left:"ふわふわ", right:"でこぼこ"}, {left:"おにぎりの具に不向き", right:"おにぎりの具に向いている"}, {left:"下手", right:"上手"}, {left:"古い", right:"新しい"}, {left:"ダサい", right:"おしゃれ"}, {left:"洗練された", right:"野暮ったい"}, {left:"退屈", right:"エキサイティング"}, {left:"宗教的", right:"世俗的"}, {left:"絶滅しそう", right:"増えすぎている"}, {left:"無害", right:"有害"}, {left:"低賃金", right:"高賃金"}, {left:"禁じられた", right:"推奨された"}, {left:"悲しい", right:"幸せ"}, {left:"不健康", right:"健康"}, {left:"暴力的な", right:"平和的な"}, {left:"脆い", right:"頑丈な"}, {left:"つまらない", right:"魅力的"}, {left:"汚い言葉", right:"美しい言葉"}, {left:"マニア向け", right:"大衆向け"}, {left:"独創的", right:"模倣的"}, {left:"孤独", right:"社交"}, {left:"過去の栄光", right:"将来性"}, {left:"依存", right:"自立"}, {left:"複雑", right:"単純"}, {left:"不親切", right:"親切"}, {left:"消極的", right:"積極的"}, {left:"夢がある", right:"現実的"}, {left:"不規則", right:"規則的"}, {left:"子供の遊び", right:"大人の趣味"}, {left:"原始的", right:"先進的"}, {left:"短命", right:"長生き"}, {left:"ニッチ", right:"メジャー"}, {left:"絶望", right:"希望"}
+        ]
     };
 
-    const dialState = { isDragging: false };
+    // すべてのお題を結合
+    const allTopics = [].concat(...Object.values(topicStore));
 
-    // 得点ゾーン設定（内側から外側へ）
-    const scoreZones = [
-        { points: 4, width: 8, color: '#03A9F4' }, // 水色（最も狭い）
-        { points: 3, width: 20, color: '#FF9800' }, // オレンジ
-        { points: 2, width: 32, color: '#FFC107' }  // 黄色（最も広い）
-    ];
+    const gameState = {
+        currentTeam: 'red', redScore: 0, blueScore: 0,
+        topic: null, targetAngle: 0, guessAngle: 0, vote: null,
+        changeCount: 0, maxChanges: 3
+    };
 
-    const topics = [
-        {left:"下手", right:"上手"}, {left:"アナログ", right:"デジタル"},
-        {left:"無名", right:"有名"}, {left:"悪", right:"善"},
-        {left:"ダサい", right:"おしゃれ"}, {left:"必須", right:"不要"},
-        {left:"冷たい", right:"熱い"}, {left:"汚い", right:"きれい"},
-        {left:"普通", right:"変わってる"}, {left:"軽犯罪", right:"重罪"},
-        {left:"古い", right:"新しい"}, {left:"簡単", right:"難しい"},
-        {left:"安い", right:"高い"}, {left:"暗い", right:"明るい"},
-        {left:"遅い", right:"速い"}, {left:"小さい", right:"大きい"}
-    ];
-
-    // --- チーム管理 ---
     function updateTeamDisplay() {
         const isRed = gameState.currentTeam === 'red';
         document.body.className = isRed ? 'red-team-turn' : 'blue-team-turn';
+        document.getElementById('redTeamScore').textContent = `赤: ${gameState.redScore}`;
+        document.getElementById('blueTeamScore').textContent = `青: ${gameState.blueScore}`;
+        document.getElementById('redTeamScore').classList.toggle('current-team', isRed);
+        document.getElementById('blueTeamScore').classList.toggle('current-team', !isRed);
         
-        // スコアボード更新
-        redTeamScoreEl.innerHTML = `<div>赤チーム</div><div>${gameState.redScore}点</div>`;
-        blueTeamScoreEl.innerHTML = `<div>青チーム</div><div>${gameState.blueScore}点</div>`;
-        
-        // 現在のチームを強調
-        redTeamScoreEl.classList.toggle('current-team', isRed);
-        blueTeamScoreEl.classList.toggle('current-team', !isRed);
-        
-        // チーム表示更新
         const teamName = isRed ? '赤チーム' : '青チーム';
-        document.querySelectorAll('.team-indicator').forEach(el => {
-            el.textContent = teamName;
-            el.className = isRed ? 'team-indicator red-team-indicator' : 'team-indicator blue-team-indicator';
-        });
-        
-        // 投票相手チーム表示
-        const voteTeamName = isRed ? '青チーム' : '赤チーム';
-        const voteIndicator = document.getElementById('voteTeamIndicator');
-        if (voteIndicator) {
-            voteIndicator.textContent = voteTeamName;
-            voteIndicator.className = isRed ? 'team-indicator blue-team-indicator' : 'team-indicator red-team-indicator';
-        }
-        
-        // 投票ボタンのラベル更新
-        if (gameState.topic) {
-            document.getElementById('leftLabel').textContent = gameState.topic.left + '寄り';
-            document.getElementById('rightLabel').textContent = gameState.topic.right + '寄り';
-        }
+        const oppName = isRed ? '青チーム' : '赤チーム';
+        document.getElementById('currentTeamIndicator').textContent = teamName;
+        document.getElementById('psychicTeamIndicator').textContent = teamName;
+        document.getElementById('voteTeamIndicator').textContent = oppName;
+        document.getElementById('guessTeamIndicator').textContent = teamName;
     }
 
-    function switchTeam() {
-        gameState.currentTeam = gameState.currentTeam === 'red' ? 'blue' : 'red';
-    }
-
-    // --- フェーズ操作 ---
-    function showPhase(phaseId){
-        document.querySelectorAll('.game-phase').forEach(p => p.classList.add('hidden'));
-        document.getElementById(phaseId).classList.remove('hidden');
-    }
-
-    function startNewGame(){
-        // 初期化
-        gameState.redScore = 0;
-        gameState.blueScore = 0;
-        gameState.roundCount = 0;
-        gameState.isSuddenDeath = false;
-        
-        // 先行をランダム決定
-        gameState.firstTeam = Math.random() < 0.5 ? 'red' : 'blue';
-        gameState.currentTeam = gameState.firstTeam;
-        
+    function startNewGame() {
+        gameState.redScore = 0; gameState.blueScore = 0;
+        gameState.currentTeam = 'red';
         updateTeamDisplay();
-        document.body.className = 'neutral-bg';
         showPhase('phase-round-start');
     }
 
-    function startRound(){
-        // 新しいお題生成
-        gameState.topic = topics[Math.floor(Math.random()*topics.length)];
-        // -90度から+90度の範囲（0%〜100%をカバー）
-        gameState.targetAngle = Math.random()*180 - 90;
-        gameState.vote = null;
-        gameState.roundScore = 0;
-        gameState.voteScore = 0;
-
-        topicTextEl.innerHTML = `<span>${gameState.topic.left}</span><span>⇔</span><span>${gameState.topic.right}</span>`;
-        
-        updateTeamDisplay();
-        showPhase('phase-topic');
+    function showPhase(id) {
+        document.querySelectorAll('.game-phase').forEach(p => p.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
     }
 
-    function goToHintPhase(){
-        // 描画（心理役用）
-        drawScoreZonesSVG(psychicSvg, gameState.targetAngle);
-        updateTeamDisplay();
+    function startRound() {
+        pickTopic();
+        gameState.targetAngle = (Math.random() * 144) - 72;
+        gameState.changeCount = 0;
+        updateChangeBtn();
+        drawDial(document.getElementById('psychic-svg'), gameState.targetAngle);
         showPhase('phase-psychic');
     }
 
-    function goToVotePhase(){
-        updateTeamDisplay();
-        showPhase('phase-vote');
+    function pickTopic() {
+        gameState.topic = allTopics[Math.floor(Math.random() * allTopics.length)];
+        document.getElementById('topicText').innerHTML = `<span>${gameState.topic.left}</span><span>⇔</span><span>${gameState.topic.right}</span>`;
+        document.getElementById('leftLabel').textContent = gameState.topic.left + '寄り';
+        document.getElementById('rightLabel').textContent = gameState.topic.right + '寄り';
     }
 
-    function submitVote(vote){
-        gameState.vote = vote;
-        goToGuessPhase();
+    function changeTopic() {
+        if (gameState.changeCount < gameState.maxChanges) {
+            pickTopic();
+            gameState.targetAngle = (Math.random() * 144) - 72;
+            gameState.changeCount++;
+            updateChangeBtn();
+            drawDial(document.getElementById('psychic-svg'), gameState.targetAngle);
+        }
     }
 
-    function goToGuessPhase(){
-        // Guess用ダイヤルは背景のみ（ゾーン非表示）
-        drawScoreZonesSVG(guessSvg, null);
-        
+    function updateChangeBtn() {
+        const b = document.getElementById('changeTopicBtn');
+        b.textContent = `お題変更 (${gameState.changeCount}/${gameState.maxChanges})`;
+        b.disabled = gameState.changeCount >= gameState.maxChanges;
+    }
+
+    function goToVotePhase() { showPhase('phase-vote'); }
+
+    function submitVote(side) {
+        gameState.vote = side;
         gameState.guessAngle = 0;
-        updateNeedle(needleEl, 0);
-        updateGaugeValue(0);
-        positionKnobByAngle(knobEl, guessDial, 0);
-
-        updateTeamDisplay();
+        updateNeedle(document.getElementById('needle'), 0);
+        positionKnob(0);
+        drawDial(document.getElementById('guess-svg'), null);
         showPhase('phase-guess');
     }
 
-    function submitGuess(){
-        // 得点計算
-        calculateScores();
-
-        // 表示更新
-        showResults();
-
-        // 結果ダイヤル（正解ゾーンを表示）
-        drawScoreZonesSVG(resultSvg, gameState.targetAngle);
-        updateNeedle(resultNeedleEl, gameState.guessAngle);
-
-        showPhase('phase-result');
-    }
-
-    function calculateScores(){
+    function submitGuess() {
         const diff = Math.abs(gameState.guessAngle - gameState.targetAngle);
-        let mainScore = 0;
-        
-        // メインチームの得点計算（最も狭いゾーンから順にチェック）
-        scoreZones.slice().sort((a,b)=>a.width - b.width).forEach(zone=>{
-            if (diff <= zone.width/2){
-                if (zone.points > mainScore) mainScore = zone.points;
-            }
-        });
-        
-        gameState.roundScore = mainScore;
-        
-        // 投票チームの得点計算 - 修正：正解エリアの位置で判定
-        let voteScore = 0;
-        if (gameState.vote) {
-            // 正解エリア（targetAngle）が右寄りか左寄りかで判定
-            const isTargetRight = gameState.targetAngle > 0;
-            const voteRight = gameState.vote === 'right';
-            
-            if ((isTargetRight && voteRight) || (!isTargetRight && !voteRight)) {
-                voteScore = 1; // 投票が当たった場合
-            }
-        }
-        
-        gameState.voteScore = voteScore;
-        
-        // スコア加算
+        let pts = 0;
+        if (diff <= 4) pts = 4;
+        else if (diff <= 10) pts = 3;
+        else if (diff <= 16) pts = 2;
+
+        const targetSide = gameState.targetAngle < 0 ? 'left' : 'right';
+        let votePts = (gameState.vote === targetSide) ? 1 : 0;
+
         if (gameState.currentTeam === 'red') {
-            gameState.redScore += mainScore;
-            gameState.blueScore += voteScore;
+            gameState.redScore += pts; gameState.blueScore += votePts;
         } else {
-            gameState.blueScore += mainScore;
-            gameState.redScore += voteScore;
+            gameState.blueScore += pts; gameState.redScore += votePts;
         }
-    }
 
-    function showResults(){
-        const mainTeamName = gameState.currentTeam === 'red' ? '赤チーム' : '青チーム';
-        const voteTeamName = gameState.currentTeam === 'red' ? '青チーム' : '赤チーム';
-        
-        const voteResult = gameState.voteScore > 0 ? '正解！' : '不正解';
-        const voteText = gameState.vote === 'left' ? gameState.topic.left + '寄り' : gameState.topic.right + '寄り';
-        
-        // 正解が実際にどちら寄りだったかを表示
-        const actualSide = gameState.targetAngle > 0 ? gameState.topic.right + '寄り' : gameState.topic.left + '寄り';
-        
-        resultSummaryEl.innerHTML = `
-            <div class="score-display">
-                ${mainTeamName}: ${gameState.roundScore}点獲得！<br>
-                ${voteTeamName}: ${voteText}に投票<br>
-                正解は${actualSide} → ${voteResult} (+${gameState.voteScore}点)
-            </div>
+        document.getElementById('resultSummary').innerHTML = `
+            <div style="font-size:1.5rem;font-weight:700">${pts}点 獲得！</div>
+            <p>相手の投票は... ${votePts?'正解！(+1点)':'不正解'}</p>
         `;
-        
-        updateTeamDisplay();
-        
-        // 次のボタン設定
-        const nextBtn = document.getElementById('nextRoundBtn');
-        if (checkGameEnd()) {
-            nextBtn.textContent = '結果発表';
-            nextBtn.onclick = () => showGameOver();
-        } else {
-            nextBtn.textContent = '次のラウンド';
-            nextBtn.onclick = () => nextRound();
+        drawDial(document.getElementById('result-svg'), gameState.targetAngle);
+        updateNeedle(document.getElementById('result-needle'), gameState.guessAngle);
+        showPhase('phase-result');
+
+        if (gameState.redScore >= 11 || gameState.blueScore >= 11) {
+            document.getElementById('nextRoundBtn').textContent = "最終結果へ";
+            document.getElementById('nextRoundBtn').onclick = () => {
+                const winner = gameState.redScore > gameState.blueScore ? '赤チーム' : '青チーム';
+                document.getElementById('winnerAnnouncement').textContent = `🎉 ${winner}の勝利！ 🎉`;
+                showPhase('phase-game-over');
+            };
         }
     }
 
-    function checkGameEnd(){
-        const redWin = gameState.redScore >= gameState.targetScore;
-        const blueWin = gameState.blueScore >= gameState.targetScore;
-        
-        if (gameState.isSuddenDeath) {
-            // サドンデス中は両チームが1回ずつプレイした後に判定
-            gameState.roundCount++;
-            if (gameState.roundCount >= 2) {
-                return gameState.redScore !== gameState.blueScore;
-            }
-        } else {
-            if (redWin || blueWin) {
-                if (gameState.redScore === gameState.blueScore) {
-                    // 同点の場合はサドンデス
-                    gameState.isSuddenDeath = true;
-                    gameState.roundCount = 0;
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        }
-        
-        return false;
-    }
-
-    function nextRound(){
-        if (gameState.isSuddenDeath && gameState.roundCount < 2) {
-            // サドンデス中は相手チームの番
-            switchTeam();
-        } else {
-            // 通常ラウンド：先行後攻を入れ替え
-            switchTeam();
-            gameState.firstTeam = gameState.currentTeam;
-        }
-        
+    function nextRound() {
+        gameState.currentTeam = gameState.currentTeam === 'red' ? 'blue' : 'red';
         updateTeamDisplay();
         showPhase('phase-round-start');
     }
 
-    function showGameOver(){
-        const winner = gameState.redScore > gameState.blueScore ? 'red' : 'blue';
-        const winnerName = winner === 'red' ? '赤チーム' : '青チーム';
-        
-        const winnerEl = document.getElementById('winnerAnnouncement');
-        winnerEl.textContent = `🎉 ${winnerName} 勝利！ 🎉`;
-        winnerEl.className = winner === 'red' ? 'winner-announcement red-winner' : 'winner-announcement blue-winner';
-        
-        document.getElementById('finalScores').innerHTML = `
-            <div style="font-size:1.2rem; font-weight:700;">
-                最終スコア<br>
-                赤チーム: ${gameState.redScore}点<br>
-                青チーム: ${gameState.blueScore}点
-            </div>
-        `;
-        
-        document.body.className = winner === 'red' ? 'red-team-turn' : 'blue-team-turn';
-        showPhase('phase-game-over');
-    }
-
-    // --- SVG描画（3段階の扇形ゾーン） ---
-    function drawScoreZonesSVG(svgEl, centerAngle){
-        svgEl.innerHTML = '';
-        if (centerAngle === null || centerAngle === undefined) {
-            // 背景の半円のみ描画
-            drawSemiCircleOutline(svgEl);
-            return;
+    function drawDial(svg, target) {
+        svg.innerHTML = '';
+        const cx=160, cy=160, r=160;
+        if (target !== null) {
+            const zones = [{w:32, c:'#FFC107'}, {w:20, c:'#FF9800'}, {w:8, c:'#03A9F4'}];
+            zones.forEach(z => {
+                const s = (target - z.w/2 - 90) * Math.PI / 180;
+                const e = (target + z.w/2 - 90) * Math.PI / 180;
+                const x1 = cx + r * Math.cos(s), y1 = cy + r * Math.sin(s);
+                const x2 = cx + r * Math.cos(e), y2 = cy + r * Math.sin(e);
+                const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+                p.setAttribute('d', `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`);
+                p.setAttribute('fill', z.c);
+                svg.appendChild(p);
+            });
         }
-
-        const W = 320, H = 160;
-        const cx = W/2, cy = H;
-        const r = W/2;
-
-        // helper: 度->座標
-        const degToPoint = (angleDeg) => {
-            const rad = (angleDeg - 90) * Math.PI / 180;
-            const x = cx + r * Math.cos(rad);
-            const y = cy + r * Math.sin(rad);
-            return {x,y};
-        };
-
-        // 外側から内側へ描画（大きいゾーンから小さいゾーンへ）
-        scoreZones.slice().sort((a,b)=>b.width - a.width).forEach(zone=>{
-            const half = zone.width/2;
-            let start = Math.max(-90, centerAngle - half);
-            let end   = Math.min(90, centerAngle + half);
-            if (end <= start) return;
-
-            const p1 = degToPoint(start);
-            const p2 = degToPoint(end);
-
-            const largeArc = (Math.abs(end - start) > 180) ? 1 : 0;
-            const sweep = 1;
-
-            const d = `M ${cx} ${cy} L ${p1.x} ${p1.y} A ${r} ${r} 0 ${largeArc} ${sweep} ${p2.x} ${p2.y} Z`;
-
-            const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-            path.setAttribute('d', d);
-            path.setAttribute('fill', zone.color);
-            path.setAttribute('opacity', 0.9);
-            svgEl.appendChild(path);
-        });
-
-        drawSemiCircleOutline(svgEl);
+        const border = document.createElementNS('http://www.w3.org/2000/svg','path');
+        border.setAttribute('d', `M 0 160 A 160 160 0 0 1 320 160`);
+        border.setAttribute('stroke', '#3D4A5E');
+        border.setAttribute('stroke-width', '8');
+        border.setAttribute('fill', 'none');
+        svg.appendChild(border);
     }
 
-    function drawSemiCircleOutline(svgEl) {
-        const W = 320, H = 160;
-        const r = W/2;
-        const cx = W/2, cy = H;
-        
-        const outline = document.createElementNS('http://www.w3.org/2000/svg','path');
-        const left = {x: 0, y: H};
-        const right = {x: W, y: H};
-        outline.setAttribute('d', `M ${left.x} ${left.y} A ${r} ${r} 0 0 1 ${right.x} ${right.y}`);
-        outline.setAttribute('stroke','rgba(61,74,94,0.9)');
-        outline.setAttribute('stroke-width','4');
-        outline.setAttribute('fill','none');
-        svgEl.appendChild(outline);
+    function updateNeedle(el, a) { el.style.transform = `translateX(-50%) rotate(${a}deg)`; }
+    function positionKnob(a) {
+        const rad = (a - 90) * Math.PI / 180;
+        const x = 160 + 160 * Math.cos(rad), y = 160 + 160 * Math.sin(rad);
+        const k = document.getElementById('knob');
+        k.style.left = `${(x/320)*100}%`; k.style.top = `${(y/160)*100}%`;
     }
 
-    // --- 針・ゲージ更新 ---
-    function updateNeedle(el, angle){
-        if(!el) return;
-        el.style.transform = `translateX(-50%) rotate(${angle}deg)`;
-    }
-    
-    function updateGaugeValue(angle){
-        const val = Math.round(((angle + 90) / 180) * 100);
-        if (gaugeValueEl) gaugeValueEl.textContent = val;
-    }
-
-    // --- ノブを弧上に移動させる ---
-    function positionKnobByAngle(knob, dialEl, angle){
-        const W = 320, H = 160;
-        const cx = W/2, cy = H, r = W/2;
-        const rad = (angle - 90) * Math.PI / 180;
-        const x = cx + r * Math.cos(rad);
-        const y = cy + r * Math.sin(rad);
-        
-        const leftPct = (x / W) * 100;
-        const topPct  = (y / H) * 100;
-        knob.style.left = `${leftPct}%`;
-        knob.style.top  = `${topPct}%`;
-    }
-
-    // --- 改良されたダイヤル操作 ---
-    function handleDragStart(e){
-        if (e.type === 'touchstart') e.preventDefault();
-        dialState.isDragging = true;
-        knobEl.classList.add('dragging');
-    }
-
-    function handleDragMove(e){
-        if (!dialState.isDragging) return;
-        if (e.type === 'touchmove') e.preventDefault();
-
-        const dial = guessDial;
+    let isDrag = false;
+    const dial = document.getElementById('guess-dial');
+    function move(e) {
+        if (!isDrag) return;
         const rect = dial.getBoundingClientRect();
-
-        const clientX = (e.touches ? e.touches[0].clientX : e.clientX);
-        const clientY = (e.touches ? e.touches[0].clientY : e.clientY);
-
-        // 半円の底辺中心を基点
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height;
-
-        const dx = clientX - centerX;
-        const dy = centerY - clientY;
-
-        // 角度計算 - dyとdxを入れ替えて正しい向きに
-        let angle = Math.atan2(dx, dy) * 180 / Math.PI;
-        // -90..+90に制限
-        angle = Math.max(-90, Math.min(90, angle));
-
-        gameState.guessAngle = angle;
-        updateNeedle(needleEl, angle);
-        updateGaugeValue(angle);
-        positionKnobByAngle(knobEl, dial, angle);
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        const dx = cx - (rect.left + rect.width/2);
+        const dy = (rect.top + rect.height) - cy;
+        let a = Math.atan2(dx, dy) * 180 / Math.PI;
+        a = Math.max(-90, Math.min(90, a));
+        gameState.guessAngle = a;
+        updateNeedle(document.getElementById('needle'), a);
+        positionKnob(a);
+        document.getElementById('gaugeValue').textContent = Math.round(((a+90)/180)*100);
     }
-
-    function handleDragEnd(e){
-        dialState.isDragging = false;
-        knobEl.classList.remove('dragging');
-    }
-
-    // キーボード操作（アクセシビリティ）
-    knobEl.addEventListener('keydown', (e)=>{
-        let delta = 0;
-        if (e.key === 'ArrowLeft' || e.key === 'ArrowDown'){
-            delta = -5;
-        } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp'){
-            delta = 5;
-        } else return;
-        
-        gameState.guessAngle = Math.max(-90, Math.min(90, gameState.guessAngle + delta));
-        updateNeedle(needleEl, gameState.guessAngle);
-        updateGaugeValue(gameState.guessAngle);
-        positionKnobByAngle(knobEl, guessDial, gameState.guessAngle);
-        e.preventDefault();
-    });
-
-    // イベント登録
-    knobEl.addEventListener('mousedown', handleDragStart);
-    knobEl.addEventListener('touchstart', handleDragStart, {passive:false});
-    window.addEventListener('mousemove', handleDragMove);
-    window.addEventListener('touchmove', handleDragMove, {passive:false});
-    window.addEventListener('mouseup', handleDragEnd);
-    window.addEventListener('touchend', handleDragEnd);
-
-    // ウィンドウリサイズ時にノブを再配置
-    window.addEventListener('resize', ()=>{
-        positionKnobByAngle(knobEl, guessDial, gameState.guessAngle);
-    });
-
-    // 初期表示
-    showPhase('phase-start');
+    document.getElementById('knob').onmousedown = () => isDrag = true;
+    document.getElementById('knob').ontouchstart = (e) => { isDrag = true; e.preventDefault(); };
+    window.onmousemove = move; window.ontouchmove = move;
+    window.onmouseup = () => isDrag = false; window.ontouchend = () => isDrag = false;
     </script>
 </body>
 </html>
