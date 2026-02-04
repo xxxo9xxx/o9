@@ -27,10 +27,7 @@
         
         <div id="game-content"></div>
 
-        <div id="footer-actions" class="mt-20 flex flex-col items-center gap-4">
-            <button id="force-reset-btn" onclick="forceResetRoom()" class="hidden text-[10px] bg-red-100 text-red-500 px-4 py-2 rounded-full font-bold border border-red-200 shadow-sm">
-                ホスト権限：部屋を強制解散
-            </button>
+        <div class="mt-20">
             <button onclick="leaveAndReset()" class="text-[10px] text-slate-300 underline uppercase tracking-widest">
                 退出してリセット
             </button>
@@ -56,27 +53,28 @@
         document.getElementById('room-display').innerText = "ROOM: " + roomId;
 
         const QUESTIONS = [
-            {text: "一番、浮気しそうな雰囲気がある人は？"}, {text: "実は一番、腹黒そうな人は？"}, {text: "一番、長生きしそうなタイプな人は？"}, {text: "一番、涙もろそうなイメージの人は？"}, {text: "一番、寂しがり屋っぽい雰囲気な人は？"},
-            {text: "一番、負けず嫌いそうな人は？"}, {text: "一番、天然ボケっぽい一面がある人は？"}, {text: "一番、頑固そうなイメージな人は？"}, {text: "一番、ロマンチストっぽいところがある人は？"}, {text: "一番、ナルシストな一面がありそうな人は？"},
-            {text: "一番、私生活が謎に包まれていそうな人は？"}, {text: "一番、貯金が得意そうな人は？"}, {text: "一番、ギャンブルにハマりそうなタイプな人は？"}, {text: "一番、実はモテそうな雰囲気な人は？"}, {text: "一番、怒ると怖そうなイメージな人は？"},
-            {text: "一番、お酒を飲むと変わりそうな人は？"}, {text: "一番、料理が上手そうな雰囲気な人は？"}, {text: "一番、片付けが苦手そうな人は？"}, {text: "一番、運が良さそうな人は？"}, {text: "一番、早起きが苦手そうな人は？"},
-            {text: "一番、流行に詳しそうな人は？"}, {text: "一番、運動神経が良さそうな人は？"}, {text: "一番、読書をしていそうなイメージな人は？"}, {text: "一番、わがままを言いそうなタイプな人は？"}, {text: "一番、優柔不断そうなところがある人は？"},
-            {text: "一番、実は甘えん坊そうな人は？"}, {text: "一番、嘘をつくのが下手そうな人は？"}, {text: "一番、将来大物になりそうな雰囲気な人は？"}, {text: "一番、子供っぽさが残っていそうな人は？"}, {text: "一番、冷静沈着そうな人は？"},
-            {text: "一番、頼りになりそうなイメージな人は？"}, {text: "一番、お化け屋敷が苦手そうな人は？"}, {text: "一番、一度寝たら起きなさそうな人は？"}, {text: "一番、歌が上手そうな雰囲気な人は？"}, {text: "一番、忘れ物が多そうなタイプな人は？"},
-            {text: "一番、実はロマンチックな夢を見ていそうな人は？"}, {text: "一番、サプライズを企画してくれそうな人は？"}, {text: "一番、金遣いが荒そうなイメージな人は？"}, {text: "一番、自分に厳しそうな人は？"}, {text: "一番、他人に優しそうな人は？"},
-            {text: "一番、朝の準備に時間がかかりそうな人は？"}, {text: "一番、スマホをずっと触っていそうな人は？"}, {text: "一番、実はオタク気質がありそうな人は？"}, {text: "一番、動物に好かれそうな雰囲気な人は？"}, {text: "一番、方向音痴っぽいところがある人は？"},
-            {text: "一番、SNSの返信が早そうな人は？"}, {text: "一番、こだわりが強そうなイメージな人は？"}, {text: "一番、いつもお腹が空いていそうな人は？"}, {text: "一番、実は歌って踊れそうな人は？"}, {text: "一番、一人旅が好きそうな人は？"},
-            {text: "一番、秘密を守ってくれそうな人は？"}, {text: "一番、初対面で緊張してそうな人は？"}, {text: "一番、服のセンスが独特そうな人は？"}, {text: "一番、笑いのツボが浅そうな人は？"}, {text: "一番、実は涙を隠してそうな人は？"},
-            {text: "一番、掃除が好きそうなタイプな人は？"}, {text: "一番、自分をしっかり持っていそうな人は？"}, {text: "一番、聞き上手そうな人は？"}, {text: "一番、話し上手そうな人は？"}, {text: "一番、実は怖がりそうな一面がある人は？"},
-            {text: "一番、記憶力が良さそうな人は？"}, {text: "一番、健康に気を使っていそうな人は？"}, {text: "一番、映画で泣いていそうなイメージな人は？"}, {text: "一番、料理をこだわりそうな人は？"}, {text: "一番、機械に詳しそうな人は？"},
-            {text: "一番、字が綺麗そうな人は？"}, {text: "一番、部屋がお洒落そうな人は？"}, {text: "一番、一目惚れしそうなタイプな人は？"}, {text: "一番、実は寂しさに弱そうな人は？"}, {text: "一番、メンタルが強そうな人は？"},
-            {text: "一番、集中力が凄そうなイメージな人は？"}, {text: "一番、お菓子を常に持っていそうな人は？"}, {text: "一番、無人島でも生き残れそうな人は？"}, {text: "一番、仕事が早そうな人は？"}, {text: "一番、寝言を言ってそうな人は？"},
-            {text: "一番、美容に詳しそうな雰囲気な人は？"}, {text: "一番、お祭り騒ぎが好きそうな人は？"}, {text: "一番、実は嫉妬深そうな一面がある人は？"}, {text: "一番、いつも冷静な判断をしていそうな人は？"}, {text: "一番、愛されキャラっぽい人は？"},
-            {text: "一番、ミステリアスな雰囲気がある人は？"}, {text: "一番、面倒見が良さそうな人は？"}, {text: "一番、教え方が上手そうな人は？"}, {text: "一番、冗談が通じなさそうなイメージな人は？"}, {text: "一番、多趣味そうな人は？"},
-            {text: "一番、ずっと喋っていそうなイメージな人は？"}, {text: "一番、サプライズに弱そうな人は？"}, {text: "一番、お世辞が下手そうな人は？"}, {text: "一番、実は努力家そうな人は？"}, {text: "一番、何事も効率重視しそうな人は？"},
-            {text: "一番、流行に流されなさそうな人は？"}, {text: "一番、古風な考えを持っていそうな人は？"}, {text: "一番、夢を追い続けていそうな人は？"}, {text: "一番、誰とでも仲良くなれそうな人は？"}, {text: "一番、第一印象が良さそうな人は？"},
-            {text: "一番、意外なギャップがありそうな人は？"}, {text: "一番、正義感が強そうな人は？"}, {text: "一番、慎重派っぽいタイプな人は？"}, {text: "一番、行動力がありそうなイメージな人は？"}, {text: "一番、感性が豊かそうな人は？"},
-            {text: "一番、いい親になりそうな雰囲気な人は？"}, {text: "一番、ずっと若々しくいそうな人は？"}, {text: "一番、実は不器用そうなところがある人は？"}, {text: "一番、平和主義っぽいイメージな人は？"}, {text: "一番、芯が強そうな人は？"}
+            {text: "一番、浮気しそうな雰囲気がある人"}, {text: "実は一番、腹黒そうなところがある人"}, {text: "一番、長生きしそうなタイプの人"}, {text: "一番、涙もろそうなイメージの人"}, {text: "一番、寂しがり屋っぽい雰囲気の人"},
+            {text: "一番、負けず嫌いそうな人"}, {text: "一番、天然ボケっぽい一面がある人"}, {text: "一番、頑固そうなイメージの人"}, {text: "一番、ロマンチストっぽいところがある人"}, {text: "一番、ナルシストな一面がありそうな人"},
+            {text: "一番、私生活が謎に包まれていそうな人"}, {text: "一番、貯金が得意そうな人"}, {text: "一番、ギャンブルにハマりそうなタイプの人"}, {text: "一番、実はモテそうな雰囲気の人"}, {text: "一番、怒ると怖そうなイメージの人"},
+            {text: "一番、お酒を飲むと変わりそうな人"}, {text: "一番、料理が上手そうな雰囲気の人"}, {text: "一番、片付けが苦手そうな人"}, {text: "一番、運が良さそうな人"}, {text: "一番、早起きが苦手そうな人"},
+            {text: "一番、流行に詳しそうな人"}, {text: "一番、運動神経が良さそうな人"}, {text: "一番、読書をしていそうなイメージの人"}, {text: "一番、わがままを言いそうなタイプの人"}, {text: "一番、優柔不断そうなところがある人"},
+            {text: "一番、実は甘えん坊そうな人"}, {text: "一番、嘘をつくのが下手そうな人"}, {text: "一番、将来大物になりそうな雰囲気の人"}, {text: "一番、子供っぽさが残っていそうな人"}, {text: "一番、冷静沈着そうな人"},
+            {text: "一番、頼りになりそうなイメージの人"}, {text: "一番、お化け屋敷が苦手そうな人"}, {text: "一番、一度寝たら起きなさそうな人"}, {text: "一番、歌が上手そうな雰囲気の人"}, {text: "一番、忘れ物が多そうなタイプの人"},
+            {text: "一番、実はロマンチックな夢を見ていそうな人"}, {text: "一番、サプライズを企画してくれそうな人"}, {text: "一番、金遣いが荒そうなイメージの人"}, {text: "一番、自分に厳しそうな人"}, {text: "一番、他人に優しそうな人"},
+            {text: "一番、朝の準備に時間がかかりそうな人"}, {text: "一番、スマホをずっと触っていそうな人"}, {text: "一番、実はオタク気質がありそうな人"}, {text: "一番、動物に好かれそうな雰囲気の人"}, {text: "一番、方向音痴っぽいところがある人"},
+            {text: "一番、SNSの返信が早そうな人"}, {text: "一番、こだわりが強そうなイメージの人"}, {text: "一番、いつもお腹が空いていそうな人"}, {text: "一番、実は歌って踊れそうな人"}, {text: "一番、一人旅が好きそうな人"},
+            {text: "一番、秘密を守ってくれそうな人"}, {text: "一番、初対面で緊張してそうな人"}, {text: "一番、服のセンスが独特そうな人"}, {text: "一番、笑いのツボが浅そうな人"}, {text: "一番、実は涙を隠してそうな人"},
+            {text: "一番、掃除が好きそうなタイプの人"}, {text: "一番、自分をしっかり持っていそうな人"}, {text: "一番、聞き上手そうな人"}, {text: "一番、話し上手そうな人"}, {text: "一番、実は怖がりそうな一面がある人"},
+            {text: "一番、記憶力が良さそうな人"}, {text: "一番、健康に気を使っていそうな人"}, {text: "一番、映画で泣いていそうなイメージの人"}, {text: "一番、料理をこだわりそうな人"}, {text: "一番、機械に詳しそうな人"},
+            {text: "一番、字が綺麗そうな人"}, {text: "一番、部屋がお洒落そうな人"}, {text: "一番、一目惚れしそうなタイプの人"}, {text: "一番、実は寂しさに弱そうな人"}, {text: "一番、メンタルが強そうな人"},
+            {text: "一番、集中力が凄そうなイメージの人"}, {text: "一番、お菓子を常に持っていそうな人"}, {text: "一番、無人島でも生き残れそうな人"}, {text: "一番、仕事が早そうな人"}, {text: "一番、寝言を言ってそうな人"},
+            {text: "一番、美容に詳しそうな雰囲気の人"}, {text: "一番、お祭り騒ぎが好きそうな人"}, {text: "一番、実は嫉妬深そうな一面がある人"}, {text: "一番、いつも冷静な判断をしていそうな人"}, {text: "一番、愛されキャラっぽい人"},
+            {text: "一番、ミステリアスな雰囲気がある人"}, {text: "一番、面倒見が良さそうな人"}, {text: "一番、教え方が上手そうな人"}, {text: "一番、冗談が通じなさそうなイメージの人"}, {text: "一番、多趣味そうな人"},
+            {text: "一番、ずっと喋っていそうなイメージの人"}, {text: "一番、サプライズに弱そうな人"}, {text: "一番、お世辞が下手そうな人"}, {text: "一番、実は努力家そうな人"}, {text: "一番、何事も効率重視しそうな人"},
+            {text: "一番、流行に流されなさそうな人"}, {text: "一番、古風な考えを持っていそうな人"}, {text: "一番、夢を追い続けていそうな人"}, {text: "一番、誰とでも仲良くなれそうな人"}, {text: "一番、第一印象が良さそうな人"},
+            {text: "一番、意外なギャップがありそうな人"}, {text: "一番、正義感が強そうな人"}, {text: "一番、慎重派っぽいタイプの人"}, {text: "一番、行動力がありそうなイメージの人"}, {text: "一番、感性が豊かそうな人"},
+            {text: "一番、いい親になりそうな雰囲気の人"}, {text: "一番、ずっと若々しくいそうな人"}, {text: "一番、実は不器用そうなところがある人"}, {text: "一番、平和主義っぽいイメージの人"}, {text: "一番、芯が強そうな人"}
+            // お題はここに追加可能です
         ];
 
         let myName = localStorage.getItem("toiro-name") || "";
@@ -85,15 +83,8 @@
 
         roomRef.on("value", (snapshot) => {
             gameState = snapshot.val();
-            if (!gameState || (myName && gameState.members && !gameState.members.includes(myName))) {
-                if (myName) { myName = ""; myRole = ""; localStorage.clear(); }
-            }
             render();
         });
-
-        function forceResetRoom() {
-            if (confirm("【警告】部屋を強制解散して全員をタイトルに戻しますか？")) { roomRef.remove(); }
-        }
 
         function leaveAndReset() {
             if (myName && gameState && gameState.members) {
@@ -112,7 +103,8 @@
         function joinGame(role) {
             const name = document.getElementById('name-input')?.value.trim();
             if (!name) return;
-            myName = name; myRole = role;
+            myName = name;
+            myRole = role;
             localStorage.setItem("toiro-name", name);
             localStorage.setItem("toiro-role", role);
             roomRef.transaction((currentData) => {
@@ -129,14 +121,12 @@
         }
 
         function startGame() {
-            const isExclude = document.getElementById('exclude-mode')?.checked;
             const shuffled = [...QUESTIONS].sort(() => 0.5 - Math.random());
             roomRef.set({
                 phase: 'playing',
                 members: gameState.members,
                 host: gameState.host,
                 questions: shuffled.slice(0, gameState.members.length),
-                excludeMode: isExclude, // モード保存
                 currentQIdx: 0,
                 answers: {},
                 revealIdx: 0
@@ -151,8 +141,11 @@
                     const answersForThisQ = (currentData.answers && currentData.answers[targetQIdx]) || {};
                     const isAllAnswered = Object.keys(answersForThisQ).length === currentData.members.length;
                     if (currentData.phase === 'playing' && currentData.currentQIdx === targetQIdx && isAllAnswered) {
-                        if (targetQIdx < currentData.questions.length - 1) currentData.currentQIdx = targetQIdx + 1;
-                        else currentData.phase = 'pre-reveal';
+                        if (targetQIdx < currentData.questions.length - 1) {
+                            currentData.currentQIdx = targetQIdx + 1;
+                        } else {
+                            currentData.phase = 'pre-reveal';
+                        }
                     }
                     return currentData;
                 });
@@ -161,8 +154,9 @@
 
         function startReveal() { roomRef.update({ phase: 'revealing', revealIdx: 0 }); }
         function nextReveal() {
-            if (gameState.revealIdx < gameState.questions.length - 1) roomRef.update({ revealIdx: gameState.revealIdx + 1 });
-            else roomRef.update({ phase: 'result' });
+            if (gameState.revealIdx < gameState.questions.length - 1) {
+                roomRef.update({ revealIdx: gameState.revealIdx + 1 });
+            } else { roomRef.update({ phase: 'result' }); }
         }
 
         const getGroupRankInfo = (rate) => {
@@ -176,10 +170,6 @@
 
         function render() {
             const container = document.getElementById('game-content');
-            const forceResetBtn = document.getElementById('force-reset-btn');
-            if (myRole === 'host' && myName) forceResetBtn.classList.remove('hidden');
-            else forceResetBtn.classList.add('hidden');
-
             if (!myName) {
                 const hostTaken = !!(gameState && gameState.host);
                 container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-xl fade-in"><input id="name-input" type="text" placeholder="名前を入力" class="w-full mb-6 border-2 p-3 rounded-xl font-bold text-center outline-none focus:border-orange-500"><div class="flex flex-col gap-3"><button onclick="joinGame('host')" ${hostTaken ? 'disabled' : ''} class="w-full ${hostTaken ? 'bg-gray-200 text-gray-400' : 'bg-orange-600 text-white'} h-14 rounded-xl font-bold">${hostTaken ? 'ホスト (満員)' : 'ホストとして参加'}</button><button onclick="joinGame('guest')" class="w-full bg-white border-2 border-orange-500 text-orange-600 h-14 rounded-xl font-bold">ゲストとして参加</button></div></div>`;
@@ -188,22 +178,7 @@
 
             if (!gameState || gameState.phase === 'setup') {
                 const members = (gameState && gameState.members) || [myName];
-                container.innerHTML = `
-                <div class="bg-white p-6 rounded-3xl shadow-xl mb-6 fade-in text-center">
-                    <div class="mb-4">
-                        <span class="text-orange-600 font-black text-xl">${myName}<small class="san">さん</small></span>
-                    </div>
-                    <div class="card-grid mb-4">${members.map(m => `<div class="bg-orange-50 p-3 rounded-xl font-bold text-orange-700 text-sm">👤 ${m}<small class="san">さん</small></div>`).join('')}</div>
-                    ${myRole === 'host' ? `
-                        <div class="border-t pt-4 mt-4">
-                            <label class="flex items-center justify-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="exclude-mode" checked class="w-5 h-5 accent-orange-600">
-                                <span class="text-xs font-bold text-slate-500">一度選んだ人は除外する（重複なし）</span>
-                            </label>
-                        </div>
-                    ` : ''}
-                </div>
-                ${myRole === 'host' ? `<button onclick="startGame()" class="w-full bg-orange-600 text-white h-16 rounded-2xl text-xl font-bold shadow-lg">ゲーム開始</button>` : `<div class="p-6 text-orange-300 italic font-bold animate-pulse text-sm text-center">ホストが開始するのを待っています...</div>`}`;
+                container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-xl mb-6 fade-in text-center"><div class="mb-4"><span class="text-orange-600 font-black text-xl">${myName}<small class="san">さん</small>として待機中...</span><br><span class="text-[10px] bg-orange-100 text-orange-500 px-3 py-1 rounded-full font-bold uppercase mt-2 inline-block">参加メンバー (${members.length}名)</span></div><div class="card-grid">${members.map(m => `<div class="bg-orange-50 p-3 rounded-xl font-bold text-orange-700 text-sm">👤 ${m}<small class="san">さん</small></div>`).join('')}</div></div>${myRole === 'host' ? `<button onclick="startGame()" class="w-full bg-orange-600 text-white h-16 rounded-2xl text-xl font-bold shadow-lg">ゲーム開始</button>` : `<div class="p-6 text-orange-300 italic font-bold animate-pulse text-sm text-center font-bold">ホストが開始するのを待っています...</div>`}`;
                 return;
             }
 
@@ -211,31 +186,31 @@
                 const q = gameState.questions[gameState.currentQIdx];
                 const currentAns = (gameState.answers && gameState.answers[gameState.currentQIdx]) || {};
                 const myExcludes = [];
-                // 除外モードがオンの時だけ除外リストを作成
-                if (gameState.excludeMode) {
-                    for (let i = 0; i < gameState.currentQIdx; i++) { if (gameState.answers[i] && gameState.answers[i][myName]) myExcludes.push(gameState.answers[i][myName]); }
-                }
+                for (let i = 0; i < gameState.currentQIdx; i++) { if (gameState.answers[i] && gameState.answers[i][myName]) myExcludes.push(gameState.answers[i][myName]); }
                 container.innerHTML = `<div class="mb-6 fade-in"><span class="text-[10px] bg-orange-200 text-orange-700 px-2 py-1 rounded font-bold uppercase tracking-widest">Question ${gameState.currentQIdx + 1}</span><h2 class="text-2xl font-black text-slate-800 mt-2">${q.text}</h2></div>${currentAns[myName] ? `<div class="p-10 text-orange-500 font-bold animate-pulse">回答完了！待機中...<br><span class="text-xs text-slate-400">(${Object.keys(currentAns).length}/${gameState.members.length}人が完了)</span></div>` : `<div class="card-grid fade-in">${gameState.members.map(m => { const isUsed = myExcludes.includes(m); return `<button onclick="submitAnswer('${m}')" ${isUsed ? 'disabled' : ''} class="h-16 rounded-2xl font-black border-b-4 transition-all ${isUsed ? 'bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed' : 'bg-white border-orange-200 text-orange-600 shadow-sm'}">${m}<small class="san">さん</small></button>`; }).join('')}</div>`}`;
             }
 
             else if (gameState.phase === 'pre-reveal') {
-                container.innerHTML = `<div class="bg-white p-8 rounded-3xl shadow-xl fade-in text-center"><h2 class="text-xl font-bold text-slate-700 mb-2">プロファイリング完了！</h2><p class="text-sm text-slate-400 mb-8 font-bold">結果を発表しますか？</p>${myRole === 'host' ? `<button onclick="startReveal()" class="w-full bg-orange-600 text-white h-16 rounded-2xl text-xl font-bold shadow-lg">結果を見る</button>` : `<p class="text-orange-300 font-bold animate-pulse text-sm text-center w-full">ホストの操作待ち...</p>`}</div>`;
+                container.innerHTML = `<div class="bg-white p-8 rounded-3xl shadow-xl fade-in text-center"><h2 class="text-xl font-bold text-slate-700 mb-2">プロファイリング完了！</h2><p class="text-sm text-slate-400 mb-8 font-bold text-center w-full uppercase tracking-tighter">みんなのイメージが揃いました。<br>結果を発表しますか？</p>${myRole === 'host' ? `<button onclick="startReveal()" class="w-full bg-orange-600 text-white h-16 rounded-2xl text-xl font-bold shadow-lg">結果を見る</button>` : `<p class="text-orange-300 font-bold animate-pulse text-sm text-center w-full font-bold">ホストがボタンを押すのを待っています...</p>`}</div>`;
             }
 
             else if (gameState.phase === 'revealing') {
                 const q = gameState.questions[gameState.revealIdx];
                 const ans = (gameState.answers && gameState.answers[gameState.revealIdx]) || {};
-                const counts = {}; gameState.members.forEach(m => counts[m] = 0);
+                const counts = {};
+                gameState.members.forEach(m => counts[m] = 0);
                 Object.values(ans).forEach(v => counts[v]++);
                 const sortedCounts = Object.entries(counts).sort((a,b) => b[1] - a[1]);
                 const max = Math.max(...Object.values(counts));
                 const winners = Object.keys(counts).filter(m => counts[m] === max);
-                container.innerHTML = `<div class="fade-in"><p class="text-orange-400 font-bold text-[10px] mb-2 uppercase tracking-widest">Result ${gameState.revealIdx + 1}</p><h2 class="text-xl font-bold mb-6 text-slate-600 px-4">${q.text}</h2><div class="bg-white p-10 rounded-[3rem] shadow-xl border-4 border-orange-500 mb-6"><p class="text-3xl font-black text-orange-600">${winners.map(w => w + '<small class="san">さん</small>').join(' & ')}</p><p class="text-[10px] text-orange-300 font-bold mt-2 uppercase tracking-widest">— Most Voted (${max} votes) —</p></div><div class="bg-white/60 rounded-2xl p-4 mb-8 text-left"><p class="text-[9px] font-bold text-orange-400 mb-2 text-center uppercase tracking-widest">Vote Ranking</p>${sortedCounts.map(([name, count]) => `<div class="flex justify-between items-center py-1 border-b border-orange-100 last:border-0"><span class="text-xs font-bold text-slate-600">${name}<small class="san">さん</small></span><span class="text-xs font-black text-orange-500">${count}票</span></div>`).join('')}</div>${myRole === 'host' ? `<button onclick="nextReveal()" class="w-full bg-orange-600 text-white h-16 rounded-2xl font-bold shadow-lg">次へ</button>` : `<p class="text-orange-300 font-bold animate-pulse text-sm text-center w-full">ホストの操作待ち...</p>`}</div>`;
+                container.innerHTML = `<div class="fade-in"><p class="text-orange-400 font-bold text-[10px] mb-2 uppercase tracking-widest">Image Result ${gameState.revealIdx + 1}</p><h2 class="text-xl font-bold mb-6 text-slate-600 px-4">${q.text}</h2><div class="bg-white p-10 rounded-[3rem] shadow-xl border-4 border-orange-500 mb-6"><p class="text-3xl font-black text-orange-600">${winners.map(w => w + '<small class="san">さん</small>').join(' & ')}</p><p class="text-[10px] text-orange-300 font-bold mt-2 uppercase tracking-widest">— Most Voted (${max} votes) —</p></div><div class="bg-white/60 rounded-2xl p-4 mb-8 text-left"><p class="text-[9px] font-bold text-orange-400 mb-2 text-center uppercase tracking-widest">Vote Ranking</p>${sortedCounts.map(([name, count]) => `<div class="flex justify-between items-center py-1 border-b border-orange-100 last:border-0"><span class="text-xs font-bold text-slate-600">${name}<small class="san">さん</small></span><span class="text-xs font-black text-orange-500">${count}票</span></div>`).join('')}</div>${myRole === 'host' ? `<button onclick="nextReveal()" class="w-full bg-orange-600 text-white h-16 rounded-2xl font-bold shadow-lg">次へ</button>` : `<p class="text-orange-300 font-bold animate-pulse text-sm text-center w-full font-bold">ホストの操作待ち...</p>`}</div>`;
             }
 
             else if (gameState.phase === 'result') {
-                const members = gameState.members; const history = gameState.answers || {};
-                const pairScores = {}; let totalMatches = 0;
+                const members = gameState.members;
+                const history = gameState.answers || {};
+                const pairScores = {};
+                let totalMatches = 0;
                 const numQ = gameState.questions.length;
                 const possiblePairs = (members.length * (members.length - 1)) / 2;
                 for(let i=0; i<members.length; i++) {
@@ -249,7 +224,7 @@
                 const maxScore = Math.max(...Object.values(pairScores)) || 0;
                 const bestPairs = Object.entries(pairScores).filter(([_, s]) => s === maxScore).map(([p]) => p);
                 const rank = getGroupRankInfo(syncRate);
-                container.innerHTML = `<div class="fade-in text-center px-2"><div class="mb-4"><h2 class="text-2xl font-black text-orange-600">${myName}<small class="san text-lg">さん</small></h2></div><p class="text-[10px] font-bold text-orange-400 uppercase mb-1">Group Sync Rate</p><h2 class="text-7xl font-black text-orange-600 italic mb-2">${syncRate}<small class="text-3xl">%</small></h2><div class="mb-10 bg-white p-6 rounded-[2.5rem] shadow-sm border border-orange-100"><div class="inline-block bg-orange-600 text-white px-6 py-1 rounded-full font-black text-lg mb-2 shadow-md">${rank.title}</div><p class="text-xs text-slate-500 italic px-4 leading-relaxed">${rank.desc}</p></div><div class="bg-gradient-to-br from-orange-500 to-orange-600 p-6 rounded-[2.5rem] shadow-xl text-center mb-8 text-white"><p class="text-[10px] font-bold mb-3 uppercase tracking-widest opacity-90 border-b border-orange-300 inline-block pb-1">Best Partner</p><h3 class="text-xl font-black mb-1 leading-tight">${bestPairs.join('<br>')}</h3><p class="text-orange-100 text-[10px] font-bold">一致数: ${maxScore}回</p></div><div class="flex flex-col gap-3 pb-10">${myRole === 'host' ? `<button onclick="startGame()" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">同じメンバーでリトライ</button>` : `<p class="text-orange-300 font-bold animate-pulse italic text-sm text-center">ホストのリトライを待っています...</p>`}<button onclick="leaveAndReset()" class="w-full bg-white text-slate-400 border-2 border-slate-200 h-14 rounded-2xl font-bold">退出する</button></div></div>`;
+                container.innerHTML = `<div class="fade-in text-center px-2"><div class="mb-4"><h2 class="text-2xl font-black text-orange-600">${myName}<small class="san text-lg">さん</small></h2></div><p class="text-[10px] font-bold text-orange-400 uppercase mb-1">Group Sync Rate</p><h2 class="text-7xl font-black text-orange-600 italic mb-2">${syncRate}<small class="text-3xl">%</small></h2><div class="mb-10 bg-white p-6 rounded-[2.5rem] shadow-sm border border-orange-100"><div class="inline-block bg-orange-600 text-white px-6 py-1 rounded-full font-black text-lg mb-2 shadow-md">${rank.title}</div><p class="text-xs text-slate-500 italic px-4 leading-relaxed">${rank.desc}</p></div><div class="bg-gradient-to-br from-orange-500 to-orange-600 p-6 rounded-[2.5rem] shadow-xl text-center mb-8 text-white relative overflow-hidden"><p class="text-[10px] font-bold mb-3 uppercase tracking-widest opacity-90 border-b border-orange-300 inline-block pb-1">Best Partner</p><h3 class="text-xl font-black mb-1 leading-tight">${bestPairs.join('<br>')}</h3><p class="text-orange-100 text-[10px] font-bold">一致数: ${maxScore}回</p></div><div class="flex flex-col gap-3 pb-10">${myRole === 'host' ? `<button onclick="startGame()" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">同じメンバーでリトライ</button>` : `<p class="text-orange-300 font-bold animate-pulse italic text-sm text-center">ホストのリトライを待っています...</p>`}<button onclick="leaveAndReset()" class="w-full bg-white text-slate-400 border-2 border-slate-200 h-14 rounded-2xl font-bold">退出する</button></div></div>`;
             }
         }
         render();
