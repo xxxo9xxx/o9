@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>褒めゲーム Online Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&display=swap');
+        body { font-family: 'Zen Maru Gothic', sans-serif; touch-action: manipulation; }
+        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .fade-in-zoom { animation: fadeInZoom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes fadeInZoom { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        .san { font-size: 0.6em; color: #fb923c; margin-left: 2px; }
+    </style>
+</head>
+<body class="bg-orange-50 min-h-screen p-4 text-slate-800">
+
+    <div id="app" class="max-w-md mx-auto text-center">
+        <header class="mb-6 pt-2">
+            <h1 class="text-3xl font-black text-orange-600 italic tracking-tighter leading-none">友達褒めゲーム</h1>
+            <p class="text-[9px] font-bold text-orange-400 mt-1 uppercase tracking-[0.2em]">〜自己肯定感ぶち上げパーティー〜</p>
+            <p id="room-display" class="text-[8px] font-bold text-slate-300 mt-2 tracking-widest uppercase"></p>
+        </header>
+        
+        <div id="game-content"></div>
+
+        <div id="footer-actions" class="mt-12 flex flex-col items-center gap-4">
+            <button id="force-reset-btn" onclick="forceResetRoom()" class="hidden text-[10px] bg-red-50 text-red-400 px-4 py-2 rounded-full font-bold border border-red-100 shadow-sm">
+                ホスト権限：部屋を強制解散
+            </button>
+            <button onclick="leaveAndReset()" class="text-[10px] text-slate-300 underline uppercase tracking-widest">
+                退出・リセット
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmzPmehSaV--mn0Hd0S-fd97nf5RX4Dvg",
+            authDomain: "membertoiro.firebaseapp.com",
+            databaseURL: "https://membertoiro-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "membertoiro",
+            storageBucket: "membertoiro.firebasestorage.app",
+            messagingSenderId: "858132874746",
+            appId: "1:858132874746:web:9d6e1156a350dd396b9043"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('room') || 'praise-pro-room';
+        const roomRef = db.ref("praise_rooms/" + roomId);
+        document.getElementById('room-display').innerText = "ROOM: " + roomId;
+
+        const KEYWORDS = {
+            male: ['かっこいい','頼もしい','優しい','面白い','賢い','センスがいい','男らしい','魅力的','誠実','努力家','ポジティブ','知的','スマート','才能がある','存在感がある','安心感がある','情熱的','器が大きい','決断力がある','ユーモアがある','包容力がある','社交的','ストイック','礼儀正しい','信念がある','親しみやすい','頼りになる','聞き上手','行動力がある','謙虚','唯一無二','スタイルがいい','笑顔が武器','カリスマ性がある','声がいい','守ってくれそう','尊敬できる','オーラがある','センスの塊','存在がギフト','爽やか','熱血','マイルド','個性的','冷静沈着','ミステリアス','ピュア','ワイルド','王子様系','お洒落さん','男気がある','器用','スポーツマン','勉強家','癒やし系','温和','素直','実直','博識','リーダーシップ','芯が強い','義理堅い','ロマンチスト','冒険心がある','忍耐強い','寛大','几帳面','柔軟な考え','愛嬌がある','落ち着いている','若々しい','男前','ダンディ','洗練されている','目が綺麗','鼻筋が通っている','手が綺麗','声が渋い','笑顔が可愛い','雰囲気がいい','話が上手い','場を和ませる','ギャップがある','守りたくなる','一緒にいて楽','信頼できる','目標になる人','心が広い','決める時は決める','器がデカい','いつも一生懸命','何でもこなす','精神力が強い','一途','裏表がない','正義感がある','落ち着きがある','品がある','オーラを纏ってる'],
+            female: ['美しい','かわいい','素敵','上品','優しい','思いやりがある','癒し系','笑顔が素敵','明るい','知的','気配りができる','センス抜群','魅力的','華やか','頑張り屋','純粋','親しみやすい','愛されキャラ','穏やか','凛としている','透明感がある','お洒落','話しやすい','ミステリアス','心が広い','一生懸命','可愛らしい','丁寧','気品がある','愛嬌たっぷり','唯一無二','肌が綺麗','センスの塊','女神すぎる','ポジティブ','芯が強い','存在が癒し','気さく','聞き上手','存在がギフト','可憐','エレガント','キュート','クールビューティー','家庭的','しっかり者','おっとり','チャーミング','才色兼備','モダン','レトロ','ナチュラル','都会的','清楚','活動的','献身的','感受性豊か','意志が強い','魅了される','包容力','スタイルがいい','所作が美しい','声が可愛い','目がキラキラ','服が似合ってる','女子力が高い','センスが良い','守りたくなる','憧れちゃう','肌が真っ白','まつ毛が長い','唇が綺麗','爪が綺麗','笑顔が武器','天使みたい','お姉さんっぽい','妹っぽい','ギャップ萌え','話し方が丁寧','雰囲気が柔らかい','場がパッと明るくなる','気配り上手','芯がしっかりしてる','自分を持ってる','いつもキラキラしてる','尊敬しちゃう','品位がある','芸術的','表現力が豊か','真っ直ぐな心','純情','高嶺の花','親近感がある','落ち着きがある','柔軟性がある','慈愛に満ちてる','魅力が溢れてる','品がある','神々しい']
+        };
+
+        let myName = localStorage.getItem("h-name") || "";
+        let myRole = localStorage.getItem("h-role") || "";
+        let myGender = localStorage.getItem("h-gender") || "male";
+        let hasRedrawn = false;
+        let gameState = null;
+
+        roomRef.on("value", (snapshot) => {
+            gameState = snapshot.val();
+            if (!gameState && myName) { myName = ""; myRole = ""; localStorage.clear(); }
+            render();
+        });
+
+        function forceResetRoom() { if (confirm("部屋を強制解散しますか？")) roomRef.remove(); }
+        function leaveAndReset() { localStorage.clear(); location.reload(); }
+
+        function joinGame(role) {
+            const name = document.getElementById('name-input')?.value.trim();
+            const gender = document.querySelector('input[name="gender"]:checked')?.value || "male";
+            if (!name) return;
+            myName = name; myRole = role; myGender = gender;
+            localStorage.setItem("h-name", name); localStorage.setItem("h-role", role); localStorage.setItem("h-gender", gender);
+            roomRef.transaction((curr) => {
+                if (!curr) return { phase: 'setup', members: [{name, gender}], host: (role==='host'?name:"") };
+                let m = curr.members || [];
+                if (!m.find(x => x.name === name)) m.push({name, gender});
+                return { ...curr, members: m, host: (role==='host'?name:curr.host) };
+            });
+        }
+
+        function setParent(targetName) {
+            const parentObj = gameState.members.find(m => m.name === targetName);
+            const deck = [...KEYWORDS[parentObj.gender]].sort(() => Math.random() - 0.5);
+            roomRef.update({ phase: 'voting', parentName: targetName, deck: deck, votes: {}, revealIdx: 0 });
+        }
+
+        function getMyHand() {
+            if (!gameState || !gameState.deck) return [];
+            const myIndex = gameState.members.findIndex(m => m.name === myName);
+            const start = myIndex * 6;
+            return gameState.deck.slice(start, start + 6);
+        }
+
+        function redrawHand() { if (!hasRedrawn) { hasRedrawn = true; render(); } }
+
+        function submitVote(keyword) {
+            roomRef.child(`votes/${myName}`).set(keyword).then(() => {
+                roomRef.transaction((curr) => {
+                    if (curr && Object.keys(curr.votes || {}).length === (curr.members.length - 1)) {
+                        curr.phase = 'wait-reveal';
+                    }
+                    return curr;
+                });
+            });
+        }
+
+        function startRevealing() {
+            roomRef.transaction((curr) => {
+                if (curr) {
+                    curr.phase = 'revealing';
+                    curr.revealIdx = 0;
+                    curr.shuffledVotes = Object.values(curr.votes).sort(() => Math.random() - 0.5);
+                }
+                return curr;
+            });
+        }
+
+        function nextReveal() {
+            if (gameState.revealIdx < gameState.shuffledVotes.length - 1) roomRef.update({ revealIdx: gameState.revealIdx + 1 });
+            else roomRef.update({ phase: 'result' });
+        }
+
+        function setWinner(keyword) {
+            const winnerId = Object.keys(gameState.votes).find(k => gameState.votes[k] === keyword);
+            roomRef.update({ phase: 'winner-announced', winningKeyword: keyword, winnerName: winnerId });
+        }
+
+        function render() {
+            const container = document.getElementById('game-content');
+            const forceResetBtn = document.getElementById('force-reset-btn');
+            if (myRole === 'host' && myName) forceResetBtn.classList.remove('hidden'); else forceResetBtn.classList.add('hidden');
+
+            if (!myName) {
+                const hostTaken = !!(gameState && gameState.host);
+                container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-xl fade-in"><input id="name-input" type="text" placeholder="名前を入力" class="w-full mb-4 border-2 p-3 rounded-xl font-bold text-center outline-none focus:border-orange-500"><div class="flex justify-center gap-4 mb-6"><label class="font-bold text-sm cursor-pointer"><input type="radio" name="gender" value="male" checked> 男性</label><label class="font-bold text-sm cursor-pointer"><input type="radio" name="gender" value="female"> 女性</label></div><div class="flex flex-col gap-3"><button onclick="joinGame('host')" ${hostTaken ? 'disabled' : ''} class="w-full ${hostTaken ? 'bg-gray-200 text-gray-400' : 'bg-orange-600 text-white'} h-14 rounded-xl font-bold">${hostTaken ? 'ホスト (満員)' : 'ホストとして参加'}</button><button onclick="joinGame('guest')" class="w-full bg-white border-2 border-orange-500 text-orange-600 h-14 rounded-xl font-bold">ゲストとして参加</button></div></div>`;
+                return;
+            }
+
+            if (!gameState || gameState.phase === 'setup') {
+                const members = gameState?.members || [{name: myName}];
+                container.innerHTML = `<div class="bg-white p-5 rounded-3xl shadow-xl mb-6 text-center"><div class="mb-4"><span class="text-orange-600 font-black text-xl">${myName}<small class="san">さん</small></span></div><p class="text-[10px] text-slate-400 font-bold mb-4 uppercase tracking-widest">褒められる人（親）を選択</p><div class="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-2">${members.map(m => `<button onclick="setParent('${m.name}')" ${myRole!=='host'?'disabled':''} class="bg-orange-50 p-2 rounded-xl font-bold text-orange-700 text-xs border-2 border-transparent hover:border-orange-400">👤 ${m.name}</button>`).join('')}</div>${myRole !== 'host' ? `<p class="mt-4 text-[10px] text-orange-300 animate-pulse italic">ホストが親を選んでいます...</p>` : ''}</div>`;
+                return;
+            }
+
+            if (gameState.phase === 'voting') {
+                const isParent = gameState.parentName === myName;
+                if (isParent) {
+                    container.innerHTML = `<div class="p-10 text-orange-500 font-bold animate-pulse text-sm">あなたは親です。待機中...<br><span class="text-[10px] text-slate-400 mt-2 block">(${Object.keys(gameState.votes || {}).length} / ${gameState.members.length - 1}人が完了)</span></div>`;
+                } else if (gameState.votes && gameState.votes[myName]) {
+                    container.innerHTML = `<div class="p-10 text-orange-500 font-bold animate-pulse text-sm">送信しました！全員揃うまで待機...</div>`;
+                } else {
+                    let hand = getMyHand();
+                    if (hasRedrawn) {
+                        const offset = 70 + (gameState.members.findIndex(m => m.name === myName) * 6);
+                        hand = gameState.deck.slice(offset, offset + 6);
+                    }
+                    container.innerHTML = `<div class="mb-4"><span class="text-[10px] bg-orange-200 text-orange-700 px-3 py-1 rounded-full font-bold">To: ${gameState.parentName}さん</span><h2 class="text-xl font-black text-slate-700 mt-2">最高の褒め言葉を選んで！</h2></div><div class="card-grid mb-6">${hand.map(k => `<button onclick="submitVote('${k}')" class="h-14 bg-white border-b-4 border-orange-200 rounded-xl font-bold text-orange-600 text-xs shadow-sm active:border-b-0 active:translate-y-1 transition-all px-1">${k}</button>`).join('')}</div><button onclick="redrawHand()" ${hasRedrawn ? 'disabled' : ''} class="w-full ${hasRedrawn ? 'bg-gray-100 text-gray-300' : 'bg-orange-100 text-orange-500 border border-orange-200'} h-10 rounded-xl text-[10px] font-bold uppercase tracking-widest">${hasRedrawn ? 'これ以上は引き直せません' : '⚡️ 言霊の再選定（一度だけ引き直し）'}</button>`;
+                }
+            }
+
+            else if (gameState.phase === 'wait-reveal') {
+                container.innerHTML = `<div class="bg-white p-8 rounded-[2.5rem] shadow-xl fade-in text-center border-4 border-orange-100"><h2 class="text-lg font-black text-slate-700 mb-4 leading-relaxed">全員の投票が終わりました！<br><span class="text-orange-500">みんなが思っている${gameState.parentName}さんの<br>良いところを１つずつ発表します。</span></h2>${myRole === 'host' ? `<button onclick="startRevealing()" class="w-full bg-orange-600 text-white h-16 rounded-2xl text-xl font-black shadow-lg">OK</button>` : `<p class="text-orange-300 font-bold animate-pulse text-sm">ホストが「OK」を押すのを待っています...</p>`}</div>`;
+            }
+
+            else if (gameState.phase === 'revealing') {
+                const currentKeyword = gameState.shuffledVotes[gameState.revealIdx];
+                container.innerHTML = `<div class="fade-in-zoom"><p class="text-orange-400 font-bold text-[10px] mb-2 uppercase tracking-widest">Compliment ${gameState.revealIdx + 1} / ${gameState.shuffledVotes.length}</p><div class="bg-white py-14 px-4 rounded-[3.5rem] shadow-xl border-4 border-orange-500 mb-8"><p class="text-4xl font-black text-orange-600 tracking-tighter">「${currentKeyword}」</p></div>${myRole === 'host' ? `<button onclick="nextReveal()" class="w-full bg-orange-600 text-white h-16 rounded-2xl font-bold shadow-lg text-lg">次へ</button>` : `<p class="text-orange-300 font-bold animate-pulse text-sm">ホストが「次へ」を押すのを待っています...</p>`}</div>`;
+            }
+
+            else if (gameState.phase === 'result') {
+                const isParent = gameState.parentName === myName;
+                const allVotes = Object.values(gameState.votes);
+                container.innerHTML = `<div class="fade-in text-center"><h2 class="text-lg font-black mb-6 text-slate-700">${gameState.parentName}さん、<br>一番グッときたのはどれ？</h2><div class="card-grid mb-8">${allVotes.map(v => `<button onclick="${isParent ? `setWinner('${v}')` : ''}" class="bg-white p-3 rounded-xl font-bold text-orange-600 border-2 border-orange-100 shadow-sm text-xs transition-all active:bg-orange-500 active:text-white">${v}</button>`).join('')}</div>${!isParent ? `<p class="text-orange-300 font-bold animate-pulse text-xs italic">親が選び中です...</p>` : ''}</div>`;
+            }
+
+            else if (gameState.phase === 'winner-announced') {
+                container.innerHTML = `<div class="fade-in-zoom text-center"><div class="bg-gradient-to-br from-orange-500 to-orange-600 p-8 rounded-[3.5rem] shadow-xl text-white mb-8"><p class="text-[10px] font-bold mb-2 uppercase opacity-80">Best of Compliment</p><h2 class="text-4xl font-black mb-4 tracking-tighter">「${gameState.winningKeyword}」</h2><div class="h-px bg-white/20 w-full mb-4"></div><p class="text-lg font-bold">送った人: ${gameState.winnerName}さん</p></div><button onclick="roomRef.update({phase: 'setup', votes: null, parentName: null, deck: null})" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-lg">もう一度遊ぶ</button></div>`;
+            }
+        }
+    </script>
+</body>
+</html>
