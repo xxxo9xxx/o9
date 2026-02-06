@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ヒトトイロ Online Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&display=swap');
+        body { font-family: 'Zen Maru Gothic', sans-serif; touch-action: manipulation; }
+        /* 1行2枚表示に変更 */
+        .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen p-4 text-slate-800">
+
+    <div id="app" class="max-w-md mx-auto text-center pb-20">
+        <header class="mb-4 pt-2">
+            <h1 class="text-4xl font-black text-slate-800 italic tracking-tighter leading-none">ヒトトイロ</h1>
+            <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-[0.2em]">〜みんなでココロを合わせる〜</p>
+            <p id="room-status-display" class="text-[9px] font-bold text-blue-500 mt-2 tracking-widest"></p>
+        </header>
+        
+        <div id="game-content">
+            <div class="p-10 font-bold text-slate-400 animate-pulse">読み込み中...</div>
+        </div>
+
+        <div id="footer-actions" class="mt-8 flex flex-col items-center gap-4">
+            <button id="host-reset-btn" onclick="forceResetRoom()" class="hidden text-[10px] bg-red-100 text-red-500 px-4 py-2 rounded-full font-bold border border-red-200">
+                ホスト：部屋を解散
+            </button>
+            <div class="flex gap-4">
+                <button onclick="clearMyData()" class="text-[10px] bg-gray-200 text-gray-500 px-4 py-2 rounded-full font-bold shadow-sm">
+                    トラブル時：自分の情報をクリア
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Firebase設定 ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmzPmehSaV--mn0Hd0S-fd97nf5RX4Dvg",
+            authDomain: "membertoiro.firebaseapp.com",
+            databaseURL: "https://membertoiro-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "membertoiro",
+            storageBucket: "membertoiro.firebasestorage.app",
+            messagingSenderId: "858132874746",
+            appId: "1:858132874746:web:9d6e1156a350dd396b9043"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const COLORS = [
+            { id: 'red', name: 'あか', code: '#ef4444', text: 'white' },
+            { id: 'pink', name: 'ももいろ', code: '#f472b6', text: 'white' },
+            { id: 'orange', name: 'だいだい', code: '#fb923c', text: 'white' },
+            { id: 'yellow', name: 'きいろ', code: '#facc15', text: 'black' },
+            { id: 'lime', name: 'きみどり', code: '#a3e635', text: 'black' },
+            { id: 'green', name: 'みどり', code: '#22c55e', text: 'white' },
+            { id: 'cyan', name: 'みずいろ', code: '#22d3ee', text: 'black' },
+            { id: 'blue', name: 'あお', code: '#3b82f6', text: 'white' },
+            { id: 'purple', name: 'むらさき', code: '#a855f7', text: 'white' },
+            { id: 'brown', name: 'ちゃいろ', code: '#78350f', text: 'white' },
+            { id: 'white', name: 'しろ', code: '#ffffff', text: 'black' },
+            { id: 'black', name: 'くろ', code: '#000000', text: 'white' },
+            { id: 'gray', name: 'はいいろ', code: '#64748b', text: 'white' },
+            { id: 'gold', name: 'きん', code: '#d4af37', text: 'white' },
+            { id: 'silver', name: 'ぎん', code: '#c0c0c0', text: 'black' }
+        ];
+
+        // お題を大幅に拡充
+        const MASTER_THEMES = {
+            'easy': [
+                "たべもの", "くだもの", "どうぶつ", "のみもの", "おもちゃ", "からだの一部", "しぜん", "ぶんぼうぐ", "野菜", "天気",
+                "乗り物", "おかし", "むし", "お花", "うみの生き物", "パン", "デザート", "くだもの", "すうじ", "いろ",
+                "キッチン用品", "おふろにあるもの", "学校にあるもの", "公園にあるもの", "鳥", "ねこ", "いぬ", "くだもの", "麺類", "すしネタ", "モンスター", "ヒーロー", "液体", "コンビニ", "アニメ", "国", "50音"
+            ],
+            'normal': [
+                "アクセサリー", "家電", "キャラクター", "音楽", "スポーツ", "服", "ばしょ", "建物", "楽器", "家具",
+                "アニメ", "マンガ", "映画", "教科", "行事", "仕事", "冬といえば", "夏といえば", "春といえば", "秋といえば",
+                "遊園地のアトラクション", "コンビニの商品", "日本の都道府県", "有名な山", "カバンの中身", "靴", "帽子", "スイーツ", "お土産", "駅にあるもの", "有名人", "映画のタイトル", "気体", "スーパーマーケット", "スポーツ選手", "都市", "中華料理", "西洋料理", "アルファベット", "星座"
+            ],
+            'hard': [
+                "感情", "音", "抽象画", "曜日", "職業", "歴史", "四字熟語", "ことわざ", "イベント", "時間",
+                "におい", "味", "感触", "魔法", "宇宙", "未来", "過去", "夢", "幸せなこと", "悲しいこと",
+                "漢字（色以外）", "ドキドキするもの", "静かな場所", "うるさい音", "宝物", "秘密", "伝説", "ライバル", "絆", "このメンバーのだれか", "日本料理", "数字", "四字熟語", "方角"
+            ]
+        };
+
+        let currentRoomId = localStorage.getItem("toiro-room-id") || "";
+        let myName = localStorage.getItem("toiro-name") || "";
+        let myRole = localStorage.getItem("toiro-role") || ""; 
+        let gameState = null;
+        let roomRef = null;
+
+        if (currentRoomId) connectToRoom(currentRoomId);
+        else render();
+
+        function connectToRoom(id) {
+            currentRoomId = id;
+            localStorage.setItem("toiro-room-id", id);
+            roomRef = db.ref("rooms/" + id);
+            document.getElementById('room-status-display').innerText = "ROOM: " + id;
+            roomRef.on("value", (snapshot) => {
+                gameState = snapshot.val();
+                render();
+            });
+        }
+
+        function clearMyData() {
+            if(confirm("ローカル保存情報を削除します。")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function handleJoin(role) {
+            const roomInput = document.getElementById('room-input')?.value.trim();
+            const nameInput = document.getElementById('name-input')?.value.trim();
+            if (!roomInput || !nameInput) return alert("部屋名と名前を入力してください");
+            myName = nameInput; myRole = role;
+            localStorage.setItem("toiro-name", nameInput);
+            localStorage.setItem("toiro-role", role);
+            connectToRoom(roomInput);
+            roomRef.transaction((currentData) => {
+                if (currentData === null) {
+                    return { phase: 'setup', members: [myName], host: (role === 'host' ? myName : "") };
+                } else {
+                    if (!currentData.members) currentData.members = [];
+                    if (!currentData.members.includes(myName)) currentData.members.push(myName);
+                    if (role === 'host' && !currentData.host) currentData.host = myName;
+                    return currentData;
+                }
+            });
+        }
+
+        function getRandomTheme(levels) {
+            const pool = levels.flatMap(lvl => MASTER_THEMES[lvl]);
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function startGame() {
+            const dealCount = parseInt(document.getElementById('card-count-select')?.value) || 10;
+            const mode = document.getElementById('mode-select')?.value || 'ほんばん';
+            
+            let themes = [];
+            if (mode === 'れんしゅう') {
+                for(let i=0; i<5; i++) themes.push({ text: getRandomTheme(['easy']), level: ['easy'] });
+            } else {
+                themes.push({ text: getRandomTheme(['easy']), level: ['easy'] });
+                themes.push({ text: getRandomTheme(['easy', 'normal']), level: ['easy', 'normal'] });
+                themes.push({ text: getRandomTheme(['normal']), level: ['normal'] });
+                themes.push({ text: getRandomTheme(['normal', 'hard']), level: ['normal', 'hard'] });
+                themes.push({ text: getRandomTheme(['hard']), level: ['hard'] });
+            }
+
+            const commonHand = [...COLORS].sort(() => 0.5 - Math.random()).slice(0, dealCount).map(c => c.id);
+
+            roomRef.update({
+                phase: 'playing',
+                themes: themes,
+                commonHand: commonHand,
+                currentRound: 0,
+                answers: {},
+                revealIdx: 0,
+                gameMode: mode
+            });
+        }
+
+        function reloadTheme() {
+            if (myRole !== 'host') return;
+            const round = gameState.currentRound;
+            const currentLevelSetting = gameState.themes[round].level;
+            const newText = getRandomTheme(currentLevelSetting);
+            roomRef.child(`themes/${round}/text`).set(newText);
+        }
+
+        function submitAnswer(colorId) {
+            const round = gameState.currentRound;
+            roomRef.child(`answers/${round}/${myName}`).set(colorId).then(() => {
+                roomRef.transaction((currentData) => {
+                    if (!currentData) return currentData;
+                    const ans = (currentData.answers && currentData.answers[round]) || {};
+                    if (Object.keys(ans).length === currentData.members.length) {
+                        if (round < 4) currentData.currentRound = round + 1;
+                        else currentData.phase = 'pre-reveal';
+                    }
+                    return currentData;
+                });
+            });
+        }
+
+        function forceResetRoom() {
+            if (confirm("部屋を解散します。")) {
+                roomRef.remove().then(() => { localStorage.clear(); location.reload(); });
+            }
+        }
+
+        function render() {
+            const container = document.getElementById('game-content');
+            const hostBtn = document.getElementById('host-reset-btn');
+            if (myRole === 'host' && myName) hostBtn.classList.remove('hidden');
+
+            if (!currentRoomId || !myName) {
+                container.innerHTML = `
+                <div class="bg-white p-6 rounded-3xl shadow-xl fade-in text-left">
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 ml-2 uppercase">Room ID</label>
+                    <input id="room-input" type="text" value="${currentRoomId || 'toiro-party'}" class="w-full mb-4 border-2 p-3 rounded-xl font-bold outline-none focus:border-blue-400">
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 ml-2 uppercase">Your Name</label>
+                    <input id="name-input" type="text" placeholder="名前を入力" class="w-full mb-6 border-2 p-3 rounded-xl font-bold outline-none focus:border-blue-400">
+                    <div class="flex flex-col gap-3">
+                        <button onclick="handleJoin('host')" class="w-full bg-slate-800 text-white h-14 rounded-xl font-bold shadow-lg">ホストとして開始</button>
+                        <button onclick="handleJoin('guest')" class="w-full bg-white border-2 border-slate-800 text-slate-800 h-14 rounded-xl font-bold">ゲストとして参加</button>
+                    </div>
+                </div>`;
+                return;
+            }
+
+            if (!gameState || gameState.phase === 'setup') {
+                const members = (gameState && gameState.members) || [myName];
+                container.innerHTML = `
+                <div class="bg-white p-6 rounded-3xl shadow-xl mb-6 fade-in">
+                    <p class="text-xs font-bold text-slate-400 mb-4 uppercase tracking-widest">Waiting Members... (${members.length}/10)</p>
+                    <div class="grid grid-cols-2 gap-2 mb-6">${members.map(m => `<div class="bg-slate-50 p-2 rounded-lg font-bold text-slate-700 text-[11px] border border-slate-100 truncate italic text-center">👤 ${m}</div>`).join('')}</div>
+                    ${myRole === 'host' ? `
+                        <div class="bg-blue-50 p-4 rounded-2xl mb-6 text-left">
+                            <label class="block text-[10px] font-bold text-blue-400 mb-2 uppercase">Game Settings</label>
+                            <div class="flex flex-col gap-3 mb-4">
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 ml-1">配布枚数</span>
+                                    <select id="card-count-select" class="w-full p-2 rounded-lg font-bold text-sm outline-none shadow-sm border-none">
+                                        <option value="5">5枚</option><option value="8">8枚</option><option value="10" selected>10枚</option><option value="12">12枚</option><option value="15">15枚</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 ml-1">モード設定</span>
+                                    <select id="mode-select" class="w-full p-2 rounded-lg font-bold text-sm outline-none shadow-sm border-none">
+                                        <option value="れんしゅう">れんしゅう (ずっとかんたん)</option>
+                                        <option value="ほんばん" selected>ほんばん (だんだん難しく)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button onclick="startGame()" class="w-full bg-blue-500 text-white h-14 rounded-xl text-lg font-bold shadow-lg">ゲーム開始！</button>
+                        </div>` : `<div class="p-4 bg-slate-50 rounded-xl italic font-bold animate-pulse text-slate-400 text-sm text-center">ホストが設定中...</div>`}
+                </div>`;
+                return;
+            }
+
+            if (gameState.phase === 'playing') {
+                const round = gameState.currentRound;
+                const theme = gameState.themes[round].text;
+                const myHand = gameState.commonHand || [];
+                const myUsed = [];
+                for(let i=0; i<round; i++) { if(gameState.answers[i] && gameState.answers[i][myName]) myUsed.push(gameState.answers[i][myName]); }
+                const currentHand = myHand.filter(cid => !myUsed.includes(cid));
+                const alreadyAnswered = gameState.answers?.[round]?.[myName];
+
+                container.innerHTML = `
+                <div class="fade-in">
+                    <div class="mb-4">
+                        <span class="inline-block bg-slate-800 text-white px-4 py-1 rounded-full text-[10px] font-black tracking-widest mb-2 uppercase">${gameState.gameMode} ROUND ${round + 1}</span>
+                        <div class="flex items-center justify-center gap-2">
+                            <div class="text-3xl font-black text-slate-800 tracking-tight leading-tight">テーマ：${theme}</div>
+                            ${myRole === 'host' && !alreadyAnswered ? `<button onclick="reloadTheme()" class="bg-white p-2 rounded-full shadow-sm border border-slate-200 text-lg">🔄</button>` : ''}
+                        </div>
+                    </div>
+                    ${alreadyAnswered ? 
+                        `<div class="p-16 text-slate-400 font-bold animate-pulse text-sm text-center">
+                            <div class="text-5xl mb-4 text-slate-200">🎨</div>
+                            みんなの回答を待っています...<br>
+                            <span class="text-[10px] text-blue-400">(${Object.keys(gameState.answers[round]).length}/${gameState.members.length}人完了)</span>
+                        </div>` :
+                        `<div class="color-grid">${currentHand.map(cid => {
+                            const c = COLORS.find(x => x.id === cid);
+                            return `<button onclick="submitAnswer('${c.id}')" style="background-color: ${c.code}; color: ${c.text}" class="h-20 rounded-xl font-bold shadow-md border border-black/5 active:scale-95 text-xs transition-transform">${c.name}</button>`;
+                        }).join('')}</div>`
+                    }
+                </div>`;
+            }
+
+            else if (gameState.phase === 'pre-reveal') {
+                container.innerHTML = `<div class="bg-white p-8 rounded-3xl shadow-xl fade-in text-center"><h2 class="text-2xl font-black mb-4 italic">Finish!</h2><p class="text-sm text-slate-400 mb-8 font-bold">みんなのココロ、一致したかな？</p>${myRole === 'host' ? `<button onclick="roomRef.update({phase:'revealing', revealIdx:0})" class="w-full bg-blue-500 text-white h-16 rounded-2xl font-bold shadow-lg text-xl">結果を見る</button>` : `<p class="animate-pulse font-bold text-slate-300">ホストが結果を準備中...</p>`}</div>`;
+            }
+
+            else if (gameState.phase === 'revealing') {
+                const idx = gameState.revealIdx;
+                const memberCount = gameState.members.length;
+                let resultsHtml = "";
+                for(let r=0; r <= idx; r++) {
+                    const ans = gameState.answers[r] || {};
+                    const chips = Object.entries(ans).map(([name, cid]) => {
+                        const c = COLORS.find(x => x.id === cid);
+                        const sizeClass = memberCount <= 6 ? 'w-12 h-12' : 'w-8 h-8';
+                        const textClass = memberCount <= 6 ? 'text-[9px]' : 'text-[7px]';
+                        
+                        return `<div class="flex flex-col items-center gap-0.5">
+                            <div class="${sizeClass} rounded-lg shadow-inner border border-black/5" style="background-color:${c.code}"></div>
+                            <div class="${textClass} font-bold truncate w-12 text-slate-500 text-center">${name}</div>
+                        </div>`;
+                    }).join('');
+                    
+                    const firstColor = Object.values(ans)[0];
+                    const isMatch = Object.values(ans).length === gameState.members.length && Object.values(ans).every(v => v === firstColor);
+
+                    resultsHtml += `
+                    <div class="bg-white px-3 py-3 rounded-2xl mb-3 shadow-sm border-l-4 ${isMatch ? 'border-green-400' : 'border-slate-100'} text-left fade-in">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[9px] font-black text-slate-300 uppercase">ROUND ${r+1} : ${gameState.themes[r].text}</span>
+                            ${isMatch ? '<span class="text-[10px] font-black text-green-500 tracking-tighter">PERFECT!</span>' : ''}
+                        </div>
+                        <div class="flex flex-wrap gap-2 justify-center border-t border-slate-50 pt-2">${chips}</div>
+                    </div>`;
+                }
+
+                container.innerHTML = `
+                <div class="fade-in no-scrollbar">
+                    <h2 class="text-[10px] font-black mb-3 text-slate-400 uppercase tracking-widest text-center">Answer Reveal</h2>
+                    <div class="max-h-[58vh] overflow-y-auto no-scrollbar">${resultsHtml}</div>
+                    <div class="mt-4">
+                        ${myRole === 'host' ? 
+                            (idx < 4 ? `<button onclick="roomRef.update({revealIdx:${idx+1}})" class="w-full bg-slate-800 text-white h-12 rounded-xl font-bold shadow-lg">次を表示 (${idx+1}/5)</button>` : `<button onclick="roomRef.update({phase:'result'})" class="w-full bg-green-500 text-white h-12 rounded-xl font-bold shadow-lg">最終ランク発表！</button>`)
+                            : `<div class="text-[10px] font-bold text-slate-300 animate-pulse tracking-widest text-center">ホストが操作中...</div>`
+                        }
+                    </div>
+                </div>`;
+            }
+
+            else if (gameState.phase === 'result') {
+                let matchCount = 0;
+                for(let r=0; r<5; r++){
+                    const ans = Object.values(gameState.answers[r] || {});
+                    if(ans.length > 0 && ans.every(v => v === ans[0])) matchCount++;
+                }
+                const score = (matchCount / 5) * 100;
+                let rank = score === 100 ? "奇跡のシンクロ！" : score >= 60 ? "最強のチームワーク！" : score >= 20 ? "高めあう絆！" : "伸びしろたっぷり！";
+
+                container.innerHTML = `
+                <div class="fade-in text-center">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Group Sync Rate</p>
+                    <h2 class="text-8xl font-black text-slate-800 mb-6 italic tracking-tighter">${score}<small class="text-3xl">%</small></h2>
+                    <div class="bg-white p-8 rounded-[2rem] shadow-xl border border-slate-100 mb-8 relative overflow-hidden">
+                        <div class="relative z-10">
+                            <div class="text-[10px] font-bold text-blue-500 mb-2 uppercase">Rank Title</div>
+                            <div class="text-2xl font-black text-slate-800 mb-4">${rank}</div>
+                            <p class="text-[10px] text-slate-400 font-bold underline decoration-slate-100 underline-offset-4 tracking-tighter">${matchCount} / 5 ラウンド一致！</p>
+                        </div>
+                        <div class="absolute bottom-0 left-0 h-1 bg-blue-500 transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.5)]" style="width: ${score}%"></div>
+                    </div>
+                    ${myRole === 'host' ? `<button onclick="startGame()" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl active:scale-95 transition-transform">もう一度あそぶ</button>` : `<p class="italic text-slate-300 font-bold animate-pulse text-sm">ホストがリトライを検討中...</p>`}
+                </div>`;
+            }
+        }
+    </script>
+</body>
+</html>
