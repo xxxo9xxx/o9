@@ -21,7 +21,7 @@
     <div id="app" class="max-w-md mx-auto text-center">
         <header class="mb-8 pt-4">
             <h1 class="text-3xl font-black text-orange-600 italic tracking-tighter leading-none">イメージ相関図</h1>
-            <p class="text-[9px] font-bold text-orange-400 mt-1 uppercase tracking-[0.2em]">〜っぽい人プロファイリング〜</p>
+            <p class="text-[9px] font-bold text-orange-400 mt-1 uppercase tracking-[0.2em]">〜ウチらのっぽい人プロファイリング〜</p>
             <p id="room-display" class="text-[8px] font-bold text-slate-300 mt-2 uppercase tracking-widest"></p>
         </header>
         
@@ -31,6 +31,9 @@
             <button id="force-reset-btn" onclick="forceResetRoom()" class="hidden text-[10px] bg-red-100 text-red-500 px-4 py-2 rounded-full font-bold border border-red-200 shadow-sm">
                 ホスト権限：部屋を強制解散
             </button>
+<button onclick="hardResetRoom()" class="text-[10px] bg-red-500 text-white px-6 py-2 rounded-full font-bold shadow-lg hover:bg-red-600 transition-colors">
+        緊急：部屋の全データを初期化する
+    </button>
             <button onclick="leaveAndReset()" class="text-[10px] text-slate-300 underline uppercase tracking-widest">
                 退出してリセット
             </button>
@@ -90,7 +93,20 @@
             }
             render();
         });
-
+// 部屋のデータを完全に削除し、ページをリロードする
+function hardResetRoom() {
+    if (confirm("【警告】部屋の全記録を完全に消去し、全員を強制終了させますか？\n（ホストが不在で進めない場合にのみ使用してください）")) {
+        // Firebase上のこの部屋のデータを全削除
+        roomRef.remove().then(() => {
+            alert("部屋を初期化しました。");
+            localStorage.clear();
+            location.href = location.pathname; // URLパラメータを残さずリロード
+        }).catch((error) => {
+            console.error("Reset failed:", error);
+            alert("リセットに失敗しました。");
+        });
+    }
+}
         function forceResetRoom() {
             if (confirm("【警告】部屋を強制解散して全員をタイトルに戻しますか？")) { roomRef.remove(); }
         }
@@ -128,26 +144,15 @@
             });
         }
 
-        // リトライボタン用：フェーズをセットアップに戻し、データをリセットする
-        function retryGame() {
-            roomRef.update({
-                phase: 'setup',
-                questions: null,
-                answers: null,
-                currentQIdx: 0,
-                revealIdx: 0
-            });
-        }
-
         function startGame() {
             const isExclude = document.getElementById('exclude-mode')?.checked;
             const shuffled = [...QUESTIONS].sort(() => 0.5 - Math.random());
-            roomRef.update({
+            roomRef.set({
                 phase: 'playing',
                 members: gameState.members,
                 host: gameState.host,
                 questions: shuffled.slice(0, gameState.members.length),
-                excludeMode: isExclude,
+                excludeMode: isExclude, // モード保存
                 currentQIdx: 0,
                 answers: {},
                 revealIdx: 0
@@ -222,6 +227,7 @@
                 const q = gameState.questions[gameState.currentQIdx];
                 const currentAns = (gameState.answers && gameState.answers[gameState.currentQIdx]) || {};
                 const myExcludes = [];
+                // 除外モードがオンの時だけ除外リストを作成
                 if (gameState.excludeMode) {
                     for (let i = 0; i < gameState.currentQIdx; i++) { if (gameState.answers[i] && gameState.answers[i][myName]) myExcludes.push(gameState.answers[i][myName]); }
                 }
@@ -246,7 +252,7 @@
             else if (gameState.phase === 'result') {
                 const members = gameState.members; const history = gameState.answers || {};
                 const pairScores = {}; let totalMatches = 0;
-                const numQ = gameState.questions ? gameState.questions.length : 1;
+                const numQ = gameState.questions.length;
                 const possiblePairs = (members.length * (members.length - 1)) / 2;
                 for(let i=0; i<members.length; i++) {
                     for(let j=i+1; j<members.length; j++) {
@@ -259,7 +265,7 @@
                 const maxScore = Math.max(...Object.values(pairScores)) || 0;
                 const bestPairs = Object.entries(pairScores).filter(([_, s]) => s === maxScore).map(([p]) => p);
                 const rank = getGroupRankInfo(syncRate);
-                container.innerHTML = `<div class="fade-in text-center px-2"><div class="mb-4"><h2 class="text-2xl font-black text-orange-600">${myName}<small class="san text-lg">さん</small></h2></div><p class="text-[10px] font-bold text-orange-400 uppercase mb-1">Group Sync Rate</p><h2 class="text-7xl font-black text-orange-600 italic mb-2">${syncRate}<small class="text-3xl">%</small></h2><div class="mb-10 bg-white p-6 rounded-[2.5rem] shadow-sm border border-orange-100"><div class="inline-block bg-orange-600 text-white px-6 py-1 rounded-full font-black text-lg mb-2 shadow-md">${rank.title}</div><p class="text-xs text-slate-500 italic px-4 leading-relaxed">${rank.desc}</p></div><div class="bg-gradient-to-br from-orange-500 to-orange-600 p-6 rounded-[2.5rem] shadow-xl text-center mb-8 text-white"><p class="text-[10px] font-bold mb-3 uppercase tracking-widest opacity-90 border-b border-orange-300 inline-block pb-1">Best Partner</p><h3 class="text-xl font-black mb-1 leading-tight">${bestPairs.join('<br>')}</h3><p class="text-orange-100 text-[10px] font-bold">一致数: ${maxScore}回</p></div><div class="flex flex-col gap-3 pb-10">${myRole === 'host' ? `<button onclick="retryGame()" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">同じメンバーでリトライ</button>` : `<p class="text-orange-300 font-bold animate-pulse italic text-sm text-center">ホストのリトライを待っています...</p>`}<button onclick="leaveAndReset()" class="w-full bg-white text-slate-400 border-2 border-slate-200 h-14 rounded-2xl font-bold">退出する</button></div></div>`;
+                container.innerHTML = `<div class="fade-in text-center px-2"><div class="mb-4"><h2 class="text-2xl font-black text-orange-600">${myName}<small class="san text-lg">さん</small></h2></div><p class="text-[10px] font-bold text-orange-400 uppercase mb-1">Group Sync Rate</p><h2 class="text-7xl font-black text-orange-600 italic mb-2">${syncRate}<small class="text-3xl">%</small></h2><div class="mb-10 bg-white p-6 rounded-[2.5rem] shadow-sm border border-orange-100"><div class="inline-block bg-orange-600 text-white px-6 py-1 rounded-full font-black text-lg mb-2 shadow-md">${rank.title}</div><p class="text-xs text-slate-500 italic px-4 leading-relaxed">${rank.desc}</p></div><div class="bg-gradient-to-br from-orange-500 to-orange-600 p-6 rounded-[2.5rem] shadow-xl text-center mb-8 text-white"><p class="text-[10px] font-bold mb-3 uppercase tracking-widest opacity-90 border-b border-orange-300 inline-block pb-1">Best Partner</p><h3 class="text-xl font-black mb-1 leading-tight">${bestPairs.join('<br>')}</h3><p class="text-orange-100 text-[10px] font-bold">一致数: ${maxScore}回</p></div><div class="flex flex-col gap-3 pb-10">${myRole === 'host' ? `<button onclick="startGame()" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">同じメンバーでリトライ</button>` : `<p class="text-orange-300 font-bold animate-pulse italic text-sm text-center">ホストのリトライを待っています...</p>`}<button onclick="leaveAndReset()" class="w-full bg-white text-slate-400 border-2 border-slate-200 h-14 rounded-2xl font-bold">退出する</button></div></div>`;
             }
         }
         render();
