@@ -96,8 +96,7 @@
             try {
                 const response = await fetch('keywords.json');
                 wordDict = await response.json();
-                console.log("Keywords loaded", wordDict);
-                render(); // ロード完了後に再描画
+                render(); 
             } catch (e) {
                 console.error("JSON Error", e);
             }
@@ -106,9 +105,11 @@
 
         roomRef.on("value", (snap) => {
             gameState = snap.val();
-            if (gameState && gameState.revealIdx !== lastRevealIdx) {
+            // インデックスが変わったとき、またはリセットされたときに画面上のスタンプを全消去
+            if (gameState && (gameState.revealIdx !== lastRevealIdx || !gameState.stamps)) {
                 document.querySelectorAll('.stamp-icon').forEach(el => el.remove());
-                totalStampLimit = 3; lastRevealIdx = gameState.revealIdx;
+                totalStampLimit = 3; 
+                lastRevealIdx = gameState.revealIdx;
             }
             render();
         });
@@ -182,11 +183,7 @@
                 if (isParent) container.innerHTML = `<div class="p-10 text-rose-400 font-bold animate-pulse text-sm">みんなが褒めてくれるのを待っています...</div>`;
                 else if (gameState.votes?.[myName]) container.innerHTML = `<div class="p-10 text-rose-400 font-bold animate-pulse text-sm">送信完了！待機中...</div>`;
                 else {
-                    // ここでJSONからワードを抽出
-                    if (!wordDict) {
-                        container.innerHTML = `<div class="p-10 text-rose-400">単語を読み込み中...</div>`;
-                        return;
-                    }
+                    if (!wordDict) { container.innerHTML = `<div class="p-10 text-rose-400">読み込み中...</div>`; return; }
                     const parentData = gameState.members.find(m => m.name === gameState.parentName);
                     const gender = parentData?.gender || 'male';
                     const pool = wordDict[gender] || ["素敵"];
@@ -221,19 +218,25 @@
         function forceResetRoom() { if (confirm("リセットしますか？")) { roomRef.remove().then(() => { localStorage.clear(); location.reload(); }); } }
         function setParent(t) { roomRef.update({ phase: 'voting', parentName: t, votes: {}, revealIdx: 0, stamps: null }); }
         function submitVote(k) { sfx.tap.play().catch(()=>{}); roomRef.child(`votes/${myName}`).set(k).then(() => { roomRef.transaction(c => { if (c && Object.keys(c.votes || {}).length === (c.members.length - 1)) { c.phase = 'revealing'; c.shuffledVotes = Object.values(c.votes).sort(() => 0.5 - Math.random()); c.revealIdx = 0; } return c; }); }); }
-        function nextReveal() {
-    if (gameState.revealIdx < gameState.shuffledVotes.length - 1) {
-        // stampsを個別に削除（remove）してからインデックスを進める
-        roomRef.child('stamps').remove().then(() => {
-            roomRef.update({ revealIdx: gameState.revealIdx + 1 });
-        });
-        sfx.zoom.play().catch(()=>{});
-    } else {
-        // 最終結果画面へ行く際もスタンプを削除
-        roomRef.child('stamps').remove();
-        roomRef.update({ phase: 'result' });
-    }
-}function confirmWinner() { if (!localSelectedWinner) return; const wId = Object.keys(gameState.votes).find(k => gameState.votes[k] === localSelectedWinner); roomRef.update({ phase: 'winner-announced', winningKeyword: localSelectedWinner, winnerName: wId }); }
+        
+        // 修正ポイント：nextRevealの中で確実にstampsを消去する
+        function nextReveal() { 
+            if (gameState.revealIdx < gameState.shuffledVotes.length - 1) { 
+                // 1. まずFirebaseのstampsを消す
+                roomRef.child('stamps').remove().then(() => {
+                    // 2. その後にrevealIdxを進める
+                    roomRef.update({ revealIdx: gameState.revealIdx + 1 });
+                });
+                sfx.zoom.play().catch(()=>{}); 
+            } else { 
+                // 最後のワードから結果画面へ行く際もstampsを消す
+                roomRef.child('stamps').remove().then(() => {
+                    roomRef.update({ phase: 'result' });
+                });
+            } 
+        }
+
+        function confirmWinner() { if (!localSelectedWinner) return; const wId = Object.keys(gameState.votes).find(k => gameState.votes[k] === localSelectedWinner); roomRef.update({ phase: 'winner-announced', winningKeyword: localSelectedWinner, winnerName: wId }); }
     </script>
 </body>
 </html>
