@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ごきげんなかよしげーむ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&display=swap');
+        body { font-family: 'Zen Maru Gothic', sans-serif; background-color: #fff1f2; touch-action: manipulation; overflow: hidden; }
+        
+        .word-zoom { animation: wordZoom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes wordZoom { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        .stamp-icon {
+            position: fixed; pointer-events: none; z-index: 10;
+            animation: stampPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            font-size: 2.8rem;
+        }
+        @keyframes stampPop { 0% { transform: scale(0); } 100% { transform: scale(1) rotate(var(--tw-r)); } }
+
+        .pop-up { animation: popUp 0.4s forwards; }
+        @keyframes popUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .selected-card { background-color: #fb7185 !important; color: white !important; border-color: #f43f5e !important; }
+        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .icon-svg { width: 32px; height: 32px; fill: currentColor; display: inline-block; }
+        .gender-male { color: #6366f1; }
+        .gender-female { color: #fb7185; }
+    </style>
+</head>
+<body class="p-4 text-slate-700">
+
+    <div id="app" class="max-w-md mx-auto text-center pb-32">
+        <header class="mb-6 pt-4">
+            <h1 class="text-3xl font-black text-rose-500 tracking-tighter leading-none">ごきげんなかよしげーむ</h1>
+            <p class="text-[11px] font-bold text-rose-400 mt-2 italic">〜自己肯定感ぶち上げパーティー〜</p>
+        </header>
+
+        <div id="game-content" class="min-h-[350px]"></div>
+        <button onclick="forceResetRoom()" class="mt-8 text-[10px] text-rose-300 px-4 py-2 rounded-full border border-rose-100">⚠️ 部屋をリセット</button>
+    </div>
+
+    <div id="stamp-ui" class="fixed bottom-6 left-0 right-0 flex flex-col items-center gap-2 z-50 hidden">
+        <div id="total-count" class="text-[10px] font-bold text-rose-400 bg-white px-3 py-1 rounded-full shadow-sm border border-rose-100"></div>
+        <div class="flex justify-center gap-3 px-4">
+            <button onclick="sendStamp('✨')" class="bg-white border-2 border-rose-100 text-rose-500 w-20 py-2 rounded-2xl font-black shadow-lg active:scale-90 transition-all">
+                <span class="text-[9px]">それそれ！</span><br><span class="text-xl">✨</span>
+            </button>
+            <button onclick="sendStamp('🤝')" class="bg-white border-2 border-rose-100 text-rose-500 w-20 py-2 rounded-2xl font-black shadow-lg active:scale-90 transition-all">
+                <span class="text-[9px]">わかるー</span><br><span class="text-xl">🤝</span>
+            </button>
+            <button onclick="sendStamp('🔥')" class="bg-white border-2 border-rose-100 text-rose-500 w-20 py-2 rounded-2xl font-black shadow-lg active:scale-90 transition-all">
+                <span class="text-[9px]">最高！</span><br><span class="text-xl">🔥</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmzPmehSaV--mn0Hd0S-fd97nf5RX4Dvg",
+            authDomain: "membertoiro.firebaseapp.com",
+            databaseURL: "https://membertoiro-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "membertoiro",
+            storageBucket: "membertoiro.firebasestorage.app",
+            messagingSenderId: "858132874746",
+            appId: "1:858132874746:web:9d6e1156a350dd396b9043"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('room') || 'gokigen-room';
+        const roomRef = db.ref("praise_rooms/" + roomId);
+
+        let myName = localStorage.getItem("h-name") || "";
+        let myRole = localStorage.getItem("h-role") || "";
+        let myGender = localStorage.getItem("h-gender") || "male";
+        let wordDict = null; 
+        let gameState = null;
+        let localSelectedWinner = null;
+        let totalStampLimit = 3; 
+        let lastRevealIdx = -1;
+
+        const sfx = { 
+            tap: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-selection-horizontal-drum-2014.mp3'), 
+            win: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3'), 
+            zoom: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-uplifting-bell-notification-wave-1598.mp3') 
+        };
+
+        const getIcon = (gender) => `<svg class="icon-svg ${gender === 'male' ? 'gender-male' : 'gender-female'}" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+
+        async function loadKeywords() {
+            try {
+                const response = await fetch('keywords.json');
+                wordDict = await response.json();
+                console.log("Keywords loaded", wordDict);
+                render(); // ロード完了後に再描画
+            } catch (e) {
+                console.error("JSON Error", e);
+            }
+        }
+        loadKeywords();
+
+        roomRef.on("value", (snap) => {
+            gameState = snap.val();
+            if (gameState && gameState.revealIdx !== lastRevealIdx) {
+                document.querySelectorAll('.stamp-icon').forEach(el => el.remove());
+                totalStampLimit = 3; lastRevealIdx = gameState.revealIdx;
+            }
+            render();
+        });
+
+        roomRef.child('stamps').on('child_added', (snap) => {
+            const d = snap.val();
+            if (d && Date.now() - d.ts < 5000) spawnStamp(d.icon);
+        });
+
+        function sendStamp(icon) {
+            if (totalStampLimit <= 0) return;
+            totalStampLimit--;
+            roomRef.child('stamps').push({ icon: icon, ts: Date.now(), from: myName });
+            sfx.tap.play().catch(()=>{});
+            render(); 
+        }
+
+        function spawnStamp(icon) {
+            const el = document.createElement('div');
+            el.className = 'stamp-icon';
+            el.innerText = icon;
+            el.style.left = (15 + Math.random() * 70) + '%';
+            el.style.top = (25 + Math.random() * 45) + '%';
+            el.style.setProperty('--tw-r', (Math.random() * 60 - 30) + 'deg');
+            document.body.appendChild(el);
+        }
+
+        function render() {
+            const container = document.getElementById('game-content');
+            const stampUI = document.getElementById('stamp-ui');
+            const totalCountEl = document.getElementById('total-count');
+            if (!container) return;
+
+            const isParent = gameState?.parentName === myName;
+
+            if (myName && gameState?.phase === 'revealing' && !isParent) {
+                stampUI.classList.remove('hidden');
+                totalCountEl.innerText = `残りスタンプ: ${totalStampLimit}`;
+            } else { stampUI.classList.add('hidden'); }
+
+            if (!myName) {
+                const hostExists = gameState && gameState.host;
+                container.innerHTML = `
+                    <div class="bg-white p-8 rounded-[2rem] shadow-xl pop-up border-t-8 border-rose-400 mt-4">
+                        <div class="flex justify-center mb-6 gap-8">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="gender" value="male" checked class="hidden peer">
+                                <div class="p-4 rounded-2xl border-2 border-transparent peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all text-slate-300 peer-checked:text-indigo-500">
+                                    ${getIcon('male')}
+                                    <p class="text-[10px] font-bold mt-1">MALE</p>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="gender" value="female" class="hidden peer">
+                                <div class="p-4 rounded-2xl border-2 border-transparent peer-checked:border-rose-500 peer-checked:bg-rose-50 transition-all text-slate-300 peer-checked:text-rose-500">
+                                    ${getIcon('female')}
+                                    <p class="text-[10px] font-bold mt-1">FEMALE</p>
+                                </div>
+                            </label>
+                        </div>
+                        <input id="name-input" type="text" placeholder="お名前" class="w-full mb-6 border-b-2 border-rose-100 p-2 text-center text-xl font-bold outline-none bg-transparent">
+                        <button onclick="joinGame('host')" ${hostExists ? 'disabled' : ''} class="w-full ${hostExists ? 'bg-slate-200' : 'bg-rose-500 shadow-lg'} text-white h-14 rounded-2xl font-bold mb-3">${hostExists ? '満員です' : 'ホストで開始'}</button>
+                        <button onclick="joinGame('guest')" class="w-full text-rose-400 font-bold h-12">ゲストで参加</button>
+                    </div>`;
+                return;
+            }
+
+            if (!gameState || gameState.phase === 'setup') {
+                container.innerHTML = `<div class="bg-white p-6 rounded-[2rem] shadow-lg pop-up"><p class="text-[10px] text-slate-400 mb-6 font-bold tracking-widest uppercase">褒める人を選んでスタート！</p><div class="grid grid-cols-2 gap-3">${gameState?.members?.map(m => `<button onclick="setParent('${m.name}')" ${myRole!=='host'?'disabled':''} class="flex flex-col items-center bg-slate-50 p-4 rounded-2xl hover:bg-rose-50 border-2 border-transparent hover:border-rose-200 font-bold text-xs py-4">${getIcon(m.gender)}<span class="mt-1">${m.name}</span></button>`).join('') || ''}</div></div>`;
+            } else if (gameState.phase === 'voting') {
+                if (isParent) container.innerHTML = `<div class="p-10 text-rose-400 font-bold animate-pulse text-sm">みんなが褒めてくれるのを待っています...</div>`;
+                else if (gameState.votes?.[myName]) container.innerHTML = `<div class="p-10 text-rose-400 font-bold animate-pulse text-sm">送信完了！待機中...</div>`;
+                else {
+                    // ここでJSONからワードを抽出
+                    if (!wordDict) {
+                        container.innerHTML = `<div class="p-10 text-rose-400">単語を読み込み中...</div>`;
+                        return;
+                    }
+                    const parentData = gameState.members.find(m => m.name === gameState.parentName);
+                    const gender = parentData?.gender || 'male';
+                    const pool = wordDict[gender] || ["素敵"];
+                    const hand = [...pool].sort(() => 0.5 - Math.random()).slice(0, 6);
+                    container.innerHTML = `<div class="mb-4 text-center"><span class="text-[10px] bg-rose-500 text-white px-4 py-1 rounded-full font-bold">To: ${gameState.parentName}さん</span><h2 class="text-lg font-black text-slate-700 mt-3">褒めワードを選んで！</h2></div><div class="card-grid">${hand.map(k => `<button onclick=\"submitVote('${k}')\" class=\"h-16 bg-white border-b-4 border-rose-200 rounded-2xl font-bold text-rose-500 text-sm shadow-sm active:translate-y-1 active:border-b-0 transition-all\">${k}</button>`).join('')}</div>`;
+                }
+            } else if (gameState.phase === 'revealing') {
+                const currentWord = gameState.shuffledVotes[gameState.revealIdx];
+                container.innerHTML = `<div class="text-center px-4"><p class="text-rose-400 font-bold text-[10px] mb-4 uppercase tracking-widest">Praise ${gameState.revealIdx + 1} / ${gameState.shuffledVotes.length}</p><div class="bg-white py-14 px-4 rounded-[3rem] shadow-xl border-4 border-rose-400 mb-8 word-zoom"><p class="text-4xl font-black text-rose-600">「${currentWord}」</p></div>${myRole === 'host' ? `<button onclick="nextReveal()" class="w-full bg-rose-600 text-white h-16 rounded-2xl font-black shadow-lg text-lg">次へ</button>` : `<p class="text-rose-300 font-bold animate-pulse text-sm">ホストを待っています...</p>`}</div>`;
+            } else if (gameState.phase === 'result') {
+                const allVotes = Object.values(gameState.votes);
+                container.innerHTML = `<div class="pop-up px-4"><h2 class="text-lg font-black mb-6 text-slate-700">${gameState.parentName}さん、どれが一番うれしかった？</h2><div class=\"card-grid mb-8\">${allVotes.map(v => `<button onclick=\"${isParent ? `localSelectedWinner='${v}'; render(); sfx.tap.play();` : ''}\" class=\"p-4 rounded-2xl font-bold border-2 transition-all text-sm ${localSelectedWinner === v ? 'selected-card shadow-inner' : 'bg-white text-rose-500 border-rose-100 shadow-sm'}\">${v}</button>`).join('')}</div>${isParent ? `<button onclick=\"confirmWinner()\" class=\"w-full h-16 bg-rose-500 text-white rounded-2xl font-black text-xl shadow-lg ${!localSelectedWinner ? 'opacity-30' : ''}\" ${!localSelectedWinner ? 'disabled' : ''}>OK</button>` : `<p class=\"text-rose-300 font-bold animate-pulse text-sm\">親が選び中です...</p>`}</div>`;
+            } else if (gameState.phase === 'winner-announced') {
+                container.innerHTML = `<div class="pop-up text-center px-4"><div class="bg-gradient-to-br from-rose-400 to-pink-600 p-8 rounded-[2.5rem] shadow-2xl text-white mb-6"><h2 class="text-4xl font-black mb-4">「${gameState.winningKeyword}」</h2><p class="text-sm font-bold opacity-90">Winner: ${gameState.winnerName}さん</p></div><button onclick=\"roomRef.update({phase: 'setup', votes: null, parentName: null, winningKeyword: null, shuffledVotes:null, revealIdx:0, stamps: null})\" class=\"w-full bg-slate-800 text-white h-16 rounded-2xl font-bold\">もう一度あそぶ</button></div>`;
+                if (!window.winSfxPlayed) { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); sfx.win.play().catch(()=>{}); window.winSfxPlayed = true; }
+            } else { window.winSfxPlayed = false; localSelectedWinner = null; }
+        }
+
+        function joinGame(role) {
+            const n = document.getElementById('name-input')?.value.trim();
+            const g = document.querySelector('input[name="gender"]:checked')?.value || "male";
+            if (!n) return alert("名前をいれてね");
+            myName = n; myRole = role; myGender = g;
+            localStorage.setItem("h-name", n); localStorage.setItem("h-role", role); localStorage.setItem("h-gender", g);
+            roomRef.transaction(c => {
+                if (!c) return { phase: 'setup', members: [{name:n, gender:g}], host: (role==='host'?n:"") };
+                let m = c.members || []; 
+                if (!m.find(x => x.name === n)) m.push({name:n, gender:g});
+                return { ...c, members: m, host: (role==='host' ? n : (c.host || "")) };
+            });
+        }
+        function forceResetRoom() { if (confirm("リセットしますか？")) { roomRef.remove().then(() => { localStorage.clear(); location.reload(); }); } }
+        function setParent(t) { roomRef.update({ phase: 'voting', parentName: t, votes: {}, revealIdx: 0, stamps: null }); }
+        function submitVote(k) { sfx.tap.play().catch(()=>{}); roomRef.child(`votes/${myName}`).set(k).then(() => { roomRef.transaction(c => { if (c && Object.keys(c.votes || {}).length === (c.members.length - 1)) { c.phase = 'revealing'; c.shuffledVotes = Object.values(c.votes).sort(() => 0.5 - Math.random()); c.revealIdx = 0; } return c; }); }); }
+        function nextReveal() { if (gameState.revealIdx < gameState.shuffledVotes.length - 1) { roomRef.update({ stamps: null }).then(() => { roomRef.update({ revealIdx: gameState.revealIdx + 1 }); }); sfx.zoom.play().catch(()=>{}); } else { roomRef.update({ phase: 'result', stamps: null }); } }
+        function confirmWinner() { if (!localSelectedWinner) return; const wId = Object.keys(gameState.votes).find(k => gameState.votes[k] === localSelectedWinner); roomRef.update({ phase: 'winner-announced', winningKeyword: localSelectedWinner, winnerName: wId }); }
+    </script>
+</body>
+</html>
