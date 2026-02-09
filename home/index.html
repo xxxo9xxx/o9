@@ -221,8 +221,19 @@
         function forceResetRoom() { if (confirm("リセットしますか？")) { roomRef.remove().then(() => { localStorage.clear(); location.reload(); }); } }
         function setParent(t) { roomRef.update({ phase: 'voting', parentName: t, votes: {}, revealIdx: 0, stamps: null }); }
         function submitVote(k) { sfx.tap.play().catch(()=>{}); roomRef.child(`votes/${myName}`).set(k).then(() => { roomRef.transaction(c => { if (c && Object.keys(c.votes || {}).length === (c.members.length - 1)) { c.phase = 'revealing'; c.shuffledVotes = Object.values(c.votes).sort(() => 0.5 - Math.random()); c.revealIdx = 0; } return c; }); }); }
-        function nextReveal() { if (gameState.revealIdx < gameState.shuffledVotes.length - 1) { roomRef.update({ stamps: null }).then(() => { roomRef.update({ revealIdx: gameState.revealIdx + 1 }); }); sfx.zoom.play().catch(()=>{}); } else { roomRef.update({ phase: 'result', stamps: null }); } }
-        function confirmWinner() { if (!localSelectedWinner) return; const wId = Object.keys(gameState.votes).find(k => gameState.votes[k] === localSelectedWinner); roomRef.update({ phase: 'winner-announced', winningKeyword: localSelectedWinner, winnerName: wId }); }
+        function nextReveal() {
+    if (gameState.revealIdx < gameState.shuffledVotes.length - 1) {
+        // stampsを個別に削除（remove）してからインデックスを進める
+        roomRef.child('stamps').remove().then(() => {
+            roomRef.update({ revealIdx: gameState.revealIdx + 1 });
+        });
+        sfx.zoom.play().catch(()=>{});
+    } else {
+        // 最終結果画面へ行く際もスタンプを削除
+        roomRef.child('stamps').remove();
+        roomRef.update({ phase: 'result' });
+    }
+}function confirmWinner() { if (!localSelectedWinner) return; const wId = Object.keys(gameState.votes).find(k => gameState.votes[k] === localSelectedWinner); roomRef.update({ phase: 'winner-announced', winningKeyword: localSelectedWinner, winnerName: wId }); }
     </script>
 </body>
 </html>
