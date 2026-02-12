@@ -71,7 +71,6 @@
         let gameState = null;
         let selectedColor = null;
         let isInputting = false;
-        let previewThemes = []; // ホスト用お題プレビュー
 
         if (currentRoomId) connectToRoom(currentRoomId);
         else render();
@@ -115,45 +114,44 @@
             });
         }
 
-        // お題をシャッフル（themes.jsonから取得）する関数
-        async function shuffleThemes() {
-            try {
-                const response = await fetch('themes.json');
-                const MASTER_THEMES = await response.json();
-                const mode = document.getElementById('mode-select')?.value || 'ほんばん';
-                
-                let themes = [];
-                for(let i=0; i<5; i++) {
-                    let lv = ['easy', 'normal', 'hard'];
-                    if (mode === 'れんしゅう') lv = ['easy'];
-                    else if (mode === 'ほんばん') {
-                        if (i === 0) lv = ['easy'];
-                        else if (i === 1) lv = ['easy', 'normal'];
-                        else if (i === 2) lv = ['normal'];
-                        else if (i === 3) lv = ['normal', 'hard'];
-                        else lv = ['hard'];
-                    }
-                    const pool = lv.flatMap(l => MASTER_THEMES[l] || []);
-                    themes.push(pool[Math.floor(Math.random() * pool.length)] || "お題なし");
-                }
-                previewThemes = themes;
-                render(); // ボタンなどの状態を維持したまま再描画
-            } catch (e) {
-                alert("themes.jsonの読み込みに失敗しました。");
+        // --- お題生成ロジック ---
+        async function fetchNewTheme(roundIndex, mode) {
+            const response = await fetch('themes.json');
+            const MASTER_THEMES = await response.json();
+            let lv = ['easy', 'normal', 'hard'];
+            if (mode === 'れんしゅう') lv = ['easy'];
+            else if (mode === 'ほんばん') {
+                if (roundIndex === 0) lv = ['easy'];
+                else if (roundIndex === 1) lv = ['easy', 'normal'];
+                else if (roundIndex === 2) lv = ['normal'];
+                else if (roundIndex === 3) lv = ['normal', 'hard'];
+                else lv = ['hard'];
             }
+            const pool = lv.flatMap(l => MASTER_THEMES[l] || []);
+            return pool[Math.floor(Math.random() * pool.length)] || "お題なし";
         }
 
         async function startGame() {
-            if (previewThemes.length === 0) await shuffleThemes();
-            
-            const dealCount = parseInt(document.getElementById('card-count-select')?.value) || 10;
             const mode = document.getElementById('mode-select')?.value || 'ほんばん';
+            let themes = [];
+            for(let i=0; i<5; i++) {
+                themes.push(await fetchNewTheme(i, mode));
+            }
+            const dealCount = parseInt(document.getElementById('card-count-select')?.value) || 10;
             const commonHand = [...COLORS].sort(() => 0.5 - Math.random()).slice(0, dealCount).map(c => c.id);
 
             db.ref("rooms/" + currentRoomId).update({
-                phase: 'playing', themes: previewThemes, currentRound: 0, answers: {}, revealIdx: -1,
+                phase: 'playing', themes: themes, currentRound: 0, answers: {}, revealIdx: -1,
                 commonHand: commonHand, gameMode: mode
             });
+        }
+
+        // ★ 今回の追加：プレイ中にお題のみを上書きする関数
+        async function redrawCurrentTheme() {
+            if (myRole !== 'host') return;
+            const round = gameState.currentRound;
+            const newTheme = await fetchNewTheme(round, gameState.gameMode);
+            db.ref(`rooms/${currentRoomId}/themes/${round}`).set(newTheme);
         }
 
         function confirmAnswer() {
@@ -231,29 +229,34 @@
                     ${myRole === 'host' ? `
                         <div class="bg-blue-50/50 p-5 rounded-3xl mb-6 text-left border border-blue-100">
                             <label class="block text-[10px] font-black text-blue-400 mb-3 uppercase tracking-tighter">Game Settings</label>
-                            <div class="space-y-4 mb-4">
+                            <div class="space-y-4 mb-6">
                                 <div><span class="text-[10px] font-bold text-slate-400 ml-1">カード枚数</span><select id="card-count-select" class="w-full p-3 rounded-xl font-bold text-sm bg-white border-none shadow-sm"><option value="5">5枚</option><option value="8">8枚</option><option value="10" selected>10枚</option><option value="12">12枚</option><option value="15">15枚</option></select></div>
-                                <div><span class="text-[10px] font-bold text-slate-400 ml-1">難易度モード</span><select id="mode-select" class="w-full p-3 rounded-xl font-bold text-sm bg-white border-none shadow-sm" onchange="previewThemes=[]"><option value="れんしゅう">れんしゅう (Easyのみ)</option><option value="ほんばん" selected>ほんばん (徐々に難化)</option><option value="ランダム">ランダム (全難易度混在)</option></select></div>
+                                <div><span class="text-[10px] font-bold text-slate-400 ml-1">難易度モード</span><select id="mode-select" class="w-full p-3 rounded-xl font-bold text-sm bg-white border-none shadow-sm"><option value="れんしゅう">れんしゅう (Easyのみ)</option><option value="ほんばん" selected>ほんばん (徐々に難化)</option><option value="ランダム">ランダム (全難易度混在)</option></select></div>
                             </div>
-                            
-                            <div class="mb-6">
-                                <div class="flex justify-between items-center mb-2"><span class="text-[10px] font-bold text-slate-400 ml-1">お題プレビュー</span><button onclick="shuffleThemes()" class="text-[10px] font-black text-blue-500 bg-white px-2 py-1 rounded-lg shadow-sm border border-blue-100 active:scale-95 transition-all">🔄 お題を引き直す</button></div>
-                                <div class="bg-white/50 p-3 rounded-xl border border-blue-50 min-h-[40px] text-[10px] font-bold text-slate-500 italic leading-relaxed">
-                                    ${previewThemes.length > 0 ? previewThemes.join(' / ') : '「引き直す」でお題を確認できます'}
-                                </div>
-                            </div>
-
                             <button onclick="startGame()" class="w-full bg-blue-500 text-white h-16 rounded-2xl text-xl font-black shadow-lg">ゲーム開始</button>
                         </div>` : `<p class="animate-pulse text-slate-400 font-bold">ホストが準備しています...</p>`}
                 </div>`;
             } else if (gameState.phase === 'playing') {
-                const round = gameState.currentRound; const theme = gameState.themes[round]; const alreadyAnswered = gameState.answers?.[round]?.[myName];
+                const round = gameState.currentRound;
+                const theme = gameState.themes[round];
+                const alreadyAnswered = gameState.answers?.[round]?.[myName];
                 if (alreadyAnswered) {
                     container.innerHTML = `<div class="bg-white p-12 rounded-[2.5rem] shadow-xl border border-slate-100 fade-in"><div class="w-16 h-16 mx-auto rounded-2xl shadow-inner mb-4" style="background-color: ${COLORS.find(c => c.id === alreadyAnswered).code}"></div><p class="text-slate-400 font-bold text-sm">回答完了！待機中...<br><span class="text-blue-500 text-2xl font-black">${Object.keys(gameState.answers[round]).length} / ${gameState.members.length}</span></p></div>`;
                 } else {
-                    const myUsed = []; for(let i=0; i<round; i++) { if(gameState.answers?.[i]?.[myName]) myUsed.push(gameState.answers[i][myName]); }
-                    const currentHand = gameState.commonHand.filter(cid => !myUsed.includes(cid)); const selObj = selectedColor ? COLORS.find(c => c.id === selectedColor) : null;
-                    container.innerHTML = `<div class="fade-in"><div class="mb-2 text-[10px] font-black text-slate-300 tracking-[0.3em] uppercase">${gameState.gameMode} ROUND ${round + 1} / 5</div><h2 class="text-4xl font-black text-slate-800 mb-8 italic tracking-tight">「${theme}」</h2><div class="color-grid mb-8">${currentHand.map(cid => { const c = COLORS.find(x => x.id === cid); return `<button onclick="selectedColor='${c.id}';render();" style="background-color: ${c.code}; color: ${c.text}" class="h-20 rounded-2xl font-bold shadow-md ring-4 ${selectedColor === cid ? 'ring-blue-500 scale-105 shadow-blue-100' : 'ring-transparent'} border-b-4 border-black/10 transition-all text-xs">${c.name}</button>`; }).join('')}</div><div class="h-24">${selObj ? `<button onclick="confirmAnswer()" style="background-color: ${selObj.code}; color: ${selObj.text}" class="w-full h-20 rounded-3xl text-xl font-black shadow-xl animate-bounce border-4 border-black/10">【 ${selObj.name} 】で決定！</button>` : `<p class="text-slate-400 font-bold text-sm italic">色を選んでください</p>`}</div></div>`;
+                    const myUsed = [];
+                    for(let i=0; i<round; i++) { if(gameState.answers?.[i]?.[myName]) myUsed.push(gameState.answers[i][myName]); }
+                    const currentHand = gameState.commonHand.filter(cid => !myUsed.includes(cid));
+                    const selObj = selectedColor ? COLORS.find(c => c.id === selectedColor) : null;
+                    container.innerHTML = `
+                    <div class="fade-in">
+                        <div class="flex justify-between items-center mb-2 px-2">
+                            <div class="text-[10px] font-black text-slate-300 tracking-[0.3em] uppercase">${gameState.gameMode} RD ${round + 1}/5</div>
+                            ${myRole === 'host' ? `<button onclick="redrawCurrentTheme()" class="text-[10px] font-black text-blue-400 border border-blue-100 px-2 py-1 rounded-lg bg-white shadow-sm active:scale-95 transition-all">🔄 お題を変える</button>` : ''}
+                        </div>
+                        <h2 class="text-4xl font-black text-slate-800 mb-8 italic tracking-tight">「${theme}」</h2>
+                        <div class="color-grid mb-8">${currentHand.map(cid => { const c = COLORS.find(x => x.id === cid); return `<button onclick="selectedColor='${c.id}';render();" style="background-color: ${c.code}; color: ${c.text}" class="h-20 rounded-2xl font-bold shadow-md ring-4 ${selectedColor === cid ? 'ring-blue-500 scale-105 shadow-blue-100' : 'ring-transparent'} border-b-4 border-black/10 transition-all text-xs">${c.name}</button>`; }).join('')}</div>
+                        <div class="h-24">${selObj ? `<button onclick="confirmAnswer()" style="background-color: ${selObj.code}; color: ${selObj.text}" class="w-full h-20 rounded-3xl text-xl font-black shadow-xl animate-bounce border-4 border-black/10">【 ${selObj.name} 】で決定！</button>` : `<p class="text-slate-400 font-bold text-sm italic">色を選んでください</p>`}</div>
+                    </div>`;
                 }
             } else if (gameState.phase === 'revealing') {
                 const idx = gameState.revealIdx; let resultsHtml = "";
@@ -266,7 +269,7 @@
             } else if (gameState.phase === 'result') {
                 let matchCount = 0; for(let r=0; r<5; r++){ const ans = Object.values((gameState.answers && gameState.answers[r]) || {}); if(ans.length > 0 && ans.length === gameState.members.length && ans.every(v => v === ans[0])) matchCount++; }
                 const score = (matchCount / 5) * 100;
-                container.innerHTML = `<div class="fade-in text-center"><p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-2">Group Sync Rate</p><h2 class="text-8xl font-black text-slate-800 mb-6 italic tracking-tighter"><span id="count-up-score">0</span><small class="text-3xl">%</small></h2><div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 mb-8 overflow-hidden relative"><div class="relative z-10"><div class="text-[10px] font-bold text-blue-500 mb-2 uppercase italic tracking-widest">Final Rank</div><div class="text-2xl font-black text-slate-800 mb-4">${score === 100 ? "奇跡のシンクロ！" : score >= 60 ? "最強の絆！" : "伸びしろたっぷり！"}</div><p class="text-xs text-slate-400 font-bold tracking-tight">${matchCount} / 5 ラウンド一致！</p></div><div class="absolute bottom-0 left-0 h-1 bg-blue-500 transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.4)]" style="width:${score}%"></div></div>${myRole === 'host' ? `<button onclick="previewThemes=[]; gameState.phase='setup'; render();" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">設定に戻る</button>` : ``}</div>`;
+                container.innerHTML = `<div class="fade-in text-center"><p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-2">Group Sync Rate</p><h2 class="text-8xl font-black text-slate-800 mb-6 italic tracking-tighter"><span id="count-up-score">0</span><small class="text-3xl">%</small></h2><div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 mb-8 overflow-hidden relative"><div class="relative z-10"><div class="text-[10px] font-bold text-blue-500 mb-2 uppercase italic tracking-widest">Final Rank</div><div class="text-2xl font-black text-slate-800 mb-4">${score === 100 ? "奇跡のシンクロ！" : score >= 60 ? "最強の絆！" : "伸びしろたっぷり！"}</div><p class="text-xs text-slate-400 font-bold tracking-tight">${matchCount} / 5 ラウンド一致！</p></div><div class="absolute bottom-0 left-0 h-1 bg-blue-500 transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.4)]" style="width:${score}%"></div></div>${myRole === 'host' ? `<button onclick="gameState.phase='setup'; render();" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">設定に戻る</button>` : ``}</div>`;
                 setTimeout(() => animateCountUp(score), 100);
             }
         }
