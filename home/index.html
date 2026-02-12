@@ -83,6 +83,7 @@
         let localSelectedWinner = null;
         let totalStampLimit = 3; 
         let lastRevealIdx = -1;
+        let myHand = null; // 【追加】自分専用のワード選択肢を保持する変数
 
         const sfx = { 
             tap: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-selection-horizontal-drum-2014.mp3'), 
@@ -105,7 +106,6 @@
 
         roomRef.on("value", (snap) => {
             gameState = snap.val();
-            // インデックスが変わったとき、またはリセットされたときに画面上のスタンプを全消去
             if (gameState && (gameState.revealIdx !== lastRevealIdx || !gameState.stamps)) {
                 document.querySelectorAll('.stamp-icon').forEach(el => el.remove());
                 totalStampLimit = 3; 
@@ -178,19 +178,26 @@
             }
 
             if (!gameState || gameState.phase === 'setup') {
+                myHand = null; // 【追加】次のゲームのために手札をリセット
                 container.innerHTML = `<div class="bg-white p-6 rounded-[2rem] shadow-lg pop-up"><p class="text-[10px] text-slate-400 mb-6 font-bold tracking-widest uppercase">褒める人を選んでスタート！</p><div class="grid grid-cols-2 gap-3">${gameState?.members?.map(m => `<button onclick="setParent('${m.name}')" ${myRole!=='host'?'disabled':''} class="flex flex-col items-center bg-slate-50 p-4 rounded-2xl hover:bg-rose-50 border-2 border-transparent hover:border-rose-200 font-bold text-xs py-4">${getIcon(m.gender)}<span class="mt-1">${m.name}</span></button>`).join('') || ''}</div></div>`;
             } else if (gameState.phase === 'voting') {
                 if (isParent) container.innerHTML = `<div class="p-10 text-rose-400 font-bold animate-pulse text-sm">みんなが褒めてくれるのを待っています...</div>`;
                 else if (gameState.votes?.[myName]) container.innerHTML = `<div class="p-10 text-rose-400 font-bold animate-pulse text-sm">送信完了！待機中...</div>`;
                 else {
                     if (!wordDict) { container.innerHTML = `<div class="p-10 text-rose-400">読み込み中...</div>`; return; }
-                    const parentData = gameState.members.find(m => m.name === gameState.parentName);
-                    const gender = parentData?.gender || 'male';
-                    const pool = wordDict[gender] || ["素敵"];
-                    const hand = [...pool].sort(() => 0.5 - Math.random()).slice(0, 6);
-                    container.innerHTML = `<div class="mb-4 text-center"><span class="text-[10px] bg-rose-500 text-white px-4 py-1 rounded-full font-bold">To: ${gameState.parentName}さん</span><h2 class="text-lg font-black text-slate-700 mt-3">褒めワードを選んで！</h2></div><div class="card-grid">${hand.map(k => `<button onclick=\"submitVote('${k}')\" class=\"h-16 bg-white border-b-4 border-rose-200 rounded-2xl font-bold text-rose-500 text-sm shadow-sm active:translate-y-1 active:border-b-0 transition-all\">${k}</button>`).join('')}</div>`;
+                    
+                    // 【修正箇所】myHandがないときだけ新しく選ぶ。これで再描画されても手札が変わらない。
+                    if (!myHand) {
+                        const parentData = gameState.members.find(m => m.name === gameState.parentName);
+                        const gender = parentData?.gender || 'male';
+                        const pool = wordDict[gender] || ["素敵"];
+                        myHand = [...pool].sort(() => 0.5 - Math.random()).slice(0, 6);
+                    }
+
+                    container.innerHTML = `<div class="mb-4 text-center"><span class="text-[10px] bg-rose-500 text-white px-4 py-1 rounded-full font-bold">To: ${gameState.parentName}さん</span><h2 class="text-lg font-black text-slate-700 mt-3">褒めワードを選んで！</h2></div><div class="card-grid">${myHand.map(k => `<button onclick=\"submitVote('${k}')\" class=\"h-16 bg-white border-b-4 border-rose-200 rounded-2xl font-bold text-rose-500 text-sm shadow-sm active:translate-y-1 active:border-b-0 transition-all\">${k}</button>`).join('')}</div>`;
                 }
             } else if (gameState.phase === 'revealing') {
+                myHand = null; // 【追加】投票が終わったのでリセット
                 const currentWord = gameState.shuffledVotes[gameState.revealIdx];
                 container.innerHTML = `<div class="text-center px-4"><p class="text-rose-400 font-bold text-[10px] mb-4 uppercase tracking-widest">Praise ${gameState.revealIdx + 1} / ${gameState.shuffledVotes.length}</p><div class="bg-white py-14 px-4 rounded-[3rem] shadow-xl border-4 border-rose-400 mb-8 word-zoom"><p class="text-4xl font-black text-rose-600">「${currentWord}」</p></div>${myRole === 'host' ? `<button onclick="nextReveal()" class="w-full bg-rose-600 text-white h-16 rounded-2xl font-black shadow-lg text-lg">次へ</button>` : `<p class="text-rose-300 font-bold animate-pulse text-sm">ホストを待っています...</p>`}</div>`;
             } else if (gameState.phase === 'result') {
@@ -219,17 +226,13 @@
         function setParent(t) { roomRef.update({ phase: 'voting', parentName: t, votes: {}, revealIdx: 0, stamps: null }); }
         function submitVote(k) { sfx.tap.play().catch(()=>{}); roomRef.child(`votes/${myName}`).set(k).then(() => { roomRef.transaction(c => { if (c && Object.keys(c.votes || {}).length === (c.members.length - 1)) { c.phase = 'revealing'; c.shuffledVotes = Object.values(c.votes).sort(() => 0.5 - Math.random()); c.revealIdx = 0; } return c; }); }); }
         
-        // 修正ポイント：nextRevealの中で確実にstampsを消去する
         function nextReveal() { 
             if (gameState.revealIdx < gameState.shuffledVotes.length - 1) { 
-                // 1. まずFirebaseのstampsを消す
                 roomRef.child('stamps').remove().then(() => {
-                    // 2. その後にrevealIdxを進める
                     roomRef.update({ revealIdx: gameState.revealIdx + 1 });
                 });
                 sfx.zoom.play().catch(()=>{}); 
             } else { 
-                // 最後のワードから結果画面へ行く際もstampsを消す
                 roomRef.child('stamps').remove().then(() => {
                     roomRef.update({ phase: 'result' });
                 });
