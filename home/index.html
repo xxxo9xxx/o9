@@ -11,22 +11,14 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&display=swap');
         body { font-family: 'Zen Maru Gothic', sans-serif; background-color: #fff1f2; touch-action: manipulation; overflow: hidden; }
-        
         .word-zoom { animation: wordZoom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes wordZoom { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-
-        .stamp-icon {
-            position: fixed; pointer-events: none; z-index: 10;
-            animation: stampPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            font-size: 2.8rem;
-        }
+        .stamp-icon { position: fixed; pointer-events: none; z-index: 10; animation: stampPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; font-size: 2.8rem; }
         @keyframes stampPop { 0% { transform: scale(0); } 100% { transform: scale(1) rotate(var(--tw-r)); } }
-
         .pop-up { animation: popUp 0.4s forwards; }
         @keyframes popUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .selected-card { background-color: #fb7185 !important; color: white !important; border-color: #f43f5e !important; }
         .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
         .icon-svg { width: 32px; height: 32px; fill: currentColor; display: inline-block; }
         .gender-male { color: #6366f1; }
         .gender-female { color: #fb7185; }
@@ -83,7 +75,8 @@
         let localSelectedWinner = null;
         let totalStampLimit = 3; 
         let lastRevealIdx = -1;
-        let myHand = null; // 【追加】自分専用のワード選択肢を保持する変数
+        let myHand = null; 
+        let canShuffle = true; // 引き直し可能フラグ
 
         const sfx = { 
             tap: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-selection-horizontal-drum-2014.mp3'), 
@@ -137,6 +130,14 @@
             document.body.appendChild(el);
         }
 
+        function shuffleHand() {
+            if (!canShuffle) return;
+            canShuffle = false;
+            myHand = null; 
+            sfx.tap.play().catch(()=>{});
+            render();
+        }
+
         function render() {
             const container = document.getElementById('game-content');
             const stampUI = document.getElementById('stamp-ui');
@@ -145,6 +146,7 @@
 
             const isParent = gameState?.parentName === myName;
 
+            // スタンプUIの表示判定
             if (myName && gameState?.phase === 'revealing' && !isParent) {
                 stampUI.classList.remove('hidden');
                 totalCountEl.innerText = `残りスタンプ: ${totalStampLimit}`;
@@ -178,28 +180,58 @@
             }
 
             if (!gameState || gameState.phase === 'setup') {
-                myHand = null; // 【追加】次のゲームのために手札をリセット
+                myHand = null; canShuffle = true;
                 container.innerHTML = `<div class="bg-white p-6 rounded-[2rem] shadow-lg pop-up"><p class="text-[10px] text-slate-400 mb-6 font-bold tracking-widest uppercase">褒める人を選んでスタート！</p><div class="grid grid-cols-2 gap-3">${gameState?.members?.map(m => `<button onclick="setParent('${m.name}')" ${myRole!=='host'?'disabled':''} class="flex flex-col items-center bg-slate-50 p-4 rounded-2xl hover:bg-rose-50 border-2 border-transparent hover:border-rose-200 font-bold text-xs py-4">${getIcon(m.gender)}<span class="mt-1">${m.name}</span></button>`).join('') || ''}</div></div>`;
             } else if (gameState.phase === 'voting') {
-                if (isParent) container.innerHTML = `<div class="p-10 text-rose-400 font-bold animate-pulse text-sm">みんなが褒めてくれるのを待っています...</div>`;
-                else if (gameState.votes?.[myName]) container.innerHTML = `<div class="p-10 text-rose-400 font-bold animate-pulse text-sm">送信完了！待機中...</div>`;
+                if (isParent) container.innerHTML = `<div class="p-10 text-rose-400 font-bold animate-pulse text-sm italic">主役待機中...<br>みんなが褒めワードを選んでいます</div>`;
+                else if (gameState.votes?.[myName]) container.innerHTML = `<div class="p-10 text-rose-400 font-bold animate-pulse text-sm italic">送信完了！<br>他のメンバーを待っています...</div>`;
                 else {
-                    if (!wordDict) { container.innerHTML = `<div class="p-10 text-rose-400">読み込み中...</div>`; return; }
-                    
-                    // 【修正箇所】myHandがないときだけ新しく選ぶ。これで再描画されても手札が変わらない。
+                    if (!wordDict) { container.innerHTML = `<div class="p-10 text-rose-400 italic">ワード取得中...</div>`; return; }
                     if (!myHand) {
                         const parentData = gameState.members.find(m => m.name === gameState.parentName);
                         const gender = parentData?.gender || 'male';
                         const pool = wordDict[gender] || ["素敵"];
                         myHand = [...pool].sort(() => 0.5 - Math.random()).slice(0, 6);
                     }
-
-                    container.innerHTML = `<div class="mb-4 text-center"><span class="text-[10px] bg-rose-500 text-white px-4 py-1 rounded-full font-bold">To: ${gameState.parentName}さん</span><h2 class="text-lg font-black text-slate-700 mt-3">褒めワードを選んで！</h2></div><div class="card-grid">${myHand.map(k => `<button onclick=\"submitVote('${k}')\" class=\"h-16 bg-white border-b-4 border-rose-200 rounded-2xl font-bold text-rose-500 text-sm shadow-sm active:translate-y-1 active:border-b-0 transition-all\">${k}</button>`).join('')}</div>`;
+                    container.innerHTML = `
+                        <div class="mb-4 text-center">
+                            <span class="text-[10px] bg-rose-500 text-white px-4 py-1 rounded-full font-bold uppercase tracking-widest">To: ${gameState.parentName}さん</span>
+                            <h2 class="text-lg font-black text-slate-700 mt-3">褒めワードを選んで！</h2>
+                        </div>
+                        <div class="card-grid">${myHand.map(k => `<button onclick=\"submitVote('${k}')\" class=\"h-16 bg-white border-b-4 border-rose-200 rounded-2xl font-bold text-rose-500 text-sm shadow-sm active:translate-y-1 active:border-b-0 transition-all px-2\">${k}</button>`).join('')}</div>
+                        <button onclick="shuffleHand()" ${!canShuffle ? 'disabled' : ''} class="mt-6 w-full py-3 rounded-xl border-2 border-dashed ${canShuffle ? 'border-rose-300 text-rose-400' : 'border-slate-200 text-slate-300'} text-[10px] font-bold uppercase tracking-widest transition-all">
+                            ${canShuffle ? '🔄 1回だけ引き直す' : '引き直し済み'}
+                        </button>`;
                 }
+            } else if (gameState.phase === 'waiting-to-reveal') {
+                // 【追加】発表前の待機画面
+                const voteCount = Object.keys(gameState.votes || {}).length;
+                container.innerHTML = `
+                    <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border-4 border-rose-100 pop-up">
+                        <div class="text-rose-500 mb-6">✨</div>
+                        <h2 class="text-xl font-black text-slate-700 mb-2">${gameState.parentName}さんを褒める</h2>
+                        <p class="text-sm font-bold text-rose-400 mb-8 leading-relaxed">
+                            みんなの褒めワードが<br><span class="text-3xl font-black mx-1">${voteCount}</span>個揃いました！
+                        </p>
+                        <div class="bg-rose-50 p-4 rounded-2xl mb-8">
+                            <p class="text-[10px] text-rose-400 font-bold mb-1">RULE</p>
+                            <p class="text-xs text-rose-600 font-bold leading-relaxed">ホストの合図で１つずつ発表します。<br>共感したらスタンプを連打しよう！</p>
+                        </div>
+                        ${myRole === 'host' ? 
+                        `<button onclick="roomRef.update({phase:'revealing'})" class="w-full bg-rose-500 text-white h-16 rounded-2xl font-black shadow-lg text-lg">発表をはじめる！</button>` : 
+                        `<p class="text-rose-300 font-bold animate-pulse text-sm italic">ホストの合図を待っています...</p>`}
+                    </div>`;
             } else if (gameState.phase === 'revealing') {
-                myHand = null; // 【追加】投票が終わったのでリセット
                 const currentWord = gameState.shuffledVotes[gameState.revealIdx];
-                container.innerHTML = `<div class="text-center px-4"><p class="text-rose-400 font-bold text-[10px] mb-4 uppercase tracking-widest">Praise ${gameState.revealIdx + 1} / ${gameState.shuffledVotes.length}</p><div class="bg-white py-14 px-4 rounded-[3rem] shadow-xl border-4 border-rose-400 mb-8 word-zoom"><p class="text-4xl font-black text-rose-600">「${currentWord}」</p></div>${myRole === 'host' ? `<button onclick="nextReveal()" class="w-full bg-rose-600 text-white h-16 rounded-2xl font-black shadow-lg text-lg">次へ</button>` : `<p class="text-rose-300 font-bold animate-pulse text-sm">ホストを待っています...</p>`}</div>`;
+                container.innerHTML = `
+                    <div class="text-center px-4">
+                        <p class="text-rose-400 font-bold text-[10px] mb-4 uppercase tracking-widest">Praise ${gameState.revealIdx + 1} / ${gameState.shuffledVotes.length}</p>
+                        <div class="bg-white py-14 px-4 rounded-[3rem] shadow-xl border-4 border-rose-400 mb-4 word-zoom">
+                            <p class="text-4xl font-black text-rose-600">「${currentWord}」</p>
+                        </div>
+                        <p class="text-[10px] font-bold text-rose-300 mb-8 animate-bounce italic">🤝 共感したらスタンプを押してね！</p>
+                        ${myRole === 'host' ? `<button onclick="nextReveal()" class="w-full bg-rose-600 text-white h-16 rounded-2xl font-black shadow-lg text-lg">次へ</button>` : `<p class="text-rose-300 font-bold animate-pulse text-sm">ホストが準備中...</p>`}
+                    </div>`;
             } else if (gameState.phase === 'result') {
                 const allVotes = Object.values(gameState.votes);
                 container.innerHTML = `<div class="pop-up px-4"><h2 class="text-lg font-black mb-6 text-slate-700">${gameState.parentName}さん、どれが一番うれしかった？</h2><div class=\"card-grid mb-8\">${allVotes.map(v => `<button onclick=\"${isParent ? `localSelectedWinner='${v}'; render(); sfx.tap.play();` : ''}\" class=\"p-4 rounded-2xl font-bold border-2 transition-all text-sm ${localSelectedWinner === v ? 'selected-card shadow-inner' : 'bg-white text-rose-500 border-rose-100 shadow-sm'}\">${v}</button>`).join('')}</div>${isParent ? `<button onclick=\"confirmWinner()\" class=\"w-full h-16 bg-rose-500 text-white rounded-2xl font-black text-xl shadow-lg ${!localSelectedWinner ? 'opacity-30' : ''}\" ${!localSelectedWinner ? 'disabled' : ''}>OK</button>` : `<p class=\"text-rose-300 font-bold animate-pulse text-sm\">親が選び中です...</p>`}</div>`;
@@ -217,14 +249,26 @@
             localStorage.setItem("h-name", n); localStorage.setItem("h-role", role); localStorage.setItem("h-gender", g);
             roomRef.transaction(c => {
                 if (!c) return { phase: 'setup', members: [{name:n, gender:g}], host: (role==='host'?n:"") };
-                let m = c.members || []; 
-                if (!m.find(x => x.name === n)) m.push({name:n, gender:g});
+                let m = c.members || []; if (!m.find(x => x.name === n)) m.push({name:n, gender:g});
                 return { ...c, members: m, host: (role==='host' ? n : (c.host || "")) };
             });
         }
         function forceResetRoom() { if (confirm("リセットしますか？")) { roomRef.remove().then(() => { localStorage.clear(); location.reload(); }); } }
         function setParent(t) { roomRef.update({ phase: 'voting', parentName: t, votes: {}, revealIdx: 0, stamps: null }); }
-        function submitVote(k) { sfx.tap.play().catch(()=>{}); roomRef.child(`votes/${myName}`).set(k).then(() => { roomRef.transaction(c => { if (c && Object.keys(c.votes || {}).length === (c.members.length - 1)) { c.phase = 'revealing'; c.shuffledVotes = Object.values(c.votes).sort(() => 0.5 - Math.random()); c.revealIdx = 0; } return c; }); }); }
+        
+        function submitVote(k) { 
+            sfx.tap.play().catch(()=>{}); 
+            roomRef.child(`votes/${myName}`).set(k).then(() => { 
+                roomRef.transaction(c => { 
+                    if (c && Object.keys(c.votes || {}).length === (c.members.length - 1)) { 
+                        c.phase = 'waiting-to-reveal'; // 【変更】直接発表せず待機画面へ
+                        c.shuffledVotes = Object.values(c.votes).sort(() => 0.5 - Math.random()); 
+                        c.revealIdx = 0; 
+                    } 
+                    return c; 
+                }); 
+            }); 
+        }
         
         function nextReveal() { 
             if (gameState.revealIdx < gameState.shuffledVotes.length - 1) { 
