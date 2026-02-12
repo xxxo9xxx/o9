@@ -76,7 +76,7 @@
         let totalStampLimit = 3; 
         let lastRevealIdx = -1;
         let myHand = null; 
-        let canShuffle = true; // 引き直し可能フラグ
+        let canShuffle = true;
 
         const sfx = { 
             tap: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-selection-horizontal-drum-2014.mp3'), 
@@ -91,14 +91,19 @@
                 const response = await fetch('keywords.json');
                 wordDict = await response.json();
                 render(); 
-            } catch (e) {
-                console.error("JSON Error", e);
-            }
+            } catch (e) { console.error("JSON Error", e); }
         }
         loadKeywords();
 
         roomRef.on("value", (snap) => {
-            gameState = snap.val();
+            const data = snap.val();
+            // 【重要】リセット時：データが空になったら強制リロードして最初に戻る
+            if (gameState && !data) {
+                localStorage.clear();
+                location.reload();
+                return;
+            }
+            gameState = data;
             if (gameState && (gameState.revealIdx !== lastRevealIdx || !gameState.stamps)) {
                 document.querySelectorAll('.stamp-icon').forEach(el => el.remove());
                 totalStampLimit = 3; 
@@ -144,15 +149,11 @@
             const totalCountEl = document.getElementById('total-count');
             if (!container) return;
 
-            const isParent = gameState?.parentName === myName;
-
-            // スタンプUIの表示判定
-            if (myName && gameState?.phase === 'revealing' && !isParent) {
-                stampUI.classList.remove('hidden');
-                totalCountEl.innerText = `残りスタンプ: ${totalStampLimit}`;
-            } else { stampUI.classList.add('hidden'); }
-
+            // 【名前入力リセット対策】まだ名前が決まっていない（myNameが空）時は、
+            // 既に名前入力画面が表示されていれば再描画を止める
             if (!myName) {
+                if (document.getElementById('name-input')) return; // すでに表示中なら何もしない
+                
                 const hostExists = gameState && gameState.host;
                 container.innerHTML = `
                     <div class="bg-white p-8 rounded-[2rem] shadow-xl pop-up border-t-8 border-rose-400 mt-4">
@@ -179,6 +180,13 @@
                 return;
             }
 
+            const isParent = gameState?.parentName === myName;
+
+            if (myName && gameState?.phase === 'revealing' && !isParent) {
+                stampUI.classList.remove('hidden');
+                totalCountEl.innerText = `残りスタンプ: ${totalStampLimit}`;
+            } else { stampUI.classList.add('hidden'); }
+
             if (!gameState || gameState.phase === 'setup') {
                 myHand = null; canShuffle = true;
                 container.innerHTML = `<div class="bg-white p-6 rounded-[2rem] shadow-lg pop-up"><p class="text-[10px] text-slate-400 mb-6 font-bold tracking-widest uppercase">褒める人を選んでスタート！</p><div class="grid grid-cols-2 gap-3">${gameState?.members?.map(m => `<button onclick="setParent('${m.name}')" ${myRole!=='host'?'disabled':''} class="flex flex-col items-center bg-slate-50 p-4 rounded-2xl hover:bg-rose-50 border-2 border-transparent hover:border-rose-200 font-bold text-xs py-4">${getIcon(m.gender)}<span class="mt-1">${m.name}</span></button>`).join('') || ''}</div></div>`;
@@ -204,31 +212,21 @@
                         </button>`;
                 }
             } else if (gameState.phase === 'waiting-to-reveal') {
-                // 【追加】発表前の待機画面
                 const voteCount = Object.keys(gameState.votes || {}).length;
                 container.innerHTML = `
                     <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border-4 border-rose-100 pop-up">
                         <div class="text-rose-500 mb-6">✨</div>
                         <h2 class="text-xl font-black text-slate-700 mb-2">${gameState.parentName}さんを褒める</h2>
-                        <p class="text-sm font-bold text-rose-400 mb-8 leading-relaxed">
-                            みんなの褒めワードが<br><span class="text-3xl font-black mx-1">${voteCount}</span>個揃いました！
-                        </p>
-                        <div class="bg-rose-50 p-4 rounded-2xl mb-8">
-                            <p class="text-[10px] text-rose-400 font-bold mb-1">RULE</p>
-                            <p class="text-xs text-rose-600 font-bold leading-relaxed">ホストの合図で１つずつ発表します。<br>共感したらスタンプを連打しよう！</p>
-                        </div>
-                        ${myRole === 'host' ? 
-                        `<button onclick="roomRef.update({phase:'revealing'})" class="w-full bg-rose-500 text-white h-16 rounded-2xl font-black shadow-lg text-lg">発表をはじめる！</button>` : 
-                        `<p class="text-rose-300 font-bold animate-pulse text-sm italic">ホストの合図を待っています...</p>`}
+                        <p class="text-sm font-bold text-rose-400 mb-8 leading-relaxed">みんなの褒めワードが<br><span class="text-3xl font-black mx-1">${voteCount}</span>個揃いました！</p>
+                        <div class="bg-rose-50 p-4 rounded-2xl mb-8"><p class="text-[10px] text-rose-400 font-bold mb-1">RULE</p><p class="text-xs text-rose-600 font-bold leading-relaxed">ホストの合図で１つずつ発表します。<br>共感したらスタンプを連打しよう！</p></div>
+                        ${myRole === 'host' ? `<button onclick="roomRef.update({phase:'revealing'})" class="w-full bg-rose-500 text-white h-16 rounded-2xl font-black shadow-lg text-lg">発表をはじめる！</button>` : `<p class="text-rose-300 font-bold animate-pulse text-sm italic">ホストの合図を待っています...</p>`}
                     </div>`;
             } else if (gameState.phase === 'revealing') {
                 const currentWord = gameState.shuffledVotes[gameState.revealIdx];
                 container.innerHTML = `
                     <div class="text-center px-4">
                         <p class="text-rose-400 font-bold text-[10px] mb-4 uppercase tracking-widest">Praise ${gameState.revealIdx + 1} / ${gameState.shuffledVotes.length}</p>
-                        <div class="bg-white py-14 px-4 rounded-[3rem] shadow-xl border-4 border-rose-400 mb-4 word-zoom">
-                            <p class="text-4xl font-black text-rose-600">「${currentWord}」</p>
-                        </div>
+                        <div class="bg-white py-14 px-4 rounded-[3rem] shadow-xl border-4 border-rose-400 mb-4 word-zoom"><p class="text-4xl font-black text-rose-600">「${currentWord}」</p></div>
                         <p class="text-[10px] font-bold text-rose-300 mb-8 animate-bounce italic">🤝 共感したらスタンプを押してね！</p>
                         ${myRole === 'host' ? `<button onclick="nextReveal()" class="w-full bg-rose-600 text-white h-16 rounded-2xl font-black shadow-lg text-lg">次へ</button>` : `<p class="text-rose-300 font-bold animate-pulse text-sm">ホストが準備中...</p>`}
                     </div>`;
@@ -253,33 +251,23 @@
                 return { ...c, members: m, host: (role==='host' ? n : (c.host || "")) };
             });
         }
-        function forceResetRoom() { if (confirm("リセットしますか？")) { roomRef.remove().then(() => { localStorage.clear(); location.reload(); }); } }
-        function setParent(t) { roomRef.update({ phase: 'voting', parentName: t, votes: {}, revealIdx: 0, stamps: null }); }
-        
-        function submitVote(k) { 
-            sfx.tap.play().catch(()=>{}); 
-            roomRef.child(`votes/${myName}`).set(k).then(() => { 
-                roomRef.transaction(c => { 
-                    if (c && Object.keys(c.votes || {}).length === (c.members.length - 1)) { 
-                        c.phase = 'waiting-to-reveal'; // 【変更】直接発表せず待機画面へ
-                        c.shuffledVotes = Object.values(c.votes).sort(() => 0.5 - Math.random()); 
-                        c.revealIdx = 0; 
-                    } 
-                    return c; 
-                }); 
-            }); 
+
+        // 強制リセット：Firebaseのデータを完全に消す（これにより全員のブラウザでreloadが走る）
+        function forceResetRoom() { 
+            if (confirm("【警告】部屋を完全にリセットし、全員を強制退出させます。よろしいですか？")) { 
+                roomRef.remove(); 
+            } 
         }
+
+        function setParent(t) { roomRef.update({ phase: 'voting', parentName: t, votes: {}, revealIdx: 0, stamps: null }); }
+        function submitVote(k) { sfx.tap.play().catch(()=>{}); roomRef.child(`votes/${myName}`).set(k).then(() => { roomRef.transaction(c => { if (c && Object.keys(c.votes || {}).length === (c.members.length - 1)) { c.phase = 'waiting-to-reveal'; c.shuffledVotes = Object.values(c.votes).sort(() => 0.5 - Math.random()); c.revealIdx = 0; } return c; }); }); }
         
         function nextReveal() { 
             if (gameState.revealIdx < gameState.shuffledVotes.length - 1) { 
-                roomRef.child('stamps').remove().then(() => {
-                    roomRef.update({ revealIdx: gameState.revealIdx + 1 });
-                });
+                roomRef.child('stamps').remove().then(() => { roomRef.update({ revealIdx: gameState.revealIdx + 1 }); });
                 sfx.zoom.play().catch(()=>{}); 
             } else { 
-                roomRef.child('stamps').remove().then(() => {
-                    roomRef.update({ phase: 'result' });
-                });
+                roomRef.child('stamps').remove().then(() => { roomRef.update({ phase: 'result' }); });
             } 
         }
 
