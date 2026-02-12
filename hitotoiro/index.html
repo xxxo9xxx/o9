@@ -65,17 +65,24 @@
             { id: 'silver', name: 'ぎん', code: '#c0c0c0', text: 'black' }
         ];
 
-        const MASTER_THEMES = {
-            'easy': ["たべもの", "くだもの", "どうぶつ", "のみもの", "おもちゃ", "からだの一部", "しぜん", "ぶんぼうぐ", "野菜", "天気", "乗り物", "おかし", "むし", "お花", "うみの生き物", "パン", "デザート", "すうじ", "キッチン用品", "おふろにあるもの", "学校にあるもの", "公園にあるもの", "麺類", "すしネタ", "コンビニ", "国", "季節", "丸いもの", "家にあるもの", "ポケモン"],
-            'normal': ["アクセサリー", "家電", "キャラクター", "音楽", "スポーツ", "服", "場所", "建物", "楽器", "家具", "アニメ", "マンガ", "映画", "職業", "冬といえば", "夏といえば", "春といえば", "秋といえば", "遊園地", "日本の都道府県", "有名な山", "カバンの中身", "靴", "帽子", "スイーツ", "駅にあるもの", "有名人", "中華料理", "西洋料理", "星座", "調味料", "ブランド名", "ゲームキャラ"],
-            'hard': ["感情", "音", "抽象画", "曜日", "時代", "四字熟語", "ことわざ", "におい", "味", "感触", "魔法", "宇宙", "未来", "過去", "夢", "幸せなこと", "悲しいこと", "漢字", "ドキドキするもの", "静かな場所", "うるさい音", "宝物", "秘密", "伝説", "ライバル", "日本料理", "方角", "月", "オリンピック種目", "スマホアプリ", "スポーツチーム", "昔話"]
-        };
-
+        let MASTER_THEMES = null;
         let currentRoomId = localStorage.getItem("toiro-room-id") || "";
         let myName = localStorage.getItem("toiro-name") || "";
         let myRole = localStorage.getItem("toiro-role") || ""; 
         let gameState = null;
         let selectedColor = null;
+
+        // 外部ファイルからお題を読み込む
+        async function loadExternalThemes() {
+            try {
+                const response = await fetch('themes.json');
+                MASTER_THEMES = await response.json();
+                render();
+            } catch (e) {
+                console.error("お題ファイルの読み込みに失敗しました", e);
+            }
+        }
+        loadExternalThemes();
 
         if (currentRoomId) connectToRoom(currentRoomId);
         else render();
@@ -114,6 +121,7 @@
         }
 
         function startGame() {
+            if (!MASTER_THEMES) return alert("お題を読み込み中です");
             const dealCount = parseInt(document.getElementById('card-count-select')?.value) || 10;
             const mode = document.getElementById('mode-select')?.value || 'ほんばん';
             
@@ -139,13 +147,11 @@
             });
         }
 
-        // 【追加】お題を引き直す関数
         function reloadTheme() {
-            if (myRole !== 'host' || !gameState) return;
+            if (myRole !== 'host' || !gameState || !MASTER_THEMES) return;
             const round = gameState.currentRound;
             const currentLevels = gameState.themes[round].level;
             const newThemeText = getRandomTheme(currentLevels);
-            
             db.ref(`rooms/${currentRoomId}/themes/${round}/text`).set(newThemeText);
         }
 
@@ -180,13 +186,13 @@
             const el = document.getElementById('count-up-score');
             if (!el) return;
             let current = 0;
-            const duration = 1500;
-            const start = performance.now();
             const step = (timestamp) => {
-                const progress = Math.min((timestamp - start) / duration, 1);
+                if (!animateCountUp.start) animateCountUp.start = timestamp;
+                const progress = Math.min((timestamp - animateCountUp.start) / 1500, 1);
                 current = Math.floor(progress * target);
                 el.innerText = current;
                 if (progress < 1) window.requestAnimationFrame(step);
+                else animateCountUp.start = null;
             };
             window.requestAnimationFrame(step);
         }
@@ -207,28 +213,13 @@
                         <div class="bg-blue-50/50 p-5 rounded-3xl mb-6 text-left border border-blue-100">
                             <label class="block text-[10px] font-black text-blue-400 mb-3 uppercase tracking-tighter">Game Settings</label>
                             <div class="space-y-4 mb-6">
-                                <div>
-                                    <span class="text-[10px] font-bold text-slate-400 ml-1">カード枚数</span>
-                                    <select id="card-count-select" class="w-full p-3 rounded-xl font-bold text-sm bg-white border-none shadow-sm">
-                                        <option value="5">5枚</option><option value="8">8枚</option><option value="10" selected>10枚</option><option value="12">12枚</option><option value="15">15枚</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] font-bold text-slate-400 ml-1">難易度モード</span>
-                                    <select id="mode-select" class="w-full p-3 rounded-xl font-bold text-sm bg-white border-none shadow-sm">
-                                        <option value="れんしゅう">れんしゅう (Easyのみ)</option>
-                                        <option value="ほんばん" selected>ほんばん (徐々に難化)</option>
-                                        <option value="ランダム">ランダム (全難易度混在)</option>
-                                    </select>
-                                </div>
+                                <div><span class="text-[10px] font-bold text-slate-400 ml-1">カード枚数</span><select id="card-count-select" class="w-full p-3 rounded-xl font-bold text-sm bg-white border-none shadow-sm"><option value="5">5枚</option><option value="8">8枚</option><option value="10" selected>10枚</option><option value="12">12枚</option><option value="15">15枚</option></select></div>
+                                <div><span class="text-[10px] font-bold text-slate-400 ml-1">難易度モード</span><select id="mode-select" class="w-full p-3 rounded-xl font-bold text-sm bg-white border-none shadow-sm"><option value="れんしゅう">れんしゅう (Easyのみ)</option><option value="ほんばん" selected>ほんばん (徐々に難化)</option><option value="ランダム">ランダム (全難易度混在)</option></select></div>
                             </div>
                             <button onclick="startGame()" class="w-full bg-blue-500 text-white h-16 rounded-2xl text-xl font-black shadow-lg">ゲーム開始</button>
                         </div>` : `<p class="animate-pulse text-slate-400 font-bold">ホストの開始を待機中...</p>`}
                 </div>`;
-                return;
-            }
-
-            if (gameState.phase === 'playing') {
+            } else if (gameState.phase === 'playing') {
                 const round = gameState.currentRound;
                 const theme = gameState.themes[round].text;
                 const alreadyAnswered = gameState.answers?.[round]?.[myName];
@@ -239,37 +230,22 @@
                     for(let i=0; i<round; i++) { if(gameState.answers?.[i]?.[myName]) myUsed.push(gameState.answers[i][myName]); }
                     const currentHand = gameState.commonHand.filter(cid => !myUsed.includes(cid));
                     const selObj = selectedColor ? COLORS.find(c => c.id === selectedColor) : null;
-                    
-                    // 【修正】ホストの場合だけ「お題をかえる」ボタンを表示
                     const reloadBtn = myRole === 'host' ? `<button onclick="reloadTheme()" class="mt-2 text-[10px] font-black text-blue-400 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest active:scale-95">🔄 お題をかえる</button>` : "";
 
                     container.innerHTML = `<div class="fade-in"><div class="mb-2 text-[10px] font-black text-slate-300 tracking-[0.3em] uppercase">${gameState.gameMode} ROUND ${round + 1} / 5</div><h2 class="text-4xl font-black text-slate-800 mb-2 italic tracking-tight">「${theme}」</h2><div class="mb-8">${reloadBtn}</div><div class="color-grid mb-8">${currentHand.map(cid => { const c = COLORS.find(x => x.id === cid); return `<button onclick="selectedColor='${c.id}';render();" style="background-color: ${c.code}; color: ${c.text}" class="h-20 rounded-2xl font-bold shadow-md ring-4 ${selectedColor === cid ? 'ring-blue-500 scale-105 shadow-blue-100' : 'ring-transparent'} border-b-4 border-black/10 transition-all text-xs">${c.name}</button>`; }).join('')}</div><div class="h-24">${selObj ? `<button onclick="confirmAnswer()" style="background-color: ${selObj.code}; color: ${selObj.text}" class="w-full h-20 rounded-3xl text-xl font-black shadow-xl animate-bounce border-4 border-black/10">【 ${selObj.name} 】で決定！</button>` : `<p class="text-slate-400 font-bold text-sm italic">色を選んでください</p>`}</div></div>`;
                 }
-            }
-
-            else if (gameState.phase === 'revealing') {
+            } else if (gameState.phase === 'revealing') {
                 const idx = gameState.revealIdx;
-                const memberCount = gameState.members.length;
                 let resultsHtml = "";
                 for(let r=0; r < 5; r++) {
                     const isRevealed = r <= idx;
                     const ans = (gameState.answers && gameState.answers[r]) || {};
                     const colorValues = Object.values(ans);
                     const isMatch = colorValues.length > 0 && colorValues.length === gameState.members.length && colorValues.every(v => v === colorValues[0]);
-                    const chipSize = memberCount <= 6 ? 'w-12 h-12' : 'w-9 h-9';
-                    resultsHtml += `
-                    <div class="bg-white p-5 rounded-[2.5rem] mb-4 shadow-sm border transition-all duration-500 ${isRevealed ? (isMatch ? 'border-green-400 ring-4 ring-green-50' : 'border-slate-100') : 'opacity-40 grayscale'}">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="text-sm font-black text-slate-600 uppercase italic">RD ${r+1}: ${gameState.themes[r].text}</span>
-                            ${isRevealed && isMatch ? '<span class="text-xs font-black text-green-500 animate-pulse">MATCH!</span>' : ''}
-                        </div>
-                        ${isRevealed ? `<div class="flex flex-wrap gap-2 justify-center fade-in">${Object.entries(ans).map(([name, cid]) => `<div class="flex flex-col items-center"><div class="${chipSize} rounded-xl shadow-inner ring-1 ring-slate-200" style="background-color:${COLORS.find(x=>x.id===cid).code}"></div><div class="text-[8px] font-bold text-slate-500 truncate w-12 mt-1 text-center">${name}</div></div>`).join('')}</div>` : `<div class="h-10 flex items-center justify-center text-xs text-slate-400 font-black tracking-[0.5em] uppercase">？？？</div>`}
-                    </div>`;
+                    resultsHtml += `<div class="bg-white p-5 rounded-[2.5rem] mb-4 shadow-sm border transition-all duration-500 ${isRevealed ? (isMatch ? 'border-green-400 ring-4 ring-green-50' : 'border-slate-100') : 'opacity-40 grayscale'}"><div class="flex justify-between items-center mb-3"><span class="text-sm font-black text-slate-600 uppercase italic">RD ${r+1}: ${gameState.themes[r].text}</span>${isRevealed && isMatch ? '<span class="text-xs font-black text-green-500 animate-pulse">MATCH!</span>' : ''}</div>${isRevealed ? `<div class="flex flex-wrap gap-2 justify-center fade-in">${Object.entries(ans).map(([name, cid]) => `<div class="flex flex-col items-center"><div class="w-10 h-10 rounded-xl shadow-inner ring-1 ring-slate-200" style="background-color:${COLORS.find(x=>x.id===cid).code}"></div><div class="text-[8px] font-bold text-slate-500 truncate w-12 mt-1 text-center">${name}</div></div>`).join('')}</div>` : `<div class="h-10 flex items-center justify-center text-xs text-slate-400 font-black tracking-[0.5em] uppercase">？？？</div>`}</div>`;
                 }
                 container.innerHTML = `<div class="fade-in no-scrollbar"><h2 class="text-[10px] font-black mb-4 text-slate-400 uppercase tracking-widest italic">Result Reveal</h2><div class="max-h-[60vh] overflow-y-auto no-scrollbar pb-4">${resultsHtml}</div><div class="mt-4">${myRole === 'host' ? (idx < 4 ? `<button onclick="db.ref('rooms/'+currentRoomId).update({revealIdx:${idx+1}})" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">次の結果を公開 (${idx+2}/5)</button>` : `<button onclick="db.ref('rooms/'+currentRoomId).update({phase:'result'})" class="w-full bg-green-500 text-white h-16 rounded-2xl font-bold shadow-xl">最終スコア発表！</button>`) : `<p class="p-4 text-xs font-bold text-slate-400 animate-pulse italic">ホストが公開中...</p>`}</div></div>`;
-            }
-
-            else if (gameState.phase === 'result') {
+            } else if (gameState.phase === 'result') {
                 let matchCount = 0;
                 for(let r=0; r<5; r++){
                     const ans = Object.values((gameState.answers && gameState.answers[r]) || {});
