@@ -77,6 +77,7 @@
         let lastRevealIdx = -1;
         let myHand = null; 
         let canShuffle = true;
+        let isInputting = false; // 入力中フラグ
 
         const sfx = { 
             tap: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-selection-horizontal-drum-2014.mp3'), 
@@ -97,7 +98,6 @@
 
         roomRef.on("value", (snap) => {
             const data = snap.val();
-            // 【重要】リセット時：データが空になったら強制リロードして最初に戻る
             if (gameState && !data) {
                 localStorage.clear();
                 location.reload();
@@ -109,7 +109,8 @@
                 totalStampLimit = 3; 
                 lastRevealIdx = gameState.revealIdx;
             }
-            render();
+            // 入力中でない場合のみ再描画
+            if (!isInputting) render();
         });
 
         roomRef.child('stamps').on('child_added', (snap) => {
@@ -149,13 +150,13 @@
             const totalCountEl = document.getElementById('total-count');
             if (!container) return;
 
-            // 【名前入力リセット対策】まだ名前が決まっていない（myNameが空）時は、
-            // 既に名前入力画面が表示されていれば再描画を止める
+            // ログイン前画面
             if (!myName) {
-                if (document.getElementById('name-input')) return; // すでに表示中なら何もしない
+                const hostExists = gameState && gameState.host && gameState.host !== "";
                 
-                const hostExists = gameState && gameState.host;
-                container.innerHTML = `
+                // 初回描画時、またはホスト状態が変化した時のみ書き換える
+                const currentHtml = container.innerHTML;
+                const newHtml = `
                     <div class="bg-white p-8 rounded-[2rem] shadow-xl pop-up border-t-8 border-rose-400 mt-4">
                         <div class="flex justify-center mb-6 gap-8">
                             <label class="cursor-pointer">
@@ -173,10 +174,36 @@
                                 </div>
                             </label>
                         </div>
-                        <input id="name-input" type="text" placeholder="お名前" class="w-full mb-6 border-b-2 border-rose-100 p-2 text-center text-xl font-bold outline-none bg-transparent">
-                        <button onclick="joinGame('host')" ${hostExists ? 'disabled' : ''} class="w-full ${hostExists ? 'bg-slate-200' : 'bg-rose-500 shadow-lg'} text-white h-14 rounded-2xl font-bold mb-3">${hostExists ? '満員です' : 'ホストで開始'}</button>
+                        <input id="name-input" type="text" placeholder="お名前" 
+                               onfocus="isInputting=true" 
+                               onblur="isInputting=false"
+                               class="w-full mb-6 border-b-2 border-rose-100 p-2 text-center text-xl font-bold outline-none bg-transparent">
+                        <button onclick="joinGame('host')" ${hostExists ? 'disabled' : ''} class="w-full ${hostExists ? 'bg-slate-200 cursor-not-allowed' : 'bg-rose-500 shadow-lg'} text-white h-14 rounded-2xl font-bold mb-3">
+                            ${hostExists ? 'ホストは入室済みです' : 'ホストで開始'}
+                        </button>
                         <button onclick="joinGame('guest')" class="w-full text-rose-400 font-bold h-12">ゲストで参加</button>
+                        ${hostExists ? `<p class="text-[10px] text-slate-400 mt-2 font-bold italic">Host: ${gameState.host}</p>` : ''}
                     </div>`;
+
+                // 既にinputがあるなら、ホストボタンの有効/無効だけを切り替える（inputの中身を守る）
+                const existingInput = document.getElementById('name-input');
+                if (existingInput) {
+                    const hostBtn = container.querySelector('button[onclick="joinGame(\'host\')"]');
+                    if (hostBtn) {
+                        if (hostExists) {
+                            hostBtn.disabled = true;
+                            hostBtn.className = "w-full bg-slate-200 cursor-not-allowed text-white h-14 rounded-2xl font-bold mb-3";
+                            hostBtn.innerText = "ホストは入室済みです";
+                        } else {
+                            hostBtn.disabled = false;
+                            hostBtn.className = "w-full bg-rose-500 shadow-lg text-white h-14 rounded-2xl font-bold mb-3";
+                            hostBtn.innerText = "ホストで開始";
+                        }
+                    }
+                    return;
+                }
+                
+                container.innerHTML = newHtml;
                 return;
             }
 
@@ -240,19 +267,31 @@
         }
 
         function joinGame(role) {
-            const n = document.getElementById('name-input')?.value.trim();
+            const input = document.getElementById('name-input');
+            const n = input?.value.trim();
             const g = document.querySelector('input[name="gender"]:checked')?.value || "male";
             if (!n) return alert("名前をいれてね");
+            
+            // 入力中フラグを折って再描画を許可する
+            isInputting = false;
+            
             myName = n; myRole = role; myGender = g;
             localStorage.setItem("h-name", n); localStorage.setItem("h-role", role); localStorage.setItem("h-gender", g);
             roomRef.transaction(c => {
                 if (!c) return { phase: 'setup', members: [{name:n, gender:g}], host: (role==='host'?n:"") };
+                // ホストで入ろうとしたが、既に誰かがホストになっている場合はゲストに強制変更
+                let actualRole = role;
+                if (role === 'host' && c.host && c.host !== "") {
+                    alert("既に別のホストが入室しました。ゲストとして参加します。");
+                    actualRole = 'guest';
+                    myRole = 'guest';
+                    localStorage.setItem("h-role", 'guest');
+                }
                 let m = c.members || []; if (!m.find(x => x.name === n)) m.push({name:n, gender:g});
-                return { ...c, members: m, host: (role==='host' ? n : (c.host || "")) };
+                return { ...c, members: m, host: (actualRole==='host' ? n : (c.host || "")) };
             });
         }
 
-        // 強制リセット：Firebaseのデータを完全に消す（これにより全員のブラウザでreloadが走る）
         function forceResetRoom() { 
             if (confirm("【警告】部屋を完全にリセットし、全員を強制退出させます。よろしいですか？")) { 
                 roomRef.remove(); 
