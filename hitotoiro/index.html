@@ -35,7 +35,6 @@
     </div>
 
     <script>
-        // 色設定
         const COLORS = [
             { id: 'red', name: 'あか', code: '#ef4444', text: 'white' },
             { id: 'pink', name: 'ももいろ', code: '#f472b6', text: 'white' },
@@ -54,7 +53,6 @@
             { id: 'silver', name: 'ぎん', code: '#c0c0c0', text: 'black' }
         ];
 
-        // Firebase初期化
         const firebaseConfig = {
             apiKey: "AIzaSyBmzPmehSaV--mn0Hd0S-fd97nf5RX4Dvg",
             authDomain: "membertoiro.firebaseapp.com",
@@ -73,6 +71,7 @@
         let gameState = null;
         let selectedColor = null;
         let isInputting = false;
+        let previewThemes = []; // ホスト用お題プレビュー
 
         if (currentRoomId) connectToRoom(currentRoomId);
         else render();
@@ -82,7 +81,6 @@
             localStorage.setItem("toiro-room-id", id);
             db.ref("rooms/" + id).on("value", (snapshot) => {
                 const data = snapshot.val();
-                // リセット検知：データが空ならリロードして最初へ
                 if (gameState && !data) {
                     localStorage.removeItem("toiro-room-id");
                     location.reload();
@@ -98,25 +96,18 @@
             const r = document.getElementById('room-input')?.value.trim();
             const n = document.getElementById('name-input')?.value.trim();
             if (!r || !n) return alert("部屋IDとお名前を入力してください");
-            
             isInputting = false;
             myName = n; myRole = role;
             localStorage.setItem("toiro-name", n);
             localStorage.setItem("toiro-role", role);
-            
             connectToRoom(r);
             db.ref("rooms/" + r).transaction((curr) => {
                 if (!curr) return { phase: 'setup', members: [n], host: (role === 'host' ? n : "") };
-                
-                // ホスト重複防止
                 let actualRole = role;
                 if (role === 'host' && curr.host && curr.host !== "") {
                     alert("既に別のホストが入室済みです。ゲストとして参加します。");
-                    actualRole = 'guest';
-                    myRole = 'guest';
-                    localStorage.setItem("toiro-role", 'guest');
+                    actualRole = 'guest'; myRole = 'guest'; localStorage.setItem("toiro-role", 'guest');
                 }
-                
                 if (!curr.members) curr.members = [];
                 if (!curr.members.includes(n)) curr.members.push(n);
                 if (actualRole === 'host') curr.host = n;
@@ -124,13 +115,11 @@
             });
         }
 
-        async function startGame() {
+        // お題をシャッフル（themes.jsonから取得）する関数
+        async function shuffleThemes() {
             try {
-                // themes.jsonを読み込む
                 const response = await fetch('themes.json');
                 const MASTER_THEMES = await response.json();
-
-                const dealCount = parseInt(document.getElementById('card-count-select')?.value) || 10;
                 const mode = document.getElementById('mode-select')?.value || 'ほんばん';
                 
                 let themes = [];
@@ -145,20 +134,26 @@
                         else lv = ['hard'];
                     }
                     const pool = lv.flatMap(l => MASTER_THEMES[l] || []);
-                    if(pool.length === 0) { themes.push("お題エラー"); continue; }
-                    themes.push(pool[Math.floor(Math.random() * pool.length)]);
+                    themes.push(pool[Math.floor(Math.random() * pool.length)] || "お題なし");
                 }
-
-                const commonHand = [...COLORS].sort(() => 0.5 - Math.random()).slice(0, dealCount).map(c => c.id);
-
-                db.ref("rooms/" + currentRoomId).update({
-                    phase: 'playing', themes: themes, currentRound: 0, answers: {}, revealIdx: -1,
-                    commonHand: commonHand, gameMode: mode
-                });
+                previewThemes = themes;
+                render(); // ボタンなどの状態を維持したまま再描画
             } catch (e) {
-                alert("themes.jsonの読み込みに失敗しました。ファイルが存在するか確認してください。");
-                console.error(e);
+                alert("themes.jsonの読み込みに失敗しました。");
             }
+        }
+
+        async function startGame() {
+            if (previewThemes.length === 0) await shuffleThemes();
+            
+            const dealCount = parseInt(document.getElementById('card-count-select')?.value) || 10;
+            const mode = document.getElementById('mode-select')?.value || 'ほんばん';
+            const commonHand = [...COLORS].sort(() => 0.5 - Math.random()).slice(0, dealCount).map(c => c.id);
+
+            db.ref("rooms/" + currentRoomId).update({
+                phase: 'playing', themes: previewThemes, currentRound: 0, answers: {}, revealIdx: -1,
+                commonHand: commonHand, gameMode: mode
+            });
         }
 
         function confirmAnswer() {
@@ -203,48 +198,31 @@
         function render() {
             const container = document.getElementById('game-content');
             if (!currentRoomId || !myName || !gameState) {
-                // 名前入力中のリセット防止
                 const hostExists = gameState && gameState.host && gameState.host !== "";
                 const existingInput = document.getElementById('name-input');
-                
                 if (existingInput) {
                     const hostBtn = container.querySelector('button[onclick="handleJoin(\'host\')"]');
                     if (hostBtn) {
                         if (hostExists) {
-                            hostBtn.disabled = true;
-                            hostBtn.className = "w-full bg-slate-200 cursor-not-allowed text-white h-16 rounded-2xl font-bold mb-3";
+                            hostBtn.disabled = true; hostBtn.className = "w-full bg-slate-200 cursor-not-allowed text-white h-16 rounded-2xl font-bold mb-3";
                             hostBtn.innerText = "ホスト入室済み";
                         } else {
-                            hostBtn.disabled = false;
-                            hostBtn.className = "w-full bg-slate-800 text-white h-16 rounded-2xl font-bold mb-3";
+                            hostBtn.disabled = false; hostBtn.className = "w-full bg-slate-800 text-white h-16 rounded-2xl font-bold mb-3";
                             hostBtn.innerText = "ホストとして開始";
                         }
                     }
                     return;
                 }
-
                 container.innerHTML = `
                 <div class="bg-white p-8 rounded-[2.5rem] shadow-xl fade-in text-left border border-slate-100">
-                    <div class="mb-4">
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1 ml-2 uppercase">Room ID</label>
-                        <input id="room-input" type="text" value="toiro-party" class="w-full border-2 p-4 rounded-2xl font-bold">
-                    </div>
-                    <div class="mb-8">
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1 ml-2 uppercase">Name</label>
-                        <input id="name-input" type="text" placeholder="名前を入力" 
-                               onfocus="isInputting=true" onblur="isInputting=false"
-                               class="w-full border-2 p-4 rounded-2xl font-bold outline-none">
-                    </div>
-                    <button onclick="handleJoin('host')" ${hostExists ? 'disabled' : ''} 
-                            class="w-full ${hostExists ? 'bg-slate-200 cursor-not-allowed' : 'bg-slate-800'} text-white h-16 rounded-2xl font-bold mb-3">
-                        ${hostExists ? 'ホスト入室済み' : 'ホストとして開始'}
-                    </button>
+                    <div class="mb-4"><label class="block text-[10px] font-bold text-slate-400 mb-1 ml-2 uppercase">Room ID</label><input id="room-input" type="text" value="toiro-party" class="w-full border-2 p-4 rounded-2xl font-bold"></div>
+                    <div class="mb-8"><label class="block text-[10px] font-bold text-slate-400 mb-1 ml-2 uppercase">Name</label><input id="name-input" type="text" placeholder="名前をいれてね" onfocus="isInputting=true" onblur="isInputting=false" class="w-full border-2 p-4 rounded-2xl font-bold outline-none"></div>
+                    <button onclick="handleJoin('host')" ${hostExists ? 'disabled' : ''} class="w-full ${hostExists ? 'bg-slate-200 cursor-not-allowed' : 'bg-slate-800'} text-white h-16 rounded-2xl font-bold mb-3">${hostExists ? 'ホスト入室済み' : 'ホストとして開始'}</button>
                     <button onclick="handleJoin('guest')" class="w-full bg-white border-2 border-slate-800 text-slate-800 h-16 rounded-2xl font-bold">参加する</button>
                 </div>`;
                 return;
             }
 
-            // ゲーム中の描画処理（setup, playing, revealing, result）
             if (gameState.phase === 'setup') {
                 container.innerHTML = `
                 <div class="bg-white p-8 rounded-[2.5rem] shadow-xl fade-in border border-slate-100">
@@ -253,45 +231,42 @@
                     ${myRole === 'host' ? `
                         <div class="bg-blue-50/50 p-5 rounded-3xl mb-6 text-left border border-blue-100">
                             <label class="block text-[10px] font-black text-blue-400 mb-3 uppercase tracking-tighter">Game Settings</label>
-                            <div class="space-y-4 mb-6">
+                            <div class="space-y-4 mb-4">
                                 <div><span class="text-[10px] font-bold text-slate-400 ml-1">カード枚数</span><select id="card-count-select" class="w-full p-3 rounded-xl font-bold text-sm bg-white border-none shadow-sm"><option value="5">5枚</option><option value="8">8枚</option><option value="10" selected>10枚</option><option value="12">12枚</option><option value="15">15枚</option></select></div>
-                                <div><span class="text-[10px] font-bold text-slate-400 ml-1">難易度モード</span><select id="mode-select" class="w-full p-3 rounded-xl font-bold text-sm bg-white border-none shadow-sm"><option value="れんしゅう">れんしゅう (Easyのみ)</option><option value="ほんばん" selected>ほんばん (徐々に難化)</option><option value="ランダム">ランダム (全難易度混在)</option></select></div>
+                                <div><span class="text-[10px] font-bold text-slate-400 ml-1">難易度モード</span><select id="mode-select" class="w-full p-3 rounded-xl font-bold text-sm bg-white border-none shadow-sm" onchange="previewThemes=[]"><option value="れんしゅう">れんしゅう (Easyのみ)</option><option value="ほんばん" selected>ほんばん (徐々に難化)</option><option value="ランダム">ランダム (全難易度混在)</option></select></div>
                             </div>
+                            
+                            <div class="mb-6">
+                                <div class="flex justify-between items-center mb-2"><span class="text-[10px] font-bold text-slate-400 ml-1">お題プレビュー</span><button onclick="shuffleThemes()" class="text-[10px] font-black text-blue-500 bg-white px-2 py-1 rounded-lg shadow-sm border border-blue-100 active:scale-95 transition-all">🔄 お題を引き直す</button></div>
+                                <div class="bg-white/50 p-3 rounded-xl border border-blue-50 min-h-[40px] text-[10px] font-bold text-slate-500 italic leading-relaxed">
+                                    ${previewThemes.length > 0 ? previewThemes.join(' / ') : '「引き直す」でお題を確認できます'}
+                                </div>
+                            </div>
+
                             <button onclick="startGame()" class="w-full bg-blue-500 text-white h-16 rounded-2xl text-xl font-black shadow-lg">ゲーム開始</button>
                         </div>` : `<p class="animate-pulse text-slate-400 font-bold">ホストが準備しています...</p>`}
                 </div>`;
             } else if (gameState.phase === 'playing') {
-                const round = gameState.currentRound;
-                const theme = gameState.themes[round];
-                const alreadyAnswered = gameState.answers?.[round]?.[myName];
+                const round = gameState.currentRound; const theme = gameState.themes[round]; const alreadyAnswered = gameState.answers?.[round]?.[myName];
                 if (alreadyAnswered) {
                     container.innerHTML = `<div class="bg-white p-12 rounded-[2.5rem] shadow-xl border border-slate-100 fade-in"><div class="w-16 h-16 mx-auto rounded-2xl shadow-inner mb-4" style="background-color: ${COLORS.find(c => c.id === alreadyAnswered).code}"></div><p class="text-slate-400 font-bold text-sm">回答完了！待機中...<br><span class="text-blue-500 text-2xl font-black">${Object.keys(gameState.answers[round]).length} / ${gameState.members.length}</span></p></div>`;
                 } else {
-                    const myUsed = [];
-                    for(let i=0; i<round; i++) { if(gameState.answers?.[i]?.[myName]) myUsed.push(gameState.answers[i][myName]); }
-                    const currentHand = gameState.commonHand.filter(cid => !myUsed.includes(cid));
-                    const selObj = selectedColor ? COLORS.find(c => c.id === selectedColor) : null;
+                    const myUsed = []; for(let i=0; i<round; i++) { if(gameState.answers?.[i]?.[myName]) myUsed.push(gameState.answers[i][myName]); }
+                    const currentHand = gameState.commonHand.filter(cid => !myUsed.includes(cid)); const selObj = selectedColor ? COLORS.find(c => c.id === selectedColor) : null;
                     container.innerHTML = `<div class="fade-in"><div class="mb-2 text-[10px] font-black text-slate-300 tracking-[0.3em] uppercase">${gameState.gameMode} ROUND ${round + 1} / 5</div><h2 class="text-4xl font-black text-slate-800 mb-8 italic tracking-tight">「${theme}」</h2><div class="color-grid mb-8">${currentHand.map(cid => { const c = COLORS.find(x => x.id === cid); return `<button onclick="selectedColor='${c.id}';render();" style="background-color: ${c.code}; color: ${c.text}" class="h-20 rounded-2xl font-bold shadow-md ring-4 ${selectedColor === cid ? 'ring-blue-500 scale-105 shadow-blue-100' : 'ring-transparent'} border-b-4 border-black/10 transition-all text-xs">${c.name}</button>`; }).join('')}</div><div class="h-24">${selObj ? `<button onclick="confirmAnswer()" style="background-color: ${selObj.code}; color: ${selObj.text}" class="w-full h-20 rounded-3xl text-xl font-black shadow-xl animate-bounce border-4 border-black/10">【 ${selObj.name} 】で決定！</button>` : `<p class="text-slate-400 font-bold text-sm italic">色を選んでください</p>`}</div></div>`;
                 }
             } else if (gameState.phase === 'revealing') {
-                const idx = gameState.revealIdx;
-                let resultsHtml = "";
+                const idx = gameState.revealIdx; let resultsHtml = "";
                 for(let r=0; r < 5; r++) {
-                    const isRevealed = r <= idx;
-                    const ans = (gameState.answers && gameState.answers[r]) || {};
-                    const colorValues = Object.values(ans);
+                    const isRevealed = r <= idx; const ans = (gameState.answers && gameState.answers[r]) || {}; const colorValues = Object.values(ans);
                     const isMatch = colorValues.length > 0 && colorValues.length === gameState.members.length && colorValues.every(v => v === colorValues[0]);
                     resultsHtml += `<div class="bg-white p-5 rounded-[2.5rem] mb-4 shadow-sm border transition-all duration-500 ${isRevealed ? (isMatch ? 'border-green-400 ring-4 ring-green-50' : 'border-slate-100') : 'opacity-40 grayscale'}"><div class="flex justify-between items-center mb-3"><span class="text-sm font-black text-slate-600 uppercase italic">RD ${r+1}: ${gameState.themes[r]}</span>${isRevealed && isMatch ? '<span class="text-xs font-black text-green-500 animate-pulse">MATCH!</span>' : ''}</div>${isRevealed ? `<div class="flex flex-wrap gap-2 justify-center fade-in">${Object.entries(ans).map(([name, cid]) => `<div class="flex flex-col items-center"><div class="w-10 h-10 rounded-xl shadow-inner ring-1 ring-slate-200" style="background-color:${COLORS.find(x=>x.id===cid).code}"></div><div class="text-[8px] font-bold text-slate-500 truncate w-12 mt-1 text-center">${name}</div></div>`).join('')}</div>` : `<div class="h-10 flex items-center justify-center text-xs text-slate-400 font-black tracking-[0.5em] uppercase">？？？</div>`}</div>`;
                 }
                 container.innerHTML = `<div class="fade-in no-scrollbar"><h2 class="text-[10px] font-black mb-4 text-slate-400 uppercase tracking-widest italic">Result Reveal</h2><div class="max-h-[60vh] overflow-y-auto no-scrollbar pb-4">${resultsHtml}</div><div class="mt-4">${myRole === 'host' ? (idx < 4 ? `<button onclick="db.ref('rooms/'+currentRoomId).update({revealIdx:${idx+1}})" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">次の結果を公開 (${idx+2}/5)</button>` : `<button onclick="db.ref('rooms/'+currentRoomId).update({phase:'result'})" class="w-full bg-green-500 text-white h-16 rounded-2xl font-bold shadow-xl">最終スコア発表！</button>`) : `<p class="p-4 text-xs font-bold text-slate-400 animate-pulse italic">ホストが公開中...</p>`}</div></div>`;
             } else if (gameState.phase === 'result') {
-                let matchCount = 0;
-                for(let r=0; r<5; r++){
-                    const ans = Object.values((gameState.answers && gameState.answers[r]) || {});
-                    if(ans.length > 0 && ans.length === gameState.members.length && ans.every(v => v === ans[0])) matchCount++;
-                }
+                let matchCount = 0; for(let r=0; r<5; r++){ const ans = Object.values((gameState.answers && gameState.answers[r]) || {}); if(ans.length > 0 && ans.length === gameState.members.length && ans.every(v => v === ans[0])) matchCount++; }
                 const score = (matchCount / 5) * 100;
-                container.innerHTML = `<div class="fade-in text-center"><p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-2">Group Sync Rate</p><h2 class="text-8xl font-black text-slate-800 mb-6 italic tracking-tighter"><span id="count-up-score">0</span><small class="text-3xl">%</small></h2><div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 mb-8 overflow-hidden relative"><div class="relative z-10"><div class="text-[10px] font-bold text-blue-500 mb-2 uppercase italic tracking-widest">Final Rank</div><div class="text-2xl font-black text-slate-800 mb-4">${score === 100 ? "奇跡のシンクロ！" : score >= 60 ? "最強の絆！" : "伸びしろたっぷり！"}</div><p class="text-xs text-slate-400 font-bold tracking-tight">${matchCount} / 5 ラウンド一致！</p></div><div class="absolute bottom-0 left-0 h-1 bg-blue-500 transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.4)]" style="width:${score}%"></div></div>${myRole === 'host' ? `<button onclick="startGame()" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">もう一度あそぶ</button>` : ``}</div>`;
+                container.innerHTML = `<div class="fade-in text-center"><p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-2">Group Sync Rate</p><h2 class="text-8xl font-black text-slate-800 mb-6 italic tracking-tighter"><span id="count-up-score">0</span><small class="text-3xl">%</small></h2><div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 mb-8 overflow-hidden relative"><div class="relative z-10"><div class="text-[10px] font-bold text-blue-500 mb-2 uppercase italic tracking-widest">Final Rank</div><div class="text-2xl font-black text-slate-800 mb-4">${score === 100 ? "奇跡のシンクロ！" : score >= 60 ? "最強の絆！" : "伸びしろたっぷり！"}</div><p class="text-xs text-slate-400 font-bold tracking-tight">${matchCount} / 5 ラウンド一致！</p></div><div class="absolute bottom-0 left-0 h-1 bg-blue-500 transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.4)]" style="width:${score}%"></div></div>${myRole === 'host' ? `<button onclick="previewThemes=[]; gameState.phase='setup'; render();" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">設定に戻る</button>` : ``}</div>`;
                 setTimeout(() => animateCountUp(score), 100);
             }
         }
