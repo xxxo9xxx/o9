@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フィロとソフィー - 家族の対話</title>
+    <style>
+        :root { --bg: #fdfaf5; --accent: #88a; --text: #444; }
+        body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        h1 { font-size: 1.2rem; margin-bottom: 5px; color: var(--accent); letter-spacing: 0.1rem; }
+        .sub-t { font-size: 0.8rem; color: #999; margin-bottom: 20px; }
+        .card-list { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 500px; }
+        .card-item { background: white; border: 1px solid #eee; border-radius: 15px; padding: 22px; font-size: 1rem; font-weight: 600; line-height: 1.5; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: all 0.2s ease; }
+        .card-item:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.05); border-color: var(--accent); }
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; flex-direction: column; align-items: center; justify-content: center; padding: 40px; box-sizing: border-box; }
+        #big-q { font-size: 1.8rem; font-weight: bold; line-height: 1.6; color: var(--text); margin-bottom: 60px; max-width: 600px; text-align: center; }
+        .btn { padding: 16px 45px; border-radius: 40px; border: none; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.2s; }
+        .close-btn { background: var(--accent); color: white; }
+        .reload-btn { background: #f0f0f0; color: #777; margin-top: 30px; }
+    </style>
+</head>
+<body>
+
+    <h1>フィロとソフィー</h1>
+    <div class="sub-t">今日のご飯のお供に、10の問いを。</div>
+    
+    <div class="card-list" id="list">読み込み中...</div>
+
+    <button class="btn reload-btn" onclick="location.reload()">お題を入れ替える</button>
+
+    <div id="overlay">
+        <div id="big-q"></div>
+        <button class="btn close-btn" onclick="closeCard()">戻る</button>
+    </div>
+
+<script>
+    async function loadQuestions() {
+        const listContainer = document.getElementById('list');
+        try {
+            // JSONの読み込み
+            const response = await fetch('questions.json');
+            if (!response.ok) throw new Error('File not found');
+            const data = await response.json();
+            
+            // すべてのカテゴリを平坦化
+            let allQ = [];
+            for (const category in data) {
+                allQ = allQ.concat(data[category]);
+            }
+
+            // シャッフルして10個選出
+            const shuffled = allQ.sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 10);
+
+            listContainer.innerHTML = '';
+            selected.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'card-item';
+                card.innerText = item.text;
+                card.onclick = () => openCard(item.text);
+                listContainer.appendChild(card);
+            });
+        } catch (error) {
+            listContainer.innerHTML = '<p>JSONファイルが読み込めませんでした。<br>ローカル環境の場合はLive Server等を使用してください。</p>';
+        }
+    }
+
+    function openCard(q) {
+        document.getElementById('big-q').innerText = q;
+        document.getElementById('overlay').style.display = 'flex';
+    }
+
+    function closeCard() {
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    loadQuestions();
+</script>
+</body>
+</html>
