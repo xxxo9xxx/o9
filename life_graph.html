@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LifeGraph Pro - Fixed</title>
+    <title>人生の軌跡グラフメーカー</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -58,9 +58,9 @@
 
     <div id="setupScreen">
         <div class="setup-card">
-            <h2 style="text-align:center; margin-bottom:20px;">LifeGraph Pro</h2>
+            <h2 style="text-align:center; margin-bottom:20px; font-size: 18px;">人生の軌跡グラフメーカー</h2>
             <div class="input-group">
-                <label>お名前</label><input type="text" id="userName" value="自分">
+                <label>お名前</label><input type="text" id="userName" placeholder="名前を入力">
             </div>
             <div class="input-group">
                 <label>生まれた年（西暦）</label><input type="number" id="birthYear" value="1995">
@@ -79,7 +79,7 @@
     </div>
 
     <div class="main-header">
-        <h1 id="titleDisplay">Life Graph</h1>
+        <h1 id="titleDisplay">人生の軌跡</h1>
         <button onclick="generatePreview()" style="background:none; border:none; color:var(--primary); font-weight:bold; font-size:16px;">画像化</button>
     </div>
 
@@ -121,7 +121,7 @@
         ];
 
         function initApp() {
-            config.name = document.getElementById('userName').value;
+            config.name = document.getElementById('userName').value || "自分";
             config.birthYear = parseInt(document.getElementById('birthYear').value);
             config.age = parseInt(document.getElementById('currentAge').value);
             document.getElementById('titleDisplay').innerText = `${config.name}さんの軌跡`;
@@ -225,7 +225,6 @@
             return 0.5 * ((2 * v1) + (-v0 + v2) * t + (2 * v0 - 5 * v1 + 4 * v2 - v3) * t2 + (-v0 + 3 * v1 - 3 * v2 + v3) * t3);
         }
 
-        const mCanvas = document.getElementById('mainCanvas');
         mCanvas.addEventListener('touchstart', (e) => {
             const rect = mCanvas.getBoundingClientRect();
             const { w, h, px, py } = graphLayout;
@@ -250,7 +249,10 @@
                     if(!dragTarget) { dragTarget = {x: nx, y: ny}; nodes.push(dragTarget); }
                     isDragging = true;
                 } else {
-                    stamps.push({x: nx, y: ny, emoji: selectedEmoji});
+                    // グラフ領域内(nx, nyが0〜1の間)の時だけスタンプを押せる
+                    if (nx >= 0 && nx <= 1 && ny >= 0 && ny <= 1) {
+                        stamps.push({x: nx, y: ny, emoji: selectedEmoji});
+                    }
                 }
             }
             draw();
@@ -295,10 +297,21 @@
             const temp = document.createElement('canvas'), mCanvas = document.getElementById('mainCanvas');
             temp.width = mCanvas.width; temp.height = mCanvas.height;
             const tCtx = temp.getContext('2d'), originalTransform = {...transform};
+            
             transform = { scale: 1, x: 0, y: 0 }; draw();
+            
+            // 背景色塗り
             tCtx.fillStyle = '#f8fafc'; tCtx.fillRect(0, 0, temp.width, temp.height);
             tCtx.drawImage(document.getElementById('bgCanvas'), 0,0);
             tCtx.drawImage(mCanvas, 0,0);
+            
+            // --- 画像に名前を刻印 ---
+            tCtx.fillStyle = '#1e293b';
+            tCtx.font = `bold ${16 * window.devicePixelRatio}px sans-serif`;
+            tCtx.textAlign = 'left';
+            tCtx.fillText(`${config.name}さんの軌跡`, graphLayout.px * window.devicePixelRatio, (graphLayout.py - 15) * window.devicePixelRatio);
+            // -----------------------
+
             document.getElementById('previewImage').src = temp.toDataURL('image/png');
             document.getElementById('previewOverlay').style.display = 'flex';
             transform = originalTransform; draw();
