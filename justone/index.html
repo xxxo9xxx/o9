@@ -42,7 +42,7 @@
                 const res = await fetch(WORDS_JSON_URL);
                 WORDS_DATA = await res.json();
             } catch (e) {
-                console.error("JSONの読み込みに失敗しました。ファイル名を確認してください。");
+                WORDS_DATA = { kids: ["リンゴ"], standard: ["回転寿司"], hard: ["忖度"] };
             }
         }
         loadWords();
@@ -173,11 +173,14 @@
             const val1 = document.getElementById('hint-1')?.value;
             const val2 = document.getElementById('hint-2')?.value;
 
+            // 演出オーバーレイ
             if (gameState?.lastResult) {
                 if (!document.getElementById('effect-overlay')) {
                     const res = gameState.lastResult;
                     const isGuesserHost = (gameState.host === gameState.members[gameState.guesserIdx]);
+                    // ホストが回答者ならゲスト全員が操作可能、そうでなければホストのみ
                     const canControl = isGuesserHost ? (myRole === 'guest') : (myRole === 'host');
+                    
                     const div = document.createElement('div');
                     div.id = 'effect-overlay';
                     div.className = `result-overlay ${res.isCorrect ? 'bg-emerald-500/95' : 'bg-rose-500/95'} flex-col text-white`;
@@ -197,4 +200,77 @@
                     <p class="text-[10px] font-bold text-slate-400 mb-4 uppercase text-center tracking-widest">Login</p>
                     <input id="name-input" type="text" placeholder="名前" class="w-full mb-6 border-2 p-4 rounded-2xl font-bold text-center outline-none focus:border-emerald-500">
                     <button onclick="joinGame('host')" class="w-full ${hostExists?'bg-slate-50 text-slate-300':'bg-emerald-600 text-white'} h-14 rounded-2xl font-bold mb-3" ${hostExists?'disabled':''}>ホストとして入室</button>
-                    <button onclick="joinGame('guest')" class="w-full border-2 border-emerald-100 text-emerald-600 h-14 rounded-2xl font-bold">ゲスト
+                    <button onclick="joinGame('guest')" class="w-full border-2 border-emerald-100 text-emerald-600 h-14 rounded-2xl font-bold">ゲストとして入室</button>
+                </div>`;
+                return;
+            }
+
+            if (!gameState || gameState.phase === 'setup') {
+                const members = gameState?.members || [myName];
+                container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-lg fade-in">
+                    <p class="text-[10px] font-bold text-slate-400 mb-4 uppercase text-center tracking-widest">Room Members</p>
+                    <div class="flex flex-wrap justify-center gap-2 mb-6">${members.map((m, i) => `<button onclick="myRole==='host' && roomRef.update({guesserIdx:${i}})" class="px-4 py-2 rounded-full font-bold text-xs transition-all ${gameState?.guesserIdx === i ? 'bg-orange-500 text-white shadow-md' : 'bg-emerald-50 text-emerald-600'}">${m}</button>`).join('')}</div>
+                    ${myRole === 'host' ? `<div class="border-t pt-6 space-y-4 text-left"><label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">Difficulty</label><select id="word-mode" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="kids">キッズ</option><option value="standard">一般 (+キッズ)</option><option value="hard">むずかしい (すべて)</option></select><label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">Rounds</label><input id="rounds-input" type="number" value="10" class="w-full border-2 p-3 rounded-xl font-bold"><button onclick="startGame()" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold shadow-lg">ゲーム開始！</button></div>` : `<p class="p-8 text-emerald-500 font-bold animate-pulse text-sm text-center">ホストの開始を待っています...</p>`}
+                </div>`;
+            } else if (gameState.phase === 'playing') {
+                const isGuesser = gameState.members[gameState.guesserIdx] === myName;
+                const header = `<div class="mb-4 flex justify-between items-center px-2 text-[10px] font-black text-slate-400"><span>ROUND ${gameState.currentRound} / ${gameState.totalRounds}</span><span class="text-orange-500">ANSWERER: ${gameState.members[gameState.guesserIdx]}</span></div>`;
+
+                if (gameState.step === 'guesser_select') {
+                    container.innerHTML = header + `<div class="bg-white p-6 rounded-3xl shadow-lg"><p class="text-sm font-bold text-slate-400 mb-4 uppercase tracking-tighter">Next Answerer?</p><div class="flex flex-wrap justify-center gap-2 mb-6">${gameState.members.map((m, i) => `<button onclick="myRole==='host' && roomRef.update({guesserIdx:${i}})" class="px-4 py-2 rounded-full font-bold text-xs ${gameState.guesserIdx === i ? 'bg-orange-500 text-white' : 'bg-emerald-50 text-emerald-600'}">${m}</button>`).join('')}</div>${myRole === 'host' ? `<button onclick="startRound()" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold shadow-md">この人でスタート！</button>` : `<p class="text-xs text-slate-300 animate-pulse font-bold uppercase">Host is picking next player...</p>`}</div>`;
+                } else if (gameState.step === 'hinting') {
+                    if (isGuesser) {
+                        container.innerHTML = header + `<div class="bg-white p-12 rounded-[3rem] shadow-xl text-center font-bold text-slate-400 animate-pulse">ヒント待機中...</div>`;
+                    } else {
+                        const currentWord = gameState.words[gameState.currentRound - 1];
+                        const hasSubmitted = gameState.hints && gameState.hints[myName];
+                        container.innerHTML = header + `<div class="bg-white p-6 rounded-[2rem] shadow-xl"><p class="text-[10px] font-bold text-emerald-500 mb-1 uppercase text-center">お題</p><h2 class="text-3xl font-black text-slate-800 mb-4 text-center">${currentWord}</h2>${myRole === 'host' ? `<button onclick="redrawWord()" class="w-full text-[10px] text-orange-500 font-bold mb-6 hover:underline uppercase">Change Word</button>` : ''}${hasSubmitted ? `<p class="text-center py-10 text-slate-300 font-bold">送信完了！待機中...</p>` : `<input id="hint-1" type="text" placeholder="ヒントを書こう" class="w-full border-2 p-4 rounded-xl font-bold mb-3 outline-none" value="${val1||''}">${gameState.members.length <= 4 ? `<input id="hint-2" type="text" placeholder="ヒントその2" class="w-full border-2 p-4 rounded-xl font-bold mb-3 outline-none" value="${val2||''}">` : ''}<button onclick="submitHint()" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold">送信！</button>`}</div>`;
+                    }
+                } else if (gameState.step === 'comparing') {
+                    const allHints = [];
+                    Object.values(gameState.hints || {}).forEach(arr => allHints.push(...arr));
+                    const counts = {}; allHints.forEach(h => counts[h] = (counts[h] || 0) + 1);
+                    const isGuesserHost = (gameState.host === gameState.members[gameState.guesserIdx]);
+                    const canReveal = isGuesserHost ? (myRole === 'guest') : (myRole === 'host');
+
+                    container.innerHTML = header + `<div class="bg-white p-6 rounded-[2rem] shadow-xl"><h2 class="text-sm font-bold text-slate-400 mb-4">${isGuesser ? '精査中...' : '被りを消そう！'}</h2>${isGuesser ? `<p class="p-10 text-center font-bold text-slate-300">回答者はまだ見えません</p>` : `<p class="text-[10px] text-slate-400 mb-4 font-bold text-center italic">お題: ${gameState.words[gameState.currentRound-1]}</p><div class="flex flex-wrap justify-center gap-2 mb-8">${allHints.map(h => `<button onclick="toggleInvalid('${h}')" class="px-4 py-2 rounded-xl font-bold ${(gameState.invalidHints?.[h] || counts[h] > 1) ? 'invalid-hint' : 'bg-emerald-50 text-emerald-600 border-2 border-emerald-100 shadow-sm'}">${h}</button>`).join('')}</div>${canReveal ? `<button onclick="roomRef.update({step:'guessing'})" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold animate-bounce shadow-xl">回答者にヒントを公開！</button>` : `<p class="text-[10px] text-slate-300 font-bold">ホスト(またはゲスト)の公開待ち...</p>`}</div>`;
+                } else if (gameState.step === 'guessing') {
+                    const allHints = [];
+                    Object.values(gameState.hints || {}).forEach(arr => allHints.push(...arr));
+                    const counts = {}; allHints.forEach(h => counts[h] = (counts[h] || 0) + 1);
+                    const visibleHints = allHints.filter(h => !gameState.invalidHints?.[h] && counts[h] === 1);
+                    const isGuesserHost = (gameState.host === gameState.members[gameState.guesserIdx]);
+                    const canJudge = isGuesserHost ? (myRole === 'guest') : (myRole === 'host');
+
+                    container.innerHTML = header + `<div class="bg-white p-6 rounded-[2rem] shadow-xl"><div class="flex flex-wrap justify-center gap-3 mb-10">${visibleHints.length ? visibleHints.map(h => `<span class="bg-emerald-600 text-white px-5 py-3 rounded-2xl font-black text-lg shadow-lg">${h}</span>`).join('') : '<p class="text-slate-300 font-bold text-center italic">ヒントが消えてしまいました...</p>'}</div>${canJudge ? `<div class="border-t pt-6 text-center"><p class="font-black text-xl mb-6 text-slate-800">お題：${gameState.words[gameState.currentRound-1]}</p><div class="grid grid-cols-2 gap-3"><button onclick="judge(true)" class="bg-emerald-500 text-white h-14 rounded-xl font-bold shadow-md active:scale-95 transition-all">◯ 正解！</button><button onclick="judge(false)" class="bg-rose-500 text-white h-14 rounded-xl font-bold shadow-md active:scale-95 transition-all">✕ 不正解</button></div></div>` : `<div class="text-center font-bold text-orange-500 animate-bounce">${isGuesser ? '口頭で答えを言ってね！' : '回答を見守り中...'}</div>`}</div>`;
+                }
+            } else if (gameState.phase === 'result') {
+                const finalRate = Math.round((gameState.score / gameState.totalRounds) * 100);
+                container.innerHTML = `<div class="bg-white p-10 rounded-[3rem] shadow-2xl text-center fade-in">
+                    <p class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Team Harmony</p>
+                    <h2 id="final-rate" class="text-7xl font-black mb-4 text-slate-800">0%</h2>
+                    <div id="称号-box" class="opacity-0 scale-50 transition-all duration-700 bg-orange-100 text-orange-600 p-6 rounded-2xl font-black text-xl mb-10"></div>
+                    ${myRole === 'host' ? `<button onclick="roomRef.update({phase:'setup'})" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">タイトルへ</button>` : ''}
+                </div>`;
+                
+                setTimeout(() => {
+                    let cur = 0;
+                    const h2 = document.getElementById('final-rate');
+                    const timer = setInterval(() => {
+                        if (cur >= finalRate) {
+                            cur = finalRate; clearInterval(timer);
+                            const box = document.getElementById('称号-box');
+                            const titleKey = Math.floor(finalRate / 10) * 10;
+                            box.innerText = TITLES[titleKey];
+                            box.classList.remove('opacity-0', 'scale-50');
+                            box.classList.add('stamp-anim');
+                        }
+                        h2.innerText = cur + "%"; cur++;
+                    }, 20);
+                }, 500);
+            }
+        }
+        render();
+    </script>
+</body>
+</html>
