@@ -12,14 +12,13 @@
         body { font-family: 'Zen Maru Gothic', sans-serif; touch-action: manipulation; }
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* グレーアウト用のスタイル */
-        .invalid-hint { 
-            text-decoration: line-through; 
-            opacity: 0.3; 
-            background-color: #e2e8f0 !important; 
-            color: #94a3b8 !important; 
-            border-color: #cbd5e1 !important;
-        }
+        .invalid-hint { text-decoration: line-through; opacity: 0.3; background-color: #e2e8f0 !important; color: #94a3b8 !important; }
+        
+        /* 演出用アニメーション */
+        .result-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 100; animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes scaleUp { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .success-bg { background: rgba(16, 185, 129, 0.95); }
+        .fail-bg { background: rgba(244, 63, 94, 0.95); }
     </style>
 </head>
 <body class="bg-emerald-50 min-h-screen p-4 text-slate-800 flex flex-col">
@@ -32,14 +31,14 @@
         <div id="game-content"></div>
     </div>
 
+    <div id="effect-layer"></div>
+
     <div class="max-w-md mx-auto w-full py-8 text-center border-t border-emerald-100 mt-8">
-        <button onclick="forceQuit()" class="text-[10px] text-slate-300 font-bold hover:text-red-400 transition-colors">
-            --- Room Dissolution / Exit ---
-        </button>
+        <button onclick="forceQuit()" class="text-[10px] text-slate-300 font-bold hover:text-red-400 transition-colors uppercase">--- Initialize Room ---</button>
     </div>
 
     <script>
-        const WORDS_DB = ["リンゴ", "富士山", "カレーライス", "ドラえもん", "コンビニ", "キャンプ", "YouTube", "ハワイ", "卒業式", "パンダ", "図書館", "ラーメン", "お正月", "スニーカー", "宇宙飛行士", "遊園地", "チョコレート", "カラオケ", "侍", "忍者", "スカイツリー", "線香花火", "回転寿司", "無人島", "マクドナルド", "ピカチュウ", "新幹線"];
+        const WORDS_DB = ["リンゴ", "富士山", "カレーライス", "ドラえもん", "コンビニ", "キャンプ", "YouTube", "ハワイ", "卒業式", "パンダ", "図書館", "ラーメン", "お正月", "スニーカー", "宇宙飛行士", "遊園地", "チョコレート", "カラオケ", "侍", "忍者", "スカイツリー", "線香花火", "回転寿司", "無人島", "マクドナルド", "ピカチュウ", "新幹線", "たい焼き", "サウナ", "宝くじ", "オムライス", "ペンギン", "タイムマシン"];
 
         const firebaseConfig = {
             apiKey: "AIzaSyBmzPmehSaV--mn0Hd0S-fd97nf5RX4Dvg",
@@ -52,7 +51,6 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        
         const urlParams = new URLSearchParams(window.location.search);
         const roomId = urlParams.get('room') || 'default-room';
         const roomRef = db.ref("justone_v3/" + roomId);
@@ -64,15 +62,8 @@
 
         roomRef.on("value", (snapshot) => {
             gameState = snapshot.val();
-            if (myName && !gameState) {
-                localStorage.clear();
-                location.reload();
-                return;
-            }
-            if (!myName) {
-                if (document.getElementById('game-content').innerHTML === "") render();
-                return;
-            }
+            if (myName && !gameState) { localStorage.clear(); location.reload(); return; }
+            if (!myName) { if (document.getElementById('game-content').innerHTML === "") render(); return; }
             render();
         });
 
@@ -87,7 +78,7 @@
                 const snap = await roomRef.get();
                 let data = snap.val();
                 if (!data) {
-                    await roomRef.set({ phase: 'setup', members: [name], host: (role === 'host' ? name : "") });
+                    await roomRef.set({ phase: 'setup', members: [name], host: (role === 'host' ? name : ""), guesserIdx: 0 });
                 } else {
                     let members = data.members || [];
                     if (!members.includes(name)) members.push(name);
@@ -96,7 +87,12 @@
                     await roomRef.update(updates);
                 }
                 render();
-            } catch (err) { alert("入室エラー: " + err.message); myName = ""; }
+            } catch (err) { alert("入室エラー: " + err.message); }
+        }
+
+        function setGuesser(idx) {
+            if (myRole !== 'host') return;
+            roomRef.update({ guesserIdx: idx });
         }
 
         function startGame() {
@@ -107,7 +103,7 @@
             const shuffled = [...WORDS_DB].sort(() => 0.5 - Math.random());
             roomRef.update({
                 phase: 'playing', totalRounds: rounds, currentRound: 1, score: 0,
-                words: shuffled.slice(0, rounds), guesserIdx: 0, step: 'hinting', hints: {}, invalidHints: {}
+                words: shuffled.slice(0, rounds), step: 'hinting', hints: {}, invalidHints: {}
             });
         }
 
@@ -117,7 +113,6 @@
             const h2 = h2El ? h2El.value.trim() : null;
             if (!h1) return;
             const myHints = [h1]; if (h2) myHints.push(h2);
-
             roomRef.child(`hints/${myName}`).set(myHints).then(() => {
                 roomRef.once('value').then(snap => {
                     const curr = snap.val();
@@ -128,36 +123,67 @@
             });
         }
 
-        // ヒントの有効/無効を切り替える（ホストのみ）
         function toggleInvalid(hintText) {
             if (myRole !== 'host') return;
             let currentInvalids = gameState.invalidHints || {};
-            // すでに無効なら有効に、有効なら無効にする
             currentInvalids[hintText] = !currentInvalids[hintText];
             roomRef.child('invalidHints').set(currentInvalids);
         }
 
-        // 回答者にヒントを公開する
         function revealToGuesser() {
             if (myRole !== 'host') return;
             roomRef.update({ step: 'guessing' });
         }
 
+        // 正解・不正解の判定と演出
         function judge(isCorrect) {
-            let nextScore = gameState.score + (isCorrect ? 1 : 0);
-            if (gameState.currentRound < gameState.totalRounds) {
-                roomRef.update({
-                    currentRound: gameState.currentRound + 1, score: nextScore,
-                    guesserIdx: (gameState.guesserIdx + 1) % gameState.members.length,
-                    step: 'hinting', hints: {}, invalidHints: {}
-                });
-            } else {
-                roomRef.update({ phase: 'result', score: nextScore });
-            }
+            if (myRole !== 'host') return;
+            const currentWord = gameState.words[gameState.currentRound - 1];
+            
+            // 演出の表示（全プレイヤーに同期させるためにDBにフラグを立てても良いが、今回はホストがボタンを押した瞬間のローカル演出と、少し遅れての画面遷移で対応）
+            showResultEffect(isCorrect, currentWord);
+
+            setTimeout(() => {
+                let nextScore = gameState.score + (isCorrect ? 1 : 0);
+                if (gameState.currentRound < gameState.totalRounds) {
+                    roomRef.update({
+                        currentRound: gameState.currentRound + 1, score: nextScore,
+                        step: 'hinting', hints: {}, invalidHints: {}
+                    });
+                } else {
+                    roomRef.update({ phase: 'result', score: nextScore });
+                }
+            }, 3000); // 3秒間演出を見せる
+        }
+
+        function showResultEffect(isCorrect, word) {
+            const layer = document.getElementById('effect-layer');
+            layer.innerHTML = `
+                <div class="result-overlay ${isCorrect ? 'success-bg' : 'fail-bg'} flex-col text-white">
+                    <div class="text-8xl mb-4">${isCorrect ? '◯' : '✕'}</div>
+                    <div class="text-2xl font-bold mb-2">${isCorrect ? '正解！' : '残念...'}</div>
+                    <div class="text-4xl font-black bg-white text-slate-800 px-6 py-2 rounded-2xl shadow-lg">${word}</div>
+                </div>
+            `;
+            setTimeout(() => { layer.innerHTML = ""; }, 3000);
+        }
+
+        function getEvaluation(rate) {
+            if (rate >= 100) return "【伝説のチーム】以心伝心！完璧を超えた絆です。";
+            if (rate >= 90) return "【神レベル】もはや言葉は不要。素晴らしい！";
+            if (rate >= 80) return "【超一流】チームワークは抜群。誇っていい結果です。";
+            if (rate >= 70) return "【一流】安定感がありますね。あともう一歩！";
+            if (rate >= 60) return "【中堅】まずまずの結果。次はもっと上を目指そう！";
+            if (rate >= 50) return "【普通】半分正解！ここからが本当の勝負です。";
+            if (rate >= 40) return "【修行中】惜しい！もう少しヒントを練ってみよう。";
+            if (rate >= 30) return "【伸び代あり】噛み合わない時もある。次頑張ろう！";
+            if (rate >= 20) return "【迷走中】ヒントが被りすぎ？戦略を立て直そう。";
+            if (rate >= 10) return "【カオス】逆に面白い！奇跡の不一致です。";
+            return "【初歩から】まずは相手を理解することから始めよう。";
         }
 
         function forceQuit() {
-            if (confirm("データを消去しますか？")) {
+            if (confirm("データをクリアしますか？")) {
                 if (myRole === 'host') roomRef.remove(); else { localStorage.clear(); location.reload(); }
             }
         }
@@ -166,13 +192,10 @@
             const container = document.getElementById('game-content');
             if (!myName) {
                 const hostExists = !!(gameState && gameState.host);
-                container.innerHTML = `
-                <div class="bg-white p-8 rounded-3xl shadow-xl fade-in text-left">
-                    <p class="text-[10px] font-bold text-slate-400 mb-4 uppercase text-center tracking-widest">Just One Entry</p>
-                    <input id="name-input" type="text" placeholder="名前を入力" class="w-full mb-6 border-2 p-4 rounded-2xl font-bold text-center outline-none focus:border-emerald-500">
-                    <button onclick="joinGame('host')" class="w-full ${hostExists?'bg-slate-50 text-slate-300':'bg-emerald-600 text-white shadow-lg'} h-14 rounded-2xl font-bold mb-3" ${hostExists?'disabled':''}>
-                        ${hostExists ? 'ホスト入室済み' : 'ホストとして参加'}
-                    </button>
+                container.innerHTML = `<div class="bg-white p-8 rounded-3xl shadow-xl fade-in text-left">
+                    <p class="text-[10px] font-bold text-slate-400 mb-4 uppercase text-center tracking-widest">Entry</p>
+                    <input id="name-input" type="text" placeholder="名前" class="w-full mb-6 border-2 p-4 rounded-2xl font-bold text-center outline-none focus:border-emerald-500">
+                    <button onclick="joinGame('host')" class="w-full ${hostExists?'bg-slate-50 text-slate-300':'bg-emerald-600 text-white'} h-14 rounded-2xl font-bold mb-3" ${hostExists?'disabled':''}>${hostExists ? 'ホスト入室済み' : 'ホストとして参加'}</button>
                     <button onclick="joinGame('guest')" class="w-full border-2 border-emerald-100 text-emerald-600 h-14 rounded-2xl font-bold">ゲストとして参加</button>
                 </div>`;
                 return;
@@ -180,32 +203,38 @@
 
             if (!gameState || gameState.phase === 'setup') {
                 const members = gameState?.members || [myName];
-                container.innerHTML = `
-                <div class="bg-white p-6 rounded-3xl shadow-lg fade-in">
-                    <p class="text-[10px] font-bold text-slate-400 mb-4 uppercase tracking-widest text-center">Waiting (${members.length}/7)</p>
-                    <div class="flex flex-wrap justify-center gap-2 mb-6">${members.map(m => `<span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full font-bold text-xs"># ${m}</span>`).join('')}</div>
+                container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-lg fade-in">
+                    <p class="text-[10px] font-bold text-slate-400 mb-4 uppercase tracking-widest text-center">Players (${members.length}/7)</p>
+                    <div class="flex flex-wrap justify-center gap-2 mb-6">
+                        ${members.map((m, i) => `
+                            <button onclick="setGuesser(${i})" class="px-4 py-2 rounded-full font-bold text-xs transition-all ${gameState?.guesserIdx === i ? 'bg-orange-500 text-white scale-110 shadow-md' : 'bg-emerald-50 text-emerald-600'}" ${myRole !== 'host' ? 'disabled' : ''}>
+                                ${gameState?.guesserIdx === i ? '★ ' : ''}${m}
+                            </button>
+                        `).join('')}
+                    </div>
                     ${myRole === 'host' ? `
                         <div class="border-t pt-6 space-y-4">
+                            <p class="text-[10px] text-orange-500 font-bold">※名前をタップして回答者を変更できます</p>
                             <input id="rounds-input" type="number" value="10" class="w-full border-2 p-3 rounded-xl font-bold">
                             <button onclick="startGame()" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold shadow-lg">ゲーム開始</button>
                         </div>
-                    ` : `<p class="p-8 text-emerald-500 font-bold animate-pulse text-sm text-center italic">ホストの開始を待機中...</p>`}
+                    ` : `<p class="p-8 text-emerald-500 font-bold animate-pulse text-sm text-center italic">ホストの開始を待っています...</p>`}
                 </div>`;
             } else if (gameState.phase === 'playing') {
                 const isGuesser = gameState.members[gameState.guesserIdx] === myName;
                 const currentWord = gameState.words[gameState.currentRound - 1];
                 let header = `<div class="mb-4 flex justify-between items-center px-2 text-[10px] font-black text-slate-400">
                     <span>ROUND ${gameState.currentRound} / ${gameState.totalRounds}</span>
-                    <span>Guesser: ${gameState.members[gameState.guesserIdx]}</span>
+                    <span class="text-orange-500 underline">Answerer: ${gameState.members[gameState.guesserIdx]}</span>
                 </div>`;
 
                 if (gameState.step === 'hinting') {
                     if (isGuesser) {
-                        container.innerHTML = header + `<div class="bg-white p-12 rounded-[3rem] shadow-xl text-center font-bold text-slate-400 animate-pulse">皆のヒントを待っています...</div>`;
+                        container.innerHTML = header + `<div class="bg-white p-12 rounded-[3rem] shadow-xl text-center font-bold text-slate-400 animate-pulse">ヒントが出るのを待っています...</div>`;
                     } else {
                         const needsTwo = gameState.members.length <= 4;
                         const hasSubmitted = gameState.hints && gameState.hints[myName];
-                        container.innerHTML = header + `<div class="bg-white p-6 rounded-[2rem] shadow-xl text-left">
+                        container.innerHTML = header + `<div class="bg-white p-6 rounded-[2rem] shadow-xl">
                             <p class="text-[10px] font-bold text-emerald-500 mb-1 uppercase text-center">お題</p>
                             <h2 class="text-3xl font-black text-slate-800 mb-6 text-center">${currentWord}</h2>
                             ${hasSubmitted ? `<p class="text-center py-10 text-slate-300 font-bold italic">送信完了。待機中...</p>` : `
@@ -221,48 +250,54 @@
                     const counts = {}; allHints.forEach(h => counts[h] = (counts[h] || 0) + 1);
 
                     container.innerHTML = header + `<div class="bg-white p-6 rounded-[2rem] shadow-xl">
-                        <h2 class="text-sm font-bold text-slate-400 mb-4">${isGuesser ? 'ヒント検閲中...' : '被りを確認してください'}</h2>
+                        <h2 class="text-sm font-bold text-slate-400 mb-4">${isGuesser ? 'ヒントを精査中...' : '被りをタップして除外'}</h2>
                         ${isGuesser ? `<p class="p-10 text-center font-bold text-slate-300 animate-pulse">回答者はまだ見えません</p>` : `
-                            <p class="text-[10px] text-slate-400 mb-4 font-bold text-center">お題: ${currentWord}<br>被ったヒントをタップして除外！</p>
+                            <p class="text-[10px] text-slate-400 mb-4 font-bold text-center">お題: ${currentWord}</p>
                             <div class="flex flex-wrap justify-center gap-2 mb-8">
                                 ${allHints.map(h => {
-                                    // 「個数が2つ以上」または「ホストが手動で除外した」場合にグレーアウト
                                     const isInvalid = (gameState.invalidHints && gameState.invalidHints[h]) || counts[h] > 1;
-                                    return `<button onclick="toggleInvalid('${h}')" class="px-4 py-2 rounded-xl font-bold transition-all ${isInvalid ? 'invalid-hint' : 'bg-emerald-50 text-emerald-600 border-2 border-emerald-100'}">
-                                        ${h} ${counts[h]>1?'(被り)':''}
-                                    </button>`;
+                                    return `<button onclick="toggleInvalid('${h}')" class="px-4 py-2 rounded-xl font-bold ${isInvalid ? 'invalid-hint' : 'bg-emerald-50 text-emerald-600 border-2 border-emerald-100'}">${h} ${counts[h]>1?'(被り)':''}</button>`;
                                 }).join('')}
                             </div>
-                            ${myRole === 'host' ? `<button onclick="revealToGuesser()" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold shadow-lg">回答者にヒントを見せる</button>` : ''}
+                            ${myRole === 'host' ? `
+                                <div class="grid grid-cols-1 gap-2 border-t pt-4">
+                                    <select onchange="setGuesser(this.value)" class="p-2 border rounded-lg text-xs font-bold bg-slate-50">
+                                        ${gameState.members.map((m,i) => `<option value="${i}" ${i===gameState.guesserIdx?'selected':''}>回答者を ${m} に変更</option>`).join('')}
+                                    </select>
+                                    <button onclick="revealToGuesser()" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold shadow-lg">回答者にヒントを見せる</button>
+                                </div>
+                            ` : ''}
                         `}
                     </div>`;
                 } else if (gameState.step === 'guessing') {
                     const allHints = [];
                     Object.values(gameState.hints || {}).forEach(arr => allHints.push(...arr));
                     const counts = {}; allHints.forEach(h => counts[h] = (counts[h] || 0) + 1);
-                    // 無効化されていない、かつ被っていないものだけを表示
                     const visibleHints = allHints.filter(h => !gameState.invalidHints?.[h] && counts[h] === 1);
 
                     container.innerHTML = header + `<div class="bg-white p-6 rounded-[2rem] shadow-xl">
-                        <p class="text-[10px] font-bold text-emerald-500 mb-4 uppercase text-center tracking-widest">ヒント</p>
                         <div class="flex flex-wrap justify-center gap-3 mb-10">
-                            ${visibleHints.length ? visibleHints.map(h => `<span class="bg-emerald-600 text-white px-5 py-3 rounded-2xl font-black text-lg shadow-md">${h}</span>`).join('') : '<p class="text-slate-300 font-bold">有効なヒントがありません...</p>'}
+                            ${visibleHints.length ? visibleHints.map(h => `<span class="bg-emerald-600 text-white px-5 py-3 rounded-2xl font-black text-lg shadow-lg">${h}</span>`).join('') : '<p class="text-slate-300 font-bold text-center">有効なヒントがありません...</p>'}
                         </div>
                         ${myRole === 'host' ? `
                             <div class="border-t pt-6 text-center">
                                 <p class="font-black text-xl mb-6 text-slate-800">答え：${currentWord}</p>
                                 <div class="grid grid-cols-2 gap-3">
-                                    <button onclick="judge(true)" class="bg-emerald-500 text-white h-14 rounded-xl font-bold shadow-md active:scale-95">正解 ◯</button>
-                                    <button onclick="judge(false)" class="bg-rose-500 text-white h-14 rounded-xl font-bold shadow-md active:scale-95">不正解 ✕</button>
+                                    <button onclick="judge(true)" class="bg-emerald-500 text-white h-14 rounded-xl font-bold shadow-md">正解 ◯</button>
+                                    <button onclick="judge(false)" class="bg-rose-500 text-white h-14 rounded-xl font-bold shadow-md">不正解 ✕</button>
                                 </div>
                             </div>
-                        ` : `<div class="text-center font-bold text-slate-400">回答者は答えを言ってください</div>`}
+                        ` : `<div class="text-center font-bold text-orange-500">${isGuesser ? '答えを口頭で言ってください！' : '回答を見守りましょう'}</div>`}
                     </div>`;
                 }
             } else if (gameState.phase === 'result') {
+                const rate = Math.round((gameState.score / gameState.totalRounds) * 100);
                 container.innerHTML = `<div class="bg-white p-10 rounded-[3rem] shadow-2xl text-center fade-in">
-                    <h2 class="text-5xl font-black mb-8 text-slate-800">${gameState.score} / ${gameState.totalRounds}</h2>
-                    ${myRole === 'host' ? `<button onclick="roomRef.update({phase:'setup'})" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold">もう一度遊ぶ</button>` : ''}
+                    <p class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Team Performance</p>
+                    <h2 class="text-6xl font-black mb-4 text-slate-800">${rate}<span class="text-2xl">%</span></h2>
+                    <p class="text-sm font-bold text-slate-400 mb-8">${gameState.score} / ${gameState.totalRounds} Correct</p>
+                    <div class="bg-emerald-50 p-6 rounded-2xl text-emerald-700 font-bold text-sm mb-10 leading-relaxed">${getEvaluation(rate)}</div>
+                    ${myRole === 'host' ? `<button onclick="roomRef.update({phase:'setup'})" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">もう一度遊ぶ</button>` : ''}
                 </div>`;
             }
         }
