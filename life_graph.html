@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LifeGraph Pro - Full Screen</title>
+    <title>LifeGraph Pro - Updated</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -15,7 +15,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Noto Sans JP', sans-serif; background: #f1f5f9; overflow: hidden; height: 100vh; position: fixed; width: 100%; }
 
-        /* セットアップ */
         #setupScreen {
             position: fixed; inset: 0; background: var(--bg-dark);
             display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
@@ -26,33 +25,16 @@
         .input-group input { width: 100%; padding: 12px; border: 2px solid #f1f5f9; border-radius: 12px; font-size: 16px; }
         .start-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; }
 
-        /* ヘッダー */
         .main-header { height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: white; z-index: 10; border-bottom: 1px solid #e2e8f0; }
         .main-header h1 { font-size: 14px; color: #1e293b; }
 
-        /* グラフエリア（全域） */
-        .canvas-outer {
-            height: calc(100vh - 50px - var(--nav-height));
-            width: 100%;
-            position: relative;
-            background: #f8fafc;
-            overflow: hidden;
-        }
-        .canvas-container { 
-            width: 100%; 
-            height: 100%; 
-            touch-action: none;
-        }
+        .canvas-outer { height: calc(100vh - 50px - var(--nav-height)); width: 100%; position: relative; background: #f8fafc; overflow: hidden; }
+        .canvas-container { width: 100%; height: 100%; touch-action: none; }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         #bgCanvas { z-index: 1; }
         #mainCanvas { z-index: 2; }
 
-        /* ナビゲーション */
-        .bottom-nav { 
-            position: fixed; bottom: 0; width: 100%; height: var(--nav-height); 
-            background: white; border-top: 1px solid #e2e8f0; z-index: 100;
-            display: flex; flex-direction: column;
-        }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: var(--nav-height); background: white; border-top: 1px solid #e2e8f0; z-index: 100; display: flex; flex-direction: column; }
         .mode-selector { display: flex; justify-content: space-around; padding: 8px 0; }
         .mode-btn { border: none; background: none; font-size: 11px; color: #94a3b8; display: flex; flex-direction: column; align-items: center; }
         .mode-btn.active { color: var(--primary); font-weight: bold; }
@@ -64,13 +46,21 @@
 
         .action-btns { position: absolute; right: 15px; top: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 50; }
         .circle-btn { width: 42px; height: 42px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+        /* 画像プレビュー用モーダル */
+        #previewOverlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none;
+            z-index: 2000; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+        }
+        #previewImage { max-width: 100%; max-height: 80vh; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .close-preview { margin-top: 20px; padding: 12px 30px; background: white; border-radius: 30px; border: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="setupScreen">
         <div class="setup-card">
-            <h2 style="text-align:center; margin-bottom:20px;">LifeGraph Pro</h2>
+            <h2 style="text-align:center; margin-bottom:20px;">人生グラフ</h2>
             <div class="input-group">
                 <label>お名前</label>
                 <input type="text" id="userName" value="自分">
@@ -87,9 +77,15 @@
         </div>
     </div>
 
+    <div id="previewOverlay">
+        <p style="color:white; margin-bottom:10px;">画像を長押しして保存してください</p>
+        <img id="previewImage" src="" alt="preview">
+        <button class="close-preview" onclick="closePreview()">閉じる</button>
+    </div>
+
     <div class="main-header">
         <h1 id="titleDisplay">Life Graph</h1>
-        <button onclick="downloadImage()" style="background:none; border:none; color:var(--primary); font-weight:bold; font-size:16px;">保存</button>
+        <button onclick="generatePreview()" style="background:none; border:none; color:var(--primary); font-weight:bold; font-size:16px;">保存</button>
     </div>
 
     <div class="canvas-outer">
@@ -108,6 +104,7 @@
         <div class="mode-selector">
             <button class="mode-btn active" id="mode-path" onclick="setMode('path')">📈 波を描く</button>
             <button class="mode-btn" id="mode-stamp" onclick="setMode('stamp')">🎨 スタンプ</button>
+            <button class="mode-btn" id="mode-eraser" onclick="setMode('eraser')">🧹 消しゴム</button>
         </div>
         <div class="tool-content" id="toolContent"></div>
     </div>
@@ -116,18 +113,17 @@
         let config = { name: '', birthYear: 1995, age: 30, mode: 'path' };
         let nodes = [];
         let stamps = [];
-        let selectedEmoji = '💍';
+        let selectedEmoji = '❤️';
         let transform = { scale: 1, x: 0, y: 0 };
         let lastTouch = { x: 0, y: 0, dist: 0 };
         let dragTarget = null;
         let isDragging = false, isPanning = false;
-
-        // グラフ描画用の領域設定（黄金比）
         let graphLayout = { w: 0, h: 0, px: 0, py: 0 };
 
+        // 順番を修正
         const emojis = [
-            {e:'💍', l:'結婚'}, {e:'💼', l:'就職'}, {e:'🎓', l:'卒業'}, {e:'👶', l:'誕生'}, {e:'🏠', l:'家'},
-            {e:'❤️', l:'恋'}, {e:'💔', l:'失恋'}, {e:'🏥', l:'病気'}, {e:'😢', l:'失敗'}, {e:'🎉', l:'成功'}
+            {e:'❤️', l:'恋'}, {e:'💔', l:'失恋'}, {e:'🎓', l:'卒業'}, {e:'💼', l:'就職'}, {e:'💍', l:'結婚'},
+            {e:'👶', l:'誕生'}, {e:'🏠', l:'家'}, {e:'🏥', l:'病気'}, {e:'🎉', l:'成功'}, {e:'😢', l:'失敗'}
         ];
 
         function initApp() {
@@ -145,18 +141,12 @@
             const outer = document.querySelector('.canvas-outer');
             const screenW = outer.clientWidth;
             const screenH = outer.clientHeight;
-
-            // グラフ本体のサイズを決定（画面幅の90%を使い、高さは黄金比で計算）
             graphLayout.w = screenW * 0.9;
             graphLayout.h = graphLayout.w * 0.618;
-
-            // 画面が縦長すぎてグラフがはみ出す場合の調整
-            if (graphLayout.h > screenH * 0.8) {
-                graphLayout.h = screenH * 0.8;
+            if (graphLayout.h > screenH * 0.85) {
+                graphLayout.h = screenH * 0.85;
                 graphLayout.w = graphLayout.h / 0.618;
             }
-
-            // 画面中央に配置するための余白
             graphLayout.px = (screenW - graphLayout.w) / 2;
             graphLayout.py = (screenH - graphLayout.h) / 2;
 
@@ -177,7 +167,6 @@
             const bgCtx = bgCanvas.getContext('2d');
             const sW = mCanvas.width / window.devicePixelRatio;
             const sH = mCanvas.height / window.devicePixelRatio;
-
             const { w, h, px, py } = graphLayout;
 
             const render = (ctx, isBg) => {
@@ -187,13 +176,15 @@
                 ctx.scale(transform.scale, transform.scale);
 
                 if(isBg) {
-                    // グラフエリア背景
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowBlur = 15; ctx.shadowColor = 'rgba(0,0,0,0.05)';
+                    // 背景グラデーション (赤 -> 白 -> 青)
+                    const grad = ctx.createLinearGradient(px, py, px, py + h);
+                    grad.addColorStop(0, '#fff5f5'); // 上：赤系
+                    grad.addColorStop(0.5, '#ffffff'); // 中：白
+                    grad.addColorStop(1, '#f0f9ff'); // 下：青系
+                    ctx.fillStyle = grad;
                     ctx.fillRect(px, py, w, h);
-                    ctx.shadowBlur = 0;
 
-                    // 補助線（Y軸）
+                    // 補助線
                     for(let i=0; i<=10; i++){
                         const y = py + (i/10)*h;
                         ctx.beginPath();
@@ -202,7 +193,7 @@
                         ctx.moveTo(px, y); ctx.lineTo(px + w, y); ctx.stroke();
                     }
 
-                    // 補助線（X軸：年齢）
+                    // 年齢軸
                     const step = 5;
                     for(let a=0; a<=config.age; a+=step) {
                         const x = px + (a/config.age)*w;
@@ -211,8 +202,6 @@
                         ctx.fillStyle = '#475569'; ctx.textAlign = 'center';
                         ctx.font = `bold ${10/transform.scale}px sans-serif`;
                         ctx.fillText(`${a}歳`, x, py + h + 15/transform.scale);
-                        ctx.font = `${9/transform.scale}px sans-serif`;
-                        ctx.fillText(`'${(config.birthYear + a).toString().slice(-2)}`, x, py + h + 26/transform.scale);
                     }
                 } else {
                     nodes.sort((a,b) => a.x - b.x);
@@ -249,7 +238,6 @@
             return (2 * p1 - 2 * p2 + v0 + v1) * t3 + (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t2 + v0 * t + p1;
         }
 
-        const mCanvas = document.getElementById('mainCanvas');
         mCanvas.addEventListener('touchstart', (e) => {
             const rect = mCanvas.getBoundingClientRect();
             const { w, h, px, py } = graphLayout;
@@ -263,17 +251,20 @@
                 const touch = e.touches[0];
                 const x = ((touch.clientX - rect.left) - transform.x) / transform.scale;
                 const y = ((touch.clientY - rect.top) - transform.y) / transform.scale;
-                
-                // グラフ内での相対座標(0〜1)に変換
                 const nx = (x - px) / w, ny = (y - py) / h;
 
                 if(config.mode === 'path') {
-                    // 少し広めの判定（0.1）でノードを掴みやすく
                     dragTarget = nodes.find(n => Math.hypot(n.x - nx, n.y - ny) < 0.1 / transform.scale);
                     if(!dragTarget) { dragTarget = {x: nx, y: ny}; nodes.push(dragTarget); }
                     isDragging = true;
-                } else { 
-                    stamps.push({x: nx, y: ny, emoji: selectedEmoji}); 
+                } else if(config.mode === 'stamp') {
+                    stamps.push({x: nx, y: ny, emoji: selectedEmoji});
+                } else if(config.mode === 'eraser') {
+                    // 消しゴム: 最も近いノードまたはスタンプを削除
+                    const nodeIdx = nodes.findIndex(n => Math.hypot(n.x - nx, n.y - ny) < 0.1 / transform.scale);
+                    if(nodeIdx > -1 && nodes.length > 2) { nodes.splice(nodeIdx, 1); }
+                    const stampIdx = stamps.findIndex(s => Math.hypot(s.x - nx, s.y - ny) < 0.1 / transform.scale);
+                    if(stampIdx > -1) { stamps.splice(stampIdx, 1); }
                 }
             }
             draw();
@@ -284,22 +275,16 @@
             const rect = mCanvas.getBoundingClientRect();
             if (e.touches.length === 2 && isPanning) {
                 const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-                const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2, midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
                 const newScale = Math.min(Math.max(transform.scale * (dist / lastTouch.dist), 0.5), 8);
-                
                 transform.x -= (midX - rect.left - transform.x) * (newScale / transform.scale - 1);
                 transform.y -= (midY - rect.top - transform.y) * (newScale / transform.scale - 1);
-                transform.scale = newScale;
-                transform.x += (midX - lastTouch.x);
-                transform.y += (midY - lastTouch.y);
-
+                transform.scale = newScale; transform.x += (midX - lastTouch.x); transform.y += (midY - lastTouch.y);
                 lastTouch.dist = dist; lastTouch.x = midX; lastTouch.y = midY;
             } else if (isDragging && dragTarget) {
-                const touch = e.touches[0];
-                const { w, h, px, py } = graphLayout;
-                dragTarget.x = (((touch.clientX - rect.left) - transform.x) / transform.scale - px) / w;
-                dragTarget.y = (((touch.clientY - rect.top) - transform.y) / transform.scale - py) / h;
+                const touch = e.touches[0], { w, h, px, py } = graphLayout;
+                dragTarget.x = Math.max(0, Math.min(1, (((touch.clientX - rect.left) - transform.x) / transform.scale - px) / w));
+                dragTarget.y = Math.max(0, Math.min(1, (((touch.clientY - rect.top) - transform.y) / transform.scale - py) / h));
             }
             draw();
         }, { passive: false });
@@ -311,7 +296,8 @@
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('mode-'+mode).classList.add('active');
             const container = document.getElementById('toolContent'); container.innerHTML = '';
-            if(mode === 'path') container.innerHTML = '<p style="font-size:10px; color:#94a3b8;">1本指で描画・移動 / 2本指でズーム・パン</p>';
+            if(mode === 'path') container.innerHTML = '<p style="font-size:10px; color:#94a3b8;">1本指で描画・移動 / 2本指でズーム</p>';
+            else if(mode === 'eraser') container.innerHTML = '<p style="font-size:10px; color:#ef4444;">消したいポイントやスタンプをタップしてください</p>';
             else emojis.forEach(item => {
                 const div = document.createElement('div'); div.className = `stamp-item ${selectedEmoji === item.e ? 'active' : ''}`;
                 div.innerHTML = `<span>${item.e}</span><span class="stamp-label">${item.l}</span>`;
@@ -319,27 +305,25 @@
             });
         }
 
-        function downloadImage() {
+        function generatePreview() {
             const temp = document.createElement('canvas');
             const mCanvas = document.getElementById('mainCanvas');
             temp.width = mCanvas.width; temp.height = mCanvas.height;
             const tCtx = temp.getContext('2d');
-            
-            // 現在のズーム設定を一時的にリセットして全景を保存
             const originalTransform = {...transform};
             transform = { scale: 1, x: 0, y: 0 };
             draw();
-            
             tCtx.drawImage(document.getElementById('bgCanvas'), 0,0);
             tCtx.drawImage(mCanvas, 0,0);
             
-            const link = document.createElement('a'); 
-            link.download = `life-graph-${config.name}.png`;
-            link.href = temp.toDataURL(); link.click();
+            const dataUrl = temp.toDataURL('image/png');
+            document.getElementById('previewImage').src = dataUrl;
+            document.getElementById('previewOverlay').style.display = 'flex';
             
             transform = originalTransform; draw();
         }
 
+        function closePreview() { document.getElementById('previewOverlay').style.display = 'none'; }
         function resetZoom() { transform = { scale: 1, x: 0, y: 0 }; draw(); }
         function undo() { if(config.mode === 'path') { if(nodes.length > 2) nodes.pop(); } else stamps.pop(); draw(); }
         function resetAll() { if(confirm('全消去しますか？')) { nodes = [{x: 0, y: 0.5}, {x: 1, y: 0.5}]; stamps = []; resetZoom(); } }
