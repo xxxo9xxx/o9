@@ -19,9 +19,9 @@
         @keyframes stamp { from { transform: scale(3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
-<body class="bg-emerald-50 min-h-screen p-4 text-slate-800 flex flex-col text-center">
+<body class="bg-emerald-50 min-h-screen p-4 text-slate-800 flex flex-col">
 
-    <div id="app" class="max-w-md mx-auto flex-grow w-full">
+    <div id="app" class="max-w-md mx-auto text-center flex-grow w-full">
         <header class="mb-6 pt-4">
             <h1 class="text-3xl font-black text-emerald-600 italic tracking-tighter">Just One</h1>
             <p id="room-display" class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-[0.3em]"></p>
@@ -29,13 +29,24 @@
         <div id="game-content"></div>
     </div>
 
-    <div class="max-w-md mx-auto w-full py-8 border-t border-emerald-100 mt-8">
+    <div class="max-w-md mx-auto w-full py-8 text-center border-t border-emerald-100 mt-8">
         <button onclick="allReset()" class="text-[10px] text-rose-300 font-bold hover:bg-rose-50 px-4 py-2 rounded-lg uppercase tracking-widest border border-rose-100">--- Emergency Reset ---</button>
     </div>
 
     <script>
-        // --- 設定 ---
         const WORDS_JSON_URL = 'words.json';
+        let WORDS_DATA = { kids: [], standard: [], hard: [] };
+
+        async function loadWords() {
+            try {
+                const res = await fetch(WORDS_JSON_URL);
+                WORDS_DATA = await res.json();
+            } catch (e) {
+                WORDS_DATA = { kids: ["リンゴ"], standard: ["回転寿司"], hard: ["忖度"] };
+            }
+        }
+        loadWords();
+
         const firebaseConfig = {
             apiKey: "AIzaSyBmzPmehSaV--mn0Hd0S-fd97nf5RX4Dvg",
             authDomain: "membertoiro.firebaseapp.com",
@@ -52,25 +63,9 @@
         const roomRef = db.ref("justone_v3/" + roomId);
         document.getElementById('room-display').innerText = "ROOM: " + roomId;
 
-        let WORDS_DATA = { kids: [], standard: [], hard: [] };
         let myName = localStorage.getItem("jo-name") || "";
         let myRole = localStorage.getItem("jo-role") || ""; 
         let gameState = null;
-
-        const TITLES = {
-            100: "💖 運命共同体！神の絆 💖", 90: "🔥 超絶なかよし無双 🔥", 80: "✨ 阿吽の呼吸チーム ✨",
-            70: "🤝 かなりキテる仲良し 🤝", 60: "🎵 息ピッタリの予感 🎵", 50: "🌱 これからもっと仲良し 🌱",
-            40: "💦 ちょっぴり迷走コンビ 💦", 30: "🌀 かみあわない面白さ 🌀", 20: "💣 逆に奇跡のバラバラ 💣",
-            10: "🏜 砂漠の孤独チーム 🏜", 0: "👻 もはや伝説の不一致 👻"
-        };
-
-        async function loadWords() {
-            try {
-                const res = await fetch(WORDS_JSON_URL);
-                WORDS_DATA = await res.json();
-            } catch (e) { alert("JSONの読み込みに失敗しました"); }
-        }
-        loadWords();
 
         roomRef.on("value", (snapshot) => {
             gameState = snapshot.val();
@@ -79,90 +74,132 @@
         });
 
         async function joinGame(role) {
-            const name = document.getElementById('name-input')?.value.trim();
-            if (!name) return alert("名前を入れてね");
+            const input = document.getElementById('name-input');
+            const name = input ? input.value.trim() : "";
+            if (!name) { alert("名前を入力してください"); return; }
             myName = name; myRole = role;
             localStorage.setItem("jo-name", name);
             localStorage.setItem("jo-role", role);
             const snap = await roomRef.get();
-            let data = snap.val() || { members: [], host: "" };
-            let members = data.members || [];
-            if (!members.includes(name)) members.push(name);
-            await roomRef.update({ members, host: (role === 'host' ? name : (data.host || "")) });
+            let data = snap.val();
+            if (!data) {
+                await roomRef.set({ phase: 'setup', members: [name], host: (role === 'host' ? name : ""), guesserIdx: 0 });
+            } else {
+                let members = data.members || [];
+                if (!members.includes(name)) members.push(name);
+                await roomRef.update({ members: members, host: (role === 'host' ? name : (data.host || "")) });
+            }
         }
 
         function startGame() {
             const mode = document.getElementById('word-mode').value;
             const rounds = parseInt(document.getElementById('rounds-input').value) || 10;
-            let pool = [];
-            if (mode === 'kids') pool = WORDS_DATA.kids;
-            else if (mode === 'standard') pool = [...WORDS_DATA.kids, ...WORDS_DATA.standard];
-            else pool = [...WORDS_DATA.kids, ...WORDS_DATA.standard, ...WORDS_DATA.hard];
+            let baseWords = [];
+            if (mode === 'kids') baseWords = WORDS_DATA.kids;
+            else if (mode === 'standard') baseWords = [...WORDS_DATA.kids, ...WORDS_DATA.standard];
+            else baseWords = [...WORDS_DATA.kids, ...WORDS_DATA.standard, ...WORDS_DATA.hard];
             
-            const shuffled = pool.sort(() => 0.5 - Math.random()).slice(0, rounds);
+            const shuffled = [...baseWords].sort(() => 0.5 - Math.random());
             roomRef.update({
                 phase: 'playing', totalRounds: rounds, currentRound: 1, score: 0,
-                words: shuffled, wordMode: mode, step: 'guesser_select', hints: {}, invalidHints: {}, lastResult: null, guesserIdx: 0
+                words: shuffled.slice(0, rounds), wordMode: mode, step: 'guesser_select', hints: {}, invalidHints: {}, lastResult: null
             });
+        }
+
+        function startRound() { roomRef.update({ step: 'hinting', hints: {}, invalidHints: {} }); }
+
+        function redrawWord() {
+            const mode = gameState.wordMode;
+            let baseWords = [];
+            if (mode === 'kids') baseWords = WORDS_DATA.kids;
+            else if (mode === 'standard') baseWords = [...WORDS_DATA.kids, ...WORDS_DATA.standard];
+            else baseWords = [...WORDS_DATA.kids, ...WORDS_DATA.standard, ...WORDS_DATA.hard];
+            const newWord = baseWords[Math.floor(Math.random() * baseWords.length)];
+            let newWords = [...gameState.words];
+            newWords[gameState.currentRound - 1] = newWord;
+            roomRef.update({ words: newWords, hints: {}, invalidHints: {} });
         }
 
         function submitHint() {
             const h1 = document.getElementById('hint-1').value.trim();
-            const h2 = document.getElementById('hint-2')?.value.trim();
+            const h2 = document.getElementById('hint-2') ? document.getElementById('hint-2').value.trim() : null;
             if (!h1) return;
-            let myHints = [h1]; if (h2) myHints.push(h2);
+            const myHints = [h1]; if (h2) myHints.push(h2);
             roomRef.child(`hints/${myName}`).set(myHints).then(() => {
                 roomRef.once('value').then(snap => {
-                    const s = snap.val();
-                    if (Object.keys(s.hints || {}).length >= (s.members.length - 1)) roomRef.update({ step: 'comparing' });
+                    const curr = snap.val();
+                    if (Object.keys(curr.hints || {}).length >= (curr.members.length - 1)) roomRef.update({ step: 'comparing' });
                 });
             });
         }
 
-        function toggleInvalid(h) {
-            let inv = gameState.invalidHints || {};
-            inv[h] = !inv[h];
-            roomRef.child('invalidHints').set(inv);
+        function toggleInvalid(hintText) {
+            let currentInvalids = gameState.invalidHints || {};
+            currentInvalids[hintText] = !currentInvalids[hintText];
+            roomRef.child('invalidHints').set(currentInvalids);
         }
 
-        function judge(isCorrect) { roomRef.update({ lastResult: { isCorrect, word: gameState.words[gameState.currentRound - 1] } }); }
+        function judge(isCorrect) {
+            roomRef.update({ lastResult: { isCorrect, word: gameState.words[gameState.currentRound - 1] } });
+        }
 
         function nextRound() {
-            let sc = gameState.score + (gameState.lastResult.isCorrect ? 1 : 0);
+            let nextScore = gameState.score + (gameState.lastResult.isCorrect ? 1 : 0);
             if (gameState.currentRound < gameState.totalRounds) {
-                roomRef.update({ currentRound: gameState.currentRound + 1, score: sc, step: 'guesser_select', lastResult: null, hints: {}, invalidHints: {} });
+                roomRef.update({ currentRound: gameState.currentRound + 1, score: nextScore, step: 'guesser_select', lastResult: null });
             } else {
-                roomRef.update({ phase: 'result', score: sc, lastResult: null });
+                roomRef.update({ phase: 'result', score: nextScore, lastResult: null });
             }
         }
 
-        function allReset() { if (confirm("リセットしますか？")) roomRef.remove(); }
+        function allReset() { if (confirm("全データをリセットします。")) roomRef.remove(); }
+
+        const TITLES = {
+            100: "💖 運命共同体！神の絆 💖",
+            90: "🔥 超絶なかよし無双 🔥",
+            80: "✨ 阿吽の呼吸チーム ✨",
+            70: "🤝 かなりキテる仲良し 🤝",
+            60: "🎵 息ピッタリの予感 🎵",
+            50: "🌱 これからもっと仲良し 🌱",
+            40: "💦 ちょっぴり迷走コンビ 💦",
+            30: "🌀 かみあわない面白さ 🌀",
+            20: "💣 逆に奇跡のバラバラ 💣",
+            10: "🏜 砂漠の孤独チーム 🏜",
+            0: "👻 もはや伝説の不一致 👻"
+        };
 
         function render() {
             const container = document.getElementById('game-content');
-            if (!container) return;
+            const val1 = document.getElementById('hint-1')?.value;
+            const val2 = document.getElementById('hint-2')?.value;
 
-            // 演出オーバーレイの制御
+            // 演出オーバーレイ
             if (gameState?.lastResult) {
                 if (!document.getElementById('effect-overlay')) {
+                    const res = gameState.lastResult;
                     const isGuesserHost = (gameState.host === gameState.members[gameState.guesserIdx]);
-                    const canGoNext = isGuesserHost ? (myRole === 'guest') : (myRole === 'host');
+                    // ホストが回答者ならゲスト全員が操作可能、そうでなければホストのみ
+                    const canControl = isGuesserHost ? (myRole === 'guest') : (myRole === 'host');
+                    
                     const div = document.createElement('div');
                     div.id = 'effect-overlay';
-                    div.className = `result-overlay ${gameState.lastResult.isCorrect ? 'bg-emerald-500/95' : 'bg-rose-500/95'} flex-col text-white`;
+                    div.className = `result-overlay ${res.isCorrect ? 'bg-emerald-500/95' : 'bg-rose-500/95'} flex-col text-white`;
                     div.innerHTML = `
-                        <div class="text-9xl mb-4 stamp-anim">${gameState.lastResult.isCorrect ? '◯' : '✕'}</div>
-                        <div class="text-4xl font-black bg-white text-slate-800 px-6 py-2 rounded-2xl mb-10">${gameState.lastResult.word}</div>
-                        ${canGoNext ? `<button onclick="nextRound()" class="bg-white text-slate-800 px-10 py-4 rounded-full font-black shadow-xl">次へ</button>` : `<p class="animate-pulse">ホストの操作を待っています</p>`}
+                        <div class="text-9xl mb-4 stamp-anim">${res.isCorrect ? '◯' : '✕'}</div>
+                        <div class="text-xl font-bold mb-2">${res.isCorrect ? '正解！' : '残念...'}</div>
+                        <div class="text-4xl font-black bg-white text-slate-800 px-6 py-2 rounded-2xl shadow-xl mb-10">${res.word}</div>
+                        ${canControl ? `<button onclick="nextRound()" class="bg-white text-slate-800 px-10 py-4 rounded-full font-black shadow-xl active:scale-95 transition-transform">次のラウンドへ</button>` : `<p class="animate-pulse">操作を待っています...</p>`}
                     `;
                     document.body.appendChild(div);
                 }
             } else { document.getElementById('effect-overlay')?.remove(); }
 
             if (!myName) {
-                container.innerHTML = `<div class="bg-white p-8 rounded-3xl shadow-xl fade-in">
-                    <input id="name-input" type="text" placeholder="名前を入力" class="w-full mb-6 border-2 p-4 rounded-2xl font-bold text-center outline-none focus:border-emerald-500">
-                    <button onclick="joinGame('host')" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold mb-3 shadow-lg">ホストとして入室</button>
+                const hostExists = !!(gameState && gameState.host);
+                container.innerHTML = `<div class="bg-white p-8 rounded-3xl shadow-xl fade-in text-left">
+                    <p class="text-[10px] font-bold text-slate-400 mb-4 uppercase text-center tracking-widest">Login</p>
+                    <input id="name-input" type="text" placeholder="名前" class="w-full mb-6 border-2 p-4 rounded-2xl font-bold text-center outline-none focus:border-emerald-500">
+                    <button onclick="joinGame('host')" class="w-full ${hostExists?'bg-slate-50 text-slate-300':'bg-emerald-600 text-white'} h-14 rounded-2xl font-bold mb-3" ${hostExists?'disabled':''}>ホストとして入室</button>
                     <button onclick="joinGame('guest')" class="w-full border-2 border-emerald-100 text-emerald-600 h-14 rounded-2xl font-bold">ゲストとして入室</button>
                 </div>`;
                 return;
@@ -171,51 +208,64 @@
             if (!gameState || gameState.phase === 'setup') {
                 const members = gameState?.members || [myName];
                 container.innerHTML = `<div class="bg-white p-6 rounded-3xl shadow-lg fade-in">
-                    <p class="text-[10px] font-bold text-slate-400 mb-4 uppercase">Members</p>
-                    <div class="flex flex-wrap justify-center gap-2 mb-8">${members.map((m, i) => `<button onclick="myRole==='host' && roomRef.update({guesserIdx:${i}})" class="px-4 py-2 rounded-full font-bold text-xs ${gameState?.guesserIdx === i ? 'bg-orange-500 text-white' : 'bg-emerald-50 text-emerald-600'}">${m}</button>`).join('')}</div>
-                    ${myRole === 'host' ? `
-                        <div class="space-y-4 text-left">
-                            <label class="text-[10px] font-bold text-slate-400 ml-2">DIFFICULTY</label>
-                            <select id="word-mode" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="kids">キッズ</option><option value="standard">一般 (+キッズ)</option><option value="hard">むずかしい (すべて)</option></select>
-                            <label class="text-[10px] font-bold text-slate-400 ml-2">ROUNDS</label>
-                            <input id="rounds-input" type="number" value="10" class="w-full border-2 p-3 rounded-xl font-bold">
-                            <button onclick="startGame()" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold shadow-lg">ゲーム開始！</button>
-                        </div>` : `<p class="p-8 text-emerald-500 font-bold animate-pulse">ホストの開始を待っています...</p>`}
+                    <p class="text-[10px] font-bold text-slate-400 mb-4 uppercase text-center tracking-widest">Room Members</p>
+                    <div class="flex flex-wrap justify-center gap-2 mb-6">${members.map((m, i) => `<button onclick="myRole==='host' && roomRef.update({guesserIdx:${i}})" class="px-4 py-2 rounded-full font-bold text-xs transition-all ${gameState?.guesserIdx === i ? 'bg-orange-500 text-white shadow-md' : 'bg-emerald-50 text-emerald-600'}">${m}</button>`).join('')}</div>
+                    ${myRole === 'host' ? `<div class="border-t pt-6 space-y-4 text-left"><label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">Difficulty</label><select id="word-mode" class="w-full border-2 p-3 rounded-xl font-bold bg-slate-50"><option value="kids">キッズ</option><option value="standard">一般 (+キッズ)</option><option value="hard">むずかしい (すべて)</option></select><label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">Rounds</label><input id="rounds-input" type="number" value="10" class="w-full border-2 p-3 rounded-xl font-bold"><button onclick="startGame()" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold shadow-lg">ゲーム開始！</button></div>` : `<p class="p-8 text-emerald-500 font-bold animate-pulse text-sm text-center">ホストの開始を待っています...</p>`}
                 </div>`;
             } else if (gameState.phase === 'playing') {
                 const isGuesser = gameState.members[gameState.guesserIdx] === myName;
-                const head = `<div class="mb-4 flex justify-between px-2 text-[10px] font-black text-slate-400"><span>ROUND ${gameState.currentRound}/${gameState.totalRounds}</span><span>回答者: ${gameState.members[gameState.guesserIdx]}</span></div>`;
+                const header = `<div class="mb-4 flex justify-between items-center px-2 text-[10px] font-black text-slate-400"><span>ROUND ${gameState.currentRound} / ${gameState.totalRounds}</span><span class="text-orange-500">ANSWERER: ${gameState.members[gameState.guesserIdx]}</span></div>`;
 
                 if (gameState.step === 'guesser_select') {
-                    container.innerHTML = head + `<div class="bg-white p-6 rounded-3xl shadow-lg"><p class="text-sm font-bold text-slate-400 mb-4">次、だれが答える？</p><div class="flex flex-wrap justify-center gap-2 mb-6">${gameState.members.map((m, i) => `<button onclick="myRole==='host' && roomRef.update({guesserIdx:${i}})" class="px-4 py-2 rounded-full font-bold text-xs ${gameState.guesserIdx === i ? 'bg-orange-500 text-white' : 'bg-emerald-50 text-emerald-600'}">${m}</button>`).join('')}</div>${myRole === 'host' ? `<button onclick="roomRef.update({step:'hinting'})" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold shadow-md">決定</button>` : ''}</div>`;
+                    container.innerHTML = header + `<div class="bg-white p-6 rounded-3xl shadow-lg"><p class="text-sm font-bold text-slate-400 mb-4 uppercase tracking-tighter">Next Answerer?</p><div class="flex flex-wrap justify-center gap-2 mb-6">${gameState.members.map((m, i) => `<button onclick="myRole==='host' && roomRef.update({guesserIdx:${i}})" class="px-4 py-2 rounded-full font-bold text-xs ${gameState.guesserIdx === i ? 'bg-orange-500 text-white' : 'bg-emerald-50 text-emerald-600'}">${m}</button>`).join('')}</div>${myRole === 'host' ? `<button onclick="startRound()" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold shadow-md">この人でスタート！</button>` : `<p class="text-xs text-slate-300 animate-pulse font-bold uppercase">Host is picking next player...</p>`}</div>`;
                 } else if (gameState.step === 'hinting') {
-                    if (isGuesser) container.innerHTML = head + `<div class="bg-white p-12 rounded-[3rem] shadow-xl font-bold text-slate-400 animate-pulse">みんながヒントを書いてるよ...</div>`;
-                    else {
+                    if (isGuesser) {
+                        container.innerHTML = header + `<div class="bg-white p-12 rounded-[3rem] shadow-xl text-center font-bold text-slate-400 animate-pulse">ヒント待機中...</div>`;
+                    } else {
+                        const currentWord = gameState.words[gameState.currentRound - 1];
                         const hasSubmitted = gameState.hints && gameState.hints[myName];
-                        container.innerHTML = head + `<div class="bg-white p-6 rounded-[2rem] shadow-xl"><p class="text-[10px] font-bold text-emerald-500 mb-1">お題</p><h2 class="text-3xl font-black text-slate-800 mb-6">${gameState.words[gameState.currentRound-1]}</h2>${hasSubmitted ? `<p class="py-10 text-slate-300 font-bold">送信しました！</p>` : `<input id="hint-1" type="text" placeholder="ヒント1" class="w-full border-2 p-4 rounded-xl font-bold mb-3 focus:border-emerald-500 outline-none">${gameState.members.length<=4?`<input id="hint-2" type="text" placeholder="ヒント2" class="w-full border-2 p-4 rounded-xl font-bold mb-3 focus:border-emerald-500 outline-none">`:''}<button onclick="submitHint()" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold">送信</button>`}</div>`;
+                        container.innerHTML = header + `<div class="bg-white p-6 rounded-[2rem] shadow-xl"><p class="text-[10px] font-bold text-emerald-500 mb-1 uppercase text-center">お題</p><h2 class="text-3xl font-black text-slate-800 mb-4 text-center">${currentWord}</h2>${myRole === 'host' ? `<button onclick="redrawWord()" class="w-full text-[10px] text-orange-500 font-bold mb-6 hover:underline uppercase">Change Word</button>` : ''}${hasSubmitted ? `<p class="text-center py-10 text-slate-300 font-bold">送信完了！待機中...</p>` : `<input id="hint-1" type="text" placeholder="ヒントを書こう" class="w-full border-2 p-4 rounded-xl font-bold mb-3 outline-none" value="${val1||''}">${gameState.members.length <= 4 ? `<input id="hint-2" type="text" placeholder="ヒントその2" class="w-full border-2 p-4 rounded-xl font-bold mb-3 outline-none" value="${val2||''}">` : ''}<button onclick="submitHint()" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold">送信！</button>`}</div>`;
                     }
                 } else if (gameState.step === 'comparing') {
-                    const allH = []; Object.values(gameState.hints || {}).forEach(a => allH.push(...a));
-                    const counts = {}; allH.forEach(h => counts[h] = (counts[h] || 0) + 1);
+                    const allHints = [];
+                    Object.values(gameState.hints || {}).forEach(arr => allHints.push(...arr));
+                    const counts = {}; allHints.forEach(h => counts[h] = (counts[h] || 0) + 1);
                     const isGuesserHost = (gameState.host === gameState.members[gameState.guesserIdx]);
-                    const canControl = isGuesserHost ? (myRole === 'guest') : (myRole === 'host');
-                    container.innerHTML = head + `<div class="bg-white p-6 rounded-[2rem] shadow-xl"><h2 class="text-sm font-bold text-slate-400 mb-4">${isGuesser ? '精査中...' : '被りを消して！'}</h2>${isGuesser ? `<p class="p-10 text-slate-300 font-bold">まだ見えません</p>` : `<div class="flex flex-wrap justify-center gap-2 mb-8">${allH.map(h => `<button onclick="toggleInvalid('${h}')" class="px-4 py-2 rounded-xl font-bold ${ (gameState.invalidHints?.[h] || counts[h]>1) ? 'invalid-hint' : 'bg-emerald-50 text-emerald-600 border-2 border-emerald-100'}">${h}</button>`).join('')}</div>${canControl ? `<button onclick="roomRef.update({step:'guessing'})" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold shadow-xl animate-bounce">ヒントを公開！</button>` : ''}`}</div>`;
+                    const canReveal = isGuesserHost ? (myRole === 'guest') : (myRole === 'host');
+
+                    container.innerHTML = header + `<div class="bg-white p-6 rounded-[2rem] shadow-xl"><h2 class="text-sm font-bold text-slate-400 mb-4">${isGuesser ? '精査中...' : '被りを消そう！'}</h2>${isGuesser ? `<p class="p-10 text-center font-bold text-slate-300">回答者はまだ見えません</p>` : `<p class="text-[10px] text-slate-400 mb-4 font-bold text-center italic">お題: ${gameState.words[gameState.currentRound-1]}</p><div class="flex flex-wrap justify-center gap-2 mb-8">${allHints.map(h => `<button onclick="toggleInvalid('${h}')" class="px-4 py-2 rounded-xl font-bold ${(gameState.invalidHints?.[h] || counts[h] > 1) ? 'invalid-hint' : 'bg-emerald-50 text-emerald-600 border-2 border-emerald-100 shadow-sm'}">${h}</button>`).join('')}</div>${canReveal ? `<button onclick="roomRef.update({step:'guessing'})" class="w-full bg-emerald-600 text-white h-14 rounded-2xl font-bold animate-bounce shadow-xl">回答者にヒントを公開！</button>` : `<p class="text-[10px] text-slate-300 font-bold">ホスト(またはゲスト)の公開待ち...</p>`}</div>`;
                 } else if (gameState.step === 'guessing') {
-                    const allH = []; Object.values(gameState.hints || {}).forEach(a => allH.push(...a));
-                    const counts = {}; allH.forEach(h => counts[h] = (counts[h] || 0) + 1);
-                    const visible = allH.filter(h => !gameState.invalidHints?.[h] && counts[h] === 1);
+                    const allHints = [];
+                    Object.values(gameState.hints || {}).forEach(arr => allHints.push(...arr));
+                    const counts = {}; allHints.forEach(h => counts[h] = (counts[h] || 0) + 1);
+                    const visibleHints = allHints.filter(h => !gameState.invalidHints?.[h] && counts[h] === 1);
                     const isGuesserHost = (gameState.host === gameState.members[gameState.guesserIdx]);
                     const canJudge = isGuesserHost ? (myRole === 'guest') : (myRole === 'host');
-                    container.innerHTML = head + `<div class="bg-white p-6 rounded-[2rem] shadow-xl"><div class="flex flex-wrap justify-center gap-3 mb-10">${visible.length ? visible.map(h => `<span class="bg-emerald-600 text-white px-5 py-3 rounded-2xl font-black text-lg shadow-lg">${h}</span>`).join('') : '<p class="text-slate-300 font-bold italic">ヒントが全滅しました...</p>'}</div>${canJudge ? `<div class="border-t pt-6"><p class="font-black mb-4">答え: ${gameState.words[gameState.currentRound-1]}</p><div class="grid grid-cols-2 gap-3"><button onclick="judge(true)" class="bg-emerald-500 text-white h-14 rounded-xl font-bold shadow-md">◯ 正解</button><button onclick="judge(false)" class="bg-rose-500 text-white h-14 rounded-xl font-bold shadow-md">✕ 不正解</button></div></div>` : `<div class="text-orange-500 font-bold animate-bounce">${isGuesser ? '答えを言ってね！' : '見守り中...'}</div>`}</div>`;
+
+                    container.innerHTML = header + `<div class="bg-white p-6 rounded-[2rem] shadow-xl"><div class="flex flex-wrap justify-center gap-3 mb-10">${visibleHints.length ? visibleHints.map(h => `<span class="bg-emerald-600 text-white px-5 py-3 rounded-2xl font-black text-lg shadow-lg">${h}</span>`).join('') : '<p class="text-slate-300 font-bold text-center italic">ヒントが消えてしまいました...</p>'}</div>${canJudge ? `<div class="border-t pt-6 text-center"><p class="font-black text-xl mb-6 text-slate-800">お題：${gameState.words[gameState.currentRound-1]}</p><div class="grid grid-cols-2 gap-3"><button onclick="judge(true)" class="bg-emerald-500 text-white h-14 rounded-xl font-bold shadow-md active:scale-95 transition-all">◯ 正解！</button><button onclick="judge(false)" class="bg-rose-500 text-white h-14 rounded-xl font-bold shadow-md active:scale-95 transition-all">✕ 不正解</button></div></div>` : `<div class="text-center font-bold text-orange-500 animate-bounce">${isGuesser ? '口頭で答えを言ってね！' : '回答を見守り中...'}</div>`}</div>`;
                 }
             } else if (gameState.phase === 'result') {
-                const rate = Math.round((gameState.score / gameState.totalRounds) * 100);
-                container.innerHTML = `<div class="bg-white p-10 rounded-[3rem] shadow-2xl fade-in"><p class="text-xs font-bold text-slate-400 mb-2 uppercase">Team Bond</p><h2 id="final-rate" class="text-7xl font-black mb-4 text-slate-800">0%</h2><div id="称号-box" class="opacity-0 scale-50 transition-all duration-700 bg-orange-100 text-orange-600 p-6 rounded-2xl font-black text-xl mb-10"></div>${myRole === 'host' ? `<button onclick="roomRef.update({phase:'setup'})" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">タイトルへ</button>` : ''}</div>`;
+                const finalRate = Math.round((gameState.score / gameState.totalRounds) * 100);
+                container.innerHTML = `<div class="bg-white p-10 rounded-[3rem] shadow-2xl text-center fade-in">
+                    <p class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Team Harmony</p>
+                    <h2 id="final-rate" class="text-7xl font-black mb-4 text-slate-800">0%</h2>
+                    <div id="称号-box" class="opacity-0 scale-50 transition-all duration-700 bg-orange-100 text-orange-600 p-6 rounded-2xl font-black text-xl mb-10"></div>
+                    ${myRole === 'host' ? `<button onclick="roomRef.update({phase:'setup'})" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">タイトルへ</button>` : ''}
+                </div>`;
+                
                 setTimeout(() => {
-                    let c = 0; const h2 = document.getElementById('final-rate');
-                    const t = setInterval(() => {
-                        if (c >= rate) { c = rate; clearInterval(t); const box = document.getElementById('称号-box'); box.innerText = TITLES[Math.floor(rate/10)*10]; box.classList.remove('opacity-0', 'scale-50'); box.classList.add('stamp-anim'); }
-                        h2.innerText = c + "%"; c++;
+                    let cur = 0;
+                    const h2 = document.getElementById('final-rate');
+                    const timer = setInterval(() => {
+                        if (cur >= finalRate) {
+                            cur = finalRate; clearInterval(timer);
+                            const box = document.getElementById('称号-box');
+                            const titleKey = Math.floor(finalRate / 10) * 10;
+                            box.innerText = TITLES[titleKey];
+                            box.classList.remove('opacity-0', 'scale-50');
+                            box.classList.add('stamp-anim');
+                        }
+                        h2.innerText = cur + "%"; cur++;
                     }, 20);
                 }, 500);
             }
