@@ -23,7 +23,7 @@
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; font-size: 13px; margin-bottom: 5px; color: #64748b; }
         .input-group input { width: 100%; padding: 12px; border: 2px solid #f1f5f9; border-radius: 12px; font-size: 16px; }
-        .start-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; }
+        .start-btn { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
 
         .main-header { height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: white; z-index: 10; border-bottom: 1px solid #e2e8f0; }
         .main-header h1 { font-size: 14px; color: #1e293b; }
@@ -31,27 +31,27 @@
         .canvas-outer { height: calc(100vh - 50px - var(--nav-height)); width: 100%; position: relative; background: #f8fafc; overflow: hidden; }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         #bgCanvas { z-index: 1; }
-        #mainCanvas { z-index: 2; }
+        #mainCanvas { z-index: 2; cursor: crosshair; }
 
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: var(--nav-height); background: white; border-top: 1px solid #e2e8f0; z-index: 100; display: flex; flex-direction: column; }
         .mode-selector { display: flex; justify-content: space-around; padding: 8px 0; }
-        .mode-btn { border: none; background: none; font-size: 11px; color: #94a3b8; display: flex; flex-direction: column; align-items: center; }
+        .mode-btn { border: none; background: none; font-size: 11px; color: #94a3b8; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .mode-btn.active { color: var(--primary); font-weight: bold; }
         .tool-content { flex: 1; overflow-x: auto; display: flex; align-items: center; padding: 0 15px; gap: 12px; }
         
-        .stamp-item { flex: 0 0 60px; height: 60px; border: 2px solid #f1f5f9; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 20px; }
+        .stamp-item { flex: 0 0 60px; height: 60px; border: 2px solid #f1f5f9; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
         .stamp-item.active { border-color: var(--primary); background: #eef2ff; }
         .stamp-label { font-size: 9px; margin-top: 1px; color: #475569; }
 
         .action-btns { position: absolute; right: 15px; top: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 50; }
-        .circle-btn { width: 42px; height: 42px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .circle-btn { width: 42px; height: 42px; border-radius: 50%; background: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
 
         #previewOverlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none;
             z-index: 2000; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
         }
         #previewImage { max-width: 100%; max-height: 70vh; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); background: white; }
-        .close-preview { margin-top: 25px; padding: 12px 40px; background: white; border-radius: 30px; border: none; font-weight: bold; color: var(--bg-dark); }
+        .close-preview { margin-top: 25px; padding: 12px 40px; background: white; border-radius: 30px; border: none; font-weight: bold; color: var(--bg-dark); cursor: pointer; }
     </style>
 </head>
 <body>
@@ -60,7 +60,7 @@
         <div class="setup-card">
             <h2 style="text-align:center; margin-bottom:20px; font-size: 18px;">人生の軌跡グラフメーカー</h2>
             <div class="input-group">
-                <label>お名前</label><input type="text" id="userName" placeholder="名前を入力">
+                <label>お名前</label><input type="text" id="userName" value="自分">
             </div>
             <div class="input-group">
                 <label>生まれた年（西暦）</label><input type="number" id="birthYear" value="1995">
@@ -122,8 +122,8 @@
 
         function initApp() {
             config.name = document.getElementById('userName').value || "自分";
-            config.birthYear = parseInt(document.getElementById('birthYear').value);
-            config.age = parseInt(document.getElementById('currentAge').value);
+            config.birthYear = parseInt(document.getElementById('birthYear').value) || 1995;
+            config.age = parseInt(document.getElementById('currentAge').value) || 30;
             document.getElementById('titleDisplay').innerText = `${config.name}さんの軌跡`;
             document.getElementById('setupScreen').style.display = 'none';
             nodes = [{x: 0, y: 0.5}, {x: 1, y: 0.5}];
@@ -133,6 +133,7 @@
 
         function setupCanvases() {
             const outer = document.querySelector('.canvas-outer');
+            if(!outer) return;
             const screenW = outer.clientWidth, screenH = outer.clientHeight;
             graphLayout.w = screenW * 0.9;
             graphLayout.h = graphLayout.w * 0.618;
@@ -143,7 +144,9 @@
             graphLayout.px = (screenW - graphLayout.w) / 2;
             graphLayout.py = (screenH - graphLayout.h) / 2;
 
-            [document.getElementById('bgCanvas'), document.getElementById('mainCanvas')].forEach(c => {
+            const bCanvas = document.getElementById('bgCanvas');
+            const mCanvas = document.getElementById('mainCanvas');
+            [bCanvas, mCanvas].forEach(c => {
                 c.width = screenW * window.devicePixelRatio;
                 c.height = screenH * window.devicePixelRatio;
                 const ctx = c.getContext('2d');
@@ -156,6 +159,7 @@
         function draw() {
             const mCanvas = document.getElementById('mainCanvas');
             const bgCanvas = document.getElementById('bgCanvas');
+            if(!mCanvas || !bgCanvas) return;
             const mCtx = mCanvas.getContext('2d'), bgCtx = bgCanvas.getContext('2d');
             const sW = mCanvas.width / window.devicePixelRatio, sH = mCanvas.height / window.devicePixelRatio;
             const { w, h, px, py } = graphLayout;
@@ -171,19 +175,16 @@
                     grad.addColorStop(0, '#fff5f5'); grad.addColorStop(0.5, '#ffffff'); grad.addColorStop(1, '#f0f9ff');
                     ctx.fillStyle = grad; ctx.fillRect(px, py, w, h);
                     ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1/transform.scale; ctx.strokeRect(px, py, w, h);
-
                     for(let i=0; i<=10; i++){
                         const y = py + (i/10)*h;
                         ctx.beginPath(); ctx.strokeStyle = (i === 5) ? '#94a3b8' : '#f1f5f9';
                         ctx.lineWidth = (i === 5) ? 1.5/transform.scale : 1/transform.scale;
                         ctx.moveTo(px, y); ctx.lineTo(px + w, y); ctx.stroke();
                     }
-
                     const step = 5;
                     for(let a=0; a<=config.age; a+=step) {
                         const x = px + (a/config.age)*w;
-                        ctx.beginPath(); ctx.strokeStyle = '#e2e8f0';
-                        ctx.moveTo(x, py); ctx.lineTo(x, py + h); ctx.stroke();
+                        ctx.beginPath(); ctx.strokeStyle = '#e2e8f0'; ctx.moveTo(x, py); ctx.lineTo(x, py + h); ctx.stroke();
                         ctx.fillStyle = '#475569'; ctx.textAlign = 'center';
                         ctx.font = `bold ${11/transform.scale}px sans-serif`;
                         ctx.fillText(`${a}歳`, x, py + h + 15/transform.scale);
@@ -198,17 +199,16 @@
                         for(let i=0; i<nodes.length-1; i++) {
                             const p0 = nodes[i-1] || nodes[i], p1 = nodes[i], p2 = nodes[i+1], p3 = nodes[i+2] || p2;
                             for(let t=0; t<=1; t+=0.1) {
-                                const x = catmullRom(p0.x, p1.x, p2.x, p3.x, t) * w + px;
-                                const y = catmullRom(p0.y, p1.y, p2.y, p3.y, t) * h + py;
-                                if(i===0 && t===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                                const tx = catmullRom(p0.x, p1.x, p2.x, p3.x, t) * w + px;
+                                const ty = catmullRom(p0.y, p1.y, p2.y, p3.y, t) * h + py;
+                                if(i===0 && t===0) ctx.moveTo(tx, ty); else ctx.lineTo(tx, ty);
                             }
                         }
                         ctx.stroke();
                     }
                     nodes.forEach(n => {
                         ctx.fillStyle = '#fff'; ctx.strokeStyle = '#334155'; ctx.lineWidth = 2/transform.scale;
-                        ctx.beginPath(); ctx.arc(n.x * w + px, n.y * h + py, 5/transform.scale, 0, Math.PI*2);
-                        ctx.fill(); ctx.stroke();
+                        ctx.beginPath(); ctx.arc(n.x * w + px, n.y * h + py, 5/transform.scale, 0, Math.PI*2); ctx.fill(); ctx.stroke();
                     });
                     stamps.forEach(s => {
                         ctx.font = `${24/transform.scale}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -225,10 +225,10 @@
             return 0.5 * ((2 * v1) + (-v0 + v2) * t + (2 * v0 - 5 * v1 + 4 * v2 - v3) * t2 + (-v0 + 3 * v1 - 3 * v2 + v3) * t3);
         }
 
+        const mCanvas = document.getElementById('mainCanvas');
         mCanvas.addEventListener('touchstart', (e) => {
             const rect = mCanvas.getBoundingClientRect();
             const { w, h, px, py } = graphLayout;
-
             if (e.touches.length === 2) {
                 isPanning = true; isDragging = false;
                 lastTouch.dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
@@ -238,7 +238,6 @@
                 const x = ((t.clientX - rect.left) - transform.x) / transform.scale;
                 const y = ((t.clientY - rect.top) - transform.y) / transform.scale;
                 const nx = (x - px) / w, ny = (y - py) / h;
-
                 if(config.mode === 'eraser') {
                     const nIdx = nodes.findIndex(n => Math.hypot(n.x - nx, n.y - ny) < 0.08 / transform.scale);
                     if(nIdx > -1 && nodes.length > 2) nodes.splice(nIdx, 1);
@@ -249,10 +248,7 @@
                     if(!dragTarget) { dragTarget = {x: nx, y: ny}; nodes.push(dragTarget); }
                     isDragging = true;
                 } else {
-                    // グラフ領域内(nx, nyが0〜1の間)の時だけスタンプを押せる
-                    if (nx >= 0 && nx <= 1 && ny >= 0 && ny <= 1) {
-                        stamps.push({x: nx, y: ny, emoji: selectedEmoji});
-                    }
+                    if (nx >= 0 && nx <= 1 && ny >= 0 && ny <= 1) { stamps.push({x: nx, y: ny, emoji: selectedEmoji}); }
                 }
             }
             draw();
@@ -294,24 +290,16 @@
         }
 
         function generatePreview() {
-            const temp = document.createElement('canvas'), mCanvas = document.getElementById('mainCanvas');
+            const temp = document.createElement('canvas');
+            const mCanvas = document.getElementById('mainCanvas');
             temp.width = mCanvas.width; temp.height = mCanvas.height;
             const tCtx = temp.getContext('2d'), originalTransform = {...transform};
-            
             transform = { scale: 1, x: 0, y: 0 }; draw();
-            
-            // 背景色塗り
             tCtx.fillStyle = '#f8fafc'; tCtx.fillRect(0, 0, temp.width, temp.height);
             tCtx.drawImage(document.getElementById('bgCanvas'), 0,0);
             tCtx.drawImage(mCanvas, 0,0);
-            
-            // --- 画像に名前を刻印 ---
-            tCtx.fillStyle = '#1e293b';
-            tCtx.font = `bold ${16 * window.devicePixelRatio}px sans-serif`;
-            tCtx.textAlign = 'left';
+            tCtx.fillStyle = '#1e293b'; tCtx.font = `bold ${16 * window.devicePixelRatio}px sans-serif`; tCtx.textAlign = 'left';
             tCtx.fillText(`${config.name}さんの軌跡`, graphLayout.px * window.devicePixelRatio, (graphLayout.py - 15) * window.devicePixelRatio);
-            // -----------------------
-
             document.getElementById('previewImage').src = temp.toDataURL('image/png');
             document.getElementById('previewOverlay').style.display = 'flex';
             transform = originalTransform; draw();
