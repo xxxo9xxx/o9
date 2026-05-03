@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover" />
-<title>Wavelength Mobile 改良版</title>
+<title>Wavelength Mobile</title>
 <style>
 :root{
   --zone-4-color:#03A9F4; --zone-3-color:#FF9800; --zone-2-color:#FFC107;
@@ -27,14 +27,18 @@ body.blue-team-turn{background:linear-gradient(180deg,var(--blue-team-bg),#fff 6
 .title{font-size:1.65rem;color:var(--dial-frame-color);font-weight:900;letter-spacing:.02em;}
 .subtitle{font-size:.86rem;color:var(--muted);margin-top:4px;}
 .scoreboard{display:flex;justify-content:space-between;margin-bottom:12px;gap:10px;position:sticky;top:6px;z-index:20;}
-.team-score{text-align:center;padding:11px 12px;border-radius:14px;font-weight:900;font-size:1.08rem;flex:1;border:2px solid transparent;transition:.18s transform,.18s box-shadow;}
+.team-score{text-align:center;padding:10px 10px;border-radius:14px;font-weight:900;font-size:1.02rem;flex:1;border:2px solid transparent;transition:.18s transform,.18s box-shadow;min-width:0;}
+.score-line{display:flex;align-items:baseline;justify-content:center;gap:7px;white-space:nowrap;}
+.score-line small{font-size:.72rem;font-weight:900;opacity:.78;}
+.score-dots{margin-top:5px;font-size:.72rem;letter-spacing:.06em;line-height:1;color:currentColor;white-space:nowrap;overflow:hidden;text-overflow:clip;}
 .red-team-score{background:var(--red-team-bg);color:var(--red-team-color);border-color:rgba(255,82,82,.35);} 
 .blue-team-score{background:var(--blue-team-bg);color:var(--blue-team-color);border-color:rgba(33,150,243,.35);} 
 .current-team{box-shadow:0 8px 24px rgba(0,0,0,.16);transform:scale(1.025);border-color:currentColor;}
-.topic-display{background:var(--dial-frame-color);color:white;border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:inset 0 -2px 0 rgba(255,255,255,.08);} 
-.topic-caption{font-size:.78rem;opacity:.78;margin-bottom:8px;text-align:center;}
-.topic-text{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;font-weight:900;font-size:1.18rem;line-height:1.25;}
-.topic-text span:first-child{text-align:left}.topic-text span:last-child{text-align:right}.topic-text .arrow{opacity:.7;font-size:1rem;}
+.topic-display{background:linear-gradient(135deg,#f8fbff,#edf4fb);color:var(--text-color);border:1px solid #dce6f1;border-radius:18px;padding:14px;margin-bottom:14px;box-shadow:0 10px 26px rgba(33,45,68,.08), inset 0 1px 0 rgba(255,255,255,.85);} 
+.topic-caption{font-size:.78rem;color:var(--muted);font-weight:900;margin-bottom:9px;text-align:center;}
+.topic-text{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;font-weight:1000;font-size:1.14rem;line-height:1.25;}
+.topic-text span:first-child,.topic-text span:last-child{background:#fff;border:1px solid #d8e2ee;border-radius:14px;padding:12px 10px;box-shadow:0 5px 14px rgba(33,45,68,.06);}
+.topic-text span:first-child{text-align:left}.topic-text span:last-child{text-align:right}.topic-text .arrow{opacity:.68;font-size:1rem;background:transparent;border:none;box-shadow:none;padding:0;color:#7b8a9a;}
 .phase-title{font-size:1.35rem;font-weight:900;margin:8px 0 6px;text-align:center;}
 .phase-lead{color:var(--muted);line-height:1.55;text-align:center;margin:6px 0 14px;font-size:.98rem;}
 .notice{background:#fff8e1;border:1px solid #ffe29a;color:#7a5200;padding:12px 14px;border-radius:14px;font-weight:800;line-height:1.45;margin:10px 0;}
@@ -74,8 +78,24 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
 .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:999;}
 .confetti i{position:absolute;top:-20px;width:10px;height:16px;border-radius:3px;animation:fall 900ms linear forwards;}
 @keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.9;}}
+
+.result-dial-wrap{position:relative;overflow:visible;touch-action:none;cursor:ew-resize;}
+.result-dial-wrap .needle{z-index:40;}
+.fancy-cover-svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;z-index:24;pointer-events:none;filter:drop-shadow(0 8px 12px rgba(33,45,68,.14));}
+.cover-sweep{fill:url(#coverGrad);stroke:rgba(61,74,94,.22);stroke-width:1.6;transition:opacity .18s ease;will-change:d;}
+.cover-sweep-shine{fill:none;stroke:rgba(255,255,255,.68);stroke-width:5;stroke-linecap:round;opacity:.75;pointer-events:none;}
+.cover-sweep-edge{stroke:rgba(255,179,0,.78);stroke-width:5;stroke-linecap:round;filter:drop-shadow(0 4px 8px rgba(33,45,68,.20));opacity:0;transition:opacity .12s ease;}
+.reveal-panel{position:relative;z-index:50;margin-top:4px;}
+.reveal-hint{font-size:.84rem;color:var(--muted);font-weight:800;margin-top:8px;}
+.reveal-track{position:relative;width:min(320px,100%);height:54px;margin:8px auto 0;border-radius:999px;background:linear-gradient(180deg,#f8fafc,#e7edf4);border:1px solid var(--line);box-shadow:inset 0 2px 8px rgba(33,45,68,.10);touch-action:none;user-select:none;}
+.reveal-track::before{content:"左下から扇形にめくる";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.86rem;font-weight:900;color:rgba(36,48,66,.42);pointer-events:none;}
+.reveal-fill{position:absolute;left:0;top:0;bottom:0;width:0%;border-radius:999px;background:linear-gradient(90deg,rgba(255,193,7,.30),rgba(255,152,0,.52));pointer-events:none;}
+.reveal-grip{position:absolute;left:0%;top:50%;width:58px;height:58px;border-radius:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,#fff,#f2f6fb);border:4px solid #ffb300;box-shadow:0 8px 18px rgba(33,45,68,.22);display:flex;align-items:center;justify-content:center;font-weight:1000;color:#8a5a00;touch-action:none;cursor:grab;}
+.reveal-grip::after{content:"▶";font-size:1.05rem;}
+.reveal-percent{font-size:.78rem;color:var(--muted);font-weight:900;margin-top:6px;}
+
 .footer-note{text-align:center;color:var(--muted);font-size:.8rem;margin-top:8px;}
-@media(max-width:420px){body{padding:10px}.game-container{padding:14px;border-radius:18px}.title{font-size:1.45rem}.topic-text{font-size:1.02rem}.settings-grid{grid-template-columns:1fr}.vote-buttons{gap:8px}.vote-btn{padding:18px 8px}.wavelength-dial{width:300px;height:150px}.needle{height:130px}.scoreboard{top:4px}.team-score{font-size:1rem;padding:10px 8px}}
+@media(max-width:420px){body{padding:10px}.game-container{padding:14px;border-radius:18px}.title{font-size:1.45rem}.topic-text{font-size:1.02rem}.settings-grid{grid-template-columns:1fr}.vote-buttons{gap:8px}.vote-btn{padding:18px 8px}.wavelength-dial{width:300px;height:150px}.needle{height:130px}.scoreboard{top:4px}.team-score{font-size:.96rem;padding:9px 7px}.score-dots{font-size:.64rem;letter-spacing:.02em}}
 </style>
 </head>
 <body>
@@ -86,8 +106,8 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
   </div>
 
   <div class="scoreboard" id="scoreboard">
-    <div class="team-score red-team-score" id="redTeamScore">赤: 0</div>
-    <div class="team-score blue-team-score" id="blueTeamScore">青: 0</div>
+    <div class="team-score red-team-score" id="redTeamScore"><div class="score-line">赤: 0 <small>あと11点</small></div><div class="score-dots">○○○○○○○○○○○</div></div>
+    <div class="team-score blue-team-score" id="blueTeamScore"><div class="score-line">青: 0 <small>あと11点</small></div><div class="score-dots">○○○○○○○○○○○</div></div>
   </div>
 
   <div class="topic-display">
@@ -111,12 +131,14 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
         <select id="genreSelect">
           <option value="all">全部まぜる</option>
           <option value="standard">みんな向け</option>
-          <option value="food">食べ物</option>
-          <option value="human">人間関係</option>
-          <option value="life">日常・仕事</option>
-          <option value="party">飲み会向け</option>
+          <option value="food">食べ物・飲み物</option>
+          <option value="place">場所・おでかけ</option>
+          <option value="season">季節・天気</option>
+          <option value="daily">日常・くらし</option>
+          <option value="play">遊び・イベント</option>
+          <option value="object">モノ・道具</option>
+          <option value="media">作品・イメージ</option>
           <option value="kids">子どもOK</option>
-          <option value="nuance">変なお題</option>
           <option value="wildcard">ワイルドカード</option>
         </select>
       </div>
@@ -180,12 +202,34 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
   <div id="phase-result" class="game-phase hidden">
     <div style="text-align:center">
       <div class="phase-title">結果発表</div>
-      <div class="wavelength-dial">
+      <div class="wavelength-dial result-dial-wrap" id="resultDialWrap">
         <svg id="result-svg" viewBox="0 0 320 160"></svg>
+        <svg class="fancy-cover-svg" id="fancyCoverSvg" viewBox="0 0 320 160" aria-hidden="true">
+          <defs>
+            <linearGradient id="coverGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ffffff"/>
+              <stop offset="0.58" stop-color="#eef3f8"/>
+              <stop offset="1" stop-color="#dfe8f2"/>
+            </linearGradient>
+                      </defs>
+          <g id="coverSweepGroup">
+            <path class="cover-sweep" id="coverSweep" d="M0 160 A160 160 0 0 1 320 160 L160 160 Z"></path>
+            <path class="cover-sweep-shine" id="coverSweepShine" d="M42 126 C92 74 141 48 199 58 C235 64 264 86 286 112"></path>
+          </g>
+          <line class="cover-sweep-edge" id="coverSweepEdge" x1="0" y1="160" x2="0" y2="160"></line>
+        </svg>
         <div class="needle" id="result-needle"></div>
       </div>
+      <div class="reveal-panel" id="revealPanel">
+        <div class="reveal-track" id="revealTrack" role="slider" aria-label="正解ゾーンをめくる" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="reveal-fill" id="revealFill"></div>
+          <div class="reveal-grip" id="revealGrip"></div>
+        </div>
+        <div class="reveal-percent" id="revealPercent">めくり: 0%</div>
+        <div class="reveal-hint" id="revealHint">予想針は見えています。つまみを左から右へゆっくり動かしてください。</div>
+      </div>
       <div id="resultSummary" class="card"></div>
-      <button class="btn btn-secondary" id="nextRoundBtn">次のラウンドへ</button>
+      <button class="btn btn-secondary hidden" id="nextRoundBtn">次のラウンドへ</button>
     </div>
   </div>
 
@@ -201,32 +245,1229 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
 
 <script>
 const topicStore={
-standard:[
-{left:"悪い",right:"良い"},{left:"普通",right:"奇妙"},{left:"安価",right:"高価"},{left:"無名",right:"有名"},{left:"汚い",right:"きれい"},{left:"役に立たない",right:"役に立つ"},{left:"簡単",right:"難しい"},{left:"低品質",right:"高品質"},{left:"一時的",right:"永続的"},{left:"現実",right:"空想"},{left:"過去",right:"未来"},{left:"地味",right:"派手"},{left:"狭い",right:"広い"},{left:"暗い",right:"明るい"},{left:"軽い",right:"重い"},{left:"静か",right:"うるさい"},{left:"弱い",right:"強い"},{left:"嫌い",right:"好き"},{left:"偽物",right:"本物"},{left:"あつい",right:"つめたい"},{left:"硬い",right:"柔らかい"},{left:"丸い",right:"尖った"},{left:"無色",right:"カラフル"},{left:"直線",right:"曲線"},{left:"不安定",right:"安定"},{left:"小さすぎる",right:"大きすぎる"},{left:"短い",right:"長い"},{left:"少数",right:"多数"},{left:"誤",right:"正"},{left:"不自然",right:"自然"},{left:"水平",right:"垂直"},{left:"古い",right:"新しい"},{left:"洗練された",right:"野暮ったい"},{left:"複雑",right:"単純"},{left:"安全",right:"危険"},{left:"軽率",right:"慎重"},{left:"退屈",right:"刺激的"},{left:"弱気",right:"強気"},{left:"わかりにくい",right:"わかりやすい"},{left:"不人気",right:"人気"}
-],
-food:[
-{left:"おやつ",right:"食事"},{left:"子供の味",right:"大人の味"},{left:"和食",right:"洋食"},{left:"マヨネーズ",right:"ケチャップ"},{left:"毎日いける",right:"たまにでいい"},{left:"ご褒美",right:"日常食"},{left:"スパイシー",right:"マイルド"},{left:"ヘルシー",right:"ジャンク"},{left:"家飯",right:"外食"},{left:"朝食",right:"夕食"},{left:"甘い",right:"しょっぱい"},{left:"さっぱり",right:"こってり"},{left:"箸",right:"スプーン"},{left:"高級店",right:"チェーン店"},{left:"ご飯派",right:"パン派"},{left:"セルフサービス",right:"フルサービス"},{left:"旬がある",right:"年中ある"},{left:"飲み物",right:"食べ物"},{left:"噛み応えあり",right:"とろける"},{left:"おかず",right:"主食"},{left:"味が濃い",right:"味が薄い"},{left:"屋台",right:"レストラン"},{left:"一人向き",right:"大人数向き"},{left:"毎日食べたい",right:"年1でいい"},{left:"安っぽい",right:"高級感ある"},{left:"朝食向き",right:"夜食向き"},{left:"罪悪感ない",right:"罪悪感ある"},{left:"ご飯に合わない",right:"ご飯に合う"},{left:"コンビニ感",right:"レストラン感"},{left:"冷たい方がうまい",right:"熱い方がうまい"},{left:"手で食べたい",right:"道具で食べたい"},{left:"一口で満足",right:"無限に食べたい"},{left:"見た目重視",right:"味重視"},{left:"差し入れ向き",right:"自分用向き"}
-],
-human:[
-{left:"陰キャ",right:"陽キャ"},{left:"信頼できる",right:"怪しい"},{left:"甘えん坊",right:"しっかり者"},{left:"モテそう",right:"非モテ"},{left:"内向的",right:"外向的"},{left:"インドア",right:"アウトドア"},{left:"論理派",right:"感覚派"},{left:"朝型",right:"夜型"},{left:"聞き手",right:"話し手"},{left:"天然",right:"計算"},{left:"平和主義",right:"武闘派"},{left:"慎重",right:"大胆"},{left:"器用",right:"不器用"},{left:"自信家",right:"謙虚"},{left:"都会派",right:"田舎派"},{left:"毒舌",right:"丁寧"},{left:"遊び人",right:"真面目"},{left:"ミステリアス",right:"オープン"},{left:"厳格",right:"寛大"},{left:"合理的",right:"人情派"},{left:"流行に敏感",right:"我が道を行く"},{left:"短気",right:"気長"},{left:"一匹狼",right:"群れたい"},{left:"気を使う",right:"気が楽"},{left:"相談できない",right:"相談したい"},{left:"先輩にしたくない",right:"先輩にしたい"},{left:"後輩にしたくない",right:"後輩にしたい"},{left:"LINEが遅そう",right:"LINEが早そう"},{left:"秘密を守れない",right:"秘密を守れる"},{left:"怒らせたら怖くない",right:"怒らせたら怖い"},{left:"第一印象が弱い",right:"第一印象が強い"},{left:"放っておける",right:"放っておけない"},{left:"話しかけにくい",right:"話しかけやすい"},{left:"先生っぽい",right:"生徒っぽい"}
-],
-life:[
-{left:"地味な仕事",right:"派手な仕事"},{left:"運",right:"実力"},{left:"誰でもできる",right:"職人芸"},{left:"アナログ",right:"デジタル"},{left:"趣味",right:"仕事"},{left:"昭和",right:"令和"},{left:"一人旅",right:"集団旅行"},{left:"定番",right:"流行"},{left:"実用的",right:"芸術的"},{left:"平日",right:"休日"},{left:"徒歩",right:"車"},{left:"自由",right:"安定"},{left:"質素",right:"贅沢"},{left:"面倒くさい",right:"楽しい"},{left:"自分用",right:"ギフト"},{left:"貯金",right:"投資"},{left:"睡眠重視",right:"活動重視"},{left:"掃除",right:"料理"},{left:"持ち家",right:"賃貸"},{left:"節約",right:"散財"},{left:"早起き",right:"夜更かし"},{left:"テレビ",right:"SNS"},{left:"都会暮らし",right:"移住"},{left:"休日にやりたくない",right:"休日にやりたい"},{left:"一人で行ける",right:"誰かと行きたい"},{left:"すぐ飽きる",right:"一生続けたい"},{left:"罰ゲーム",right:"ご褒美"},{left:"買わなくていい",right:"今すぐ欲しい"},{left:"予定を入れたい",right:"予定を空けたい"},{left:"昔ながら",right:"新しすぎる"},{left:"準備が大変",right:"すぐできる"},{left:"家で済む",right:"外に出たい"}
-],
-party:[
-{left:"付き合えない",right:"結婚したい"},{left:"友達止まり",right:"恋愛対象"},{left:"だらしない",right:"しっかりしてる"},{left:"ケチ",right:"倹約家"},{left:"痛い",right:"かわいい"},{left:"嫌な上司",right:"理想の上司"},{left:"盛り下がる",right:"盛り上がる"},{left:"二次会に来てほしくない",right:"二次会に来てほしい"},{left:"奢りたくない",right:"奢りたい"},{left:"酔うと面倒",right:"酔うと楽しい"},{left:"グループLINEで静か",right:"グループLINEで主役"},{left:"初対面で無理",right:"初対面で好き"},{left:"カラオケで困る",right:"カラオケで助かる"},{left:"空気を読まない",right:"空気を読む"},{left:"誘いにくい",right:"誘いやすい"},{left:"記憶に残らない",right:"忘れられない"},{left:"ネタにしにくい",right:"ネタにしやすい"},{left:"写真を撮りたくない",right:"写真を撮りたい"},{left:"会計で揉めそう",right:"会計がスマート"},{left:"返信に困る",right:"返信したくなる"}
-],
-kids:[
-{left:"小さい子向け",right:"大きい子向け"},{left:"学校",right:"家"},{left:"外遊び",right:"室内遊び"},{left:"こわい",right:"かわいい"},{left:"すぐできる",right:"練習が必要"},{left:"ひとりで遊ぶ",right:"みんなで遊ぶ"},{left:"先生に怒られる",right:"先生にほめられる"},{left:"給食で出ない",right:"給食で出そう"},{left:"夏っぽい",right:"冬っぽい"},{left:"朝にやる",right:"夜にやる"},{left:"静かにする",right:"大声を出す"},{left:"ゆっくり",right:"すばやい"},{left:"虫っぽい",right:"動物っぽい"},{left:"水に弱い",right:"水に強い"},{left:"公園",right:"遊園地"},{left:"かんたん",right:"むずかしい"},{left:"おもちゃ",right:"どうぐ"},{left:"小学生っぽい",right:"大人っぽい"}
-],
-nuance:[
-{left:"ゴミ",right:"宝物"},{left:"ダサかっこいい",right:"超絶クール"},{left:"猫っぽい",right:"犬っぽい"},{left:"怖い",right:"笑える"},{left:"カジュアル",right:"フォーマル"},{left:"マニアック",right:"メジャー"},{left:"セクシー",right:"キュート"},{left:"攻撃的",right:"守備的"},{left:"神秘的",right:"科学的"},{left:"上品",right:"下品"},{left:"脇役",right:"主役"},{left:"エモい",right:"論理的"},{left:"男らしい",right:"女らしい"},{left:"王道",right:"邪道"},{left:"懐かしい",right:"斬新"},{left:"知的",right:"肉体的"},{left:"光",right:"影"},{left:"ドラマチック",right:"日常的"},{left:"奇跡",right:"必然"},{left:"低賃金",right:"高賃金"},{left:"脆い",right:"頑丈"},{left:"絶望",right:"希望"},{left:"昭和レトロ",right:"近未来"},{left:"非日常",right:"日常"},{left:"ラスボスっぽい",right:"主人公っぽい"},{left:"不気味",right:"神々しい"},{left:"やりすぎ",right:"ちょうどいい"},{left:"雑",right:"丁寧"},{left:"浅い",right:"深い"},{left:"変だけどアリ",right:"普通だけどナシ"}
-],
-wildcard:[]
+  "standard": [
+    {
+      "left": "悪い",
+      "right": "良い"
+    },
+    {
+      "left": "安い",
+      "right": "高い"
+    },
+    {
+      "left": "地味",
+      "right": "派手"
+    },
+    {
+      "left": "古い",
+      "right": "新しい"
+    },
+    {
+      "left": "簡単",
+      "right": "難しい"
+    },
+    {
+      "left": "軽い",
+      "right": "重い"
+    },
+    {
+      "left": "小さい",
+      "right": "大きい"
+    },
+    {
+      "left": "暗い",
+      "right": "明るい"
+    },
+    {
+      "left": "静か",
+      "right": "にぎやか"
+    },
+    {
+      "left": "弱い",
+      "right": "強い"
+    },
+    {
+      "left": "汚い",
+      "right": "きれい"
+    },
+    {
+      "left": "狭い",
+      "right": "広い"
+    },
+    {
+      "left": "短い",
+      "right": "長い"
+    },
+    {
+      "left": "低い",
+      "right": "高い"
+    },
+    {
+      "left": "冷たい",
+      "right": "あたたかい"
+    },
+    {
+      "left": "やわらかい",
+      "right": "かたい"
+    },
+    {
+      "left": "遅い",
+      "right": "速い"
+    },
+    {
+      "left": "少ない",
+      "right": "多い"
+    },
+    {
+      "left": "現実的",
+      "right": "夢がある"
+    },
+    {
+      "left": "退屈",
+      "right": "おもしろい"
+    },
+    {
+      "left": "不便",
+      "right": "便利"
+    },
+    {
+      "left": "危ない",
+      "right": "安全"
+    },
+    {
+      "left": "近い",
+      "right": "遠い"
+    },
+    {
+      "left": "軽いノリ",
+      "right": "本格的"
+    },
+    {
+      "left": "なんとなく",
+      "right": "はっきり"
+    },
+    {
+      "left": "ありえない",
+      "right": "あり"
+    },
+    {
+      "left": "いらない",
+      "right": "欲しい"
+    },
+    {
+      "left": "すぐ忘れる",
+      "right": "記憶に残る"
+    },
+    {
+      "left": "一時的",
+      "right": "長く続く"
+    },
+    {
+      "left": "普通",
+      "right": "特別"
+    }
+  ],
+  "food": [
+    {
+      "left": "おやつ",
+      "right": "食事"
+    },
+    {
+      "left": "朝食向き",
+      "right": "夜食向き"
+    },
+    {
+      "left": "子どもの味",
+      "right": "大人の味"
+    },
+    {
+      "left": "和食",
+      "right": "洋食"
+    },
+    {
+      "left": "ご飯に合わない",
+      "right": "ご飯に合う"
+    },
+    {
+      "left": "パンに合わない",
+      "right": "パンに合う"
+    },
+    {
+      "left": "さっぱり",
+      "right": "こってり"
+    },
+    {
+      "left": "甘い",
+      "right": "しょっぱい"
+    },
+    {
+      "left": "ヘルシー",
+      "right": "ジャンク"
+    },
+    {
+      "left": "毎日いける",
+      "right": "たまにでいい"
+    },
+    {
+      "left": "安っぽい",
+      "right": "高級感ある"
+    },
+    {
+      "left": "家で食べたい",
+      "right": "外で食べたい"
+    },
+    {
+      "left": "一人で食べたい",
+      "right": "みんなで食べたい"
+    },
+    {
+      "left": "コンビニっぽい",
+      "right": "レストランっぽい"
+    },
+    {
+      "left": "飲み物",
+      "right": "食べ物"
+    },
+    {
+      "left": "罪悪感ない",
+      "right": "罪悪感ある"
+    },
+    {
+      "left": "軽食",
+      "right": "がっつり"
+    },
+    {
+      "left": "冷たい方がいい",
+      "right": "温かい方がいい"
+    },
+    {
+      "left": "手軽",
+      "right": "手間がかかる"
+    },
+    {
+      "left": "失敗しにくい",
+      "right": "失敗しやすい"
+    },
+    {
+      "left": "見た目重視",
+      "right": "味重視"
+    },
+    {
+      "left": "安くてうまい",
+      "right": "高くてうまい"
+    },
+    {
+      "left": "お腹にたまらない",
+      "right": "お腹にたまる"
+    },
+    {
+      "left": "すぐ食べたい",
+      "right": "ゆっくり食べたい"
+    },
+    {
+      "left": "飽きやすい",
+      "right": "飽きにくい"
+    },
+    {
+      "left": "お酒に合わない",
+      "right": "お酒に合う"
+    },
+    {
+      "left": "お茶に合う",
+      "right": "コーヒーに合う"
+    },
+    {
+      "left": "旅行先で食べたい",
+      "right": "家で食べたい"
+    },
+    {
+      "left": "人にすすめにくい",
+      "right": "人にすすめたい"
+    },
+    {
+      "left": "季節感がない",
+      "right": "季節感がある"
+    }
+  ],
+  "place": [
+    {
+      "left": "家っぽい",
+      "right": "外っぽい"
+    },
+    {
+      "left": "近所っぽい",
+      "right": "旅行っぽい"
+    },
+    {
+      "left": "都会っぽい",
+      "right": "田舎っぽい"
+    },
+    {
+      "left": "山っぽい",
+      "right": "海っぽい"
+    },
+    {
+      "left": "静かな場所",
+      "right": "にぎやかな場所"
+    },
+    {
+      "left": "昼に行きたい",
+      "right": "夜に行きたい"
+    },
+    {
+      "left": "雨の日向き",
+      "right": "晴れの日向き"
+    },
+    {
+      "left": "一人で行きたい",
+      "right": "みんなで行きたい"
+    },
+    {
+      "left": "短時間で満足",
+      "right": "長くいたい"
+    },
+    {
+      "left": "写真を撮らない",
+      "right": "写真を撮りたい"
+    },
+    {
+      "left": "涼しい場所",
+      "right": "暑い場所"
+    },
+    {
+      "left": "落ち着く場所",
+      "right": "わくわくする場所"
+    },
+    {
+      "left": "近場でいい",
+      "right": "遠くまで行きたい"
+    },
+    {
+      "left": "無料で楽しむ",
+      "right": "お金を使う"
+    },
+    {
+      "left": "準備なしで行ける",
+      "right": "準備が必要"
+    },
+    {
+      "left": "散歩向き",
+      "right": "ドライブ向き"
+    },
+    {
+      "left": "日常感",
+      "right": "特別感"
+    },
+    {
+      "left": "待ち合わせに不向き",
+      "right": "待ち合わせ向き"
+    },
+    {
+      "left": "子ども向き",
+      "right": "大人向き"
+    },
+    {
+      "left": "朝に行きたい",
+      "right": "夕方に行きたい"
+    },
+    {
+      "left": "短い滞在",
+      "right": "泊まりたい"
+    },
+    {
+      "left": "地図なしで行ける",
+      "right": "迷いやすい"
+    },
+    {
+      "left": "自然が少ない",
+      "right": "自然が多い"
+    },
+    {
+      "left": "屋内",
+      "right": "屋外"
+    },
+    {
+      "left": "静かに過ごす",
+      "right": "体を動かす"
+    },
+    {
+      "left": "買い物向き",
+      "right": "観光向き"
+    },
+    {
+      "left": "地元感",
+      "right": "異国感"
+    },
+    {
+      "left": "昔ながら",
+      "right": "新しい"
+    },
+    {
+      "left": "普段着で行ける",
+      "right": "おしゃれして行く"
+    },
+    {
+      "left": "目的なしで行く",
+      "right": "目的があって行く"
+    }
+  ],
+  "season": [
+    {
+      "left": "春っぽい",
+      "right": "冬っぽい"
+    },
+    {
+      "left": "夏っぽい",
+      "right": "秋っぽい"
+    },
+    {
+      "left": "朝っぽい",
+      "right": "夜っぽい"
+    },
+    {
+      "left": "晴れっぽい",
+      "right": "雨っぽい"
+    },
+    {
+      "left": "暑い日に合う",
+      "right": "寒い日に合う"
+    },
+    {
+      "left": "昼間向き",
+      "right": "夜向き"
+    },
+    {
+      "left": "正月っぽい",
+      "right": "お盆っぽい"
+    },
+    {
+      "left": "平日っぽい",
+      "right": "休日っぽい"
+    },
+    {
+      "left": "新学期っぽい",
+      "right": "年末っぽい"
+    },
+    {
+      "left": "梅雨っぽい",
+      "right": "真夏っぽい"
+    },
+    {
+      "left": "さわやか",
+      "right": "こってり"
+    },
+    {
+      "left": "涼しげ",
+      "right": "あたたかそう"
+    },
+    {
+      "left": "外に出たい",
+      "right": "家にいたい"
+    },
+    {
+      "left": "早起きしたい",
+      "right": "夜更かししたい"
+    },
+    {
+      "left": "イベント感なし",
+      "right": "イベント感あり"
+    },
+    {
+      "left": "静かな季節",
+      "right": "にぎやかな季節"
+    },
+    {
+      "left": "始まりっぽい",
+      "right": "終わりっぽい"
+    },
+    {
+      "left": "軽い服装",
+      "right": "厚着"
+    },
+    {
+      "left": "風が似合う",
+      "right": "雪が似合う"
+    },
+    {
+      "left": "花が似合う",
+      "right": "紅葉が似合う"
+    },
+    {
+      "left": "短い休み",
+      "right": "長い休み"
+    },
+    {
+      "left": "予定を入れない",
+      "right": "予定を入れたい"
+    },
+    {
+      "left": "アイス向き",
+      "right": "鍋向き"
+    },
+    {
+      "left": "水遊び向き",
+      "right": "こたつ向き"
+    },
+    {
+      "left": "朝日が似合う",
+      "right": "夕日が似合う"
+    },
+    {
+      "left": "外イベント向き",
+      "right": "室内イベント向き"
+    },
+    {
+      "left": "ゆっくり過ごす",
+      "right": "活動的に過ごす"
+    },
+    {
+      "left": "新しいことを始める",
+      "right": "片づける"
+    },
+    {
+      "left": "軽やか",
+      "right": "しっとり"
+    },
+    {
+      "left": "早く過ぎる",
+      "right": "長く感じる"
+    }
+  ],
+  "daily": [
+    {
+      "left": "朝やる",
+      "right": "夜やる"
+    },
+    {
+      "left": "家でやる",
+      "right": "外でやる"
+    },
+    {
+      "left": "一人でできる",
+      "right": "みんなでやる"
+    },
+    {
+      "left": "すぐ終わる",
+      "right": "時間がかかる"
+    },
+    {
+      "left": "毎日やる",
+      "right": "たまにやる"
+    },
+    {
+      "left": "面倒",
+      "right": "楽しい"
+    },
+    {
+      "left": "予定通り",
+      "right": "ハプニングあり"
+    },
+    {
+      "left": "静かにやる",
+      "right": "音が出る"
+    },
+    {
+      "left": "頭を使う",
+      "right": "体を使う"
+    },
+    {
+      "left": "アナログ",
+      "right": "デジタル"
+    },
+    {
+      "left": "節約",
+      "right": "ぜいたく"
+    },
+    {
+      "left": "実用的",
+      "right": "趣味っぽい"
+    },
+    {
+      "left": "片づける",
+      "right": "散らかす"
+    },
+    {
+      "left": "忘れやすい",
+      "right": "忘れにくい"
+    },
+    {
+      "left": "準備がいらない",
+      "right": "準備が大変"
+    },
+    {
+      "left": "朝の気分",
+      "right": "夜の気分"
+    },
+    {
+      "left": "短く済ませる",
+      "right": "じっくりやる"
+    },
+    {
+      "left": "手でやる",
+      "right": "道具を使う"
+    },
+    {
+      "left": "習慣にしにくい",
+      "right": "習慣にしやすい"
+    },
+    {
+      "left": "疲れる",
+      "right": "元気になる"
+    },
+    {
+      "left": "めんどうだけど必要",
+      "right": "やらなくてもいい"
+    },
+    {
+      "left": "一回で終わる",
+      "right": "続けるもの"
+    },
+    {
+      "left": "家族で使う",
+      "right": "自分だけで使う"
+    },
+    {
+      "left": "失敗しても平気",
+      "right": "失敗すると困る"
+    },
+    {
+      "left": "小さな用事",
+      "right": "大きな用事"
+    },
+    {
+      "left": "後回しにする",
+      "right": "すぐやる"
+    },
+    {
+      "left": "見えないところ",
+      "right": "見えるところ"
+    },
+    {
+      "left": "ゆっくり",
+      "right": "テキパキ"
+    },
+    {
+      "left": "休日にやる",
+      "right": "平日にやる"
+    },
+    {
+      "left": "気分でやる",
+      "right": "決まった時間にやる"
+    }
+  ],
+  "play": [
+    {
+      "left": "ひとり遊び",
+      "right": "みんなで遊ぶ"
+    },
+    {
+      "left": "家で遊ぶ",
+      "right": "外で遊ぶ"
+    },
+    {
+      "left": "静かな遊び",
+      "right": "騒ぐ遊び"
+    },
+    {
+      "left": "頭を使う",
+      "right": "体を使う"
+    },
+    {
+      "left": "運任せ",
+      "right": "実力勝負"
+    },
+    {
+      "left": "短時間で楽しい",
+      "right": "長時間楽しい"
+    },
+    {
+      "left": "子ども向け",
+      "right": "大人向け"
+    },
+    {
+      "left": "初心者向け",
+      "right": "上級者向け"
+    },
+    {
+      "left": "まったり",
+      "right": "白熱"
+    },
+    {
+      "left": "安く遊べる",
+      "right": "お金がかかる"
+    },
+    {
+      "left": "準備いらない",
+      "right": "準備が大変"
+    },
+    {
+      "left": "罰ゲーム",
+      "right": "ご褒美"
+    },
+    {
+      "left": "見て楽しい",
+      "right": "やって楽しい"
+    },
+    {
+      "left": "すぐ飽きる",
+      "right": "何回でもできる"
+    },
+    {
+      "left": "笑える",
+      "right": "感動する"
+    },
+    {
+      "left": "怖くない",
+      "right": "怖い"
+    },
+    {
+      "left": "誰でも参加できる",
+      "right": "人を選ぶ"
+    },
+    {
+      "left": "昼にやりたい",
+      "right": "夜にやりたい"
+    },
+    {
+      "left": "雨の日向き",
+      "right": "晴れの日向き"
+    },
+    {
+      "left": "旅行向き",
+      "right": "近所向き"
+    },
+    {
+      "left": "飲み会向き",
+      "right": "家族向き"
+    },
+    {
+      "left": "写真を撮らない",
+      "right": "写真を撮りたい"
+    },
+    {
+      "left": "思い出に残りにくい",
+      "right": "思い出に残る"
+    },
+    {
+      "left": "勝っても普通",
+      "right": "勝つと嬉しい"
+    },
+    {
+      "left": "負けても平気",
+      "right": "負けると悔しい"
+    },
+    {
+      "left": "ルールが簡単",
+      "right": "ルールが複雑"
+    },
+    {
+      "left": "観客向き",
+      "right": "参加者向き"
+    },
+    {
+      "left": "その場のノリ",
+      "right": "事前計画"
+    },
+    {
+      "left": "すぐ始められる",
+      "right": "準備から楽しい"
+    },
+    {
+      "left": "一回で満足",
+      "right": "またやりたい"
+    }
+  ],
+  "object": [
+    {
+      "left": "いらない",
+      "right": "欲しい"
+    },
+    {
+      "left": "安物感",
+      "right": "高級感"
+    },
+    {
+      "left": "実用的",
+      "right": "おしゃれ"
+    },
+    {
+      "left": "壊れやすそう",
+      "right": "長持ちしそう"
+    },
+    {
+      "left": "子どもっぽい",
+      "right": "大人っぽい"
+    },
+    {
+      "left": "地味",
+      "right": "かっこいい"
+    },
+    {
+      "left": "かわいくない",
+      "right": "かわいい"
+    },
+    {
+      "left": "持ち歩かない",
+      "right": "持ち歩きたい"
+    },
+    {
+      "left": "家に置きたくない",
+      "right": "家に置きたい"
+    },
+    {
+      "left": "プレゼントに不向き",
+      "right": "プレゼント向き"
+    },
+    {
+      "left": "自分では買わない",
+      "right": "自分でも買う"
+    },
+    {
+      "left": "すぐ飽きる",
+      "right": "長く使える"
+    },
+    {
+      "left": "説明が必要",
+      "right": "見ればわかる"
+    },
+    {
+      "left": "量産品っぽい",
+      "right": "特別感がある"
+    },
+    {
+      "left": "古くさい",
+      "right": "今っぽい"
+    },
+    {
+      "left": "目立たない",
+      "right": "目立つ"
+    },
+    {
+      "left": "使いにくい",
+      "right": "使いやすい"
+    },
+    {
+      "left": "邪魔",
+      "right": "便利"
+    },
+    {
+      "left": "軽すぎる",
+      "right": "重厚感"
+    },
+    {
+      "left": "シンプル",
+      "right": "ごちゃごちゃ"
+    },
+    {
+      "left": "安心感がない",
+      "right": "安心感がある"
+    },
+    {
+      "left": "すぐ捨てそう",
+      "right": "大事にしそう"
+    },
+    {
+      "left": "一時的な流行",
+      "right": "定番"
+    },
+    {
+      "left": "買うと後悔",
+      "right": "買ってよかった"
+    },
+    {
+      "left": "見た目重視",
+      "right": "機能重視"
+    },
+    {
+      "left": "家用",
+      "right": "外用"
+    },
+    {
+      "left": "しまっておく",
+      "right": "すぐ使う"
+    },
+    {
+      "left": "小さい方がいい",
+      "right": "大きい方がいい"
+    },
+    {
+      "left": "音がしない",
+      "right": "音がする"
+    },
+    {
+      "left": "電気を使わない",
+      "right": "電気を使う"
+    }
+  ],
+  "media": [
+    {
+      "left": "短い話",
+      "right": "長い話"
+    },
+    {
+      "left": "笑える",
+      "right": "泣ける"
+    },
+    {
+      "left": "明るい",
+      "right": "暗い"
+    },
+    {
+      "left": "現実的",
+      "right": "ファンタジー"
+    },
+    {
+      "left": "子ども向け",
+      "right": "大人向け"
+    },
+    {
+      "left": "静かな作品",
+      "right": "派手な作品"
+    },
+    {
+      "left": "一回で満足",
+      "right": "何回も見たい"
+    },
+    {
+      "left": "軽い気持ちで見る",
+      "right": "集中して見る"
+    },
+    {
+      "left": "昔っぽい",
+      "right": "未来っぽい"
+    },
+    {
+      "left": "説明が少ない",
+      "right": "説明が多い"
+    },
+    {
+      "left": "音楽が大事",
+      "right": "映像が大事"
+    },
+    {
+      "left": "ゆるい",
+      "right": "熱い"
+    },
+    {
+      "left": "日常系",
+      "right": "冒険系"
+    },
+    {
+      "left": "短時間向き",
+      "right": "休日向き"
+    },
+    {
+      "left": "寝る前向き",
+      "right": "朝向き"
+    },
+    {
+      "left": "家で見る",
+      "right": "映画館で見る"
+    },
+    {
+      "left": "一人で見る",
+      "right": "誰かと見る"
+    },
+    {
+      "left": "ネタバレ平気",
+      "right": "ネタバレ厳禁"
+    },
+    {
+      "left": "低予算感",
+      "right": "大作感"
+    },
+    {
+      "left": "地味に良い",
+      "right": "派手に良い"
+    },
+    {
+      "left": "タイトルでわかる",
+      "right": "見ないとわからない"
+    },
+    {
+      "left": "かわいい",
+      "right": "かっこいい"
+    },
+    {
+      "left": "ほのぼの",
+      "right": "ドキドキ"
+    },
+    {
+      "left": "ゆっくり進む",
+      "right": "テンポが速い"
+    },
+    {
+      "left": "明日忘れる",
+      "right": "しばらく残る"
+    },
+    {
+      "left": "BGM向き",
+      "right": "じっくり聴く"
+    },
+    {
+      "left": "読むもの",
+      "right": "見るもの"
+    },
+    {
+      "left": "懐かしい",
+      "right": "新しい"
+    },
+    {
+      "left": "軽い笑い",
+      "right": "本気の笑い"
+    },
+    {
+      "left": "終わりが読める",
+      "right": "意外な展開"
+    }
+  ],
+  "kids": [
+    {
+      "left": "小さい子向け",
+      "right": "大きい子向け"
+    },
+    {
+      "left": "学校っぽい",
+      "right": "家っぽい"
+    },
+    {
+      "left": "外遊び",
+      "right": "室内遊び"
+    },
+    {
+      "left": "こわい",
+      "right": "かわいい"
+    },
+    {
+      "left": "すぐできる",
+      "right": "練習が必要"
+    },
+    {
+      "left": "ひとりで遊ぶ",
+      "right": "みんなで遊ぶ"
+    },
+    {
+      "left": "給食で出ない",
+      "right": "給食で出そう"
+    },
+    {
+      "left": "夏っぽい",
+      "right": "冬っぽい"
+    },
+    {
+      "left": "朝にやる",
+      "right": "夜にやる"
+    },
+    {
+      "left": "静かにする",
+      "right": "大声を出す"
+    },
+    {
+      "left": "ゆっくり",
+      "right": "すばやい"
+    },
+    {
+      "left": "虫っぽい",
+      "right": "動物っぽい"
+    },
+    {
+      "left": "水に弱い",
+      "right": "水に強い"
+    },
+    {
+      "left": "公園っぽい",
+      "right": "遊園地っぽい"
+    },
+    {
+      "left": "かんたん",
+      "right": "むずかしい"
+    },
+    {
+      "left": "おもちゃ",
+      "right": "どうぐ"
+    },
+    {
+      "left": "小学生っぽい",
+      "right": "大人っぽい"
+    },
+    {
+      "left": "丸い",
+      "right": "四角い"
+    },
+    {
+      "left": "ふわふわ",
+      "right": "かちかち"
+    },
+    {
+      "left": "小さい音",
+      "right": "大きい音"
+    },
+    {
+      "left": "軽いもの",
+      "right": "重いもの"
+    },
+    {
+      "left": "絵に描きやすい",
+      "right": "絵に描きにくい"
+    },
+    {
+      "left": "すぐなくなる",
+      "right": "長く残る"
+    },
+    {
+      "left": "ポケットに入る",
+      "right": "入らない"
+    },
+    {
+      "left": "机の上にある",
+      "right": "外にある"
+    },
+    {
+      "left": "水の中",
+      "right": "空の上"
+    },
+    {
+      "left": "走る",
+      "right": "止まる"
+    },
+    {
+      "left": "食べられない",
+      "right": "食べられる"
+    },
+    {
+      "left": "見つけやすい",
+      "right": "隠れやすい"
+    },
+    {
+      "left": "名前が短い",
+      "right": "名前が長い"
+    }
+  ],
+  "wildcard": [
+    {
+      "left": "ゴミ",
+      "right": "宝物"
+    },
+    {
+      "left": "なし寄り",
+      "right": "あり寄り"
+    },
+    {
+      "left": "ちょっとわかる",
+      "right": "めちゃくちゃわかる"
+    },
+    {
+      "left": "許せない",
+      "right": "許せる"
+    },
+    {
+      "left": "どうでもいい",
+      "right": "大事"
+    },
+    {
+      "left": "すぐ忘れる",
+      "right": "一生覚えてる"
+    },
+    {
+      "left": "普通に嫌",
+      "right": "逆に好き"
+    },
+    {
+      "left": "微妙",
+      "right": "最高"
+    },
+    {
+      "left": "つまらない",
+      "right": "味がある"
+    },
+    {
+      "left": "偽物っぽい",
+      "right": "本物っぽい"
+    },
+    {
+      "left": "謎",
+      "right": "納得"
+    },
+    {
+      "left": "たまたま",
+      "right": "必然"
+    },
+    {
+      "left": "失敗",
+      "right": "成功"
+    },
+    {
+      "left": "弱点",
+      "right": "魅力"
+    },
+    {
+      "left": "ダサい",
+      "right": "ダサかっこいい"
+    },
+    {
+      "left": "雑",
+      "right": "丁寧"
+    },
+    {
+      "left": "浅い",
+      "right": "深い"
+    },
+    {
+      "left": "軽い",
+      "right": "重い"
+    },
+    {
+      "left": "くだらない",
+      "right": "尊い"
+    },
+    {
+      "left": "すぐバレる",
+      "right": "バレない"
+    },
+    {
+      "left": "ただの物",
+      "right": "伝説級"
+    },
+    {
+      "left": "量産型",
+      "right": "唯一無二"
+    },
+    {
+      "left": "まだ早い",
+      "right": "もう遅い"
+    },
+    {
+      "left": "夢がない",
+      "right": "ロマンがある"
+    },
+    {
+      "left": "見たくない",
+      "right": "見たい"
+    },
+    {
+      "left": "聞きたくない",
+      "right": "聞きたい"
+    },
+    {
+      "left": "負け",
+      "right": "勝ち"
+    },
+    {
+      "left": "地獄",
+      "right": "天国"
+    },
+    {
+      "left": "事件じゃない",
+      "right": "事件"
+    },
+    {
+      "left": "説明できない",
+      "right": "説明しやすい"
+    }
+  ]
 };
-for(let i=1;i<=80;i++){topicStore.wildcard.push({left:"お題A "+i,right:"お題B "+i});}
-const genreLabels={all:"全部まぜる",standard:"みんな向け",food:"食べ物",human:"人間関係",life:"日常・仕事",party:"飲み会向け",kids:"子どもOK",nuance:"変なお題",wildcard:"ワイルドカード"};
-const gameState={currentTeam:"red",redScore:0,blueScore:0,topic:null,targetAngle:0,guessAngle:0,vote:null,redrawCount:0,usedTopics:new Set(),genre:"all",soundOn:true};
+const genreLabels={all:"全部まぜる",standard:"みんな向け",food:"食べ物・飲み物",place:"場所・おでかけ",season:"季節・天気",daily:"日常・くらし",play:"遊び・イベント",object:"モノ・道具",media:"作品・イメージ",kids:"子どもOK",wildcard:"ワイルドカード"};
+const gameState={currentTeam:"red",redScore:0,blueScore:0,topic:null,targetAngle:0,guessAngle:0,vote:null,redrawCount:0,usedTopics:new Set(),genre:"all",soundOn:true,resultRevealed:false,revealStage:0};
 const get=id=>document.getElementById(id); const phases=document.querySelectorAll(".game-phase");
 let audioCtx=null,lastTick=0;
 function initAudio(){if(!gameState.soundOn)return;if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();} if(audioCtx.state==="suspended")audioCtx.resume();}
@@ -234,18 +1475,139 @@ function tone(freq=440,dur=.08,type="sine",gain=.05,delay=0){if(!gameState.sound
 function sfx(name){initAudio(); if(navigator.vibrate){ if(name==="perfect")navigator.vibrate([35,25,35]); else if(name==="bad")navigator.vibrate(45); else navigator.vibrate(12); } if(name==="tap")tone(520,.045,"sine",.035); if(name==="draw"){tone(520,.06,"triangle",.035);tone(740,.08,"triangle",.035,.06);} if(name==="decide"){tone(360,.06,"square",.03);tone(620,.08,"sine",.04,.05);} if(name==="tick")tone(260,.025,"sine",.018); if(name==="perfect"){[523,659,784,1046].forEach((f,i)=>tone(f,.12,"triangle",.045,i*.07));} if(name==="good"){tone(660,.08,"triangle",.04);tone(880,.11,"triangle",.04,.07);} if(name==="ok"){tone(520,.09,"sine",.035);tone(430,.12,"sine",.03,.08);} if(name==="bad"){tone(180,.16,"sawtooth",.025);tone(140,.2,"sine",.025,.12);} if(name==="win"){[523,659,784,1046,784,1046].forEach((f,i)=>tone(f,.12,"triangle",.045,i*.09));}}
 function showPhase(id){phases.forEach(p=>p.classList.add("hidden"));get(id).classList.remove("hidden");updateProgress(id);} 
 function updateProgress(id){const map={"phase-round-start":0,"phase-psychic":1,"phase-vote":2,"phase-guess":2,"phase-result":3};document.querySelectorAll("#progress .step").forEach((s,i)=>s.classList.toggle("active",i<=map[id]));}
-function updateScoreUI(){const isRed=gameState.currentTeam==="red";document.body.className=isRed?"red-team-turn":"blue-team-turn";get("redTeamScore").textContent=`赤: ${gameState.redScore}`;get("blueTeamScore").textContent=`青: ${gameState.blueScore}`;get("redTeamScore").classList.toggle("current-team",isRed);get("blueTeamScore").classList.toggle("current-team",!isRed);get("currentTeamIndicator").className=isRed?"team-indicator red-team-indicator":"team-indicator blue-team-indicator";get("currentTeamIndicator").textContent=isRed?"赤チーム":"青チーム";}
+function scoreDots(score){const target=11;const filled=Math.max(0,Math.min(target,score));return "●".repeat(filled)+"○".repeat(target-filled);}
+function scoreHTML(label,score){const remain=Math.max(0,11-score);return `<div class="score-line">${label}: ${score} <small>${remain===0?"勝利圏内":"あと"+remain+"点"}</small></div><div class="score-dots">${scoreDots(score)}</div>`;}
+function updateScoreUI(){const isRed=gameState.currentTeam==="red";document.body.className=isRed?"red-team-turn":"blue-team-turn";get("redTeamScore").innerHTML=scoreHTML("赤",gameState.redScore);get("blueTeamScore").innerHTML=scoreHTML("青",gameState.blueScore);get("redTeamScore").classList.toggle("current-team",isRed);get("blueTeamScore").classList.toggle("current-team",!isRed);get("currentTeamIndicator").className=isRed?"team-indicator red-team-indicator":"team-indicator blue-team-indicator";get("currentTeamIndicator").textContent=isRed?"赤チーム":"青チーム";}
 function currentPool(){if(gameState.genre==="all")return Object.values(topicStore).flat();return topicStore[gameState.genre]||topicStore.standard;}
 function topicKey(t){return `${t.left}__${t.right}`;}
 function pickTopic(){let pool=currentPool();if(gameState.usedTopics.size>pool.length*.8)gameState.usedTopics.clear();let t;for(let i=0;i<80;i++){t=pool[Math.floor(Math.random()*pool.length)];if(!gameState.usedTopics.has(topicKey(t)))break;}gameState.usedTopics.add(topicKey(t));gameState.topic=t;get("topicCaption").textContent=`今回のお題：${genreLabels[gameState.genre]||"全部まぜる"}`;get("topicText").innerHTML=`<span>${t.left}</span><span class="arrow">⇔</span><span>${t.right}</span>`;get("voteLeftBtn").textContent=t.left+"寄り";get("voteRightBtn").textContent=t.right+"寄り";}
-function randomTarget(){gameState.targetAngle=(Math.random()*140)-70;}
-function drawDial(svg,target){svg.innerHTML="";const cx=160,cy=160,r=160;if(target!==null){[{w:32,c:"#FFC107"},{w:20,c:"#FF9800"},{w:8,c:"#03A9F4"}].forEach(z=>{const s=(target-z.w/2-90)*Math.PI/180;const e=(target+z.w/2-90)*Math.PI/180;const x1=cx+r*Math.cos(s),y1=cy+r*Math.sin(s);const x2=cx+r*Math.cos(e),y2=cy+r*Math.sin(e);const p=document.createElementNS("http://www.w3.org/2000/svg","path");p.setAttribute("d",`M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`);p.setAttribute("fill",z.c);svg.appendChild(p);});} const b=document.createElementNS("http://www.w3.org/2000/svg","path");b.setAttribute("d","M 0 160 A 160 160 0 0 1 320 160");b.setAttribute("stroke","#3D4A5E");b.setAttribute("stroke-width","8");b.setAttribute("fill","none");svg.appendChild(b);}
+function randomTarget(){
+  // 青い4点ゾーンの端が0/100に届く極端な位置も出るようにする。
+  // 中心を±86度にすると、青ゾーン幅8度の外端がちょうど半円の端に重なる。
+  const edgeRoll=Math.random();
+  if(edgeRoll<0.08) gameState.targetAngle=-86;
+  else if(edgeRoll<0.16) gameState.targetAngle=86;
+  else gameState.targetAngle=(Math.random()*172)-86;
+}
+function drawDial(svg,target){
+  svg.innerHTML="";
+  const cx=160,cy=160,r=160;
+  const ns="http://www.w3.org/2000/svg";
+  function pointAtAngle(a){
+    const rad=(a-90)*Math.PI/180;
+    return {x:cx+r*Math.cos(rad), y:cy+r*Math.sin(rad)};
+  }
+  if(target!==null){
+    // 端の正解も出すが、0/100の外側には絶対にはみ出して描かない。
+    // 各得点ゾーンを半円内（-90度〜90度）で切り落として表示する。
+    [{w:32,c:"#FFC107"},{w:20,c:"#FF9800"},{w:8,c:"#03A9F4"}].forEach(z=>{
+      const start=Math.max(-90,target-z.w/2);
+      const end=Math.min(90,target+z.w/2);
+      if(end<=start)return;
+      const p1=pointAtAngle(start);
+      const p2=pointAtAngle(end);
+      const largeArc=(end-start)>180?1:0;
+      const path=document.createElementNS(ns,"path");
+      path.setAttribute("d",`M ${cx} ${cy} L ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A ${r} ${r} 0 ${largeArc} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)} Z`);
+      path.setAttribute("fill",z.c);
+      svg.appendChild(path);
+    });
+  }
+  const b=document.createElementNS(ns,"path");
+  b.setAttribute("d","M 0 160 A 160 160 0 0 1 320 160");
+  b.setAttribute("stroke","#3D4A5E");
+  b.setAttribute("stroke-width","8");
+  b.setAttribute("fill","none");
+  svg.appendChild(b);
+}
 function updateNeedle(el,a){el.style.transform=`translateX(-50%) rotate(${a}deg)`;}
 function positionKnob(a){const rad=(a-90)*Math.PI/180;const x=160+160*Math.cos(rad),y=160+160*Math.sin(rad);get("knob").style.left=(x/320*100)+"%";get("knob").style.top=(y/160*100)+"%";}
 function setGuessFromPoint(clientX,clientY){const rect=get("guess-dial").getBoundingClientRect();const dx=clientX-(rect.left+rect.width/2);const dy=(rect.top+rect.height)-clientY;let a=Math.atan2(dx,dy)*180/Math.PI;a=Math.max(-90,Math.min(90,a));gameState.guessAngle=a;updateNeedle(get("needle"),a);positionKnob(a);get("gaugeValue").textContent=Math.round(((a+90)/180)*100);const now=Date.now();if(now-lastTick>70){sfx("tick");lastTick=now;}}
 function startGuess(){const isRed=gameState.currentTeam==="red";get("guessTeamIndicator").textContent=isRed?"赤チーム":"青チーム";get("guessTeamIndicator").className=isRed?"team-indicator red-team-indicator":"team-indicator blue-team-indicator";gameState.guessAngle=0;updateNeedle(get("needle"),0);positionKnob(0);get("gaugeValue").textContent="50";drawDial(get("guess-svg"),null);showPhase("phase-guess");}
 function confetti(){const box=get("confetti");box.innerHTML="";const colors=["#03A9F4","#FF9800","#FFC107","#FF5252","#9C27B0"];for(let i=0;i<42;i++){const e=document.createElement("i");e.style.left=Math.random()*100+"%";e.style.background=colors[i%colors.length];e.style.animationDelay=Math.random()*200+"ms";e.style.transform=`rotate(${Math.random()*180}deg)`;box.appendChild(e);}setTimeout(()=>box.innerHTML="",1200);}
-function revealResult(){const diff=Math.abs(gameState.guessAngle-gameState.targetAngle);let pts=0,msg="遠かった…！",sound="bad";if(diff<=4){pts=4;msg="ど真ん中！PERFECT!";sound="perfect";confetti();}else if(diff<=10){pts=3;msg="かなり近い！";sound="good";}else if(diff<=16){pts=2;msg="惜しい！";sound="ok";}const isRed=gameState.currentTeam==="red";const targetSide=gameState.targetAngle<0?"left":"right";const votePts=(gameState.vote===targetSide)?1:0;if(isRed){gameState.redScore+=pts;gameState.blueScore+=votePts;}else{gameState.blueScore+=pts;gameState.redScore+=votePts;}drawDial(get("result-svg"),gameState.targetAngle);updateNeedle(get("result-needle"),gameState.guessAngle);get("resultSummary").innerHTML=`<div class="result-message">${msg}</div><div class="result-score">${pts}点</div><div class="result-grid"><div class="result-mini">味方チーム<br>+${pts}点</div><div class="result-mini">相手の左右予想<br>${votePts?"正解 +1点":"不正解 +0点"}</div></div><div class="footer-note">正解は${targetSide==="left"?gameState.topic.left:gameState.topic.right}寄りでした</div>`;updateScoreUI();sfx(sound);showPhase("phase-result");}
+function calculateAndApplyResult(){
+  const diff=Math.abs(gameState.guessAngle-gameState.targetAngle);
+  let pts=0,msg="遠かった…！",sound="bad";
+  if(diff<=4){pts=4;msg="ど真ん中！PERFECT!";sound="perfect";confetti();}
+  else if(diff<=10){pts=3;msg="かなり近い！";sound="good";}
+  else if(diff<=16){pts=2;msg="惜しい！";sound="ok";}
+  const isRed=gameState.currentTeam==="red";
+  const targetSide=gameState.targetAngle<0?"left":"right";
+  const votePts=(gameState.vote===targetSide)?1:0;
+  if(isRed){gameState.redScore+=pts;gameState.blueScore+=votePts;}else{gameState.blueScore+=pts;gameState.redScore+=votePts;}
+  get("resultSummary").innerHTML=`<div class="result-message">${msg}</div><div class="result-score">${pts}点</div><div class="result-grid"><div class="result-mini">味方チーム<br>+${pts}点</div><div class="result-mini">相手の左右予想<br>${votePts?"正解 +1点":"不正解 +0点"}</div></div><div class="footer-note">正解は${targetSide==="left"?gameState.topic.left:gameState.topic.right}寄りでした</div>`;
+  get("nextRoundBtn").classList.remove("hidden");
+  get("revealPanel").classList.add("hidden");
+  updateScoreUI();
+  sfx(sound);
+}
+function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
+function arcPoint(progress){
+  // progress: 0 = 左端、1 = 右端。上半円の弧に沿った点を返す。
+  const phi=(1-progress)*Math.PI;
+  return {x:160+160*Math.cos(phi), y:160-160*Math.sin(phi)};
+}
+function coverPathForFan(progress){
+  progress=clamp(progress,0,1);
+  if(progress<=0.001) return "M0 160 A160 160 0 0 1 320 160 L160 160 Z";
+  if(progress>=0.999) return "";
+  const p=arcPoint(progress);
+  // 左側から弧に沿って扇形にめくれて、残った右側だけカバーとして描く。
+  return `M ${p.x.toFixed(2)} ${p.y.toFixed(2)} A160 160 0 0 1 320 160 L160 160 Z`;
+}
+function setCoverVisual(progress){
+  progress=clamp(progress,0,1);
+  const cover=get("coverSweep");
+  const shine=get("coverSweepShine");
+  const d=coverPathForFan(progress);
+  cover.setAttribute("d",d);
+  shine.style.opacity=(progress<.82)?String(Math.max(0,.75-progress*.75)):"0";
+  const p=arcPoint(progress);
+  const edge=get("coverSweepEdge");
+  // 左下から扇形に開く境界線。
+  edge.setAttribute("x1","160");
+  edge.setAttribute("y1","160");
+  edge.setAttribute("x2",String(p.x));
+  edge.setAttribute("y2",String(p.y));
+  edge.style.opacity=(progress>0.02 && progress<0.98)?"1":"0";
+  get("coverSweepGroup").style.opacity=String(progress>=.995?0:1);
+}
+function setRevealProgress(progress){
+  progress=clamp(progress,0,1);
+  gameState.revealProgress=progress;
+  setCoverVisual(progress);
+  get("revealFill").style.width=(progress*100)+"%";
+  get("revealGrip").style.left=(progress*100)+"%";
+  get("revealPercent").textContent=`めくり: ${Math.round(progress*100)}%`;
+  get("revealTrack").setAttribute("aria-valuenow",String(Math.round(progress*100)));
+  if(progress<.08){
+    get("revealHint").textContent="予想針は見えています。左下から扇形に、正解カバーをゆっくりめくってください。";
+    get("resultSummary").innerHTML="<div class='result-message'>予想位置をセットしました</div><div class='footer-note'>赤い予想針は見えています。正解ゾーンはカバーの下です。</div>";
+  }else if(progress<.55){
+    get("revealHint").textContent="左下から弧に沿って少しずつ正解ゾーンが見えてきます。まだ全部はわかりません。";
+    get("resultSummary").innerHTML="<div class='result-message'>じわじわオープン中…</div><div class='footer-note'>そのまま右へ動かして、扇形に開いてください。</div>";
+  }else if(progress<.98){
+    get("revealHint").textContent="扇形のカバーが開いています。最後までめくると答え合わせです。";
+    get("resultSummary").innerHTML="<div class='result-message'>もうすぐ答え合わせ</div><div class='footer-note'>最後までめくってください。</div>";
+  }
+  const now=Date.now();
+  if(now-lastTick>90 && progress>0 && progress<.98){sfx("tick");lastTick=now;}
+  if(progress>=.985 && gameState.revealStage!==2){
+    gameState.revealStage=2;
+    setRevealProgress(1);
+    sfx("draw");
+    setTimeout(calculateAndApplyResult,260);
+  }
+}
+function resetCovers(){
+  gameState.revealStage=0;
+  gameState.revealProgress=0;
+  get("coverSweepGroup").style.opacity="1";
+  get("coverSweepEdge").style.opacity="0";
+  get("revealPanel").classList.remove("hidden");
+  setRevealProgress(0);
+}
+
 window.addEventListener("DOMContentLoaded",()=>{
   updateProgress("phase-start");
   get("genreSelect").onchange=e=>{gameState.genre=e.target.value;sfx("tap");};
@@ -256,7 +1618,21 @@ window.addEventListener("DOMContentLoaded",()=>{
   get("hintDoneBtn").onclick=()=>{sfx("decide");const isRed=gameState.currentTeam==="red";get("voteTeamIndicator").textContent=isRed?"青チーム":"赤チーム";get("voteTeamIndicator").className=isRed?"team-indicator blue-team-indicator":"team-indicator red-team-indicator";showPhase("phase-vote");};
   get("voteLeftBtn").onclick=()=>{sfx("tap");gameState.vote="left";startGuess();};
   get("voteRightBtn").onclick=()=>{sfx("tap");gameState.vote="right";startGuess();};
-  get("guessDoneBtn").onclick=()=>{sfx("decide");showPhase("phase-result");get("resultSummary").innerHTML="<div class='result-message'>判定中...</div>";setTimeout(revealResult,520);};
+  get("guessDoneBtn").onclick=()=>{sfx("decide");gameState.revealStage=0;drawDial(get("result-svg"),gameState.targetAngle);updateNeedle(get("result-needle"),gameState.guessAngle);resetCovers();get("resultSummary").innerHTML="<div class='result-message'>予想位置をセットしました</div><div class='footer-note'>赤い予想針は見えています。正解ゾーンはカバーの下です。</div>";get("nextRoundBtn").classList.add("hidden");showPhase("phase-result");};
+
+  let isRevealing=false,revealBaseEl=null;
+  function progressFromClientX(clientX,baseEl){const rect=baseEl.getBoundingClientRect();return clamp((clientX-rect.left)/rect.width,0,1);}
+  function handleRevealPointer(clientX){if(gameState.revealStage===2||!revealBaseEl)return;setRevealProgress(progressFromClientX(clientX,revealBaseEl));}
+  function startRevealDrag(e,baseEl){isRevealing=true;revealBaseEl=baseEl;handleRevealPointer(e.clientX);}
+  function startRevealTouch(e,baseEl){isRevealing=true;revealBaseEl=baseEl;handleRevealPointer(e.touches[0].clientX);if(e.cancelable)e.preventDefault();}
+  get("revealTrack").addEventListener("mousedown",e=>startRevealDrag(e,get("revealTrack")));
+  get("revealTrack").addEventListener("touchstart",e=>startRevealTouch(e,get("revealTrack")),{passive:false});
+  get("resultDialWrap").addEventListener("mousedown",e=>startRevealDrag(e,get("resultDialWrap")));
+  get("resultDialWrap").addEventListener("touchstart",e=>startRevealTouch(e,get("resultDialWrap")),{passive:false});
+  window.addEventListener("mousemove",e=>{if(isRevealing)handleRevealPointer(e.clientX);});
+  window.addEventListener("touchmove",e=>{if(isRevealing){handleRevealPointer(e.touches[0].clientX);if(e.cancelable)e.preventDefault();}},{passive:false});
+  window.addEventListener("mouseup",()=>{isRevealing=false;revealBaseEl=null;});
+  window.addEventListener("touchend",()=>{isRevealing=false;revealBaseEl=null;});
   get("nextRoundBtn").onclick=()=>{sfx("tap");if(gameState.redScore>=11||gameState.blueScore>=11){const winner=gameState.redScore>gameState.blueScore?"赤チーム":"青チーム";get("winnerAnnouncement").textContent=`🎉 ${winner}の勝利！ 🎉`;get("finalScore").innerHTML=`最終スコア<br><b>赤 ${gameState.redScore} - ${gameState.blueScore} 青</b>`;sfx("win");confetti();showPhase("phase-game-over");}else{gameState.currentTeam=gameState.currentTeam==="red"?"blue":"red";updateScoreUI();showPhase("phase-round-start");}};
   get("restartBtn").onclick=()=>location.reload();
   let isDragging=false;
