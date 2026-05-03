@@ -1385,6 +1385,19 @@
         if (gameState?.phase === "finalResult") playSound("final");
       }
       lastPhaseKey = pk;
+
+      // 入力中に他の人の送信で画面が再描画され、入力が消える問題を防ぐ
+      if (
+        isEditingCriticalInput() &&
+        gameState?.phase === "clue" &&
+        !isGuesser() &&
+        getPlayerClues(myName).length < currentClueCount()
+      ) {
+        renderHud();
+        renderHostTools();
+        return;
+      }
+
       render();
     });
 
@@ -1574,7 +1587,7 @@
       const word = gameState.words[(gameState.currentRound || 1) - 1] || "";
       const autoCorrect = normalizeAnswer(text) === normalizeAnswer(word);
       roomRef.update({
-        phase: "roundResult",
+        phase: "answerReview",
         guess: text,
         pendingCorrect: autoCorrect
       });
@@ -1752,6 +1765,17 @@
     // ==============================
     // Render
     // ==============================
+
+    function isEditingCriticalInput() {
+      const active = document.activeElement;
+      if (!active) return false;
+      const id = active.id || "";
+      if (id === "name-input" || id === "guess-input" || id === "custom-words") return true;
+      if (id.startsWith("clue-input-")) return true;
+      if (active.tagName === "TEXTAREA") return true;
+      return false;
+    }
+
     function render() {
       updateSoundButton();
       renderHud();
@@ -1760,18 +1784,48 @@
       const container = document.getElementById("game-content");
       if (!container) return;
 
+      // ヒント入力中は他メンバーの更新で入力欄を破壊しない
+      if (
+        isEditingCriticalInput() &&
+        gameState?.phase === "clue" &&
+        !isGuesser() &&
+        getPlayerClues(myName).length < currentClueCount()
+      ) {
+        return;
+      }
+
       if (!myName) return renderJoin(container);
       if (!gameState || gameState.phase === "setup") return renderSetup(container);
 
       if (gameState.phase === "clue") return renderClue(container);
       if (gameState.phase === "review") return renderReview(container);
       if (gameState.phase === "guess") return renderGuess(container);
+      if (gameState.phase === "answerReview") return renderAnswerReview(container);
       if (gameState.phase === "roundResult") return renderRoundResult(container);
       if (gameState.phase === "finalResult") return renderFinalResult(container);
 
       container.innerHTML = `<div class="card rounded-[2rem] p-8 text-center fade-in">
         <p class="font-black text-slate-500">不明な状態です</p>
         ${isHost() ? `<button onclick="backToSetup()" class="btn btn-primary w-full mt-5">待機画面へ戻る</button>` : ""}
+      </div>`;
+    }
+
+
+    function clueCardHtml(key, c, invalid = false, compact = false) {
+      const color = getMemberColor(c.name || "");
+      return `<div class="rounded-2xl p-3 text-center font-black ${compact ? "text-sm" : "text-base"} ${invalid ? "bg-slate-100 text-slate-400 line-through" : ""}" style="${invalid ? "" : `background:${color}14;color:${color};border:1px solid ${color}33`}">
+        <div>${escapeHtml(c.text || "")}</div>
+        <div class="text-[8px] opacity-60 mt-1 no-underline">${escapeHtml(c.name || "")}さん</div>
+      </div>`;
+    }
+
+    function renderClueStatusList(showInvalidState = false) {
+      const clues = gameState?.clues || {};
+      const invalidMap = showInvalidState ? computeInvalidMap() : {};
+      const entries = Object.entries(clues).filter(([_, c]) => c?.text);
+      if (!entries.length) return `<div class="text-center text-slate-300 text-xs font-black p-5">まだヒントはありません</div>`;
+      return `<div class="grid grid-cols-2 gap-2">
+        ${entries.map(([key, c]) => clueCardHtml(key, c, !!invalidMap[key], true)).join("")}
       </div>`;
     }
 
@@ -1796,6 +1850,7 @@
         clue: "ヒント入力",
         review: "重複判定",
         guess: "回答中",
+        answerReview: "正誤判定",
         roundResult: "結果確認",
         finalResult: "最終結果"
       })[gameState.phase] || gameState.phase;
@@ -2009,11 +2064,20 @@
       }
 
       if (!isJudge()) {
-        container.innerHTML = `<section class="card rounded-[2.6rem] p-8 text-center fade-in">
-          <div class="text-5xl mb-4 pulse-soft">👀</div>
-          <div class="mini-label justify-center mb-4">WAITING</div>
-          <h2 class="text-xl font-black mb-3">判定者が確認中</h2>
-          <p class="text-sm font-bold text-slate-500 leading-relaxed">自分のヒントが無効になるかもしれません。<br>少し待ってください。</p>
+        container.innerHTML = `<section class="space-y-4 fade-in">
+          <div class="card rounded-[2.4rem] p-6 text-center">
+            <div class="text-5xl mb-4 pulse-soft">👀</div>
+            <div class="mini-label justify-center mb-4">JUDGING</div>
+            <h2 class="text-xl font-black mb-3">判定者が確認中</h2>
+            <p class="text-sm font-bold text-slate-500 leading-relaxed">
+              出そろったヒントと有効/無効の状況を見ながら待てます。<br>
+              回答者にはまだ見えていません。
+            </p>
+          </div>
+          <div class="card rounded-[2rem] p-5 text-left">
+            <div class="mini-label mb-3">HINT STATUS</div>
+            ${renderClueStatusList(true)}
+          </div>
         </section>`;
         return;
       }
@@ -2069,7 +2133,7 @@
           <h2 class="text-xl font-black mb-3">${escapeHtml(getGuesser())}さんが回答中</h2>
           <p class="text-sm font-bold text-slate-500 leading-relaxed">回答を待っています。</p>
           <div class="mt-6 grid grid-cols-2 gap-2">
-            ${validClues.map(c => `<div class="rounded-2xl p-3 font-black text-sm" style="background:${getMemberColor(c.name)}14;color:${getMemberColor(c.name)};border:1px solid ${getMemberColor(c.name)}33">${escapeHtml(c.text)}</div>`).join("") || `<div class="col-span-2 text-slate-300 text-xs font-black p-5">有効ヒントがありません</div>`}
+            ${validClues.map(c => clueCardHtml(c.key, c, false, true)).join("") || `<div class="col-span-2 text-slate-300 text-xs font-black p-5">有効ヒントがありません</div>`}
           </div>
         </section>`;
         return;
@@ -2080,7 +2144,10 @@
           <div class="mini-label justify-center mb-4">VALID HINTS</div>
           <h2 class="text-xl font-black mb-5">このヒントからお題を当ててください</h2>
           <div class="grid grid-cols-2 gap-3">
-            ${validClues.map(c => `<div class="rounded-[1.5rem] bg-white border-2 p-4 font-black text-xl shadow-sm pop" style="border-color:${getMemberColor(c.name)}55;color:${getMemberColor(c.name)}">${escapeHtml(c.text)}</div>`).join("") || `<div class="col-span-2 rounded-[1.5rem] bg-slate-50 text-slate-300 p-8 font-black">有効ヒントなし</div>`}
+            ${validClues.map(c => `<div class="rounded-[1.5rem] bg-white border-2 p-4 font-black text-xl shadow-sm pop" style="border-color:${getMemberColor(c.name)}55;color:${getMemberColor(c.name)}">
+              <div>${escapeHtml(c.text)}</div>
+              <div class="text-[9px] opacity-60 mt-1">${escapeHtml(c.name || "")}さん</div>
+            </div>`).join("") || `<div class="col-span-2 rounded-[1.5rem] bg-slate-50 text-slate-300 p-8 font-black">有効ヒントなし</div>`}
           </div>
         </div>
 
@@ -2094,6 +2161,72 @@
       </section>`;
       setTimeout(() => document.getElementById("guess-input")?.focus(), 80);
     }
+
+
+    function renderAnswerReview(container) {
+      const word = gameState.words[(gameState.currentRound || 1) - 1] || "";
+      const guesser = getGuesser();
+      const canJudge = isHost() || isJudge();
+
+      if (isGuesser()) {
+        container.innerHTML = `<section class="card rounded-[2.6rem] p-8 text-center fade-in">
+          <div class="text-5xl mb-4 pulse-soft">⏳</div>
+          <div class="mini-label justify-center mb-4">CHECKING ANSWER</div>
+          <h2 class="text-2xl font-black mb-3">回答を判定中です</h2>
+          <p class="text-sm font-bold text-slate-500 leading-relaxed">
+            まだ正解/不正解は表示しません。<br>
+            判定者の確認後に結果が出ます。
+          </p>
+          <div class="mt-6 rounded-[1.5rem] bg-slate-50 p-4">
+            <div class="text-[9px] font-black text-slate-400 tracking-widest">あなたの回答</div>
+            <div class="text-2xl font-black text-slate-700">${escapeHtml(gameState.guess || "")}</div>
+          </div>
+        </section>`;
+        return;
+      }
+
+      container.innerHTML = `<section class="space-y-4 fade-in">
+        <div class="card rounded-[2.6rem] p-7 text-center">
+          <div class="mini-label justify-center mb-3">ANSWER JUDGE</div>
+          <h2 class="text-2xl font-black mb-5">正誤を確認してください</h2>
+          <div class="grid grid-cols-2 gap-3 text-left">
+            <div class="rounded-[1.4rem] bg-emerald-50 p-4">
+              <div class="text-[9px] font-black text-slate-400 tracking-widest">お題</div>
+              <div class="text-xl font-black text-emerald-700">${escapeHtml(word)}</div>
+            </div>
+            <div class="rounded-[1.4rem] bg-cyan-50 p-4">
+              <div class="text-[9px] font-black text-slate-400 tracking-widest">回答</div>
+              <div class="text-xl font-black text-cyan-700">${escapeHtml(gameState.guess || "")}</div>
+            </div>
+          </div>
+          <p class="text-[11px] font-bold text-slate-400 mt-4">
+            自動判定は「${gameState.pendingCorrect ? "正解" : "不正解"}」です。必要なら調整してください。
+          </p>
+        </div>
+
+        <div class="card rounded-[2rem] p-5 text-left">
+          <div class="mini-label mb-3">有効ヒント</div>
+          ${renderClueStatusList(true)}
+        </div>
+
+        ${canJudge ? `<div class="card rounded-[2rem] p-5">
+          <div class="mini-label mb-3">最終判定</div>
+          <div class="grid grid-cols-2 gap-2 mb-3">
+            <button onclick="setPendingCorrect(true)" class="btn ${gameState.pendingCorrect ? "btn-primary" : "btn-soft"} text-sm">正解にする</button>
+            <button onclick="setPendingCorrect(false)" class="btn ${!gameState.pendingCorrect ? "btn-bad" : "btn-ghost"} text-sm">不正解にする</button>
+          </div>
+          <button onclick="showRoundResult()" class="btn btn-dark w-full">結果を全員に表示</button>
+        </div>` : `<div class="card rounded-[2rem] p-6 text-center">
+          <p class="text-sm font-black text-slate-500">判定者が正誤確認中です</p>
+        </div>`}
+      </section>`;
+    }
+
+    function showRoundResult() {
+      if (!(isHost() || isJudge())) return;
+      roomRef.update({ phase: "roundResult" });
+    }
+
 
     function renderRoundResult(container) {
       const word = gameState.words[(gameState.currentRound || 1) - 1] || "";
