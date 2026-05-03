@@ -31,7 +31,7 @@
     <div id="footer-reset" class="max-w-md mx-auto w-full py-8 text-center space-y-4">
         <div id="host-force-area"></div>
         <button onclick="allReset()" class="text-[10px] text-slate-300 hover:text-red-400 font-bold uppercase tracking-widest transition-colors">
-            --- Room Dissolution ---
+            ルームを解散
         </button>
     </div>
 
@@ -52,14 +52,16 @@
                 "レスポンスが速そう", "人を惹きつけそう", "ピンチをチャンスに変えそう", "計算が速そう", "論理的な説明が上手そう",
                 "決断に迷いがなそう", "仕事ができそう", "周囲盛り上げるのが上手そう", "根回しや調整が完璧そう", "独自のキャリアプランを持ってそう",
                 "コミュ力が高そう", "仕事を楽しんでやってそう", "自分の独特なペースを持っていそう", "人脈を広げるのが上手そう", "メンタルが安定してそう",
-                "人のサポートが得意そう", "街中で声をかけられることが多そう", "日記を書いていそう", "楽器が弾けそう", "初見の人に好かれそう", "人をよく観察していそう", "コミュ力が高そう"
+                "人のサポートが得意そう", "街中で声をかけられることが多そう", "日記を書いていそう", "楽器が弾けそう", "初見の人に好かれそう", "人をよく観察していそう", "コミュ力が高そう",
+                "旅行先で頼りになりそう", "集合写真でいつも良い位置にいそう", "LINEの返信がちょうど良さそう", "初対面でも場をやわらかくしそう", "実はかなり負けず嫌いそう", "お店選びのセンスが良さそう", "プレゼント選びが上手そう", "急なトラブルでも笑って対応しそう", "昔から先生に好かれてそう", "なぜか動物に好かれそう", "スマホの中が整理されてそう", "カラオケで意外な選曲をしそう", "イベントの裏方で活躍しそう", "財布の中がきれいそう", "一緒に旅行すると楽しそう"
             ],
             black: [
                 "腹黒そう", "怒ると怖そう", "嘘が上手そう", "私生活が謎そう", "浪費癖がありそう", 
                 "家ではズボラそう", "毒舌そう", "執念深そう",
                 "人を使うのが上手そう", "不倫しそう", "昔はやんちゃしてそう", "酔うと性格が変わりそう", "他人に興味なさそう",
                 "飽きっぽそう", "実は潔癖症そう", "意外と毒を吐きそう", "無意識に人を惑わせそう",
-                "弱みを見せなそう", "裏では繊細そう"
+                "弱みを見せなそう", "裏では繊細そう",
+                "お菓子を一口だけと言って半分食べそう", "寝坊してもなぜか間に合いそう", "セールに弱そう", "飲み会後に急に語り出しそう", "実は部屋に謎のこだわりがありそう", "スタンプだけで会話を終わらせそう", "旅行の荷物が多そう", "冷蔵庫に賞味期限ギリギリの物がありそう"
             ]
         };
         const COLORS = ["#6366f1", "#8b5cf6", "#a855f7", "#d946ef", "#ec4899", "#f43f5e", "#ef4444", "#f59e0b", "#10b981", "#06b6d4"];
@@ -143,6 +145,10 @@
                 myRole = (role === 'host' && snapshot.val()?.host === name) ? 'host' : 'guest';
                 localStorage.setItem("toiro-name", myName);
                 localStorage.setItem("toiro-role", myRole);
+
+                // 参加直後にFirebaseの再通知を待たず、即座に画面を切り替える
+                gameState = snapshot.val();
+                render();
             });
         }
 
@@ -203,6 +209,20 @@
 
         function allReset() { if (confirm("ルームを解散しますか？")) roomRef.remove(); }
 
+
+        function getResultComment(question, winners, votes) {
+            if (!winners.length || votes === 0) return "今回は決着つかず。逆に一番気になる結果です。";
+            const name = winners.join("さん & ") + "さん";
+            const comments = [
+                `${name}に票が集中。これは本人に理由を聞きたいところです。`,
+                `${name}のイメージが強めに出ました。本人の自己評価と合っているか注目です。`,
+                `${name}が選ばれました。ここから話が広がりそうです。`,
+                `${name}という結果に。周りからはそう見えているみたいです。`,
+                `${name}が最多票。納得か意外か、みんなで聞いてみましょう。`
+            ];
+            return comments[Math.floor(Math.random() * comments.length)];
+        }
+
         function render() {
             const container = document.getElementById('game-content');
             const forceArea = document.getElementById('host-force-area');
@@ -215,6 +235,7 @@
 
                 const hostExists = !!(gameState && gameState.host);
                 container.innerHTML = `<div class="bg-white p-8 rounded-3xl shadow-xl fade-in">
+                    <p class="text-[11px] text-slate-400 font-bold mb-4 leading-relaxed">最初の1人だけがホストです。<br>進行役以外はゲストで参加してください。</p>
                     <input id="name-input" type="text" placeholder="名前" class="w-full mb-6 border-2 p-4 rounded-2xl font-bold text-center outline-none focus:border-indigo-500">
                     <button onclick="joinGame('host')" class="w-full ${hostExists?'bg-slate-100 text-slate-400':'bg-indigo-600 text-white'} h-14 rounded-2xl font-bold mb-3" ${hostExists?'disabled':''}>${hostExists?'ホスト参加済み':'ホスト参加'}</button>
                     <button onclick="joinGame('guest')" class="w-full border-2 border-indigo-100 text-indigo-600 h-14 rounded-2xl font-bold">ゲスト参加</button>
@@ -273,6 +294,7 @@
                         <div class="text-[10px] font-bold text-indigo-300 mb-4 uppercase">Result</div>
                         <div class="text-4xl font-black text-slate-800 mb-2">${winners.length?winners.join(' & '):'該当者なし'}${winners.length?'<small class="san">さん</small>':''}</div>
                         <div class="text-[10px] font-bold text-indigo-400 tracking-widest">${max} VOTES</div>
+                        <div class="mt-5 text-[11px] font-bold text-slate-400 leading-relaxed">${getResultComment(q, winners, max)}</div>
                     </div>
                     ${correctGuessers.length > 0 ? `<div class="god-mode p-4 rounded-2xl mb-10 shadow-lg text-white font-black text-sm animate-bounce">✨ ${correctGuessers.join(', ')}さん 予想的中！<br>自己客観視の天才です！ ✨</div>` : ''}
                     ${myRole === 'host' ? `<button onclick="${rIdx < 9 ? 'roomRef.update({revealIdx: '+(rIdx+1)+'})' : 'roomRef.update({phase:\'result\'})'}" class="w-full bg-indigo-600 text-white h-16 rounded-2xl font-bold shadow-lg text-lg">NEXT ❯</button>` : ''}
