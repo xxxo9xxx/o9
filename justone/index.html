@@ -164,11 +164,70 @@
       to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
     }
 
+
+    .donut {
+      width: 188px;
+      height: 188px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      margin-inline: auto;
+      box-shadow: 0 18px 42px rgba(15,23,42,.12);
+      position: relative;
+    }
+    .donut::after {
+      content: "";
+      position: absolute;
+      width: 126px;
+      height: 126px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: inset 0 0 0 1px rgba(15,23,42,.06);
+    }
+    .donut-inner {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+
+    .round-dot {
+      width: 34px;
+      height: 34px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      font-weight: 900;
+      border: 1px solid rgba(15,23,42,.08);
+      box-shadow: 0 6px 12px rgba(15,23,42,.06);
+    }
+
+    .person-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 900;
+      border: 1px solid rgba(15,23,42,.08);
+      background: white;
+    }
+    .person-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 99px;
+      box-shadow: 0 0 0 3px rgba(255,255,255,.8);
+    }
+
     .bottom-safe { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
 
     @media (max-width: 420px) {
       .btn { min-height: 52px; border-radius: 18px; }
       .input { min-height: 54px; border-radius: 18px; }
+      .donut { width: 170px; height: 170px; }
+      .donut::after { width: 114px; height: 114px; }
+      .round-dot { width: 31px; height: 31px; border-radius: 11px; font-size: 13px; }
     }
   </style>
 </head>
@@ -238,6 +297,11 @@
       party: ["飲み会", "初恋", "遅刻", "黒歴史", "モテ期", "二次会", "上司", "同窓会", "カップル", "秘密", "寝坊", "修学旅行", "プレゼント", "告白", "失恋"]
     };
     let WORDS_DATA = JSON.parse(JSON.stringify(FALLBACK_WORDS));
+
+    const PERSON_COLORS = [
+      "#10b981", "#3b82f6", "#f59e0b", "#ec4899", "#8b5cf6",
+      "#ef4444", "#06b6d4", "#84cc16", "#f97316", "#14b8a6"
+    ];
 
     const TITLES = [
       { min: 100, text: "💖 運命共同体！神の絆 💖" },
@@ -351,19 +415,47 @@
     function isGuesser() { return getGuesser() === myName; }
     function isJudge() { return getJudge() === myName; }
 
-    function submittedClueCount() {
-      const clues = gameState?.clues || {};
-      return Object.keys(clues).filter(k => clues[k] && clues[k].text).length;
+    function getMemberColor(name) {
+      const members = getMembers();
+      let idx = members.indexOf(name);
+      if (idx < 0) idx = 0;
+      return PERSON_COLORS[idx % PERSON_COLORS.length];
+    }
+
+    function memberChip(name, suffix = "") {
+      const color = getMemberColor(name);
+      return `<span class="person-chip" style="border-color:${color}33;background:${color}10;color:${color}">
+        <span class="person-dot" style="background:${color}"></span>${escapeHtml(name)}${suffix}
+      </span>`;
+    }
+
+    function recommendedClueCount(memberCount) {
+      return memberCount <= 4 ? 2 : 1;
+    }
+
+    function currentClueCount() {
+      const setting = gameState?.clueCountMode || "auto";
+      if (setting === "two") return 2;
+      if (setting === "one") return 1;
+      return recommendedClueCount(getMembers().length);
     }
 
     function cluePlayersNeeded() {
       return getMembers().filter(m => m !== getGuesser());
     }
 
-    function everyoneSubmittedClues() {
+    function getPlayerClues(name, cluesObj = gameState?.clues || {}) {
+      const prefix = uidName(name) + "_";
+      return Object.entries(cluesObj)
+        .filter(([key, c]) => key.startsWith(prefix) && c?.text)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, c]) => ({ key, ...c }));
+    }
+
+    function submittedPlayerCount() {
       const needed = cluePlayersNeeded();
-      const clues = gameState?.clues || {};
-      return needed.length > 0 && needed.every(m => clues[uidName(m)]?.text);
+      const count = currentClueCount();
+      return needed.filter(m => getPlayerClues(m).length >= count).length;
     }
 
     function phaseKey() {
@@ -533,15 +625,23 @@
 
     function allReset() {
       if (!confirm("ルームを解散しますか？全員の進行データが消えます。")) return;
-      roomRef.remove();
-      playSound("bad");
-      setTimeout(() => location.reload(), 300);
+      roomRef.remove().finally(() => {
+        localStorage.removeItem("jod-name");
+        localStorage.removeItem("jod-role");
+        myName = "";
+        myRole = "";
+        gameState = null;
+        playSound("bad");
+        render();
+        showToast("ルームを解散しました");
+      });
     }
 
     function startGame() {
       if (!isHost()) return;
       const mode = document.getElementById("word-mode")?.value || "standard";
-      const rounds = Math.max(1, Math.min(30, parseInt(document.getElementById("rounds-input")?.value || "10", 10)));
+      const rounds = Math.max(1, Math.min(30, parseInt(document.getElementById("rounds-input")?.value || "13", 10)));
+      const clueCountMode = document.getElementById("hint-count-mode")?.value || "auto";
       const customText = document.getElementById("custom-words")?.value || "";
       const customWords = customText.split(/\n|,|、/).map(s => s.trim()).filter(Boolean);
 
@@ -566,6 +666,7 @@
         score: 0,
         words: shuffled,
         wordMode: mode,
+        clueCountMode,
         guesserIdx: 0,
         clues: {},
         manualInvalid: {},
@@ -578,30 +679,47 @@
     }
 
     function submitClue() {
-      const input = document.getElementById("clue-input");
-      const text = input ? input.value.trim() : "";
-      if (!text) {
-        input?.classList.add("shake");
-        setTimeout(() => input?.classList.remove("shake"), 350);
-        playSound("bad");
-        return;
-      }
       if (isGuesser()) return;
-      roomRef.child(`clues/${uidName(myName)}`).set({
-        name: myName,
-        text,
-        norm: normalizeAnswer(text),
-        at: Date.now()
-      }).then(() => {
-        input.blur();
+
+      const count = currentClueCount();
+      const values = [];
+      for (let i = 0; i < count; i++) {
+        const input = document.getElementById(`clue-input-${i}`);
+        const text = input ? input.value.trim() : "";
+        if (!text) {
+          input?.classList.add("shake");
+          setTimeout(() => input?.classList.remove("shake"), 350);
+          playSound("bad");
+          return;
+        }
+        values.push(text);
+      }
+
+      const updates = {};
+      values.forEach((text, i) => {
+        updates[`clues/${uidName(myName)}_${i}`] = {
+          name: myName,
+          slot: i,
+          text,
+          norm: normalizeAnswer(text),
+          at: Date.now()
+        };
+      });
+
+      roomRef.update(updates).then(() => {
+        values.forEach((_, i) => document.getElementById(`clue-input-${i}`)?.blur());
         playSound("submit");
         roomRef.transaction(curr => {
           if (!curr || curr.phase !== "clue") return curr;
           const members = curr.members || [];
           const guesser = members[(curr.guesserIdx || 0) % members.length];
           const needed = members.filter(m => m !== guesser);
+          const clueCount = curr.clueCountMode === "two" ? 2 : curr.clueCountMode === "one" ? 1 : (members.length <= 4 ? 2 : 1);
           const clues = curr.clues || {};
-          const done = needed.every(m => clues[uidName(m)] && clues[uidName(m)].text);
+          const done = needed.every(m => {
+            const prefix = uidName(m) + "_";
+            return Object.entries(clues).filter(([key, c]) => key.startsWith(prefix) && c && c.text).length >= clueCount;
+          });
           if (done) {
             curr.phase = "review";
             curr.manualInvalid = curr.manualInvalid || {};
@@ -847,9 +965,9 @@
           <div class="text-sm font-black text-slate-800 truncate">${escapeHtml(guesser)}</div>
         </div>
       </div>
-      <div class="mt-2 text-[10px] text-slate-400 font-black flex justify-between">
-        <span>回答者：${escapeHtml(guesser)}さん</span>
-        <span>判定者：${escapeHtml(judge)}さん</span>
+      <div class="mt-2 flex flex-wrap justify-between gap-2">
+        ${memberChip(guesser, " 回答者")}
+        ${memberChip(judge, " 判定者")}
       </div>`;
     }
 
@@ -927,14 +1045,21 @@
         </select>
 
         <label class="block text-xs font-black text-slate-500 mb-2">問題数</label>
-        <input id="rounds-input" type="number" min="1" max="30" value="10" class="input mb-4" />
+        <input id="rounds-input" type="number" min="1" max="30" value="13" class="input mb-4" />
+
+        <label class="block text-xs font-black text-slate-500 mb-2">ヒント数</label>
+        <select id="hint-count-mode" class="input mb-4">
+          <option value="auto" selected>自動おすすめ（3〜4人は2ヒント、5人以上は1ヒント）</option>
+          <option value="one">1人1ヒント</option>
+          <option value="two">1人2ヒント</option>
+        </select>
 
         <label class="block text-xs font-black text-slate-500 mb-2">カスタムワード追加 任意</label>
         <textarea id="custom-words" class="input min-h-[96px] mb-5 resize-none" placeholder="1行に1つ、または読点区切りで追加できます"></textarea>
 
         <button onclick="startGame()" class="btn btn-primary w-full text-lg">ゲーム開始！</button>
         <p class="text-[10px] leading-relaxed text-slate-400 font-bold mt-4">
-          回答者はお題を見られません。ホストが回答者の回は、次の人が代理判定者になります。
+          デフォルトは13ラウンド。回答者はお題を見られません。ホストが回答者の回は、次の人が代理判定者になります。
         </p>
       </div>`;
     }
@@ -944,40 +1069,41 @@
       const guesser = getGuesser();
       const judge = getJudge();
       const needed = cluePlayersNeeded();
-      const doneCount = submittedClueCount();
+      const doneCount = submittedPlayerCount();
       const totalNeeded = needed.length;
+      const clueCount = currentClueCount();
       const clues = gameState.clues || {};
-      const myKey = uidName(myName);
-      const myClue = clues[myKey]?.text;
+      const myClues = getPlayerClues(myName, clues);
 
       if (isGuesser()) {
         container.innerHTML = `<section class="card rounded-[2.6rem] p-8 text-center fade-in">
           <div class="text-5xl mb-4 pulse-soft">🙈</div>
           <div class="mini-label justify-center mb-4">YOU ARE GUESSER</div>
           <h2 class="text-2xl font-black mb-3">あなたが回答者です</h2>
+          <div class="mb-4">${memberChip(guesser, " が回答者")}</div>
           <p class="text-sm font-bold text-slate-500 leading-relaxed">お題は見えません。<br>みんながヒントを書き終わるまで待ってください。</p>
           <div class="mt-7 rounded-[2rem] bg-emerald-50 p-5">
             <div class="text-3xl font-black text-emerald-600">${doneCount}/${totalNeeded}</div>
-            <div class="text-[10px] font-black text-slate-400 tracking-widest">HINTS READY</div>
+            <div class="text-[10px] font-black text-slate-400 tracking-widest">PLAYERS READY / ${clueCount} HINT${clueCount > 1 ? "S" : ""}</div>
           </div>
         </section>`;
         return;
       }
 
-      if (myClue) {
+      if (myClues.length >= clueCount) {
         container.innerHTML = `<section class="card rounded-[2.6rem] p-8 text-center fade-in">
           <div class="text-5xl mb-4">✅</div>
           <div class="mini-label justify-center mb-4">SUBMITTED</div>
           <h2 class="text-xl font-black mb-2">ヒント送信済み</h2>
-          <div class="my-5 inline-flex px-6 py-4 rounded-[1.5rem] bg-emerald-50 border border-emerald-100 text-emerald-700 text-2xl font-black">
-            ${escapeHtml(myClue)}
+          <div class="my-5 flex flex-wrap justify-center gap-2">
+            ${myClues.map(c => `<span class="inline-flex px-5 py-3 rounded-[1.5rem] bg-emerald-50 border border-emerald-100 text-emerald-700 text-xl font-black">${escapeHtml(c.text)}</span>`).join("")}
           </div>
           <p class="text-xs font-bold text-slate-400">全員の入力を待っています。</p>
           <div class="mt-7 rounded-[2rem] bg-slate-50 p-5">
             <div class="text-3xl font-black text-emerald-600">${doneCount}/${totalNeeded}</div>
-            <div class="text-[10px] font-black text-slate-400 tracking-widest">HINTS READY</div>
+            <div class="text-[10px] font-black text-slate-400 tracking-widest">PLAYERS READY</div>
           </div>
-          ${isHost() ? `<div class="mt-4 text-[11px] text-slate-400 font-bold">未入力：${needed.filter(m => !clues[uidName(m)]?.text).map(escapeHtml).join("、") || "なし"}</div>` : ""}
+          ${isHost() ? `<div class="mt-4 text-[11px] text-slate-400 font-bold">未入力：${needed.filter(m => getPlayerClues(m, clues).length < clueCount).map(escapeHtml).join("、") || "なし"}</div>` : ""}
         </section>`;
         return;
       }
@@ -989,16 +1115,17 @@
             <div class="text-[10px] font-black opacity-70 tracking-widest mb-2">お題</div>
             <h2 class="text-4xl font-black tracking-tight">${escapeHtml(word)}</h2>
           </div>
+          <div class="mb-4">${memberChip(guesser, " が回答者")}</div>
           <p class="text-xs font-bold text-slate-500 leading-relaxed">
-            回答者「${escapeHtml(guesser)}さん」に伝わる、<br>かぶらなそうなヒントを1つ書いてください。
+            回答者に伝わる、かぶらなそうなヒントを${clueCount}つ書いてください。
           </p>
         </div>
 
         <div class="card rounded-[2.2rem] p-5">
-          <input id="clue-input" class="input text-center text-xl mb-4" placeholder="ヒントを入力" autocomplete="off" maxlength="20" />
+          ${Array.from({length: clueCount}).map((_, i) => `<input id="clue-input-${i}" class="input text-center text-xl mb-3" placeholder="ヒント${i+1}" autocomplete="off" maxlength="20" />`).join("")}
           <button onclick="submitClue()" class="btn btn-primary w-full">ヒントを送信</button>
           <p class="text-[10px] leading-relaxed text-slate-400 font-bold mt-4">
-            空白・カタカナ/ひらがな・一部表記ゆれは自動で同一判定します。最終的には判定者が調整できます。
+            3〜4人では2ヒント推奨。空白・カタカナ/ひらがな・一部表記ゆれは自動で同一判定します。
           </p>
         </div>
 
@@ -1007,7 +1134,7 @@
           <p class="text-[10px] font-bold text-slate-400 mt-1">ホストが回答者のときは自動で代理判定者になります</p>
         </div>
       </section>`;
-      setTimeout(() => document.getElementById("clue-input")?.focus(), 80);
+      setTimeout(() => document.getElementById("clue-input-0")?.focus(), 80);
     }
 
     function renderReview(container) {
@@ -1053,9 +1180,10 @@
           ${entries.map(([key, c]) => {
             const inv = !!invalidMap[key];
             const autoDup = Object.values(groups).some(g => g.length >= 2 && g.some(x => x.key === key));
-            return `<button onclick="toggleInvalid('${key}')" class="w-full card rounded-[1.7rem] p-4 text-left flex items-center justify-between gap-3 ${inv ? "invalid" : ""}">
+            const color = getMemberColor(c.name || key);
+            return `<button onclick="toggleInvalid('${key}')" class="w-full card rounded-[1.7rem] p-4 text-left flex items-center justify-between gap-3 ${inv ? "invalid" : ""}" style="border-left:8px solid ${color}">
               <div>
-                <div class="text-[10px] font-black text-slate-400 mb-1">${escapeHtml(c.name || key)}さん ${autoDup ? " / 自動重複候補" : ""}</div>
+                <div class="text-[10px] font-black mb-1" style="color:${color}">${escapeHtml(c.name || key)}さん ${autoDup ? " / 自動重複候補" : ""}</div>
                 <div class="text-2xl font-black">${escapeHtml(c.text)}</div>
               </div>
               <div class="shrink-0 rounded-2xl px-3 py-2 text-xs font-black ${inv ? "bg-slate-300 text-slate-600" : "bg-emerald-100 text-emerald-700"}">
@@ -1080,7 +1208,7 @@
       const invalidMap = computeInvalidMap();
       const validClues = Object.entries(gameState.clues || {})
         .filter(([key, c]) => c?.text && !invalidMap[key])
-        .map(([key, c]) => c.text);
+        .map(([key, c]) => ({ key, ...c }));
 
       if (!isGuesser()) {
         container.innerHTML = `<section class="card rounded-[2.6rem] p-8 text-center fade-in">
@@ -1089,7 +1217,7 @@
           <h2 class="text-xl font-black mb-3">${escapeHtml(getGuesser())}さんが回答中</h2>
           <p class="text-sm font-bold text-slate-500 leading-relaxed">回答を待っています。</p>
           <div class="mt-6 grid grid-cols-2 gap-2">
-            ${validClues.map(c => `<div class="rounded-2xl bg-emerald-50 text-emerald-700 p-3 font-black text-sm">${escapeHtml(c)}</div>`).join("") || `<div class="col-span-2 text-slate-300 text-xs font-black p-5">有効ヒントがありません</div>`}
+            ${validClues.map(c => `<div class="rounded-2xl p-3 font-black text-sm" style="background:${getMemberColor(c.name)}14;color:${getMemberColor(c.name)};border:1px solid ${getMemberColor(c.name)}33">${escapeHtml(c.text)}</div>`).join("") || `<div class="col-span-2 text-slate-300 text-xs font-black p-5">有効ヒントがありません</div>`}
           </div>
         </section>`;
         return;
@@ -1100,7 +1228,7 @@
           <div class="mini-label justify-center mb-4">VALID HINTS</div>
           <h2 class="text-xl font-black mb-5">このヒントからお題を当ててください</h2>
           <div class="grid grid-cols-2 gap-3">
-            ${validClues.map(c => `<div class="rounded-[1.5rem] bg-white border-2 border-emerald-100 text-emerald-700 p-4 font-black text-xl shadow-sm pop">${escapeHtml(c)}</div>`).join("") || `<div class="col-span-2 rounded-[1.5rem] bg-slate-50 text-slate-300 p-8 font-black">有効ヒントなし</div>`}
+            ${validClues.map(c => `<div class="rounded-[1.5rem] bg-white border-2 p-4 font-black text-xl shadow-sm pop" style="border-color:${getMemberColor(c.name)}55;color:${getMemberColor(c.name)}">${escapeHtml(c.text)}</div>`).join("") || `<div class="col-span-2 rounded-[1.5rem] bg-slate-50 text-slate-300 p-8 font-black">有効ヒントなし</div>`}
           </div>
         </div>
 
@@ -1142,10 +1270,13 @@
         <div class="card rounded-[2rem] p-5">
           <div class="mini-label mb-3">HINTS</div>
           <div class="grid grid-cols-2 gap-2">
-            ${clueList.map(([key, c]) => `<div class="rounded-2xl p-3 text-center font-black text-sm ${invalidMap[key] ? "bg-slate-100 text-slate-400 line-through" : "bg-emerald-50 text-emerald-700"}">
-              ${escapeHtml(c.text)}
-              <div class="text-[8px] opacity-60 mt-1">${escapeHtml(c.name || "")}</div>
-            </div>`).join("")}
+            ${clueList.map(([key, c]) => {
+              const color = getMemberColor(c.name || "");
+              return `<div class="rounded-2xl p-3 text-center font-black text-sm ${invalidMap[key] ? "bg-slate-100 text-slate-400 line-through" : ""}" style="${invalidMap[key] ? "" : `background:${color}14;color:${color};border:1px solid ${color}33`}">
+                ${escapeHtml(c.text)}
+                <div class="text-[8px] opacity-60 mt-1">${escapeHtml(c.name || "")}</div>
+              </div>`;
+            }).join("")}
           </div>
         </div>
 
@@ -1168,32 +1299,71 @@
       const rate = Math.round((score / total) * 100);
       const title = TITLES.find(t => rate >= t.min)?.text || TITLES[TITLES.length - 1].text;
       const history = Object.values(gameState.history || {}).sort((a,b) => (a.round||0)-(b.round||0));
+      const degree = Math.round(rate * 3.6);
+      const bestStreak = (() => {
+        let best = 0, cur = 0;
+        history.forEach(h => { if (h.correct) { cur++; best = Math.max(best, cur); } else cur = 0; });
+        return best;
+      })();
 
       container.innerHTML = `<section class="space-y-4 fade-in">
         <div class="card rounded-[2.8rem] p-8 text-center">
           <div class="text-5xl mb-4">🏆</div>
           <div class="mini-label justify-center mb-3">FINAL RESULT</div>
-          <h2 class="text-3xl font-black mb-3">${escapeHtml(title)}</h2>
-          <div class="my-6">
-            <div class="text-6xl font-black text-emerald-600 tracking-tighter">${score}<span class="text-2xl text-slate-300">/${total}</span></div>
-            <div class="text-xs font-black text-slate-400 tracking-widest mt-1">正解率 ${rate}%</div>
+          <h2 class="text-3xl font-black mb-6">${escapeHtml(title)}</h2>
+
+          <div class="donut mb-6" style="background:conic-gradient(#10b981 0deg, #06b6d4 ${degree}deg, #e2e8f0 ${degree}deg 360deg)">
+            <div class="donut-inner">
+              <div class="text-4xl font-black text-emerald-600 tracking-tighter">${rate}%</div>
+              <div class="text-sm font-black text-slate-400">${score}/${total} 正解</div>
+            </div>
           </div>
-          <div class="h-5 rounded-full bg-slate-100 overflow-hidden border border-slate-100">
-            <div class="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full" style="width:${rate}%"></div>
+
+          <div class="h-6 rounded-full bg-slate-100 overflow-hidden border border-slate-100 mb-3">
+            <div class="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full transition-all" style="width:${rate}%"></div>
           </div>
+          <div class="flex justify-between text-[9px] font-black text-slate-400 px-1">
+            <span>0%</span><span>50% 合格</span><span>70% すごい</span><span>100%</span>
+          </div>
+
+          <div class="mt-6 grid grid-cols-2 gap-3">
+            <div class="rounded-[1.5rem] bg-emerald-50 p-4">
+              <div class="text-[9px] font-black text-slate-400 tracking-widest">BEST STREAK</div>
+              <div class="text-2xl font-black text-emerald-600">${bestStreak}連続</div>
+            </div>
+            <div class="rounded-[1.5rem] bg-cyan-50 p-4">
+              <div class="text-[9px] font-black text-slate-400 tracking-widest">ROUND</div>
+              <div class="text-2xl font-black text-cyan-600">${total}問</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card rounded-[2rem] p-5 text-left">
+          <div class="mini-label mb-3">13ラウンド結果</div>
+          <div class="grid grid-cols-7 gap-2">
+            ${Array.from({length: total}).map((_, i) => {
+              const h = history.find(x => Number(x.round) === i + 1);
+              const color = h ? getMemberColor(h.guesser || "") : "#cbd5e1";
+              return `<div class="round-dot ${h?.correct ? "text-white" : "text-slate-400 bg-slate-100"}" title="#${i+1}" style="${h?.correct ? `background:${color}` : ""}">${h ? (h.correct ? "○" : "×") : i+1}</div>`;
+            }).join("")}
+          </div>
+          <p class="text-[10px] font-bold text-slate-400 mt-3">色はそのラウンドの回答者と連動しています。</p>
         </div>
 
         <div class="card rounded-[2rem] p-5 text-left">
           <div class="mini-label mb-3">振り返り</div>
           <div class="space-y-2 max-h-[360px] overflow-auto pr-1">
-            ${history.map(h => `<div class="rounded-2xl bg-slate-50 border border-slate-100 p-3">
-              <div class="flex justify-between gap-2 items-center">
-                <div class="text-xs font-black text-slate-400">#${h.round} 回答者：${escapeHtml(h.guesser || "")}</div>
-                <div class="text-lg">${h.correct ? "⭕" : "❌"}</div>
-              </div>
-              <div class="font-black text-slate-800">お題：${escapeHtml(h.word || "")}</div>
-              <div class="text-xs font-bold text-slate-500">回答：${escapeHtml(h.guess || "")}</div>
-            </div>`).join("") || `<div class="text-center text-slate-300 font-black p-6">履歴がありません</div>`}
+            ${history.map(h => {
+              const color = getMemberColor(h.guesser || "");
+              return `<div class="rounded-2xl bg-slate-50 border border-slate-100 p-3" style="border-left:8px solid ${color}">
+                <div class="flex justify-between gap-2 items-center">
+                  <div class="text-xs font-black" style="color:${color}">#${h.round} 回答者：${escapeHtml(h.guesser || "")}</div>
+                  <div class="text-lg">${h.correct ? "⭕" : "❌"}</div>
+                </div>
+                <div class="font-black text-slate-800">お題：${escapeHtml(h.word || "")}</div>
+                <div class="text-xs font-bold text-slate-500">回答：${escapeHtml(h.guess || "")}</div>
+              </div>`;
+            }).join("") || `<div class="text-center text-slate-300 font-black p-6">履歴がありません</div>`}
           </div>
         </div>
 
@@ -1212,7 +1382,7 @@
       const active = document.activeElement;
       if (!active) return;
       if (active.id === "name-input") joinGame(document.querySelector("button[onclick=\"joinGame('host')\"]:disabled") ? "guest" : "host");
-      if (active.id === "clue-input") submitClue();
+      if (active.id && active.id.startsWith("clue-input-")) submitClue();
       if (active.id === "guess-input") submitGuess();
     });
 
