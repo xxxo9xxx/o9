@@ -81,6 +81,48 @@ function deleteLibraryQuestion(id){
 if(!confirm("この質問を完全に削除しますか？\\n通常は「使用する」をOFFにする方がおすすめです。"))return;
 libraryRef.child(id).remove().then(()=>toast("削除しました")).catch(e=>{console.error(e);toast("削除できませんでした")});
 }
+
+let adminFilterCategory = localStorage.getItem("hon-meter-admin-filter") || "all";
+let adminEditingId = "";
+function setAdminFilter(cat){
+adminFilterCategory = cat;
+localStorage.setItem("hon-meter-admin-filter", cat);
+adminEditingId = "";
+render();
+}
+function startEditQuestion(id){
+adminEditingId = id;
+render();
+setTimeout(()=>document.getElementById("editText-"+id)?.focus(),50);
+}
+function cancelEditQuestion(){
+adminEditingId = "";
+render();
+}
+function saveEditQuestion(id){
+const text=(document.getElementById("editText-"+id)?.value||"").trim();
+const category=document.getElementById("editCat-"+id)?.value||"custom";
+const enabled=document.getElementById("editEnabled-"+id)?.checked!==false;
+if(!text)return toast("質問が空です");
+libraryRef.child(id).update({text,category,enabled,updatedAt:Date.now()}).then(()=>{toast("更新しました");adminEditingId="";render()}).catch(e=>{console.error(e);toast("更新できませんでした")});
+}
+function filteredLibraryItems(){
+const items=libraryItems();
+if(adminFilterCategory==="all")return items;
+if(adminFilterCategory==="enabled")return items.filter(q=>q.enabled!==false);
+if(adminFilterCategory==="disabled")return items.filter(q=>q.enabled===false);
+return items.filter(q=>q.category===adminFilterCategory);
+}
+function categoryCount(cat){
+const items=libraryItems();
+if(cat==="all")return items.length;
+if(cat==="enabled")return items.filter(q=>q.enabled!==false).length;
+if(cat==="disabled")return items.filter(q=>q.enabled===false).length;
+return items.filter(q=>q.category===cat).length;
+}
+function toggleLibraryQuestionAndStay(id){
+toggleLibraryQuestion(id);
+}
 function exportQuestionsJSON(){
 const data=questionLibrary||{};
 const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
@@ -159,30 +201,109 @@ function toggleBgm(){bgmOn=!bgmOn;localStorage.setItem("hon-meter-bgm",bgmOn?"on
 function render(){const app=document.getElementById("app");document.getElementById("bgmBtn").textContent=bgmOn?"♪":"×";if(bgmOn&&!bgmTimer)startBgm();renderHud();if(urlRole()==="admin")return app.innerHTML=questionAdminView();if(!state)return app.innerHTML=hostCreateView();if(!state.participants?.[visitorId]&&!isHost())return app.innerHTML=guestJoinView();if(state.revealing){app.innerHTML=rollView();startVisualRoll();return}else stopVisualRoll();if(state.phase==="invite")return app.innerHTML=isHost()?hostInviteView():guestLobbyView("開始まで待っています");if(state.phase==="select")return app.innerHTML=questionSelectView();if(state.phase==="vote")return app.innerHTML=voteView();if(state.phase==="closed")return app.innerHTML=isHost()?hostClosedView():guestLobbyView("結果公開を待っています");if(state.phase==="result")return app.innerHTML=resultView();if(state.phase==="summary")return app.innerHTML=summaryView();app.innerHTML=hostCreateView()}
 function renderHud(){const hud=document.getElementById("hud");hud.innerHTML=`<div class="grid grid-cols-3 gap-2 text-center"><div class="rounded-2xl bg-white/10 border border-white/10 p-2"><div class="mini">ROOM</div><div class="font-black">${esc(roomId)}</div></div><div class="rounded-2xl bg-white/10 border border-white/10 p-2"><div class="mini">JOIN</div><div class="font-black">${participantsCount()}</div></div><div class="rounded-2xl bg-white/10 border border-white/10 p-2"><div class="mini">ROUND</div><div class="font-black">${completedCount()}/${totalQuestions()}</div></div></div>`}
 function questionAdminView(){
-const items=libraryItems();
-const enabledCount=items.filter(q=>q.enabled!==false).length;
+const allItems=libraryItems();
+const items=filteredLibraryItems();
+const enabledCount=allItems.filter(q=>q.enabled!==false).length;
+const cats=[
+["all","全部"],
+["papa","パパ友"],
+["work","職場"],
+["mix","男女混合"],
+["soft","ライト"],
+["custom","カスタム"],
+["enabled","ONのみ"],
+["disabled","OFFのみ"]
+];
 return `<section class="space-y-4 fade">
+
 <div class="glass card">
+<div class="flex items-start justify-between gap-3 mb-4">
+<div>
 <div class="mini mb-3">QUESTION MANAGER</div>
 <h2 class="text-3xl font-black mb-2">質問管理</h2>
-<p class="text-white/60 text-sm font-bold leading-relaxed mb-5">デフォルト40問もFirebaseへ登録して、ここから編集・ON/OFF・JSON管理できます。</p><p class="text-white/35 text-[11px] font-bold mb-5">保存先：rooms/_honneMeter_questionLibrary_v1</p>
+<p class="text-white/60 text-sm font-bold leading-relaxed">ジャンルを選んで、質問をON/OFFできます。編集したい質問だけ開いて直せます。</p>
+</div>
+<button onclick="backToHome()" class="btn btn-ghost min-h-[44px] px-4 text-sm shrink-0">戻る</button>
+</div>
 
-<div class="grid grid-cols-1 gap-3 mb-5">
-<button onclick="seedDefaultQuestions()" class="btn btn-gold">デフォルト40問をFirebaseへ登録</button>
+<div class="grid grid-cols-2 gap-3 text-center">
+<div class="rounded-[22px] bg-white/10 border border-white/10 p-4">
+<div class="mini">TOTAL</div>
+<div class="text-3xl font-black">${allItems.length}</div>
+</div>
+<div class="rounded-[22px] bg-white/10 border border-white/10 p-4">
+<div class="mini">使用中</div>
+<div class="text-3xl font-black text-amber-200">${enabledCount}</div>
+</div>
+</div>
+</div>
+
+<div class="glass card">
+<div class="mini mb-3">ジャンル選択</div>
+<div class="grid grid-cols-2 gap-2">
+${cats.map(([key,label])=>`
+<button onclick="setAdminFilter('${key}')" class="btn ${adminFilterCategory===key?"btn-gold":"btn-ghost"} min-h-[48px] text-sm">
+${label} <span class="opacity-60">(${categoryCount(key)})</span>
+</button>`).join("")}
+</div>
+</div>
+
+<div class="glass card">
+<div class="flex items-center justify-between gap-3 mb-4">
+<div>
+<div class="mini">QUESTION LIST</div>
+<h3 class="text-xl font-black">${cats.find(c=>c[0]===adminFilterCategory)?.[1]||"一覧"}の質問</h3>
+</div>
+<div class="text-sm font-black text-white/55">${items.length}件</div>
+</div>
+
+<div class="space-y-3">
+${items.map(item=>{
+const isEdit=adminEditingId===item.id;
+return isEdit?`
+<div class="rounded-[24px] bg-white/14 border border-amber-200/40 p-4">
+<div class="mini mb-2">編集中 / ${displayCategory(item.category)} ${item.isDefault?" / DEFAULT":""}</div>
+<textarea id="editText-${item.id}" class="input min-h-[96px] mb-3">${esc(item.text||"")}</textarea>
+<select id="editCat-${item.id}" class="select mb-3">
+${["custom","papa","work","mix","soft"].map(c=>`<option value="${c}" ${item.category===c?"selected":""}>${displayCategory(c)}</option>`).join("")}
+</select>
+<label class="flex items-center gap-3 rounded-2xl bg-white/10 border border-white/10 p-4 mb-3 font-black text-sm">
+<input id="editEnabled-${item.id}" type="checkbox" ${item.enabled!==false?"checked":""} class="scale-125">
+出題に使う
+</label>
 <div class="grid grid-cols-2 gap-3">
-<button onclick="exportQuestionsJSON()" class="btn btn-ghost">JSON書き出し</button>
-<button onclick="backToHome()" class="btn btn-ghost">戻る</button>
+<button onclick="saveEditQuestion('${item.id}')" class="btn btn-main">保存</button>
+<button onclick="cancelEditQuestion()" class="btn btn-ghost">キャンセル</button>
+</div>
+<button onclick="deleteLibraryQuestion('${item.id}')" class="btn btn-ghost w-full mt-3 text-rose-100">削除</button>
+</div>`:`
+<div class="rounded-[24px] bg-white/10 border border-white/10 p-4 ${item.enabled===false?"opacity-50":""}">
+<div class="flex items-start justify-between gap-3">
+<div class="flex-1 min-w-0">
+<div class="mini mb-1">${displayCategory(item.category)} ${item.isDefault?" / DEFAULT":""}</div>
+<div class="font-black leading-relaxed">${esc(item.text||"")}</div>
+</div>
+<label class="shrink-0 flex flex-col items-center gap-1 text-[10px] font-black text-white/60">
+<input type="checkbox" ${item.enabled!==false?"checked":""} onchange="toggleLibraryQuestionAndStay('${item.id}')" class="scale-150 mt-2">
+${item.enabled!==false?"ON":"OFF"}
+</label>
+</div>
+<div class="flex gap-2 mt-4">
+<button onclick="startEditQuestion('${item.id}')" class="btn btn-ghost min-h-[44px] text-sm flex-1">編集</button>
+</div>
+</div>`}).join("")||`<div class="text-center text-white/40 font-black py-8">このジャンルの質問はありません</div>`}
 </div>
 </div>
 
-<div class="rounded-[24px] bg-white/10 border border-white/10 p-4 mb-5">
-<div class="mini mb-2">JSON IMPORT</div>
-<textarea id="importJsonText" class="input min-h-[96px] mb-3" placeholder="JSONを貼り付けて一括読み込み"></textarea>
-<button onclick="importQuestionsJSON()" class="btn btn-main w-full">JSONを読み込む</button>
-</div>
+<details class="glass card">
+<summary class="flex items-center justify-between gap-3">
+<span><span class="mini block">ADD / IMPORT</span><span class="font-black">質問の追加・JSON・初期登録</span></span>
+<span class="text-2xl">＋</span>
+</summary>
 
+<div class="mt-5">
 <label class="mini">新しい質問</label>
-<textarea id="libText" class="input mt-2 mb-3 min-h-[100px]" placeholder="保存したい質問を入力"></textarea>
+<textarea id="libText" class="input mt-2 mb-3 min-h-[90px]" placeholder="保存したい質問を入力"></textarea>
 <label class="mini">カテゴリ</label>
 <select id="libCategory" class="select mt-2 mb-4">
 <option value="custom">カスタム</option>
@@ -191,35 +312,22 @@ return `<section class="space-y-4 fade">
 <option value="mix">男女混合</option>
 <option value="soft">ライト</option>
 </select>
-<button onclick="addLibraryQuestion()" class="btn btn-gold w-full">新規保存</button>
+<button onclick="addLibraryQuestion()" class="btn btn-gold w-full mb-5">新規保存</button>
+
+<div class="rounded-[24px] bg-white/10 border border-white/10 p-4 mb-4">
+<div class="mini mb-2">JSON IMPORT</div>
+<textarea id="importJsonText" class="input min-h-[90px] mb-3" placeholder="JSONを貼り付けて一括読み込み"></textarea>
+<button onclick="importQuestionsJSON()" class="btn btn-main w-full">JSONを読み込む</button>
 </div>
 
-<div class="glass card">
-<div class="mini mb-4">SAVED QUESTIONS / ${items.length}　使用中 ${enabledCount}</div>
-<div class="space-y-3">
-${items.map(item=>`
-<div class="rounded-[24px] bg-white/10 border border-white/10 p-4 ${item.enabled===false?"opacity-50":""}">
-<div class="flex items-center justify-between gap-3 mb-3">
-<div>
-<div class="mini">${displayCategory(item.category)} ${item.isDefault?" / DEFAULT":""}</div>
-<div class="text-[10px] text-white/35 font-black">${esc(item.id)}</div>
+<div class="grid grid-cols-1 gap-3">
+<button onclick="exportQuestionsJSON()" class="btn btn-ghost">JSON書き出し</button>
+<button onclick="seedDefaultQuestions()" class="btn btn-ghost text-white/60">デフォルト40問を再登録</button>
 </div>
-<label class="flex items-center gap-2 text-xs font-black">
-<input id="enabled-${item.id}" type="checkbox" ${item.enabled!==false?"checked":""} onchange="toggleLibraryQuestion('${item.id}')" class="scale-125">
-使用する
-</label>
+<p class="text-white/35 text-[11px] font-bold mt-3 leading-relaxed">保存先：rooms/_honneMeter_questionLibrary_v1<br>デフォルト再登録は上書き更新です。通常は使わなくてOKです。</p>
 </div>
-<textarea id="edit-${item.id}" class="input min-h-[86px] mb-3">${esc(item.text||"")}</textarea>
-<select id="cat-${item.id}" class="select mb-3">
-${["custom","papa","work","mix","soft"].map(c=>`<option value="${c}" ${item.category===c?"selected":""}>${displayCategory(c)}</option>`).join("")}
-</select>
-<div class="grid grid-cols-2 gap-3">
-<button onclick="updateLibraryQuestion('${item.id}')" class="btn btn-main">更新</button>
-<button onclick="deleteLibraryQuestion('${item.id}')" class="btn btn-ghost">削除</button>
-</div>
-</div>`).join("")||`<div class="text-center text-white/40 font-black py-8">保存済み質問はまだありません</div>`}
-</div>
-</div>
+</details>
+
 </section>`}
 function hostCreateView(){return `<section class="glass card fade"><div class="mini mb-3">HOST SETUP</div><h2 class="text-3xl font-black tracking-tight mb-2">ルームを作成</h2><p class="text-white/62 text-sm font-bold leading-relaxed mb-5">参加者は名前入力なし。誰が押したかは表示せず、人数だけを集計します。</p><label class="mini">質問セット</label><select id="setKey" class="select mt-2 mb-4">${Object.entries(QUESTION_SETS).map(([k,v])=>`<option value="${k}">${esc(v.name)} - ${esc(v.desc)}</option>`).join("")}</select><label class="mini">総質問数</label><input id="totalQuestions" type="number" value="5" min="1" max="30" class="input mt-2 mb-5" /><button onclick="initRoom()" class="btn btn-main w-full text-lg">ルーム起動</button><button onclick="openQuestionAdmin()" class="btn btn-ghost w-full mt-3">質問管理</button><p class="text-[11px] text-white/45 font-bold mt-3 leading-relaxed">質問管理で保存した質問を使います。未登録の場合は内蔵デフォルト質問を使います。</p></section>`}
 function guestJoinView(){return `<section class="glass card fade text-center"><div class="text-6xl mb-4 pulse">🎭</div><div class="mini mb-3">NO NAME / FULL ANONYMOUS</div><h2 class="text-3xl font-black mb-3">匿名で参加</h2><p class="text-white/62 font-bold text-sm leading-relaxed mb-6">名前は入力しません。<br>端末ごとの匿名IDで、二重投票だけ防ぎます。</p><button onclick="joinAnon()" class="btn btn-main w-full text-lg">参加する</button>${localStorage.getItem("hon-meter-host-"+roomId)==="1"?`<button onclick="openHostView()" class="btn btn-ghost w-full mt-3">ホスト画面に戻る</button>`:""}</section>`}
