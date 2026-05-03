@@ -89,21 +89,60 @@
             if (!gameState && myName) { 
                 localStorage.clear(); myName = ""; myRole = ""; location.reload(); 
             }
+
+            // localStorageに古いhost情報が残っていても、DB上のhost本人以外はゲスト扱いに戻す
+            if (gameState && myRole === 'host' && gameState.host && gameState.host !== myName) {
+                myRole = 'guest';
+                localStorage.setItem("toiro-role", "guest");
+            }
+
             render();
         });
 
         function joinGame(role) {
             const name = document.getElementById('name-input')?.value.trim();
             if (!name) return;
-            myName = name; myRole = role;
-            localStorage.setItem("toiro-name", name);
-            localStorage.setItem("toiro-role", role);
+
             roomRef.transaction((curr) => {
-                if (!curr) return { phase: 'setup', members: [name], host: (role==='host'?name:"") };
+                // ルームが存在しない場合だけ、最初のホスト作成を許可
+                if (!curr) {
+                    return {
+                        phase: 'setup',
+                        members: [name],
+                        host: (role === 'host' ? name : "")
+                    };
+                }
+
                 if (!curr.members) curr.members = [];
+
+                // すでにホストがいる場合、別名の人はホスト参加できない
+                if (role === 'host' && curr.host && curr.host !== name) {
+                    return; // transactionを中止
+                }
+
                 if (!curr.members.includes(name)) curr.members.push(name);
-                if (role === 'host') curr.host = name;
+
+                // ホストが未設定の場合だけホストを設定
+                if (role === 'host' && !curr.host) {
+                    curr.host = name;
+                }
+
                 return curr;
+            }, (error, committed, snapshot) => {
+                if (error) {
+                    alert("参加処理でエラーが発生しました。もう一度お試しください。");
+                    return;
+                }
+
+                if (!committed) {
+                    alert("このルームにはすでにホストがいます。ゲストとして参加してください。");
+                    return;
+                }
+
+                myName = name;
+                myRole = (role === 'host' && snapshot.val()?.host === name) ? 'host' : 'guest';
+                localStorage.setItem("toiro-name", myName);
+                localStorage.setItem("toiro-role", myRole);
             });
         }
 
@@ -177,8 +216,9 @@
                 const hostExists = !!(gameState && gameState.host);
                 container.innerHTML = `<div class="bg-white p-8 rounded-3xl shadow-xl fade-in">
                     <input id="name-input" type="text" placeholder="名前" class="w-full mb-6 border-2 p-4 rounded-2xl font-bold text-center outline-none focus:border-indigo-500">
-                    <button onclick="joinGame('host')" class="w-full ${hostExists?'bg-slate-100 text-slate-400':'bg-indigo-600 text-white'} h-14 rounded-2xl font-bold mb-3" ${hostExists?'disabled':''}>ホスト参加</button>
+                    <button onclick="joinGame('host')" class="w-full ${hostExists?'bg-slate-100 text-slate-400':'bg-indigo-600 text-white'} h-14 rounded-2xl font-bold mb-3" ${hostExists?'disabled':''}>${hostExists?'ホスト参加済み':'ホスト参加'}</button>
                     <button onclick="joinGame('guest')" class="w-full border-2 border-indigo-100 text-indigo-600 h-14 rounded-2xl font-bold">ゲスト参加</button>
+                    ${hostExists ? `<p class="mt-3 text-[10px] text-slate-400 font-bold">ホストは1人だけです。2人目以降はゲストで参加してください。</p>` : ''}
                 </div>`;
                 return;
             }
