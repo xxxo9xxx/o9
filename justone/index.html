@@ -218,7 +218,7 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const roomId = urlParams.get("room") || "default-room";
-    const roomRef = db.ref("justone_v4/" + roomId + "_deluxe");
+    const roomRef = db.ref("justone_v4/" + roomId);
     document.getElementById("room-display").innerText = "ROOM: " + roomId;
 
     // ==============================
