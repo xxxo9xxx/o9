@@ -289,6 +289,8 @@
     let lastPhaseKey = "";
     let soundEnabled = localStorage.getItem("jod-sound") === "on";
     let audioCtx = null;
+    let clueDrafts = {};
+    const MAX_PLAYERS = 10;
 
     const FALLBACK_WORDS = {
       "kids": [
@@ -1224,6 +1226,8 @@
     function isJudge() { return getJudge() === myName; }
 
     function getMemberColor(name) {
+      // 入室時にFirebaseへ保存した色を優先。途中参加や再読込でも固定されます。
+      if (gameState?.memberColors && gameState.memberColors[name]) return gameState.memberColors[name];
       const members = getMembers();
       let idx = members.indexOf(name);
       if (idx < 0) idx = 0;
@@ -1232,9 +1236,22 @@
 
     function memberChip(name, suffix = "") {
       const color = getMemberColor(name);
-      return `<span class="person-chip" style="border-color:${color}33;background:${color}10;color:${color}">
+      return `<span class="person-chip" style="border-color:${color}55;background:${color}12;color:${color}">
         <span class="person-dot" style="background:${color}"></span>${escapeHtml(name)}${suffix}
       </span>`;
+    }
+
+    function assignColorForName(curr, name) {
+      if (!curr.memberColors) curr.memberColors = {};
+      if (curr.memberColors[name]) return curr.memberColors[name];
+      const used = new Set(Object.values(curr.memberColors));
+      const index = (curr.members || []).indexOf(name);
+      let color = PERSON_COLORS[index % PERSON_COLORS.length];
+      for (const c of PERSON_COLORS) {
+        if (!used.has(c)) { color = c; break; }
+      }
+      curr.memberColors[name] = color;
+      return color;
     }
 
     function recommendedClueCount(memberCount) {
@@ -1367,6 +1384,7 @@
     loadWords().then(() => render());
 
     roomRef.on("value", snapshot => {
+      saveClueDraftFromInputs();
       gameState = snapshot.val();
 
       if (gameState && myRole === "host" && gameState.host && gameState.host !== myName) {
@@ -1386,18 +1404,6 @@
       }
       lastPhaseKey = pk;
 
-      // 入力中に他の人の送信で画面が再描画され、入力が消える問題を防ぐ
-      if (
-        isEditingCriticalInput() &&
-        gameState?.phase === "clue" &&
-        !isGuesser() &&
-        getPlayerClues(myName).length < currentClueCount()
-      ) {
-        renderHud();
-        renderHostTools();
-        return;
-      }
-
       render();
     });
 
@@ -1416,16 +1422,20 @@
 
       roomRef.transaction(curr => {
         if (!curr) {
-          return { phase: "setup", members: [name], host: role === "host" ? name : "", createdAt: Date.now() };
+          return { phase: "setup", members: [name], host: role === "host" ? name : "", memberColors: { [name]: PERSON_COLORS[0] }, createdAt: Date.now() };
         }
         if (!curr.members) curr.members = [];
         if (role === "host" && curr.host && curr.host !== name) return;
-        if (!curr.members.includes(name)) curr.members.push(name);
+        if (!curr.members.includes(name)) {
+          if (curr.members.length >= MAX_PLAYERS) return;
+          curr.members.push(name);
+        }
+        assignColorForName(curr, name);
         if (role === "host" && !curr.host) curr.host = name;
         return curr;
       }, (error, committed, snapshot) => {
         if (error) return alert("入室エラーです。もう一度お試しください。");
-        if (!committed) return alert("このルームにはすでにホストがいます。ゲストで入室してください。");
+        if (!committed) return alert("入室できませんでした。ホスト重複、または満員の可能性があります。上限は10人です。");
         myName = name;
         myRole = (role === "host" && snapshot.val()?.host === name) ? "host" : "guest";
         localStorage.setItem("jod-name", myName);
@@ -1441,6 +1451,7 @@
       localStorage.removeItem("jod-role");
       myName = "";
       myRole = "";
+      clearMyClueDrafts();
       render();
     }
 
@@ -1451,6 +1462,7 @@
         localStorage.removeItem("jod-role");
         myName = "";
         myRole = "";
+        clueDrafts = {};
         gameState = null;
         playSound("bad");
         render();
@@ -1534,6 +1546,7 @@
 
       roomRef.update(updates).then(() => {
         values.forEach((_, i) => document.getElementById(`clue-input-${i}`)?.blur());
+        clearMyClueDrafts();
         playSound("submit");
         roomRef.transaction(curr => {
           if (!curr || curr.phase !== "clue") return curr;
@@ -1766,6 +1779,40 @@
     // Render
     // ==============================
 
+
+    function saveClueDraftFromInputs() {
+      const count = currentClueCount();
+      if (!myName || !gameState || gameState.phase !== "clue") return;
+      if (!clueDrafts[roomId]) clueDrafts[roomId] = {};
+      if (!clueDrafts[roomId][myName]) clueDrafts[roomId][myName] = {};
+      for (let i = 0; i < count; i++) {
+        const el = document.getElementById(`clue-input-${i}`);
+        if (el) clueDrafts[roomId][myName][i] = el.value;
+      }
+    }
+
+    function getClueDraftValue(i) {
+      return clueDrafts?.[roomId]?.[myName]?.[i] || "";
+    }
+
+    function clearMyClueDrafts() {
+      if (clueDrafts?.[roomId]?.[myName]) delete clueDrafts[roomId][myName];
+    }
+
+    function attachClueDraftListeners() {
+      const count = currentClueCount();
+      for (let i = 0; i < count; i++) {
+        const el = document.getElementById(`clue-input-${i}`);
+        if (!el || el.dataset.draftBound === "1") continue;
+        el.dataset.draftBound = "1";
+        el.addEventListener("input", () => {
+          if (!clueDrafts[roomId]) clueDrafts[roomId] = {};
+          if (!clueDrafts[roomId][myName]) clueDrafts[roomId][myName] = {};
+          clueDrafts[roomId][myName][i] = el.value;
+        });
+      }
+    }
+
     function isEditingCriticalInput() {
       const active = document.activeElement;
       if (!active) return false;
@@ -1783,16 +1830,6 @@
 
       const container = document.getElementById("game-content");
       if (!container) return;
-
-      // ヒント入力中は他メンバーの更新で入力欄を破壊しない
-      if (
-        isEditingCriticalInput() &&
-        gameState?.phase === "clue" &&
-        !isGuesser() &&
-        getPlayerClues(myName).length < currentClueCount()
-      ) {
-        return;
-      }
 
       if (!myName) return renderJoin(container);
       if (!gameState || gameState.phase === "setup") return renderSetup(container);
@@ -1813,16 +1850,24 @@
 
     function clueCardHtml(key, c, invalid = false, compact = false) {
       const color = getMemberColor(c.name || "");
-      return `<div class="rounded-2xl p-3 text-center font-black ${compact ? "text-sm" : "text-base"} ${invalid ? "bg-slate-100 text-slate-400 line-through" : ""}" style="${invalid ? "" : `background:${color}14;color:${color};border:1px solid ${color}33`}">
-        <div>${escapeHtml(c.text || "")}</div>
-        <div class="text-[8px] opacity-60 mt-1 no-underline">${escapeHtml(c.name || "")}さん</div>
+      return `<div class="rounded-2xl p-3 text-center font-black ${compact ? "text-sm" : "text-base"}" style="background:${invalid ? "#f1f5f9" : color + "14"};color:${invalid ? "#94a3b8" : color};border:1px solid ${invalid ? "#cbd5e1" : color + "33"};">
+        <div class="${invalid ? "line-through" : ""}">${escapeHtml(c.text || "")}</div>
+        <div class="text-[8px] mt-1" style="color:${color};opacity:.85;text-decoration:none;">${escapeHtml(c.name || "")}さん ${invalid ? " / 無効" : " / 有効"}</div>
       </div>`;
     }
 
     function renderClueStatusList(showInvalidState = false) {
       const clues = gameState?.clues || {};
       const invalidMap = showInvalidState ? computeInvalidMap() : {};
-      const entries = Object.entries(clues).filter(([_, c]) => c?.text);
+      const members = getMembers();
+      const entries = Object.entries(clues)
+        .filter(([_, c]) => c?.text)
+        .sort(([ka, a], [kb, b]) => {
+          const ia = members.indexOf(a.name || "");
+          const ib = members.indexOf(b.name || "");
+          if (ia !== ib) return ia - ib;
+          return (a.slot || 0) - (b.slot || 0);
+        });
       if (!entries.length) return `<div class="text-center text-slate-300 text-xs font-black p-5">まだヒントはありません</div>`;
       return `<div class="grid grid-cols-2 gap-2">
         ${entries.map(([key, c]) => clueCardHtml(key, c, !!invalidMap[key], true)).join("")}
@@ -1916,7 +1961,7 @@
       const hostExists = !!gameState?.host;
       container.innerHTML = `<section class="space-y-4 fade-in">
         <div class="card rounded-[2.4rem] p-6 text-center">
-          <div class="mini-label justify-center mb-4">MEMBERS</div>
+          <div class="mini-label justify-center mb-4">MEMBERS / 最大10人</div>
           <div class="flex flex-wrap justify-center gap-2 mb-6">
             ${members.map(m => `<span class="px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 font-black text-xs">${escapeHtml(m)}${gameState?.host===m ? " 👑" : ""}</span>`).join("") || `<span class="text-slate-300 text-xs font-black">まだ参加者がいません</span>`}
           </div>
@@ -2029,7 +2074,7 @@
         </div>
 
         <div class="card rounded-[2.2rem] p-5">
-          ${Array.from({length: clueCount}).map((_, i) => `<input id="clue-input-${i}" class="input text-center text-xl mb-3" placeholder="ヒント${i+1}" autocomplete="off" maxlength="20" />`).join("")}
+          ${Array.from({length: clueCount}).map((_, i) => `<input id="clue-input-${i}" class="input text-center text-xl mb-3" placeholder="ヒント${i+1}" autocomplete="off" maxlength="20" value="${escapeHtml(getClueDraftValue(i))}" />`).join("")}
           <button onclick="submitClue()" class="btn btn-primary w-full">ヒントを送信</button>
           <p class="text-[10px] leading-relaxed text-slate-400 font-bold mt-4">
             3〜4人では2ヒント推奨。空白・カタカナ/ひらがな・一部表記ゆれは自動で同一判定します。
@@ -2041,7 +2086,7 @@
           <p class="text-[10px] font-bold text-slate-400 mt-1">ホストが回答者のときは自動で代理判定者になります</p>
         </div>
       </section>`;
-      setTimeout(() => document.getElementById("clue-input-0")?.focus(), 80);
+      setTimeout(() => { attachClueDraftListeners(); if (!document.activeElement?.id?.startsWith("clue-input-")) document.getElementById("clue-input-0")?.focus(); }, 80);
     }
 
     function renderReview(container) {
