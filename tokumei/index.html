@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>匿名本音メーター</title>
+  <title>匿名本音メーター Deluxe v2</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
@@ -35,7 +35,7 @@
   <div class="wrap"><header class="glass card sticky top-3 z-40 mb-4"><div class="flex items-center justify-between gap-3"><div class="min-w-0"><div class="mini">ANONYMOUS REAL VOICE</div><h1 class="title text-[34px] mt-1">匿名本音メーター</h1></div><div class="flex gap-2 shrink-0"><button onclick="toggleBgm()" id="bgmBtn" class="btn btn-ghost w-12 min-h-12">♪</button><button onclick="copyUrl()" class="btn btn-ghost w-12 min-h-12">🔗</button></div></div><div id="hud" class="mt-4"></div></header><main id="app"></main><footer class="pt-5 text-center"><button onclick="resetRoom()" class="text-[10px] font-black tracking-widest text-white/35 border border-white/10 rounded-full px-4 py-2">ROOM RESET</button></footer></div>
 <script>
 const firebaseConfig={apiKey:"AIzaSyBmzPmehSaV--mn0Hd0S-fd97nf5RX4Dvg",authDomain:"membertoiro.firebaseapp.com",databaseURL:"https://membertoiro-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"membertoiro",storageBucket:"membertoiro.firebasestorage.app",messagingSenderId:"858132874746",appId:"1:858132874746:web:9d6e1156a350dd396b9043"};firebase.initializeApp(firebaseConfig);const db=firebase.database();
-const params=new URLSearchParams(location.search);const roomId=params.get("room")||makeId(5);if(!params.get("room")){const u=new URL(location.href);u.searchParams.set("room",roomId);u.searchParams.set("view","host");history.replaceState(null,"",u)}const roomRef=db.ref("rooms/"+roomId+"_hon_meter_deluxe_v2");const libraryRef=db.ref("honneMeter/questionLibrary");let questionLibrary={};
+const params=new URLSearchParams(location.search);const roomId=params.get("room")||makeId(5);if(!params.get("room")){const u=new URL(location.href);u.searchParams.set("room",roomId);u.searchParams.set("view","host");history.replaceState(null,"",u)}const roomRef=db.ref("rooms/"+roomId+"_hon_meter_deluxe_v2");const libraryRef=db.ref("rooms/_honneMeter_questionLibrary_v1");let questionLibrary={};
 const QUESTION_SETS={papa:{name:"パパ友セット",desc:"笑えるけど少し刺さる、大人の本音",questions:["この年になって本音で話せる友達がほぼいない","実は見栄を張って生きてる部分がある","SNSで元カノを検索したことがある","今の仕事を辞めたいと思ったことがある","正直結婚に後悔したことがある","家に帰りたくないと思うことがある","仕事を育児の逃げ場にしてる（現在進行形）","奥さん以外に気になる人ができたことがある","子育てで本気で泣いたことがある","若い頃の自分に戻りたいと思うことがある"]},work:{name:"職場セット",desc:"会社では言いにくい本音を匿名で",questions:["今の会社を辞めたいと思ってる（現在進行形）","上司を心底尊敬できないと思ったことがある","社内に好きな人ができたことがある","仕事でミスをうまく誤魔化したことがある","同期に嫉妬したことがある","給料に不満がある","実力じゃなく要領で乗り切ったことがある","この中に苦手な人がいる","転職・独立を本気で考えてる","仕事よりプライベートを優先して後悔したことがある"]},mix:{name:"男女混合セット",desc:"飲み会の空気が一気に変わる恋愛寄り",questions:["今夜この中で気になる人ができた","元カレ・元カノとまだ連絡とってる","今夜誰かと2人で話したいと思ってる","一目惚れしたことがある","今の恋愛・結婚状況に不満がある","今夜誰かに嘘ついてることがある","この中に自分より幸せそうで羨ましい人がいる","人生で一番やらかした恋愛はまだ誰にも話してない","今夜が数少ない息抜きになってる","実はここに来た理由が別にある"]},all_random:{name:"全部ランダム",desc:"全カテゴリからランダムに質問カードを出す",questions:[]},soft:{name:"ライトセット",desc:"初回・場慣らし用。重すぎず盛り上がる",questions:["今日ちょっとだけ見栄を張っている","実は最近ちょっと疲れている","この中で一番飲み会慣れしている人がいると思う","本音ではもっと褒められたい","昔の自分より今の自分の方が好き","返信をわざと遅らせたことがある","今夜、まだ帰りたくない気持ちが少しある","実は人見知りを隠している","今年中に変えたいことがある","今日のメンバーでまた集まりたい"]}};
 let state=null;let visitorId=localStorage.getItem("hon-meter-visitor")||makeId(12);localStorage.setItem("hon-meter-visitor",visitorId);let bgmOn=localStorage.getItem("hon-meter-bgm")==="on";let audioCtx=null,bgmTimer=null,rollTimer=null,lastPhase="";
 roomRef.on("value",snap=>{state=snap.val();if(state){if(!state.participants)state.participants={};if(!state.votes)state.votes={}}const phase=`${state?.phase||"none"}:${state?.qIndex??0}:${state?.revealing||false}:${state?.published||false}`;if(lastPhase&&lastPhase!==phase){if(state?.phase==="select")sfx("start");if(state?.phase==="vote")sfx("start");if(state?.phase==="closed")sfx("close");if(state?.revealing)sfx("drum");if(state?.published){sfx("reveal");burst()}}lastPhase=phase;render()});libraryRef.on("value",snap=>{questionLibrary=snap.val()||{};if(urlRole()==="admin")render()});
@@ -58,32 +58,28 @@ return out;
 }
 function seedDefaultQuestions(){
 if(!confirm("デフォルト40問をFirebaseへ登録しますか？\\n固定IDで登録するので、重複せず上書き更新されます。"))return;
-libraryRef.update(buildDefaultQuestionPayload()).then(()=>toast("デフォルト40問を登録しました"));
+libraryRef.update(buildDefaultQuestionPayload()).then(()=>toast("デフォルト40問を登録しました")).catch(e=>{console.error(e);toast("保存できませんでした。Firebaseルールを確認してください")});
 }
 function addLibraryQuestion(){
 const text=(document.getElementById("libText")?.value||"").trim();
 const category=document.getElementById("libCategory")?.value||"custom";
 if(!text){const i=document.getElementById("libText");i?.classList.add("shake");setTimeout(()=>i?.classList.remove("shake"),350);return}
-libraryRef.push({text,category,enabled:true,isDefault:false,sort:999,createdAt:Date.now(),updatedAt:Date.now()});
-document.getElementById("libText").value="";
-toast("質問を保存しました");
+libraryRef.push({text,category,enabled:true,isDefault:false,sort:999,createdAt:Date.now(),updatedAt:Date.now()}).then(()=>{document.getElementById("libText").value="";toast("質問を保存しました")}).catch(e=>{console.error(e);toast("保存できませんでした")});
 }
 function updateLibraryQuestion(id){
 const text=(document.getElementById("edit-"+id)?.value||"").trim();
 const category=document.getElementById("cat-"+id)?.value||"custom";
 const enabled=document.getElementById("enabled-"+id)?.checked!==false;
 if(!text)return toast("質問が空です");
-libraryRef.child(id).update({text,category,enabled,updatedAt:Date.now()});
-toast("更新しました");
+libraryRef.child(id).update({text,category,enabled,updatedAt:Date.now()}).then(()=>toast("更新しました")).catch(e=>{console.error(e);toast("更新できませんでした")});
 }
 function toggleLibraryQuestion(id){
 const q=questionLibrary?.[id]||{};
-libraryRef.child(id).update({enabled:!(q.enabled!==false),updatedAt:Date.now()});
+libraryRef.child(id).update({enabled:!(q.enabled!==false),updatedAt:Date.now()}).catch(e=>{console.error(e);toast("切替できませんでした")});
 }
 function deleteLibraryQuestion(id){
 if(!confirm("この質問を完全に削除しますか？\\n通常は「使用する」をOFFにする方がおすすめです。"))return;
-libraryRef.child(id).remove();
-toast("削除しました");
+libraryRef.child(id).remove().then(()=>toast("削除しました")).catch(e=>{console.error(e);toast("削除できませんでした")});
 }
 function exportQuestionsJSON(){
 const data=questionLibrary||{};
@@ -115,7 +111,7 @@ updates[id.replace(/[.#$/\[\]]/g,"_")]={text:String(q.text),category:q.category|
 });
 }
 if(!Object.keys(updates).length)return toast("読み込める質問がありません");
-libraryRef.update(updates).then(()=>{document.getElementById("importJsonText").value="";toast("JSONを読み込みました")});
+libraryRef.update(updates).then(()=>{document.getElementById("importJsonText").value="";toast("JSONを読み込みました")}).catch(e=>{console.error(e);toast("読み込み保存できませんでした")});
 }catch(e){toast("JSON形式を確認してください")}
 }
 function buildQuestionPool(setKey){
@@ -169,7 +165,7 @@ return `<section class="space-y-4 fade">
 <div class="glass card">
 <div class="mini mb-3">QUESTION MANAGER</div>
 <h2 class="text-3xl font-black mb-2">質問管理</h2>
-<p class="text-white/60 text-sm font-bold leading-relaxed mb-5">デフォルト40問もFirebaseへ登録して、ここから編集・ON/OFF・JSON管理できます。</p>
+<p class="text-white/60 text-sm font-bold leading-relaxed mb-5">デフォルト40問もFirebaseへ登録して、ここから編集・ON/OFF・JSON管理できます。</p><p class="text-white/35 text-[11px] font-bold mb-5">保存先：rooms/_honneMeter_questionLibrary_v1</p>
 
 <div class="grid grid-cols-1 gap-3 mb-5">
 <button onclick="seedDefaultQuestions()" class="btn btn-gold">デフォルト40問をFirebaseへ登録</button>
