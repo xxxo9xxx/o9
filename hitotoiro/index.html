@@ -117,6 +117,21 @@
         @keyframes toast { 0%,100% { opacity: 0; transform: translate(-50%, 10px); } 14%,82% { opacity: 1; transform: translate(-50%, 0); } }
 
         .bottom-safe { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
+
+        .sound-panel {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,.72); backdrop-filter: blur(14px);
+            border: 1px solid rgba(226,232,240,.85);
+            border-radius: 999px; padding: 6px; box-shadow: 0 10px 30px rgba(15,23,42,.08);
+        }
+        .sound-panel button {
+            min-width: 74px; padding: 8px 10px; border-radius: 999px;
+            font-size: 10px; font-weight: 900; letter-spacing: .08em;
+            color: #64748b; background: rgba(248,250,252,.86);
+            transition: transform .12s ease, background .12s ease, color .12s ease;
+        }
+        .sound-panel button:active { transform: scale(.96); }
+        .sound-panel button.on { background: linear-gradient(135deg,#6366f1,#ec4899); color: white; }
         .room-pill { max-width: calc(100vw - 32px); }
     </style>
 </head>
@@ -183,6 +198,15 @@
         let qrDrawnFor = '';
         let lastPhase = '';
         let lastRevealIdx = -99;
+
+        let audioCtx = null;
+        let masterGain = null;
+        let bgmGain = null;
+        let sfxGain = null;
+        let bgmTimer = null;
+        let bgmOn = localStorage.getItem('toiro-bgm-on') === '1';
+        let sfxOn = localStorage.getItem('toiro-sfx-on') !== '0';
+        let bgmStep = 0;
 
         if (currentRoomId && !invitedRoom) connectToRoom(currentRoomId);
         else render();
@@ -262,6 +286,7 @@
             });
             history.replaceState(null, '', '?room=' + encodeURIComponent(currentRoomId));
             connectToRoom(currentRoomId);
+            playTone('join');
             showToast('部屋を作成しました');
         }
 
@@ -314,6 +339,7 @@
                 localStorage.setItem("toiro-room-id", currentRoomId);
                 history.replaceState(null, '', '?room=' + encodeURIComponent(r));
                 connectToRoom(r);
+                playTone('join');
                 showToast('入室しました');
             });
         }
@@ -351,6 +377,7 @@
             for (let i = 0; i < roundCount; i++) themes.push(await fetchNewTheme(i, mode));
             const dealCount = parseInt(document.getElementById('card-count-select')?.value) || 10;
             const commonHand = [...COLORS].sort(() => 0.5 - Math.random()).slice(0, dealCount).map(c => c.id);
+            playTone('start');
             await db.ref("rooms/" + currentRoomId).update({
                 phase: 'playing',
                 themes,
@@ -370,13 +397,14 @@
             const round = gameState.currentRound;
             const newTheme = await fetchNewTheme(round, gameState.gameMode);
             db.ref(`rooms/${currentRoomId}/themes/${round}`).set(newTheme);
+            playTone('select');
             showToast('お題を変更しました');
         }
 
         function confirmAnswer() {
             if (!selectedColor) return;
             const round = gameState.currentRound;
-            playTone('select');
+            playTone('decide');
             db.ref(`rooms/${currentRoomId}/answers/${round}/${myName}`).set(selectedColor).then(() => {
                 selectedColor = null;
                 db.ref(`rooms/${currentRoomId}`).transaction((curr) => {
@@ -485,24 +513,121 @@
             setTimeout(() => el.remove(), 1900);
         }
 
-        function playTone(type='select') {
+        function ensureAudio() {
             try {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) return;
-                const ctx = new AudioContext();
-                const o = ctx.createOscillator();
-                const g = ctx.createGain();
-                const map = { select: 520, start: 360, reveal: 740, success: 880 };
-                o.frequency.value = map[type] || 520;
-                o.type = type === 'success' ? 'triangle' : 'sine';
-                g.gain.setValueAtTime(.001, ctx.currentTime);
-                g.gain.exponentialRampToValueAtTime(.07, ctx.currentTime + .02);
-                g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .16);
-                o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + .18);
-                if (type === 'success') {
-                    setTimeout(() => playTone('reveal'), 95);
+                if (!AudioContext) return null;
+                if (!audioCtx) {
+                    audioCtx = new AudioContext();
+                    masterGain = audioCtx.createGain();
+                    bgmGain = audioCtx.createGain();
+                    sfxGain = audioCtx.createGain();
+                    masterGain.gain.value = 0.82;
+                    bgmGain.gain.value = 0.045;
+                    sfxGain.gain.value = 0.18;
+                    bgmGain.connect(masterGain);
+                    sfxGain.connect(masterGain);
+                    masterGain.connect(audioCtx.destination);
                 }
-            } catch(e) {}
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                return audioCtx;
+            } catch(e) { return null; }
+        }
+
+        function beep(freq, start=0, duration=.12, type='sine', volume=1) {
+            const ctx = ensureAudio();
+            if (!ctx || !sfxOn) return;
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = type;
+            o.frequency.setValueAtTime(freq, ctx.currentTime + start);
+            g.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+            g.gain.exponentialRampToValueAtTime(Math.max(0.0002, 0.22 * volume), ctx.currentTime + start + .012);
+            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
+            o.connect(g); g.connect(sfxGain);
+            o.start(ctx.currentTime + start);
+            o.stop(ctx.currentTime + start + duration + .02);
+        }
+
+        function playTone(type='select') {
+            if (!sfxOn) return;
+            const patterns = {
+                select: [[520,0,.07,'triangle',.65],[660,.065,.08,'triangle',.55]],
+                decide: [[392,0,.09,'sine',.75],[588,.08,.12,'triangle',.85]],
+                start: [[330,0,.09,'triangle',.7],[440,.09,.10,'triangle',.7],[660,.19,.16,'triangle',.9]],
+                reveal: [[220,0,.10,'sawtooth',.35],[330,.08,.10,'sawtooth',.4],[740,.19,.16,'triangle',.75]],
+                success: [[660,0,.09,'triangle',.8],[880,.09,.10,'triangle',.85],[1175,.2,.22,'triangle',.9]],
+                join: [[440,0,.08,'sine',.55],[660,.07,.10,'sine',.65]],
+                error: [[180,0,.18,'sawtooth',.35]]
+            };
+            (patterns[type] || patterns.select).forEach(n => beep(...n));
+        }
+
+        function playBgmNote(freq, start, duration, volume=.55) {
+            const ctx = ensureAudio();
+            if (!ctx || !bgmOn) return;
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'triangle';
+            o.frequency.setValueAtTime(freq, ctx.currentTime + start);
+            g.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+            g.gain.exponentialRampToValueAtTime(0.11 * volume, ctx.currentTime + start + .03);
+            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
+            o.connect(g); g.connect(bgmGain);
+            o.start(ctx.currentTime + start);
+            o.stop(ctx.currentTime + start + duration + .04);
+        }
+
+        function scheduleBgmBar() {
+            if (!bgmOn) return;
+            const melody = [523.25, 659.25, 783.99, 659.25, 587.33, 739.99, 880, 739.99];
+            const bass = [261.63, 261.63, 293.66, 293.66, 349.23, 349.23, 392.00, 392.00];
+            for (let i=0; i<4; i++) {
+                const idx = (bgmStep + i) % melody.length;
+                playBgmNote(melody[idx], i*.36, .28, .42);
+                if (i % 2 === 0) playBgmNote(bass[idx], i*.36, .34, .25);
+            }
+            bgmStep = (bgmStep + 4) % melody.length;
+            bgmTimer = setTimeout(scheduleBgmBar, 1380);
+        }
+
+        function startBgm() {
+            ensureAudio();
+            stopBgm(false);
+            bgmOn = true;
+            localStorage.setItem('toiro-bgm-on', '1');
+            scheduleBgmBar();
+            renderSoundControls();
+            showToast('BGM ON');
+        }
+
+        function stopBgm(show=true) {
+            if (bgmTimer) clearTimeout(bgmTimer);
+            bgmTimer = null;
+            if (!show) return;
+            bgmOn = false;
+            localStorage.setItem('toiro-bgm-on', '0');
+            renderSoundControls();
+            showToast('BGM OFF');
+        }
+
+        function toggleBgm() {
+            if (bgmOn) stopBgm(true);
+            else startBgm();
+        }
+
+        function toggleSfx() {
+            sfxOn = !sfxOn;
+            localStorage.setItem('toiro-sfx-on', sfxOn ? '1' : '0');
+            if (sfxOn) playTone('join');
+            renderSoundControls();
+            showToast(sfxOn ? '効果音 ON' : '効果音 OFF');
+        }
+
+        function renderSoundControls() {
+            const el = document.getElementById('sound-controls');
+            if (!el) return;
+            el.innerHTML = `<div class="sound-panel"><button onclick="toggleBgm()" class="${bgmOn ? 'on' : ''}">♪ BGM ${bgmOn ? 'ON' : 'OFF'}</button><button onclick="toggleSfx()" class="${sfxOn ? 'on' : ''}">🔊 SE ${sfxOn ? 'ON' : 'OFF'}</button></div>`;
         }
 
         function celebrate(level=1) {
@@ -535,10 +660,13 @@
                 return;
             }
             bottom.innerHTML = `
+                <div id="sound-controls" class="mb-5"></div>
                 <div class="flex items-center justify-center gap-4 text-[10px] font-black text-slate-300 tracking-widest">
                     <button onclick="leaveRoom()" class="hover:text-slate-500 underline underline-offset-4 active:scale-95 transition">退出</button>
                     ${myRole === 'host' ? `<button onclick="forceResetRoom()" class="hover:text-red-400 underline underline-offset-4 active:scale-95 transition">部屋リセット</button>` : ''}
                 </div>`;
+            renderSoundControls();
+            if (bgmOn && !bgmTimer) setTimeout(() => startBgm(), 50);
         }
 
         function render() {
