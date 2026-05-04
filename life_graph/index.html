@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>LIFE WAVE｜人生の軌跡メーカー</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07111f;--card:rgba(255,255,255,.86);--card2:rgba(255,255,255,.96);
+  --text:#0f172a;--muted:#64748b;--line:#dbe4ef;--p:#7c3aed;--b:#2563eb;--r:#fb7185;
+  --safe-bottom:env(safe-area-inset-bottom,0px);--safe-top:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden}
+body{
+  font-family:'Noto Sans JP',sans-serif;color:var(--text);position:fixed;inset:0;
+  background:
+    radial-gradient(circle at 18% 14%,rgba(124,58,237,.34),transparent 27%),
+    radial-gradient(circle at 85% 18%,rgba(6,182,212,.24),transparent 25%),
+    radial-gradient(circle at 50% 90%,rgba(251,113,133,.22),transparent 30%),
+    linear-gradient(180deg,#0b1328,#07111f);
+}
+button,input{font:inherit}button{border:0;background:none;cursor:pointer}
+.glass{background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.45);box-shadow:0 20px 60px rgba(15,23,42,.2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+#welcome{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:calc(18px + var(--safe-top)) 18px calc(18px + var(--safe-bottom));overflow:auto}
+.welcome-card{width:min(100%,960px);min-height:min(760px,100%);border-radius:34px;overflow:hidden;display:grid;grid-template-columns:1.08fr .92fr;background:rgba(255,255,255,.9);box-shadow:0 32px 100px rgba(2,8,23,.35)}
+.hero{padding:40px;color:white;background:linear-gradient(145deg,#6d28d9,#7c3aed 40%,#2563eb);position:relative;overflow:hidden}
+.hero:before{content:"";position:absolute;width:320px;height:320px;right:-120px;bottom:-100px;border-radius:50%;background:rgba(255,255,255,.14);filter:blur(2px)}
+.brand{display:inline-flex;gap:10px;align-items:center;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.14);font-weight:800;letter-spacing:.06em;margin-bottom:26px}
+.brand i{font-style:normal;width:34px;height:34px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.16)}
+.hero h1{font-size:clamp(34px,4.5vw,54px);line-height:1.08;letter-spacing:-.04em;font-weight:900;margin-bottom:16px}
+.hero p{font-size:15px;line-height:1.9;color:rgba(255,255,255,.92);max-width:450px}
+.features{margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.feature{border-radius:18px;padding:14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16)}
+.feature b{display:block;font-size:14px;margin-bottom:5px}.feature span{font-size:12px;color:rgba(255,255,255,.84);line-height:1.6}
+.setup{padding:32px;background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(255,255,255,.87))}
+.setup h2{font-size:26px;font-weight:900;margin-bottom:10px}.setup>p{font-size:14px;line-height:1.8;color:var(--muted);margin-bottom:24px}
+.field{margin-bottom:15px}.field label{display:block;font-size:12px;font-weight:800;color:#475569;margin-bottom:8px}
+.field input{width:100%;border:2px solid #ebf1f7;border-radius:16px;padding:15px 16px;font-size:16px;outline:none;background:white}
+.field input:focus{border-color:#bba8ff;box-shadow:0 0 0 4px rgba(124,58,237,.12)}
+.preset-box{margin:22px 0;padding:16px;border-radius:20px;background:#f7faff;border:1px solid #e6edf7}
+.label-row{display:flex;justify-content:space-between;gap:8px;margin-bottom:10px}.label-row b{font-size:14px}.label-row span{font-size:11px;color:var(--muted)}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.preset{padding:14px 12px;border-radius:16px;background:white;border:1.5px solid #e2e8f0;text-align:left}
+.preset.active{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+.preset b{display:block;font-size:13px;margin-bottom:4px}.preset span{font-size:11px;color:var(--muted);line-height:1.5}
+.start{width:100%;padding:18px;border-radius:18px;color:white;font-weight:900;font-size:16px;background:linear-gradient(135deg,#7c3aed,#2563eb);box-shadow:0 16px 35px rgba(109,40,217,.28)}
+.sub{text-align:center;font-size:12px;color:#64748b;margin-top:12px}
+#app{display:none;position:fixed;inset:0;grid-template-rows:auto 1fr auto;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+.top{padding:14px 18px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:10}
+.top-left{display:flex;gap:12px;align-items:center;min-width:0}
+.logo{width:46px;height:46px;border-radius:16px;display:grid;place-items:center;color:white;font-size:22px;background:linear-gradient(145deg,#7c3aed,#2563eb);box-shadow:0 12px 30px rgba(79,70,229,.34);flex:0 0 auto}
+.eye{font-size:11px;letter-spacing:.08em;color:rgba(255,255,255,.72);text-transform:uppercase;font-weight:800}
+.title{color:white;font-weight:900;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.pill{border-radius:999px;padding:11px 14px;color:white;font-weight:800;font-size:13px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(12px)}
+.pill.main{background:linear-gradient(135deg,#fb7185,#f43f5e);border:0;box-shadow:0 10px 24px rgba(244,63,94,.28)}
+.work{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:14px;padding:8px 18px 12px}
+.board{position:relative;border-radius:30px;padding:16px;min-height:0;overflow:hidden}
+.board-inner{position:relative;width:100%;height:100%;border-radius:24px;overflow:hidden;background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.6)}
+.canvas-wrap{position:absolute;inset:0}canvas{position:absolute;inset:0;width:100%;height:100%}#mainCanvas{touch-action:none;cursor:crosshair;z-index:2}#bgCanvas{z-index:1}
+.board-info{position:absolute;top:12px;left:12px;right:12px;z-index:3;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+.info-group{display:flex;gap:8px;flex-wrap:wrap}.chip{pointer-events:auto;border-radius:999px;padding:9px 12px;background:rgba(255,255,255,.86);border:1px solid rgba(15,23,42,.06);box-shadow:0 10px 24px rgba(15,23,42,.08);font-size:12px;font-weight:800;color:#334155}.chip span{color:var(--muted);font-weight:700}
+.side{display:flex;flex-direction:column;gap:10px}.tools{border-radius:26px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.fab{width:100%;aspect-ratio:1/1;border-radius:20px;background:white;box-shadow:0 10px 26px rgba(15,23,42,.08);border:1px solid #edf2f7;display:grid;place-items:center;padding:5px;font-size:11px;font-weight:900;color:#334155}.fab i{font-style:normal;font-size:20px}.fab.danger{color:#dc2626}
+.bottom{padding:0 18px 16px}.bottom-inner{border-radius:30px;padding:12px;display:grid;gap:12px}
+.mode-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mode{border-radius:20px;padding:13px 14px;text-align:left;background:rgba(255,255,255,.78);border:1px solid rgba(15,23,42,.08)}
+.mode.active{background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(37,99,235,.12));border-color:rgba(124,58,237,.34);box-shadow:0 10px 26px rgba(79,70,229,.12)}
+.mode b{display:block;font-size:14px;margin-bottom:4px}.mode span{font-size:11px;color:var(--muted);line-height:1.6}
+.panel{min-height:88px;border-radius:24px;padding:12px;background:rgba(255,255,255,.72);border:1px solid rgba(15,23,42,.07);display:flex;align-items:center;gap:12px;overflow-x:auto}
+.hint{flex:0 0 auto;padding:13px 14px;border-radius:18px;background:linear-gradient(180deg,#fbfdff,#f6f9fd);border:1px solid #e8eef6;min-width:245px}
+.hint b{display:block;font-size:13px;margin-bottom:4px}.hint p{font-size:12px;color:var(--muted);line-height:1.6}
+.toggle{flex:0 0 auto;border-radius:999px;padding:10px 14px;background:white;border:1px solid #e5ebf3;font-size:12px;font-weight:900;color:#334155}
+.toggle.active{background:linear-gradient(135deg,#7c3aed,#2563eb);color:white;border-color:transparent}
+.stamp{flex:0 0 74px;width:74px;height:74px;border-radius:22px;background:white;border:1px solid #e5ebf3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;box-shadow:0 10px 20px rgba(15,23,42,.05)}
+.stamp.active{border-color:#8b5cf6;box-shadow:0 0 0 4px rgba(124,58,237,.12)}
+.stamp .e{font-size:24px;line-height:1}.stamp .l{font-size:10px;font-weight:800;color:var(--muted)}
+.share-card{flex:0 0 auto;min-width:280px;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;border-radius:20px;background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(244,63,94,.08));border:1px solid rgba(124,58,237,.15)}
+.share-card b{display:block;font-size:14px;margin-bottom:4px}.share-card p{font-size:12px;color:var(--muted);line-height:1.6}.share-card button{border-radius:16px;padding:12px 16px;color:white;font-weight:900;background:linear-gradient(135deg,#7c3aed,#2563eb);flex:0 0 auto}
+#preview{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(3,7,18,.72);backdrop-filter:blur(8px)}
+.modal{width:min(100%,520px);max-height:100%;overflow:auto;border-radius:30px;padding:18px;background:rgba(255,255,255,.96);box-shadow:0 30px 80px rgba(2,8,23,.35)}
+.modal-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:14px}.modal h3{font-size:24px;font-weight:900}.modal p{font-size:13px;color:var(--muted);line-height:1.7;margin-top:4px}.x{width:42px;height:42px;border-radius:14px;background:#f5f7fb;font-size:18px;font-weight:800}
+.preview-frame{background:linear-gradient(180deg,#eef2ff,#fff);border-radius:24px;padding:12px;border:1px solid #e7edf8}#previewImg{width:100%;display:block;border-radius:18px;background:white}
+.preview-actions{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.preview-actions button{border-radius:18px;padding:14px;font-weight:900;font-size:14px}.preview-actions .main{background:linear-gradient(135deg,#7c3aed,#2563eb);color:white}.preview-actions .sub{background:#f6f8fc;border:1px solid #e2e8f0}
+.toast{position:fixed;left:50%;bottom:calc(108px + var(--safe-bottom));transform:translateX(-50%) translateY(20px);padding:12px 16px;border-radius:999px;background:rgba(15,23,42,.88);color:white;font-size:13px;font-weight:800;opacity:0;pointer-events:none;transition:.25s;z-index:120}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:900px){.welcome-card{grid-template-columns:1fr}.hero{min-height:280px}}
+@media(max-width:780px){.work{grid-template-columns:1fr;padding-inline:14px}.side{order:-1;display:grid;grid-template-columns:repeat(4,1fr)}.tools{padding:10px;border-radius:22px}.fab{height:64px;aspect-ratio:auto;border-radius:18px}.top{padding-inline:14px}.bottom{padding-inline:14px}.title{font-size:17px}}
+@media(max-width:560px){#welcome{padding:12px}.hero,.setup{padding:22px}.features{grid-template-columns:1fr 1fr}.pill{padding:10px 12px;font-size:12px}.logo{width:42px;height:42px}.mode{padding:12px}.mode b{font-size:13px}.mode span{font-size:10px}.panel{min-height:96px}.preview-actions{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="welcome">
+  <div class="welcome-card">
+    <section class="hero">
+      <div class="brand"><i>📈</i>LIFE WAVE</div>
+      <h1>人生の好調・不調を<br>グラフにしてみよう。</h1>
+      <p>これまでの人生を思い出しながら、よかった時期・大変だった時期を波で描いてみましょう。グラフができたら、大事なポイントにスタンプを置いて、話題のきっかけになる一枚を作れます。</p>
+    </section>
+    <section class="setup">
+      <h2>はじめる準備</h2>
+      <p>名前と年齢を入れて、グラフの形を選んだらスタートです。</p>
+      <div class="field"><label>表示する名前</label><input id="userName" value="自分"></div>
+      <div class="field"><label>生まれた年（西暦）</label><input id="birthYear" type="number" inputmode="numeric" value="1995"></div>
+      <div class="field"><label>現在の年齢</label><input id="currentAge" type="number" inputmode="numeric" value="30"></div>
+      <div class="preset-box">
+        <div class="label-row"><b>スタートテンプレート</b><span>あとで自由に調整できます</span></div>
+        <div class="preset-grid" id="presetGrid"></div>
+      </div>
+      <button class="start" id="startBtn">LIFE WAVE をはじめる</button>
+      <div class="sub">作成データはこの端末に自動保存されます。</div>
+    </section>
+  </div>
+</div>
+
+<main id="app">
+  <header class="top">
+    <div class="top-left"><div class="logo">📈</div><div><div class="eye">Life wave</div><div class="title" id="titleDisplay">人生の軌跡</div></div></div>
+    <div class="actions"><button class="pill" id="newBtn">新しく作る</button><button class="pill main" id="exportBtn">LINE用画像</button></div>
+  </header>
+  <section class="work">
+    <section class="board glass">
+      <div class="board-inner">
+        <div class="board-info">
+          <div class="info-group"><div class="chip">モード <span id="modeText">波を描く</span></div><div class="chip">ズーム <span id="zoomText">100%</span></div></div>
+          <div class="info-group"><div class="chip"><span>年齢</span> <b id="ageLabel">0〜30歳</b></div></div>
+        </div>
+        <div class="canvas-wrap"><canvas id="bgCanvas"></canvas><canvas id="mainCanvas"></canvas></div>
+      </div>
+    </section>
+    <aside class="side"><div class="tools glass">
+      <button class="fab" id="undoBtn"><i>↩️</i>もどす</button>
+      <button class="fab" id="zoomBtn"><i>🔍</i>戻す</button>
+      <button class="fab" id="fitBtn"><i>🪄</i>整える</button>
+      <button class="fab danger" id="clearBtn"><i>🗑️</i>全消去</button>
+    </div></aside>
+  </section>
+  <footer class="bottom">
+    <div class="bottom-inner glass">
+      <div class="mode-row">
+        <button class="mode active" data-mode="path"><b>📈 波を描く</b><span>タップで点を追加。ドラッグで移動。</span></button>
+        <button class="mode" data-mode="stamp"><b>✨ スタンプ</b><span>出来事をポンと置く。</span></button>
+        <button class="mode" data-mode="eraser"><b>🧹 消しゴム</b><span>点やスタンプを消して直す。</span></button>
+        <button class="mode" data-mode="view"><b>🎯 仕上げ</b><span>共有画像を作る。</span></button>
+      </div>
+      <div class="panel" id="panel"></div>
+    </div>
+  </footer>
+</main>
+
+<div id="preview">
+  <div class="modal">
+    <div class="modal-head"><div><h3>共有画像プレビュー</h3><p>LINEに送りやすい正方形で出力します。</p></div><button class="x" id="closeBtn">×</button></div>
+    <div class="preview-frame"><img id="previewImg" alt="preview"></div>
+    <div class="preview-actions"><button class="main" id="shareBtn">LINEなどで共有</button><button class="sub" id="downloadBtn">画像を保存</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY='life-wave-rich-v2';
+const config={name:'自分',birthYear:1995,age:30,mode:'path',preset:'flat'};
+let nodes=[],stamps=[],selectedEmoji='❤️',transform={scale:1,x:0,y:0},layout={w:0,h:0,px:0,py:0};
+let dragging=false,panning=false,dragTarget=null,pointer={x:0,y:0},latestBlob=null,latestUrl='';
+const presets={
+ flat:{name:'フラット',desc:'真ん中から始める',nodes:[{x:0,y:.5},{x:1,y:.5}]},
+ rise:{name:'右肩上がり',desc:'最後に向かって上昇',nodes:[{x:0,y:.62},{x:.3,y:.55},{x:.6,y:.42},{x:1,y:.24}]},
+ v:{name:'V字回復',desc:'一度落ちて復活',nodes:[{x:0,y:.42},{x:.3,y:.72},{x:.58,y:.82},{x:1,y:.28}]},
+ roller:{name:'波乱万丈',desc:'上下に大きく動く',nodes:[{x:0,y:.42},{x:.18,y:.18},{x:.38,y:.73},{x:.62,y:.3},{x:.82,y:.78},{x:1,y:.36}]}
+};
+const emojis=[
+ ['❤️','恋'],['💔','失恋'],['🎓','卒業'],['💼','仕事'],['💍','結婚'],['👶','誕生'],['🏠','家'],['🏥','病気'],['🎉','成功'],['😢','失敗'],['🔥','黒歴史'],['💸','金欠'],['🍺','飲み'],['🫠','病み'],['🚀','飛躍'],['👑','モテ'],['🌀','迷走']
+];
+const $=id=>document.getElementById(id);
+const welcome=$('welcome'),app=$('app'),presetGrid=$('presetGrid'),panel=$('panel'),mainCanvas=$('mainCanvas'),bgCanvas=$('bgCanvas'),preview=$('preview'),previewImg=$('previewImg'),toast=$('toast');
+
+function init(){
+ renderPresets(); restore();
+ $('startBtn').onclick=startApp; $('newBtn').onclick=openWelcome; $('exportBtn').onclick=makePreview;
+ $('undoBtn').onclick=undo; $('zoomBtn').onclick=resetZoom; $('fitBtn').onclick=fit; $('clearBtn').onclick=clearAll;
+ $('closeBtn').onclick=()=>preview.style.display='none'; $('shareBtn').onclick=shareImage; $('downloadBtn').onclick=downloadImage;
+ document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+ mainCanvas.addEventListener('pointerdown',down); mainCanvas.addEventListener('pointermove',move);
+ mainCanvas.addEventListener('pointerup',up); mainCanvas.addEventListener('pointercancel',up);
+ mainCanvas.addEventListener('wheel',wheel,{passive:false}); mainCanvas.oncontextmenu=e=>e.preventDefault();
+ window.addEventListener('resize',setupCanvas);
+ renderPanel(); setupCanvas(); updateHeader();
+}
+function renderPresets(){
+ presetGrid.innerHTML='';
+ Object.entries(presets).forEach(([k,p])=>{
+  const b=document.createElement('button'); b.className='preset'+(config.preset===k?' active':'');
+  b.innerHTML=`<b>${p.name}</b><span>${p.desc}</span>`; b.onclick=()=>{config.preset=k;renderPresets();};
+  presetGrid.appendChild(b);
+ });
+}
+function applyPreset(k){nodes=(presets[k]||presets.flat).nodes.map(n=>({...n}));config.preset=k;}
+function startApp(){
+ config.name=$('userName').value.trim()||'自分'; config.birthYear=parseInt($('birthYear').value)||1995; config.age=Math.max(1,parseInt($('currentAge').value)||30);
+ if(!nodes.length || welcome.style.display!=='none'){applyPreset(config.preset);stamps=[];}
+ welcome.style.display='none'; app.style.display='grid'; updateHeader(); setMode(config.mode||'path'); setupCanvas(); save(); say('編集をはじめましょう');
+}
+function openWelcome(){ $('userName').value=config.name;$('birthYear').value=config.birthYear;$('currentAge').value=config.age;renderPresets();welcome.style.display='flex';app.style.display='none';}
+function restore(){try{const d=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); if(d.config)Object.assign(config,d.config); nodes=d.nodes||[]; stamps=d.stamps||[]; selectedEmoji=d.selectedEmoji||selectedEmoji; transform=d.transform||transform; if(!nodes.length)applyPreset(config.preset); $('userName').value=config.name;$('birthYear').value=config.birthYear;$('currentAge').value=config.age;renderPresets();}catch(e){applyPreset(config.preset);}}
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify({config,nodes,stamps,selectedEmoji,transform}));}
+function updateHeader(){ $('titleDisplay').textContent=`${config.name}さんの人生の軌跡`; $('ageLabel').textContent=`0〜${config.age}歳`; $('zoomText').textContent=`${Math.round(transform.scale*100)}%`; }
+function setMode(m){config.mode=m;document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));$('modeText').textContent=m==='path'?'波を描く':m==='stamp'?'スタンプ':m==='eraser'?'消しゴム':'仕上げ';renderPanel();save();}
+function renderPanel(){
+ panel.innerHTML='';
+ if(config.mode==='path'){
+  panel.append(hint('波を描くモード','グラフ内をタップすると点が追加されます。点はドラッグで移動できます。尖りすぎた時は消しゴムで点を消せます。'));
+  Object.entries(presets).forEach(([k,p])=>{const b=document.createElement('button');b.className='toggle'+(config.preset===k?' active':'');b.textContent=p.name;b.onclick=()=>{if(confirm(`「${p.name}」に入れ替えますか？`)){applyPreset(k);draw();save();say('テンプレートを切り替えました');}renderPanel();};panel.append(b);});
+ }else if(config.mode==='stamp'){
+  panel.append(hint('スタンプモード','スタンプを選んでグラフ上をタップ。説明は足さず、聞きたくなる余白を残します。'));
+  emojis.forEach(([e,l])=>{const b=document.createElement('button');b.className='stamp'+(selectedEmoji===e?' active':'');b.innerHTML=`<div class="e">${e}</div><div class="l">${l}</div>`;b.onclick=()=>{selectedEmoji=e;renderPanel();save();};panel.append(b);});
+ }else if(config.mode==='eraser'){
+  panel.append(hint('消しゴムモード','消したい点やスタンプをタップします。波が尖りすぎた時は、不要な点を消すと自然に戻ります。'));
+  panel.append(toggle('最後の点を消す',()=>{ if(nodes.length>2){nodes.pop(); draw(); save(); say('最後の点を消しました');} }));
+  panel.append(toggle('最後のスタンプを消す',()=>{ if(stamps.length){stamps.pop(); draw(); save(); say('最後のスタンプを消しました');} }));
+  panel.append(toggle('波をなめらかにする',smoothWave));
+}else{
+  panel.append(hint('仕上げモード','共有画像をプレビューして、保存または共有できます。'));
+  const z=toggle('ズームを戻す',resetZoom), f=toggle('表示を整える',fit); panel.append(z,f);
+  const c=document.createElement('div');c.className='share-card';c.innerHTML='<div><b>LINE用画像をつくる</b><p>1080×1080の正方形で書き出します。</p></div>';const go=document.createElement('button');go.textContent='プレビュー';go.onclick=makePreview;c.append(go);panel.append(c);
+ }
+}
+function hint(b,p){const d=document.createElement('div');d.className='hint';d.innerHTML=`<b>${b}</b><p>${p}</p>`;return d;}
+function toggle(t,fn){const b=document.createElement('button');b.className='toggle';b.textContent=t;b.onclick=fn;return b;}
+function setupCanvas(){const wrap=document.querySelector('.board-inner');if(!wrap)return;const r=wrap.getBoundingClientRect(),dpr=window.devicePixelRatio||1;[bgCanvas,mainCanvas].forEach(c=>{c.width=Math.max(1,Math.round(r.width*dpr));c.height=Math.max(1,Math.round(r.height*dpr));const ctx=c.getContext('2d');ctx.setTransform(1,0,0,1,0,0);ctx.scale(dpr,dpr);});layout.w=r.width*.84;layout.h=Math.min(r.height*.66,layout.w*.62);layout.px=(r.width-layout.w)/2;layout.py=(r.height-layout.h)/2+18;draw();}
+function draw(){const dpr=window.devicePixelRatio||1,w=mainCanvas.width/dpr,h=mainCanvas.height/dpr;drawBg(bgCanvas.getContext('2d'),w,h,true);drawMain(mainCanvas.getContext('2d'),w,h,true);updateHeader();}
+function drawBg(ctx,W,H,useT){ctx.clearRect(0,0,W,H);ctx.save();if(useT){ctx.translate(transform.x,transform.y);ctx.scale(transform.scale,transform.scale)}const s=useT?transform.scale:1,{px,py,w,h}=layout;let g=ctx.createLinearGradient(px,py,px,py+h);g.addColorStop(0,'#fff8fb');g.addColorStop(.5,'#fff');g.addColorStop(1,'#f2f8ff');ctx.fillStyle=g;round(ctx,px,py,w,h,24/s);ctx.fill();ctx.strokeStyle='#dbe5f0';ctx.lineWidth=1.5/s;round(ctx,px,py,w,h,24/s);ctx.stroke();for(let i=0;i<=10;i++){let y=py+i/10*h;ctx.beginPath();ctx.strokeStyle=i===5?'#94a3b8':'#eaf0f6';ctx.lineWidth=i===5?2/s:1/s;ctx.moveTo(px,y);ctx.lineTo(px+w,y);ctx.stroke();}let step=ageStep(config.age);for(let a=0;a<=config.age;a+=step)ageTick(ctx,a,s);if(config.age%step!==0)ageTick(ctx,config.age,s);ctx.fillStyle='#334155';ctx.textAlign='right';ctx.font=`700 ${12/s}px "Noto Sans JP"`;ctx.fillText('絶好調',px-10/s,py+10/s);ctx.fillText('ふつう',px-10/s,py+h/2+4/s);ctx.fillText('どん底',px-10/s,py+h+5/s);ctx.restore();}
+function ageTick(ctx,a,s){const{px,py,w,h}=layout,x=px+a/config.age*w;ctx.beginPath();ctx.strokeStyle='#e8eef5';ctx.lineWidth=1/s;ctx.moveTo(x,py);ctx.lineTo(x,py+h);ctx.stroke();ctx.fillStyle='#475569';ctx.textAlign='center';ctx.font=`700 ${11/s}px "Noto Sans JP"`;ctx.fillText(`${a}歳`,x,py+h+16/s);ctx.font=`${9/s}px "Noto Sans JP"`;ctx.fillStyle='#64748b';ctx.fillText(`'${String(config.birthYear+a).slice(-2)}`,x,py+h+28/s);}
+function drawMain(ctx,W,H,useT){ctx.clearRect(0,0,W,H);ctx.save();if(useT){ctx.translate(transform.x,transform.y);ctx.scale(transform.scale,transform.scale)}const s=useT?transform.scale:1,{px,py,w,h}=layout,arr=[...nodes].sort((a,b)=>a.x-b.x);if(arr.length>1){ctx.beginPath();ctx.strokeStyle='#1e293b';ctx.lineWidth=3.5/s;ctx.lineCap='round';ctx.lineJoin='round';for(let i=0;i<arr.length-1;i++){let p0=arr[i-1]||arr[i],p1=arr[i],p2=arr[i+1],p3=arr[i+2]||p2;for(let t=0;t<=1;t+=.07){let x=cr(p0.x,p1.x,p2.x,p3.x,t)*w+px,y=cr(p0.y,p1.y,p2.y,p3.y,t)*h+py;if(i===0&&t===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}}ctx.stroke();}stamps.forEach(st=>{ctx.font=`${28/s}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor='rgba(255,255,255,.8)';ctx.shadowBlur=6/s;ctx.fillText(st.emoji,st.x*w+px,st.y*h+py);ctx.shadowBlur=0;});arr.forEach(n=>{ctx.beginPath();ctx.fillStyle='#fff';ctx.strokeStyle='#1e293b';ctx.lineWidth=2.2/s;ctx.arc(n.x*w+px,n.y*h+py,6/s,0,Math.PI*2);ctx.fill();ctx.stroke();});ctx.restore();}
+function pos(e){const r=mainCanvas.getBoundingClientRect();const x=((e.clientX-r.left)-transform.x)/transform.scale,y=((e.clientY-r.top)-transform.y)/transform.scale;return{x,y,nx:(x-layout.px)/layout.w,ny:(y-layout.py)/layout.h};}
+function clamp(v){return Math.max(0,Math.min(1,v));}
+function down(e){mainCanvas.setPointerCapture?.(e.pointerId);if(config.mode==='view'||e.shiftKey||e.button===1){panning=true;pointer.x=e.clientX;pointer.y=e.clientY;return;}const p=pos(e);if(config.mode==='path'){const hit=nodes.find(n=>Math.hypot(n.x-p.nx,n.y-p.ny)<.06/transform.scale);if(hit){dragTarget=hit;dragging=true}else if(p.nx>=0&&p.nx<=1&&p.ny>=0&&p.ny<=1){dragTarget={x:clamp(p.nx),y:clamp(p.ny)};nodes.push(dragTarget);dragging=true;save();}}else if(config.mode==='stamp'){if(p.nx>=0&&p.nx<=1&&p.ny>=0&&p.ny<=1){stamps.push({x:clamp(p.nx),y:clamp(p.ny),emoji:selectedEmoji});draw();save();}}
+else if(config.mode==='eraser'){eraseAt(p.nx,p.ny);}
+draw();}
+function move(e){if(panning){transform.x+=e.clientX-pointer.x;transform.y+=e.clientY-pointer.y;pointer.x=e.clientX;pointer.y=e.clientY;draw();save();return;}if(!dragging||!dragTarget)return;const p=pos(e);dragTarget.x=clamp(p.nx);dragTarget.y=clamp(p.ny);draw();}
+function up(){dragging=false;panning=false;dragTarget=null;save();}
+function wheel(e){e.preventDefault();const r=mainCanvas.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top,f=e.deltaY<0?1.07:.93,ns=Math.min(6,Math.max(.7,transform.scale*f)),ratio=ns/transform.scale;transform.x=cx-(cx-transform.x)*ratio;transform.y=cy-(cy-transform.y)*ratio;transform.scale=ns;draw();save();}
+
+function eraseAt(nx,ny){
+ const nodeHit=nodes.findIndex(n=>Math.hypot(n.x-nx,n.y-ny)<.065/transform.scale);
+ if(nodeHit>-1 && nodes.length>2){
+  nodes.splice(nodeHit,1);
+  draw();save();say('点を消しました');return;
+ }
+ const stampHit=stamps.findIndex(st=>Math.hypot(st.x-nx,st.y-ny)<.075/transform.scale);
+ if(stampHit>-1){
+  stamps.splice(stampHit,1);
+  draw();save();say('スタンプを消しました');return;
+ }
+ say('消したい点やスタンプをタップ');
+}
+function smoothWave(){
+ if(nodes.length<3){say('点が少ないのでそのままでOK');return;}
+ const sorted=[...nodes].sort((a,b)=>a.x-b.x);
+ const smoothed=sorted.map((n,i)=>{
+  if(i===0||i===sorted.length-1)return {...n};
+  const prev=sorted[i-1],next=sorted[i+1];
+  return {x:n.x,y:clamp((prev.y+n.y*2+next.y)/4)};
+ });
+ nodes=smoothed;
+ draw();save();say('波を少しなめらかにしました');
+}
+function undo(){if(config.mode==='stamp'){stamps.pop()}else if(nodes.length>2){nodes.pop()}else{stamps.pop()}draw();save();say('ひとつ戻しました');}
+function resetZoom(){transform={scale:1,x:0,y:0};draw();save();say('ズームを戻しました');}
+function fit(){resetZoom();say('表示を整えました');}
+function clearAll(){if(!confirm('すべて消去しますか？'))return;applyPreset(config.preset);stamps=[];resetZoom();draw();save();say('新しくやり直せます');}
+function makePreview(){const c=document.createElement('canvas');c.width=1080;c.height=1080;const ctx=c.getContext('2d');exportImage(ctx,1080,1080);if(latestUrl)URL.revokeObjectURL(latestUrl);c.toBlob(b=>{if(!b){alert('画像化に失敗しました');return;}latestBlob=b;latestUrl=URL.createObjectURL(b);previewImg.src=latestUrl;preview.style.display='flex';},'image/png');}
+function exportImage(ctx,W,H){ctx.clearRect(0,0,W,H);let bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#eff3ff');bg.addColorStop(.45,'#fff');bg.addColorStop(1,'#f2f8ff');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);ctx.save();ctx.shadowColor='rgba(15,23,42,.15)';ctx.shadowBlur=26;ctx.shadowOffsetY=12;ctx.fillStyle='#fff';round(ctx,52,52,W-104,H-104,34);ctx.fill();ctx.restore();ctx.fillStyle='#1e293b';ctx.textAlign='center';ctx.font='900 46px "Noto Sans JP"';ctx.fillText(`${config.name}さんの人生の軌跡`,W/2,130);ctx.font='700 20px "Noto Sans JP"';ctx.fillStyle='#64748b';ctx.fillText('LIFE WAVE',W/2,168);const old={...layout};layout={px:150,py:220,w:820,h:560};drawExportGrid(ctx);drawExportGraph(ctx);layout=old;}
+function drawExportGrid(ctx){const{px,py,w,h}=layout;let g=ctx.createLinearGradient(px,py,px,py+h);g.addColorStop(0,'#fff8fb');g.addColorStop(.45,'#fff');g.addColorStop(1,'#f1f8ff');ctx.fillStyle=g;round(ctx,px,py,w,h,28);ctx.fill();ctx.strokeStyle='#dbe4ef';ctx.lineWidth=2;round(ctx,px,py,w,h,28);ctx.stroke();for(let i=0;i<=10;i++){let y=py+i/10*h;ctx.beginPath();ctx.strokeStyle=i===5?'#94a3b8':'#e6edf5';ctx.lineWidth=i===5?3:1.5;ctx.moveTo(px,y);ctx.lineTo(px+w,y);ctx.stroke();}let step=ageStep(config.age);for(let a=0;a<=config.age;a+=step)exportTick(ctx,a);if(config.age%step!==0)exportTick(ctx,config.age);ctx.fillStyle='#334155';ctx.textAlign='right';ctx.font='800 24px "Noto Sans JP"';ctx.fillText('絶好調',px-20,py+15);ctx.fillText('ふつう',px-20,py+h/2+8);ctx.fillText('どん底',px-20,py+h+8);}
+function exportTick(ctx,a){const{px,py,w,h}=layout,x=px+a/config.age*w;ctx.beginPath();ctx.strokeStyle='#e6edf5';ctx.lineWidth=1.5;ctx.moveTo(x,py);ctx.lineTo(x,py+h);ctx.stroke();ctx.fillStyle='#334155';ctx.textAlign='center';ctx.font='800 22px "Noto Sans JP"';ctx.fillText(`${a}歳`,x,py+h+38);ctx.fillStyle='#64748b';ctx.font='18px "Noto Sans JP"';ctx.fillText(String(config.birthYear+a),x,py+h+66);}
+function drawExportGraph(ctx){const{px,py,w,h}=layout,arr=[...nodes].sort((a,b)=>a.x-b.x);if(arr.length>1){ctx.beginPath();ctx.strokeStyle='#0f172a';ctx.lineWidth=8;ctx.lineCap='round';ctx.lineJoin='round';for(let i=0;i<arr.length-1;i++){let p0=arr[i-1]||arr[i],p1=arr[i],p2=arr[i+1],p3=arr[i+2]||p2;for(let t=0;t<=1;t+=.04){let x=cr(p0.x,p1.x,p2.x,p3.x,t)*w+px,y=cr(p0.y,p1.y,p2.y,p3.y,t)*h+py;if(i===0&&t===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}}ctx.stroke();}stamps.forEach(st=>{ctx.save();ctx.font='46px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor='rgba(255,255,255,.95)';ctx.shadowBlur=10;ctx.fillText(st.emoji,st.x*w+px,st.y*h+py);ctx.restore();});arr.forEach(n=>{ctx.beginPath();ctx.fillStyle='#fff';ctx.strokeStyle='#0f172a';ctx.lineWidth=4;ctx.arc(n.x*w+px,n.y*h+py,11,0,Math.PI*2);ctx.fill();ctx.stroke();});}
+async function shareImage(){if(!latestBlob){makePreview();return;}const file=new File([latestBlob],`${safe(config.name)}_life_wave.png`,{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){try{await navigator.share({files:[file],title:`${config.name}さんの人生の軌跡`});return;}catch(e){}}downloadImage();}
+function downloadImage(){if(!latestBlob){makePreview();return;}const a=document.createElement('a');a.href=latestUrl||URL.createObjectURL(latestBlob);a.download=`${safe(config.name)}_life_wave.png`;document.body.appendChild(a);a.click();a.remove();say('画像を保存しました');}
+function safe(s){return String(s||'life_wave').replace(/[\\/:*?"<>|\s]+/g,'_');}
+function ageStep(a){return a<=25?5:a<=55?10:20}
+function cr(v0,v1,v2,v3,t){let t2=t*t,t3=t2*t;return .5*((2*v1)+(-v0+v2)*t+(2*v0-5*v1+4*v2-v3)*t2+(-v0+3*v1-3*v2+v3)*t3)}
+function round(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+function say(m){toast.textContent=m;toast.classList.add('show');clearTimeout(say.t);say.t=setTimeout(()=>toast.classList.remove('show'),1800)}
+init();
+</script>
+</body>
+</html>
