@@ -7,50 +7,148 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&display=swap');
-        body { font-family: 'Zen Maru Gothic', sans-serif; touch-action: manipulation; background-color: #f8fafc; }
-        .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        :root {
+            --ink: #172033;
+            --muted: #7b8798;
+            --paper: rgba(255,255,255,.88);
+            --accent: #6366f1;
+            --accent2: #ec4899;
+            --good: #22c55e;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { min-height: 100%; }
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            touch-action: manipulation;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(244,114,182,.26), transparent 34%),
+                radial-gradient(circle at top right, rgba(34,211,238,.22), transparent 32%),
+                radial-gradient(circle at 50% 105%, rgba(250,204,21,.22), transparent 34%),
+                #f8fafc;
+            overflow-x: hidden;
+        }
+
+        .glass {
+            background: var(--paper);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,.78);
+            box-shadow: 0 24px 70px rgba(15,23,42,.12);
+        }
+
+        .soft-card {
+            background: rgba(255,255,255,.94);
+            border: 1px solid rgba(226,232,240,.9);
+            box-shadow: 0 18px 45px rgba(15,23,42,.08);
+        }
+
+        .fade-in { animation: fadeIn .42s cubic-bezier(.2,.9,.25,1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        .pop-in { animation: popIn .48s cubic-bezier(.18,1.45,.36,1) both; }
+        @keyframes popIn { from { opacity: 0; transform: scale(.72) rotate(-2deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+
+        .pulse-glow { animation: pulseGlow 1.45s ease-in-out infinite; }
+        @keyframes pulseGlow {
+            0%,100% { box-shadow: 0 0 0 rgba(99,102,241,0); transform: translateY(0); }
+            50% { box-shadow: 0 0 32px rgba(99,102,241,.38); transform: translateY(-2px); }
+        }
+
+        .sparkle { position: fixed; pointer-events: none; inset: 0; overflow: hidden; z-index: 50; }
+        .sparkle i {
+            position: absolute;
+            width: 9px; height: 14px; border-radius: 999px;
+            opacity: 0;
+            animation: confetti 1100ms ease-out forwards;
+        }
+        @keyframes confetti {
+            0% { opacity: 0; transform: translateY(-20px) rotate(0deg) scale(.4); }
+            12% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(110vh) rotate(680deg) scale(1); }
+        }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .color-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+        @media (min-width: 460px) { .color-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+
+        .color-button { position: relative; overflow: hidden; }
+        .color-button::after {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,.34), transparent 46%, rgba(0,0,0,.10));
+            pointer-events: none;
+        }
+
+        .locked-card { background: linear-gradient(135deg, #eef2ff, #fff1f2); }
+        .locked-card .mark { animation: wiggle 1.2s ease-in-out infinite; }
+        @keyframes wiggle { 0%,100% { transform: rotate(-4deg) scale(1); } 50% { transform: rotate(4deg) scale(1.06); } }
+
+        .reveal-flash { animation: revealFlash .95s ease-in-out both; }
+        @keyframes revealFlash {
+            0% { filter: brightness(1); transform: scale(1); }
+            35% { filter: brightness(1.3); transform: scale(1.02); }
+            100% { filter: brightness(1); transform: scale(1); }
+        }
+
+        .answer-chip { animation: chipDrop .36s cubic-bezier(.18,1.35,.36,1) both; }
+        @keyframes chipDrop { from { opacity: 0; transform: translateY(-10px) scale(.75); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        .invite-qr canvas, .invite-qr img { margin: 0 auto; border-radius: 22px; }
+
+        .tiny-label { font-size: 10px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; color: #94a3b8; }
+
+        .toast {
+            position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%);
+            background: rgba(15,23,42,.92); color: white; padding: 12px 18px;
+            border-radius: 999px; font-size: 12px; font-weight: 900; z-index: 80;
+            animation: toast 1.8s ease both;
+        }
+        @keyframes toast { 0%,100% { opacity: 0; transform: translate(-50%, 10px); } 14%,82% { opacity: 1; transform: translate(-50%, 0); } }
+
+        .bottom-safe { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
+        .room-pill { max-width: calc(100vw - 32px); }
     </style>
 </head>
-<body class="p-4 text-slate-800">
+<body class="p-4">
 
-    <div id="app" class="max-w-md mx-auto text-center pb-28">
-        <header class="mb-6 pt-2">
-            <h1 class="text-4xl font-black text-slate-800 italic tracking-tighter leading-none">ヒトトイロ</h1>
-            <div id="room-status-display" class="text-[10px] font-bold text-blue-500 mt-2 tracking-widest bg-blue-50 inline-block px-3 py-1 rounded-full uppercase">Waiting...</div>
+    <div id="fx-layer"></div>
+
+    <div id="app" class="max-w-md mx-auto text-center bottom-safe">
+        <header class="mb-5 pt-2 sticky top-0 z-30 pointer-events-none">
+            <div class="pointer-events-auto mx-auto inline-flex flex-col items-center rounded-[2rem] px-5 py-3 bg-white/70 backdrop-blur-xl border border-white/70 shadow-sm">
+                <h1 class="text-4xl font-black text-slate-800 italic tracking-tighter leading-none">ヒトトイロ</h1>
+                <div id="room-status-display" class="room-pill text-[10px] font-black text-indigo-500 mt-2 tracking-widest bg-indigo-50 inline-block px-3 py-1 rounded-full uppercase truncate">Waiting...</div>
+            </div>
         </header>
-        
-        <div id="game-content" class="min-h-[400px]"></div>
 
-        <div class="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xs px-4">
-            <button onclick="forceResetRoom()" class="w-full bg-white/90 backdrop-blur border border-red-200 text-red-500 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-md active:scale-95 transition-all">
-                部屋をリセット (全員退室)
-            </button>
-        </div>
+        <div id="game-content" class="min-h-[430px]"></div>
+
+        <div id="bottom-actions" class="fixed bottom-5 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-40"></div>
     </div>
 
     <script>
         const COLORS = [
-            { id: 'red', name: 'あか', code: '#ef4444', text: 'white' },
-            { id: 'pink', name: 'ももいろ', code: '#f472b6', text: 'white' },
-            { id: 'orange', name: 'だいだい', code: '#fb923c', text: 'white' },
-            { id: 'yellow', name: 'きいろ', code: '#facc15', text: 'black' },
-            { id: 'lime', name: 'きみどり', code: '#a3e635', text: 'black' },
-            { id: 'green', name: 'みどり', code: '#22c55e', text: 'white' },
-            { id: 'cyan', name: 'みずいろ', code: '#22d3ee', text: 'black' },
-            { id: 'blue', name: 'あお', code: '#3b82f6', text: 'white' },
-            { id: 'purple', name: 'むらさき', code: '#a855f7', text: 'white' },
-            { id: 'brown', name: 'ちゃいろ', code: '#78350f', text: 'white' },
-            { id: 'white', name: 'しろ', code: '#ffffff', text: 'black' },
-            { id: 'black', name: 'くろ', code: '#000000', text: 'white' },
-            { id: 'gray', name: 'はいいろ', code: '#64748b', text: 'white' },
-            { id: 'gold', name: 'きん', code: '#d4af37', text: 'white' },
-            { id: 'silver', name: 'ぎん', code: '#c0c0c0', text: 'black' }
+            { id: 'red', name: 'あか', code: '#ef4444', text: 'white', emoji: '🍓' },
+            { id: 'pink', name: 'ももいろ', code: '#f472b6', text: 'white', emoji: '🌸' },
+            { id: 'orange', name: 'だいだい', code: '#fb923c', text: 'white', emoji: '🍊' },
+            { id: 'yellow', name: 'きいろ', code: '#facc15', text: 'black', emoji: '🌟' },
+            { id: 'lime', name: 'きみどり', code: '#a3e635', text: 'black', emoji: '🌱' },
+            { id: 'green', name: 'みどり', code: '#22c55e', text: 'white', emoji: '🍀' },
+            { id: 'cyan', name: 'みずいろ', code: '#22d3ee', text: 'black', emoji: '💧' },
+            { id: 'blue', name: 'あお', code: '#3b82f6', text: 'white', emoji: '🌊' },
+            { id: 'purple', name: 'むらさき', code: '#a855f7', text: 'white', emoji: '🔮' },
+            { id: 'brown', name: 'ちゃいろ', code: '#78350f', text: 'white', emoji: '🌰' },
+            { id: 'white', name: 'しろ', code: '#ffffff', text: 'black', emoji: '☁️' },
+            { id: 'black', name: 'くろ', code: '#000000', text: 'white', emoji: '🕶️' },
+            { id: 'gray', name: 'はいいろ', code: '#64748b', text: 'white', emoji: '🪨' },
+            { id: 'gold', name: 'きん', code: '#d4af37', text: 'white', emoji: '🏆' },
+            { id: 'silver', name: 'ぎん', code: '#c0c0c0', text: 'black', emoji: '✨' }
         ];
 
         const firebaseConfig = {
@@ -65,105 +163,211 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentRoomId = localStorage.getItem("toiro-room-id") || "";
+        const params = new URLSearchParams(location.search);
+        const invitedRoom = normalizeRoomId(params.get('room') || params.get('r') || '');
+
+        let currentRoomId = invitedRoom || localStorage.getItem("toiro-room-id") || "";
         let myName = localStorage.getItem("toiro-name") || "";
-        let myRole = localStorage.getItem("toiro-role") || ""; 
+        let myRole = localStorage.getItem("toiro-role") || "";
+        let myPlayerId = localStorage.getItem("toiro-player-id") || cryptoRandom('p');
+        localStorage.setItem("toiro-player-id", myPlayerId);
+
         let gameState = null;
         let selectedColor = null;
         let isInputting = false;
+        let qrDrawnFor = '';
+        let lastPhase = '';
+        let lastRevealIdx = -99;
 
-        if (currentRoomId) connectToRoom(currentRoomId);
+        if (currentRoomId && !invitedRoom) connectToRoom(currentRoomId);
         else render();
 
+        function normalizeRoomId(id) {
+            return String(id || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 28);
+        }
+
+        function cryptoRandom(prefix='room') {
+            const arr = new Uint32Array(2);
+            try { crypto.getRandomValues(arr); }
+            catch(e) { arr[0] = Math.floor(Math.random()*999999); arr[1] = Date.now(); }
+            return `${prefix}-${Array.from(arr).map(n => n.toString(36).slice(0,4)).join('')}`;
+        }
+
+        function makeInviteUrl(roomId=currentRoomId) {
+            const url = new URL(location.href);
+            url.search = '';
+            url.hash = '';
+            url.searchParams.set('room', roomId);
+            return url.toString();
+        }
+
         function connectToRoom(id) {
-            currentRoomId = id;
-            localStorage.setItem("toiro-room-id", id);
-            db.ref("rooms/" + id).on("value", (snapshot) => {
+            currentRoomId = normalizeRoomId(id);
+            if (!currentRoomId) return;
+            localStorage.setItem("toiro-room-id", currentRoomId);
+            db.ref("rooms/" + currentRoomId).off();
+            db.ref("rooms/" + currentRoomId).on("value", (snapshot) => {
                 const data = snapshot.val();
                 if (gameState && !data) {
                     localStorage.removeItem("toiro-room-id");
-                    location.reload();
+                    showToast('部屋がリセットされました');
+                    setTimeout(() => location.href = location.pathname, 700);
                     return;
                 }
                 gameState = data;
-                if(data) document.getElementById('room-status-display').innerText = "ROOM: " + id;
-                if(!isInputting) render();
+                if (data) {
+                    document.getElementById('room-status-display').innerText = "ROOM: " + currentRoomId;
+                    if (lastPhase && lastPhase !== data.phase) {
+                        if (data.phase === 'playing') playTone('start');
+                        if (data.phase === 'result') celebrate(data.finalMatchCount || 0);
+                    }
+                    if (data.phase === 'revealing' && data.revealIdx !== lastRevealIdx && data.revealIdx >= 0) {
+                        playTone('reveal');
+                        const ans = data.answers?.[data.revealIdx] || {};
+                        const vals = Object.values(ans);
+                        const match = vals.length > 0 && vals.length === (data.members || []).length && vals.every(v => v === vals[0]);
+                        if (match) setTimeout(() => { playTone('success'); celebrate(1); }, 380);
+                    }
+                    lastPhase = data.phase;
+                    lastRevealIdx = data.revealIdx ?? -99;
+                } else {
+                    document.getElementById('room-status-display').innerText = currentRoomId ? "ROOM: " + currentRoomId : "Waiting...";
+                }
+                if (!isInputting) render();
             });
+        }
+
+        async function createNewRoom() {
+            const n = document.getElementById('name-input')?.value.trim();
+            if (!n) return alert('お名前を入力してください');
+            const newRoomId = cryptoRandom('iro').replace(/[^a-z0-9]/g,'').slice(0,10);
+            myName = n; myRole = 'host';
+            localStorage.setItem('toiro-name', myName);
+            localStorage.setItem('toiro-role', myRole);
+            currentRoomId = newRoomId;
+            localStorage.setItem('toiro-room-id', currentRoomId);
+            await db.ref('rooms/' + currentRoomId).set({
+                phase: 'setup',
+                host: myName,
+                hostId: myPlayerId,
+                members: [myName],
+                players: { [myPlayerId]: { name: myName, role: 'host', joinedAt: Date.now() } },
+                createdAt: Date.now(),
+                roomMood: 'ready'
+            });
+            history.replaceState(null, '', '?room=' + encodeURIComponent(currentRoomId));
+            connectToRoom(currentRoomId);
+            showToast('部屋を作成しました');
         }
 
         function handleJoin(role) {
-            const r = document.getElementById('room-input')?.value.trim();
+            const r = normalizeRoomId(document.getElementById('room-input')?.value || currentRoomId);
             const n = document.getElementById('name-input')?.value.trim();
             if (!r || !n) return alert("部屋IDとお名前を入力してください");
             isInputting = false;
-            myName = n; myRole = role;
+            myName = n;
+            myRole = role;
             localStorage.setItem("toiro-name", n);
             localStorage.setItem("toiro-role", role);
+            currentRoomId = r;
+            localStorage.setItem("toiro-room-id", r);
+            history.replaceState(null, '', '?room=' + encodeURIComponent(r));
             connectToRoom(r);
             db.ref("rooms/" + r).transaction((curr) => {
-                if (!curr) return { phase: 'setup', members: [n], host: (role === 'host' ? n : "") };
+                if (!curr) return {
+                    phase: 'setup',
+                    members: [n],
+                    host: role === 'host' ? n : '',
+                    hostId: role === 'host' ? myPlayerId : '',
+                    players: { [myPlayerId]: { name: n, role, joinedAt: Date.now() } },
+                    createdAt: Date.now(),
+                    roomMood: 'ready'
+                };
                 let actualRole = role;
-                if (role === 'host' && curr.host && curr.host !== "") {
-                    alert("既に別のホストが入室済みです。ゲストとして参加します。");
-                    actualRole = 'guest'; myRole = 'guest'; localStorage.setItem("toiro-role", 'guest');
+                if (role === 'host' && curr.host && curr.host !== '' && curr.hostId !== myPlayerId) {
+                    actualRole = 'guest';
+                    myRole = 'guest';
+                    localStorage.setItem("toiro-role", 'guest');
+                    setTimeout(() => showToast('ホスト入室済みなのでゲスト参加しました'), 150);
                 }
                 if (!curr.members) curr.members = [];
                 if (!curr.members.includes(n)) curr.members.push(n);
-                if (actualRole === 'host') curr.host = n;
+                if (!curr.players) curr.players = {};
+                curr.players[myPlayerId] = { name: n, role: actualRole, joinedAt: Date.now() };
+                if (actualRole === 'host') { curr.host = n; curr.hostId = myPlayerId; }
                 return curr;
             });
+            showToast('入室しました');
         }
 
-        // --- お題生成ロジック ---
         async function fetchNewTheme(roundIndex, mode) {
-            const response = await fetch('themes.json');
-            const MASTER_THEMES = await response.json();
-            let lv = ['easy', 'normal', 'hard'];
-            if (mode === 'れんしゅう') lv = ['easy'];
-            else if (mode === 'ほんばん') {
-                if (roundIndex === 0) lv = ['easy'];
-                else if (roundIndex === 1) lv = ['easy', 'normal'];
-                else if (roundIndex === 2) lv = ['normal'];
-                else if (roundIndex === 3) lv = ['normal', 'hard'];
-                else lv = ['hard'];
+            try {
+                const response = await fetch('themes.json', { cache: 'no-store' });
+                const MASTER_THEMES = await response.json();
+                let lv = ['easy', 'normal', 'hard'];
+                if (mode === 'れんしゅう') lv = ['easy'];
+                else if (mode === 'ほんばん') {
+                    if (roundIndex === 0) lv = ['easy'];
+                    else if (roundIndex === 1) lv = ['easy', 'normal'];
+                    else if (roundIndex === 2) lv = ['normal'];
+                    else if (roundIndex === 3) lv = ['normal', 'hard'];
+                    else lv = ['hard'];
+                }
+                const pool = lv.flatMap(l => MASTER_THEMES[l] || []);
+                return pool[Math.floor(Math.random() * pool.length)] || fallbackTheme(roundIndex);
+            } catch(e) {
+                const fallbacks = ['初めて会った人のイメージ', '今日の気分', 'やさしそうな人', '一緒に旅したい人', '実は熱い人'];
+                return fallbacks[roundIndex % fallbacks.length];
             }
-            const pool = lv.flatMap(l => MASTER_THEMES[l] || []);
-            return pool[Math.floor(Math.random() * pool.length)] || "お題なし";
+        }
+
+        function fallbackTheme(i) {
+            return ['今日の気分', '頼れそうな人', '話しかけやすい人', '意外な一面', 'このメンバーらしさ'][i % 5];
         }
 
         async function startGame() {
+            if (myRole !== 'host') return;
             const mode = document.getElementById('mode-select')?.value || 'ほんばん';
-            let themes = [];
-            for(let i=0; i<5; i++) {
-                themes.push(await fetchNewTheme(i, mode));
-            }
+            const roundCount = parseInt(document.getElementById('round-count-select')?.value) || 5;
+            const themes = [];
+            for (let i = 0; i < roundCount; i++) themes.push(await fetchNewTheme(i, mode));
             const dealCount = parseInt(document.getElementById('card-count-select')?.value) || 10;
             const commonHand = [...COLORS].sort(() => 0.5 - Math.random()).slice(0, dealCount).map(c => c.id);
-
-            db.ref("rooms/" + currentRoomId).update({
-                phase: 'playing', themes: themes, currentRound: 0, answers: {}, revealIdx: -1,
-                commonHand: commonHand, gameMode: mode
+            await db.ref("rooms/" + currentRoomId).update({
+                phase: 'playing',
+                themes,
+                currentRound: 0,
+                roundCount,
+                answers: {},
+                revealIdx: -1,
+                commonHand,
+                gameMode: mode,
+                startedAt: Date.now(),
+                finalMatchCount: null
             });
         }
 
-        // ★ 今回の追加：プレイ中にお題のみを上書きする関数
         async function redrawCurrentTheme() {
             if (myRole !== 'host') return;
             const round = gameState.currentRound;
             const newTheme = await fetchNewTheme(round, gameState.gameMode);
             db.ref(`rooms/${currentRoomId}/themes/${round}`).set(newTheme);
+            showToast('お題を変更しました');
         }
 
         function confirmAnswer() {
             if (!selectedColor) return;
             const round = gameState.currentRound;
+            playTone('select');
             db.ref(`rooms/${currentRoomId}/answers/${round}/${myName}`).set(selectedColor).then(() => {
                 selectedColor = null;
                 db.ref(`rooms/${currentRoomId}`).transaction((curr) => {
                     if (!curr) return curr;
+                    const totalRounds = curr.roundCount || 5;
                     const ans = (curr.answers && curr.answers[round]) || {};
-                    if (Object.keys(ans).length === curr.members.length) {
-                        if (round < 4) curr.currentRound = round + 1;
+                    const members = curr.members || [];
+                    if (members.length > 0 && Object.keys(ans).length === members.length) {
+                        if (round < totalRounds - 1) curr.currentRound = round + 1;
                         else curr.phase = 'revealing';
                     }
                     return curr;
@@ -178,100 +382,336 @@
             }
         }
 
-        function animateCountUp(target) {
-            const el = document.getElementById('count-up-score');
-            if (!el) return;
-            let current = 0;
-            const step = (timestamp) => {
-                if (!animateCountUp.start) animateCountUp.start = timestamp;
-                const progress = Math.min((timestamp - animateCountUp.start) / 1500, 1);
-                current = Math.floor(progress * target);
-                el.innerText = current;
-                if (progress < 1) window.requestAnimationFrame(step);
-                else animateCountUp.start = null;
-            };
-            window.requestAnimationFrame(step);
+        function leaveRoom() {
+            if (!confirm('この端末だけ退室しますか？')) return;
+            localStorage.removeItem('toiro-room-id');
+            localStorage.removeItem('toiro-role');
+            currentRoomId = ''; myRole = ''; gameState = null;
+            history.replaceState(null, '', location.pathname);
+            location.reload();
+        }
+
+        function resetToSetup() {
+            if (myRole !== 'host') return;
+            db.ref('rooms/' + currentRoomId).update({ phase: 'setup', answers: {}, revealIdx: -1, currentRound: 0, finalMatchCount: null });
+        }
+
+        function publishNextReveal(nextIdx) {
+            if (myRole !== 'host') return;
+            db.ref('rooms/' + currentRoomId).update({ revealIdx: nextIdx });
+        }
+
+        function publishFinalScore() {
+            if (myRole !== 'host') return;
+            const matchCount = calcMatchCount();
+            db.ref('rooms/' + currentRoomId).update({ phase: 'result', finalMatchCount: matchCount });
+        }
+
+        function calcMatchCount() {
+            const totalRounds = gameState.roundCount || 5;
+            let matchCount = 0;
+            for (let r = 0; r < totalRounds; r++) {
+                const ans = Object.values((gameState.answers && gameState.answers[r]) || {});
+                if (ans.length > 0 && ans.length === (gameState.members || []).length && ans.every(v => v === ans[0])) matchCount++;
+            }
+            return matchCount;
+        }
+
+        function renderInviteQr() {
+            const box = document.getElementById('qr-box');
+            if (!box || !currentRoomId) return;
+            const invite = makeInviteUrl();
+            if (qrDrawnFor === invite && box.childNodes.length) return;
+            qrDrawnFor = invite;
+            box.innerHTML = '';
+            if (window.QRCode) {
+                new QRCode(box, { text: invite, width: 172, height: 172, colorDark: '#111827', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+            } else {
+                box.innerHTML = `<div class="text-xs text-slate-400 p-6">QRライブラリ読込中。招待URLをコピーしてください。</div>`;
+            }
+        }
+
+        async function copyInvite() {
+            const invite = makeInviteUrl();
+            try {
+                await navigator.clipboard.writeText(invite);
+                showToast('招待URLをコピーしました');
+            } catch(e) {
+                prompt('このURLをコピーしてください', invite);
+            }
+        }
+
+        async function shareInvite() {
+            const invite = makeInviteUrl();
+            const text = `ヒトトイロに参加してね！\nROOM: ${currentRoomId}\n${invite}`;
+            if (navigator.share) {
+                try { await navigator.share({ title: 'ヒトトイロ招待', text, url: invite }); }
+                catch(e) {}
+            } else copyInvite();
+        }
+
+        function showToast(msg) {
+            document.querySelectorAll('.toast').forEach(t => t.remove());
+            const el = document.createElement('div');
+            el.className = 'toast';
+            el.textContent = msg;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1900);
+        }
+
+        function playTone(type='select') {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                const map = { select: 520, start: 360, reveal: 740, success: 880 };
+                o.frequency.value = map[type] || 520;
+                o.type = type === 'success' ? 'triangle' : 'sine';
+                g.gain.setValueAtTime(.001, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(.07, ctx.currentTime + .02);
+                g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .16);
+                o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + .18);
+                if (type === 'success') {
+                    setTimeout(() => playTone('reveal'), 95);
+                }
+            } catch(e) {}
+        }
+
+        function celebrate(level=1) {
+            const layer = document.getElementById('fx-layer');
+            if (!layer) return;
+            const wrap = document.createElement('div');
+            wrap.className = 'sparkle';
+            const amount = level >= 3 ? 70 : level >= 1 ? 34 : 18;
+            const palette = ['#f472b6','#60a5fa','#facc15','#34d399','#a78bfa','#fb923c'];
+            for (let i=0; i<amount; i++) {
+                const p = document.createElement('i');
+                p.style.left = `${Math.random()*100}%`;
+                p.style.top = `${-10 - Math.random()*20}px`;
+                p.style.background = palette[i % palette.length];
+                p.style.animationDelay = `${Math.random()*260}ms`;
+                p.style.animationDuration = `${850 + Math.random()*900}ms`;
+                wrap.appendChild(p);
+            }
+            layer.appendChild(wrap);
+            setTimeout(() => wrap.remove(), 1900);
+        }
+
+        function colorObj(id) { return COLORS.find(c => c.id === id) || COLORS[0]; }
+
+        function renderBottomActions() {
+            const bottom = document.getElementById('bottom-actions');
+            if (!bottom) return;
+            if (!currentRoomId || !myName || !gameState) { bottom.innerHTML = ''; return; }
+            bottom.innerHTML = `
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="shareInvite()" class="bg-indigo-600 text-white py-3 rounded-2xl text-[12px] font-black shadow-lg active:scale-95 transition">招待する</button>
+                    <button onclick="leaveRoom()" class="bg-white/90 backdrop-blur border border-slate-200 text-slate-500 py-3 rounded-2xl text-[12px] font-black shadow-md active:scale-95 transition">この端末だけ退室</button>
+                    ${myRole === 'host' ? `<button onclick="forceResetRoom()" class="col-span-2 bg-white/90 backdrop-blur border border-red-200 text-red-500 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-md active:scale-95 transition">部屋をリセット（全員退室）</button>` : ''}
+                </div>`;
         }
 
         function render() {
             const container = document.getElementById('game-content');
+            const status = document.getElementById('room-status-display');
+            if (status) status.innerText = currentRoomId ? "ROOM: " + currentRoomId : "Waiting...";
+            renderBottomActions();
+
             if (!currentRoomId || !myName || !gameState) {
-                const hostExists = gameState && gameState.host && gameState.host !== "";
-                const existingInput = document.getElementById('name-input');
-                if (existingInput) {
-                    const hostBtn = container.querySelector('button[onclick="handleJoin(\'host\')"]');
-                    if (hostBtn) {
-                        if (hostExists) {
-                            hostBtn.disabled = true; hostBtn.className = "w-full bg-slate-200 cursor-not-allowed text-white h-16 rounded-2xl font-bold mb-3";
-                            hostBtn.innerText = "ホスト入室済み";
-                        } else {
-                            hostBtn.disabled = false; hostBtn.className = "w-full bg-slate-800 text-white h-16 rounded-2xl font-bold mb-3";
-                            hostBtn.innerText = "ホストとして開始";
-                        }
-                    }
-                    return;
-                }
+                const invited = invitedRoom || currentRoomId;
                 container.innerHTML = `
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-xl fade-in text-left border border-slate-100">
-                    <div class="mb-4"><label class="block text-[10px] font-bold text-slate-400 mb-1 ml-2 uppercase">Room ID</label><input id="room-input" type="text" value="toiro-party" class="w-full border-2 p-4 rounded-2xl font-bold"></div>
-                    <div class="mb-8"><label class="block text-[10px] font-bold text-slate-400 mb-1 ml-2 uppercase">Name</label><input id="name-input" type="text" placeholder="名前をいれてね" onfocus="isInputting=true" onblur="isInputting=false" class="w-full border-2 p-4 rounded-2xl font-bold outline-none"></div>
-                    <button onclick="handleJoin('host')" ${hostExists ? 'disabled' : ''} class="w-full ${hostExists ? 'bg-slate-200 cursor-not-allowed' : 'bg-slate-800'} text-white h-16 rounded-2xl font-bold mb-3">${hostExists ? 'ホスト入室済み' : 'ホストとして開始'}</button>
-                    <button onclick="handleJoin('guest')" class="w-full bg-white border-2 border-slate-800 text-slate-800 h-16 rounded-2xl font-bold">参加する</button>
+                <div class="glass p-7 rounded-[2.5rem] fade-in text-left">
+                    <div class="text-center mb-7">
+                        <div class="inline-flex items-center gap-2 bg-white rounded-full px-3 py-1 text-[10px] font-black text-indigo-500 tracking-widest mb-3">QR INVITE READY</div>
+                        <h2 class="text-2xl font-black tracking-tight text-slate-800">色でわかる、みんなの感覚。</h2>
+                        <p class="text-xs font-bold text-slate-400 leading-relaxed mt-2">同じお題に、同じ色を選べたらシンクロ成功。<br>結果は一枚ずつめくるのでドキドキ感が出ます。</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block tiny-label mb-1 ml-2">Room ID</label>
+                            <input id="room-input" type="text" value="${invited || 'toiro-party'}" onfocus="isInputting=true" onblur="isInputting=false" class="w-full border-2 border-slate-100 bg-white p-4 rounded-2xl font-black outline-none focus:border-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block tiny-label mb-1 ml-2">Name</label>
+                            <input id="name-input" type="text" value="${myName || ''}" placeholder="名前をいれてね" onfocus="isInputting=true" onblur="isInputting=false" class="w-full border-2 border-slate-100 bg-white p-4 rounded-2xl font-black outline-none focus:border-pink-300">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3 mt-7">
+                        <button onclick="createNewRoom()" class="w-full bg-slate-900 text-white h-16 rounded-2xl font-black shadow-xl active:scale-95 transition pulse-glow">新しい部屋を作る</button>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="handleJoin('host')" class="bg-white border-2 border-slate-800 text-slate-800 h-14 rounded-2xl font-black active:scale-95 transition">ホスト参加</button>
+                            <button onclick="handleJoin('guest')" class="bg-indigo-500 text-white h-14 rounded-2xl font-black shadow-lg active:scale-95 transition">参加する</button>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 font-bold text-center mt-5 leading-relaxed">QRから来た人はRoom IDが自動入力されます。<br>ホストは「新しい部屋を作る」→待機画面のQRを見せるだけでOK。</p>
                 </div>`;
                 return;
             }
 
             if (gameState.phase === 'setup') {
+                const members = gameState.members || [];
                 container.innerHTML = `
-                <div class="bg-white p-8 rounded-[2.5rem] shadow-xl fade-in border border-slate-100">
-                    <p class="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest">待機中 (${(gameState.members || []).length}人)</p>
-                    <div class="grid grid-cols-2 gap-2 mb-8">${(gameState.members || []).map(m => `<div class="bg-slate-50 p-2 rounded-xl font-bold text-slate-600 text-[10px] border border-slate-100 truncate italic">👤 ${m}</div>`).join('')}</div>
-                    ${myRole === 'host' ? `
-                        <div class="bg-blue-50/50 p-5 rounded-3xl mb-6 text-left border border-blue-100">
-                            <label class="block text-[10px] font-black text-blue-400 mb-3 uppercase tracking-tighter">Game Settings</label>
-                            <div class="space-y-4 mb-6">
-                                <div><span class="text-[10px] font-bold text-slate-400 ml-1">カード枚数</span><select id="card-count-select" class="w-full p-3 rounded-xl font-bold text-sm bg-white border-none shadow-sm"><option value="5">5枚</option><option value="8">8枚</option><option value="10" selected>10枚</option><option value="12">12枚</option><option value="15">15枚</option></select></div>
-                                <div><span class="text-[10px] font-bold text-slate-400 ml-1">難易度モード</span><select id="mode-select" class="w-full p-3 rounded-xl font-bold text-sm bg-white border-none shadow-sm"><option value="れんしゅう">れんしゅう (Easyのみ)</option><option value="ほんばん" selected>ほんばん (徐々に難化)</option><option value="ランダム">ランダム (全難易度混在)</option></select></div>
+                <div class="fade-in space-y-4">
+                    <section class="glass p-6 rounded-[2.5rem]">
+                        <div class="flex items-center justify-between gap-3 mb-5">
+                            <div class="text-left">
+                                <p class="tiny-label">Waiting Room</p>
+                                <h2 class="text-2xl font-black">${members.length}人が参加中</h2>
                             </div>
-                            <button onclick="startGame()" class="w-full bg-blue-500 text-white h-16 rounded-2xl text-xl font-black shadow-lg">ゲーム開始</button>
-                        </div>` : `<p class="animate-pulse text-slate-400 font-bold">ホストが準備しています...</p>`}
+                            <button onclick="shareInvite()" class="bg-indigo-600 text-white px-4 py-3 rounded-2xl text-xs font-black shadow-lg active:scale-95 transition">招待</button>
+                        </div>
+                        <div class="invite-qr bg-white p-4 rounded-[2rem] mb-4 border border-slate-100 shadow-inner">
+                            <div class="tiny-label text-center mb-2 text-indigo-400">INVITE QR</div>
+                            <div id="qr-box" class="flex justify-center min-h-[172px] items-center"></div>
+                            <div class="mt-3 bg-slate-50 rounded-2xl p-3 text-center">
+                                <div class="text-[10px] font-black text-slate-400 tracking-widest">ROOM ID</div>
+                                <div class="text-xl font-black tracking-widest text-slate-800">${currentRoomId}</div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mt-3">
+                                <button onclick="copyInvite()" class="bg-slate-100 text-slate-600 py-3 rounded-xl text-[11px] font-black active:scale-95 transition">URLコピー</button>
+                                <button onclick="shareInvite()" class="bg-pink-100 text-pink-600 py-3 rounded-xl text-[11px] font-black active:scale-95 transition">共有</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">${members.map((m, i) => `<div class="bg-white p-3 rounded-2xl font-black text-slate-600 text-[11px] border border-slate-100 truncate ${m === gameState.host ? 'ring-2 ring-indigo-100' : ''}"><span class="inline-block w-2 h-2 rounded-full mr-1" style="background:${COLORS[i % COLORS.length].code}"></span>${m}${m === gameState.host ? ' 👑' : ''}</div>`).join('')}</div>
+                    </section>
+                    ${myRole === 'host' ? `
+                    <section class="soft-card p-6 rounded-[2.5rem] text-left">
+                        <p class="tiny-label mb-4 text-indigo-400">Game Settings</p>
+                        <div class="space-y-4 mb-6">
+                            <div><span class="text-[10px] font-black text-slate-400 ml-1">カード枚数</span><select id="card-count-select" class="w-full p-4 rounded-2xl font-black text-sm bg-slate-50 border-none"><option value="5">5枚：短時間向け</option><option value="8">8枚：迷いやすく楽しい</option><option value="10" selected>10枚：おすすめ</option><option value="12">12枚：個性が出る</option><option value="15">15枚：じっくり</option></select></div>
+                            <div><span class="text-[10px] font-black text-slate-400 ml-1">ラウンド数</span><select id="round-count-select" class="w-full p-4 rounded-2xl font-black text-sm bg-slate-50 border-none"><option value="3">3問：おためし</option><option value="5" selected>5問：おすすめ</option><option value="7">7問：盛り上げ用</option></select></div>
+                            <div><span class="text-[10px] font-black text-slate-400 ml-1">難易度モード</span><select id="mode-select" class="w-full p-4 rounded-2xl font-black text-sm bg-slate-50 border-none"><option value="れんしゅう">れんしゅう：Easyのみ</option><option value="ほんばん" selected>ほんばん：徐々に難化</option><option value="ランダム">ランダム：全難易度混在</option></select></div>
+                        </div>
+                        <button onclick="startGame()" class="w-full bg-gradient-to-r from-indigo-600 to-pink-500 text-white h-16 rounded-2xl text-xl font-black shadow-xl active:scale-95 transition pulse-glow">ゲーム開始</button>
+                    </section>` : `<section class="soft-card p-8 rounded-[2.5rem]"><p class="animate-pulse text-slate-400 font-black">ホストが準備しています...</p><p class="text-[11px] text-slate-400 font-bold mt-2">始まるまで、QRから友だちを呼べます。</p></section>`}
                 </div>`;
+                setTimeout(renderInviteQr, 50);
             } else if (gameState.phase === 'playing') {
-                const round = gameState.currentRound;
-                const theme = gameState.themes[round];
+                const round = gameState.currentRound || 0;
+                const totalRounds = gameState.roundCount || 5;
+                const theme = gameState.themes?.[round] || fallbackTheme(round);
                 const alreadyAnswered = gameState.answers?.[round]?.[myName];
+                const answeredCount = Object.keys(gameState.answers?.[round] || {}).length;
+                const totalMembers = (gameState.members || []).length;
+
                 if (alreadyAnswered) {
-                    container.innerHTML = `<div class="bg-white p-12 rounded-[2.5rem] shadow-xl border border-slate-100 fade-in"><div class="w-16 h-16 mx-auto rounded-2xl shadow-inner mb-4" style="background-color: ${COLORS.find(c => c.id === alreadyAnswered).code}"></div><p class="text-slate-400 font-bold text-sm">回答完了！待機中...<br><span class="text-blue-500 text-2xl font-black">${Object.keys(gameState.answers[round]).length} / ${gameState.members.length}</span></p></div>`;
+                    const c = colorObj(alreadyAnswered);
+                    const pct = totalMembers ? Math.round(answeredCount / totalMembers * 100) : 0;
+                    container.innerHTML = `
+                    <div class="soft-card p-8 rounded-[2.5rem] fade-in overflow-hidden relative">
+                        <div class="absolute inset-x-0 top-0 h-2 bg-slate-100"><div class="h-full bg-gradient-to-r from-indigo-500 to-pink-400 transition-all" style="width:${pct}%"></div></div>
+                        <div class="w-24 h-24 mx-auto rounded-[2rem] shadow-inner mb-5 ring-8 ring-white pop-in" style="background-color:${c.code}"></div>
+                        <p class="tiny-label text-center mb-2">Answer Locked</p>
+                        <h2 class="text-2xl font-black mb-2">回答完了！</h2>
+                        <p class="text-slate-400 font-bold text-sm leading-relaxed">みんなの色が出そろうまで待機中。<br>あとで一斉にめくります。</p>
+                        <div class="mt-6 bg-slate-50 rounded-3xl p-5">
+                            <div class="text-[10px] font-black text-slate-400 tracking-widest">回答状況</div>
+                            <div class="text-4xl font-black text-indigo-500 mt-1">${answeredCount}<span class="text-xl text-slate-300"> / ${totalMembers}</span></div>
+                        </div>
+                    </div>`;
                 } else {
                     const myUsed = [];
-                    for(let i=0; i<round; i++) { if(gameState.answers?.[i]?.[myName]) myUsed.push(gameState.answers[i][myName]); }
-                    const currentHand = gameState.commonHand.filter(cid => !myUsed.includes(cid));
-                    const selObj = selectedColor ? COLORS.find(c => c.id === selectedColor) : null;
+                    for (let i=0; i<round; i++) if (gameState.answers?.[i]?.[myName]) myUsed.push(gameState.answers[i][myName]);
+                    const currentHand = (gameState.commonHand || []).filter(cid => !myUsed.includes(cid));
+                    const selObj = selectedColor ? colorObj(selectedColor) : null;
                     container.innerHTML = `
                     <div class="fade-in">
-                        <div class="flex justify-between items-center mb-2 px-2">
-                            <div class="text-[10px] font-black text-slate-300 tracking-[0.3em] uppercase">${gameState.gameMode} RD ${round + 1}/5</div>
-                            ${myRole === 'host' ? `<button onclick="redrawCurrentTheme()" class="text-[10px] font-black text-blue-400 border border-blue-100 px-2 py-1 rounded-lg bg-white shadow-sm active:scale-95 transition-all">🔄 お題を変える</button>` : ''}
-                        </div>
-                        <h2 class="text-4xl font-black text-slate-800 mb-8 italic tracking-tight">「${theme}」</h2>
-                        <div class="color-grid mb-8">${currentHand.map(cid => { const c = COLORS.find(x => x.id === cid); return `<button onclick="selectedColor='${c.id}';render();" style="background-color: ${c.code}; color: ${c.text}" class="h-20 rounded-2xl font-bold shadow-md ring-4 ${selectedColor === cid ? 'ring-blue-500 scale-105 shadow-blue-100' : 'ring-transparent'} border-b-4 border-black/10 transition-all text-xs">${c.name}</button>`; }).join('')}</div>
-                        <div class="h-24">${selObj ? `<button onclick="confirmAnswer()" style="background-color: ${selObj.code}; color: ${selObj.text}" class="w-full h-20 rounded-3xl text-xl font-black shadow-xl animate-bounce border-4 border-black/10">【 ${selObj.name} 】で決定！</button>` : `<p class="text-slate-400 font-bold text-sm italic">色を選んでください</p>`}</div>
+                        <section class="glass p-5 rounded-[2.5rem] mb-5 text-left">
+                            <div class="flex justify-between items-center gap-3 mb-3">
+                                <div>
+                                    <div class="tiny-label text-indigo-400">${gameState.gameMode || 'ほんばん'} / Round ${round + 1} of ${totalRounds}</div>
+                                    <div class="h-2 bg-slate-100 rounded-full mt-2 overflow-hidden"><div class="h-full bg-gradient-to-r from-indigo-500 to-pink-400 rounded-full" style="width:${((round+1)/totalRounds)*100}%"></div></div>
+                                </div>
+                                ${myRole === 'host' ? `<button onclick="redrawCurrentTheme()" class="shrink-0 text-[10px] font-black text-indigo-500 border border-indigo-100 px-3 py-2 rounded-xl bg-white shadow-sm active:scale-95 transition">🔄 お題変更</button>` : ''}
+                            </div>
+                            <div class="bg-white rounded-[2rem] p-5 text-center border border-slate-100 shadow-sm">
+                                <p class="tiny-label text-pink-400 mb-2">Theme</p>
+                                <h2 class="text-3xl font-black text-slate-800 tracking-tight leading-tight">「${theme}」</h2>
+                                <p class="text-[11px] font-bold text-slate-400 mt-3">直感で“この色だ”と思うカードを選んでください</p>
+                            </div>
+                        </section>
+                        <div class="color-grid mb-6">${currentHand.map(cid => { const c = colorObj(cid); return `<button onclick="selectedColor='${c.id}'; playTone('select'); render();" style="background-color:${c.code}; color:${c.text}" class="color-button h-20 rounded-[1.35rem] font-black shadow-md ring-4 ${selectedColor === cid ? 'ring-indigo-500 scale-105 shadow-indigo-100' : 'ring-transparent'} border-b-4 border-black/10 transition-all text-xs active:scale-95"><span class="relative z-10 text-lg block mb-1">${c.emoji}</span><span class="relative z-10">${c.name}</span></button>`; }).join('')}</div>
+                        <div class="min-h-24">${selObj ? `<button onclick="confirmAnswer()" style="background-color:${selObj.code}; color:${selObj.text}" class="w-full h-20 rounded-[2rem] text-xl font-black shadow-2xl border-4 border-white/70 active:scale-95 transition pop-in">${selObj.emoji}【 ${selObj.name} 】で決定！</button>` : `<div class="bg-white/70 rounded-[2rem] p-6 border border-white text-slate-400 font-black text-sm">色を選ぶと決定ボタンが出ます</div>`}</div>
                     </div>`;
                 }
             } else if (gameState.phase === 'revealing') {
-                const idx = gameState.revealIdx; let resultsHtml = "";
-                for(let r=0; r < 5; r++) {
-                    const isRevealed = r <= idx; const ans = (gameState.answers && gameState.answers[r]) || {}; const colorValues = Object.values(ans);
-                    const isMatch = colorValues.length > 0 && colorValues.length === gameState.members.length && colorValues.every(v => v === colorValues[0]);
-                    resultsHtml += `<div class="bg-white p-5 rounded-[2.5rem] mb-4 shadow-sm border transition-all duration-500 ${isRevealed ? (isMatch ? 'border-green-400 ring-4 ring-green-50' : 'border-slate-100') : 'opacity-40 grayscale'}"><div class="flex justify-between items-center mb-3"><span class="text-sm font-black text-slate-600 uppercase italic">RD ${r+1}: ${gameState.themes[r]}</span>${isRevealed && isMatch ? '<span class="text-xs font-black text-green-500 animate-pulse">MATCH!</span>' : ''}</div>${isRevealed ? `<div class="flex flex-wrap gap-2 justify-center fade-in">${Object.entries(ans).map(([name, cid]) => `<div class="flex flex-col items-center"><div class="w-10 h-10 rounded-xl shadow-inner ring-1 ring-slate-200" style="background-color:${COLORS.find(x=>x.id===cid).code}"></div><div class="text-[8px] font-bold text-slate-500 truncate w-12 mt-1 text-center">${name}</div></div>`).join('')}</div>` : `<div class="h-10 flex items-center justify-center text-xs text-slate-400 font-black tracking-[0.5em] uppercase">？？？</div>`}</div>`;
+                const idx = gameState.revealIdx ?? -1;
+                const totalRounds = gameState.roundCount || 5;
+                let resultsHtml = '';
+                for (let r=0; r<totalRounds; r++) {
+                    const isRevealed = r <= idx;
+                    const ans = (gameState.answers && gameState.answers[r]) || {};
+                    const vals = Object.values(ans);
+                    const isMatch = vals.length > 0 && vals.length === (gameState.members || []).length && vals.every(v => v === vals[0]);
+                    const matchColor = isMatch ? colorObj(vals[0]) : null;
+                    resultsHtml += `
+                    <div class="${isRevealed ? 'soft-card reveal-flash' : 'locked-card'} p-5 rounded-[2rem] mb-4 border transition-all duration-500 ${isRevealed && isMatch ? 'border-green-300 ring-4 ring-green-50' : 'border-white/80'}">
+                        <div class="flex justify-between items-start gap-3 mb-3">
+                            <div class="text-left">
+                                <span class="tiny-label">Round ${r+1}</span>
+                                <div class="text-sm font-black text-slate-700 leading-tight mt-1">${gameState.themes?.[r] || fallbackTheme(r)}</div>
+                            </div>
+                            ${isRevealed ? (isMatch ? `<span class="text-[10px] font-black text-green-600 bg-green-50 px-3 py-1 rounded-full animate-pulse">SYNC!</span>` : `<span class="text-[10px] font-black text-slate-400 bg-slate-50 px-3 py-1 rounded-full">OPEN</span>`) : `<span class="mark text-2xl">？</span>`}
+                        </div>
+                        ${isRevealed ? `
+                            ${isMatch ? `<div class="mb-4 rounded-2xl p-4 text-center" style="background:${matchColor.code}; color:${matchColor.text}"><div class="text-[10px] font-black tracking-widest opacity-80">みんな一致！</div><div class="text-2xl font-black">${matchColor.emoji} ${matchColor.name}</div></div>` : ''}
+                            <div class="flex flex-wrap gap-2 justify-center">${Object.entries(ans).map(([name, cid], i) => { const c = colorObj(cid); return `<div class="answer-chip flex flex-col items-center" style="animation-delay:${i*45}ms"><div class="w-12 h-12 rounded-2xl shadow-inner ring-2 ring-white border border-slate-100" style="background-color:${c.code}"></div><div class="text-[9px] font-black text-slate-500 truncate w-14 mt-1 text-center">${name}</div></div>`; }).join('')}</div>
+                        ` : `<div class="h-20 flex items-center justify-center text-xs text-slate-500 font-black tracking-[0.45em] uppercase">まだ秘密</div>`}
+                    </div>`;
                 }
-                container.innerHTML = `<div class="fade-in no-scrollbar"><h2 class="text-[10px] font-black mb-4 text-slate-400 uppercase tracking-widest italic">Result Reveal</h2><div class="max-h-[60vh] overflow-y-auto no-scrollbar pb-4">${resultsHtml}</div><div class="mt-4">${myRole === 'host' ? (idx < 4 ? `<button onclick="db.ref('rooms/'+currentRoomId).update({revealIdx:${idx+1}})" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">次の結果を公開 (${idx+2}/5)</button>` : `<button onclick="db.ref('rooms/'+currentRoomId).update({phase:'result'})" class="w-full bg-green-500 text-white h-16 rounded-2xl font-bold shadow-xl">最終スコア発表！</button>`) : `<p class="p-4 text-xs font-bold text-slate-400 animate-pulse italic">ホストが公開中...</p>`}</div></div>`;
+                container.innerHTML = `
+                <div class="fade-in no-scrollbar">
+                    <section class="glass p-5 rounded-[2.5rem] mb-4">
+                        <p class="tiny-label text-pink-400">Result Reveal</p>
+                        <h2 class="text-2xl font-black mt-1">1枚ずつ、色をめくる</h2>
+                        <p class="text-[11px] text-slate-400 font-bold mt-2">一致した瞬間に演出が入ります。ホストが順番に公開してください。</p>
+                    </section>
+                    <div class="max-h-[58vh] overflow-y-auto no-scrollbar pb-3">${resultsHtml}</div>
+                    <div class="mt-4">${myRole === 'host' ? (idx < totalRounds - 1 ? `<button onclick="publishNextReveal(${idx+1})" class="w-full bg-slate-900 text-white h-16 rounded-2xl font-black shadow-xl active:scale-95 transition pulse-glow">${idx < 0 ? '最初の結果を公開' : '次の結果を公開'} (${idx+2}/${totalRounds})</button>` : `<button onclick="publishFinalScore()" class="w-full bg-gradient-to-r from-green-500 to-cyan-500 text-white h-16 rounded-2xl font-black shadow-xl active:scale-95 transition pulse-glow">最終シンクロ率発表！</button>`) : `<p class="p-4 text-xs font-black text-slate-400 animate-pulse italic">ホストが公開中...</p>`}</div>
+                </div>`;
             } else if (gameState.phase === 'result') {
-                let matchCount = 0; for(let r=0; r<5; r++){ const ans = Object.values((gameState.answers && gameState.answers[r]) || {}); if(ans.length > 0 && ans.length === gameState.members.length && ans.every(v => v === ans[0])) matchCount++; }
-                const score = (matchCount / 5) * 100;
-                container.innerHTML = `<div class="fade-in text-center"><p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-2">Group Sync Rate</p><h2 class="text-8xl font-black text-slate-800 mb-6 italic tracking-tighter"><span id="count-up-score">0</span><small class="text-3xl">%</small></h2><div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 mb-8 overflow-hidden relative"><div class="relative z-10"><div class="text-[10px] font-bold text-blue-500 mb-2 uppercase italic tracking-widest">Final Rank</div><div class="text-2xl font-black text-slate-800 mb-4">${score === 100 ? "奇跡のシンクロ！" : score >= 60 ? "最強の絆！" : "伸びしろたっぷり！"}</div><p class="text-xs text-slate-400 font-bold tracking-tight">${matchCount} / 5 ラウンド一致！</p></div><div class="absolute bottom-0 left-0 h-1 bg-blue-500 transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.4)]" style="width:${score}%"></div></div>${myRole === 'host' ? `<button onclick="gameState.phase='setup'; render();" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold shadow-xl">設定に戻る</button>` : ``}</div>`;
-                setTimeout(() => animateCountUp(score), 100);
+                const totalRounds = gameState.roundCount || 5;
+                const matchCount = gameState.finalMatchCount ?? calcMatchCount();
+                const score = Math.round((matchCount / totalRounds) * 100);
+                const rank = score === 100 ? { title: '奇跡の完全シンクロ！', sub: '同じ感覚がそろいすぎ。今日は伝説回です。', icon: '🌈' }
+                    : score >= 70 ? { title: 'かなり通じ合ってる！', sub: '違いもありつつ、同じ色を見る瞬間が多いチームです。', icon: '✨' }
+                    : score >= 40 ? { title: 'ちょうどいい個性派！', sub: 'そろう時とズレる時の差が、話のタネになります。', icon: '🎨' }
+                    : { title: 'バラバラが楽しいチーム！', sub: '同じお題でも見えている世界が違う。会話が広がります。', icon: '🧩' };
+                container.innerHTML = `
+                <div class="fade-in text-center">
+                    <section class="glass p-8 rounded-[2.5rem] overflow-hidden relative">
+                        <div class="absolute inset-x-0 bottom-0 h-2 bg-slate-100"><div class="h-full bg-gradient-to-r from-indigo-500 via-pink-400 to-yellow-300" style="width:${score}%"></div></div>
+                        <div class="text-6xl mb-2 pop-in">${rank.icon}</div>
+                        <p class="tiny-label text-indigo-400 mb-2">Group Sync Rate</p>
+                        <h2 class="text-8xl font-black text-slate-800 mb-4 italic tracking-tighter"><span id="count-up-score">0</span><small class="text-3xl">%</small></h2>
+                        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-5">
+                            <div class="text-2xl font-black text-slate-800 mb-2">${rank.title}</div>
+                            <p class="text-xs text-slate-400 font-bold leading-relaxed">${rank.sub}</p>
+                        </div>
+                        <div class="grid grid-cols-${Math.min(totalRounds, 7)} gap-1 mb-5">${Array.from({length: totalRounds}).map((_, i) => `<div class="h-3 rounded-full ${i < matchCount ? 'bg-green-400' : 'bg-slate-200'}"></div>`).join('')}</div>
+                        <p class="text-xs text-slate-400 font-black tracking-tight">${matchCount} / ${totalRounds} ラウンド一致</p>
+                    </section>
+                    ${myRole === 'host' ? `<button onclick="resetToSetup()" class="mt-5 w-full bg-slate-900 text-white h-16 rounded-2xl font-black shadow-xl active:scale-95 transition">もう一度あそぶ</button>` : ``}
+                </div>`;
+                setTimeout(() => animateCountUp(score), 120);
+                if (score >= 70) setTimeout(() => celebrate(score === 100 ? 4 : 2), 250);
             }
+        }
+
+        function animateCountUp(target) {
+            const el = document.getElementById('count-up-score');
+            if (!el) return;
+            let start = null;
+            const step = (timestamp) => {
+                if (!start) start = timestamp;
+                const progress = Math.min((timestamp - start) / 1400, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                el.innerText = Math.floor(eased * target);
+                if (progress < 1) requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
         }
     </script>
 </body>
