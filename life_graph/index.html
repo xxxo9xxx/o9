@@ -329,7 +329,7 @@ button,input{font:inherit}button{border:0;background:none;cursor:pointer}
         <button class="mode active" data-mode="path"><b>📈 波を描く</b><span>タップで点を追加。ドラッグで移動。</span></button>
         <button class="mode" data-mode="stamp"><b>✨ スタンプ</b><span>出来事をポンと置く。</span></button>
         <button class="mode" data-mode="eraser"><b>🧹 消しゴム</b><span>点やスタンプを消して直す。</span></button>
-        <button class="mode" data-mode="view"><b>🎯 仕上げ</b><span>共有画像を作る。</span></button>
+        <button class="mode" data-mode="operate"><b>✋ 操作</b><span>移動・ズームで見やすく。</span></button>
       </div>
       <div class="panel" id="panel"></div>
     </div>
@@ -349,7 +349,7 @@ button,input{font:inherit}button{border:0;background:none;cursor:pointer}
 const STORAGE_KEY='life-wave-rich-v2';
 const config={name:'自分',birthYear:1995,age:30,mode:'path',preset:'flat'};
 let nodes=[],stamps=[],selectedEmoji='❤️',transform={scale:1,x:0,y:0},layout={w:0,h:0,px:0,py:0};
-let dragging=false,panning=false,dragTarget=null,pointer={x:0,y:0},latestBlob=null,latestUrl='';
+let dragging=false,panning=false,dragTarget=null,pointer={x:0,y:0},activePointers=new Map(),pinchStart=null,latestBlob=null,latestUrl='';
 const presets={
  flat:{name:'フラット',desc:'真ん中から始める',nodes:[{x:0,y:.5},{x:1,y:.5}]},
  rise:{name:'右肩上がり',desc:'最後に向かって上昇',nodes:[{x:0,y:.62},{x:.3,y:.55},{x:.6,y:.42},{x:1,y:.24}]},
@@ -392,7 +392,7 @@ function openWelcome(){ $('userName').value=config.name;$('birthYear').value=con
 function restore(){try{const d=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); if(d.config)Object.assign(config,d.config); nodes=d.nodes||[]; stamps=d.stamps||[]; selectedEmoji=d.selectedEmoji||selectedEmoji; transform=d.transform||transform; if(!nodes.length)applyPreset(config.preset); $('userName').value=config.name;$('birthYear').value=config.birthYear;$('currentAge').value=config.age;renderPresets();}catch(e){applyPreset(config.preset);}}
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify({config,nodes,stamps,selectedEmoji,transform}));}
 function updateHeader(){ $('titleDisplay').textContent=`${config.name}さんの人生の軌跡`; $('ageLabel').textContent=`0〜${config.age}歳`; $('zoomText').textContent=`${Math.round(transform.scale*100)}%`; }
-function setMode(m){config.mode=m;document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));$('modeText').textContent=m==='path'?'波を描く':m==='stamp'?'スタンプ':m==='eraser'?'消しゴム':'仕上げ';renderPanel();save();}
+function setMode(m){config.mode=m;document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));$('modeText').textContent=m==='path'?'波を描く':m==='stamp'?'スタンプ':m==='eraser'?'消しゴム':'操作';renderPanel();save();}
 function renderPanel(){
  panel.innerHTML='';
  if(config.mode==='path'){
@@ -407,9 +407,11 @@ function renderPanel(){
   panel.append(toggle('最後のスタンプを消す',()=>{ if(stamps.length){stamps.pop(); draw(); save(); say('最後のスタンプを消しました');} }));
   panel.append(toggle('波をなめらかにする',smoothWave));
 }else{
-  panel.append(hint('仕上げモード','共有画像をプレビューして、保存または共有できます。'));
-  const z=toggle('ズームを戻す',resetZoom), f=toggle('表示を整える',fit); panel.append(z,f);
-  const c=document.createElement('div');c.className='share-card';c.innerHTML='<div><b>LINE用画像をつくる</b><p>1080×1080の正方形で書き出します。</p></div>';const go=document.createElement('button');go.textContent='プレビュー';go.onclick=makePreview;c.append(go);panel.append(c);
+  panel.append(hint('操作モード','グラフを動かしたり、拡大・縮小したりできます。スマホではこのモード中に画面をドラッグすると視点移動できます。'));
+  panel.append(toggle('＋ 拡大',()=>zoomBy(1.18)));
+  panel.append(toggle('− 縮小',()=>zoomBy(0.84)));
+  panel.append(toggle('表示を戻す',resetZoom));
+  panel.append(toggle('中央に整える',fit));
  }
 }
 function hint(b,p){const d=document.createElement('div');d.className='hint';d.innerHTML=`<b>${b}</b><p>${p}</p>`;return d;}
@@ -426,7 +428,7 @@ function ageTick(ctx,a,s){const{px,py,w,h}=layout,x=px+a/config.age*w;ctx.beginP
 function drawMain(ctx,W,H,useT){ctx.clearRect(0,0,W,H);ctx.save();if(useT){ctx.translate(transform.x,transform.y);ctx.scale(transform.scale,transform.scale)}const s=useT?transform.scale:1,{px,py,w,h}=layout,arr=[...nodes].sort((a,b)=>a.x-b.x);if(arr.length>1){ctx.beginPath();ctx.strokeStyle='#1e293b';ctx.lineWidth=3.5/s;ctx.lineCap='round';ctx.lineJoin='round';for(let i=0;i<arr.length-1;i++){let p0=arr[i-1]||arr[i],p1=arr[i],p2=arr[i+1],p3=arr[i+2]||p2;for(let t=0;t<=1;t+=.07){let x=cr(p0.x,p1.x,p2.x,p3.x,t)*w+px,y=cr(p0.y,p1.y,p2.y,p3.y,t)*h+py;if(i===0&&t===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}}ctx.stroke();}stamps.forEach(st=>{ctx.font=`${28/s}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor='rgba(255,255,255,.8)';ctx.shadowBlur=6/s;ctx.fillText(st.emoji,st.x*w+px,st.y*h+py);ctx.shadowBlur=0;});arr.forEach(n=>{ctx.beginPath();ctx.fillStyle='#fff';ctx.strokeStyle='#1e293b';ctx.lineWidth=2.2/s;ctx.arc(n.x*w+px,n.y*h+py,6/s,0,Math.PI*2);ctx.fill();ctx.stroke();});ctx.restore();}
 function pos(e){const r=mainCanvas.getBoundingClientRect();const x=((e.clientX-r.left)-transform.x)/transform.scale,y=((e.clientY-r.top)-transform.y)/transform.scale;return{x,y,nx:(x-layout.px)/layout.w,ny:(y-layout.py)/layout.h};}
 function clamp(v){return Math.max(0,Math.min(1,v));}
-function down(e){mainCanvas.setPointerCapture?.(e.pointerId);if(config.mode==='view'||e.shiftKey||e.button===1){panning=true;pointer.x=e.clientX;pointer.y=e.clientY;return;}const p=pos(e);if(config.mode==='path'){const hit=nodes.find(n=>Math.hypot(n.x-p.nx,n.y-p.ny)<.06/transform.scale);if(hit){dragTarget=hit;dragging=true}else if(p.nx>=0&&p.nx<=1&&p.ny>=0&&p.ny<=1){dragTarget={x:clamp(p.nx),y:clamp(p.ny)};nodes.push(dragTarget);dragging=true;save();}}else if(config.mode==='stamp'){if(p.nx>=0&&p.nx<=1&&p.ny>=0&&p.ny<=1){stamps.push({x:clamp(p.nx),y:clamp(p.ny),emoji:selectedEmoji});draw();save();}}
+function down(e){mainCanvas.setPointerCapture?.(e.pointerId);if(config.mode==='operate'||e.shiftKey||e.button===1){panning=true;pointer.x=e.clientX;pointer.y=e.clientY;return;}const p=pos(e);if(config.mode==='path'){const hit=nodes.find(n=>Math.hypot(n.x-p.nx,n.y-p.ny)<.06/transform.scale);if(hit){dragTarget=hit;dragging=true}else if(p.nx>=0&&p.nx<=1&&p.ny>=0&&p.ny<=1){dragTarget={x:clamp(p.nx),y:clamp(p.ny)};nodes.push(dragTarget);dragging=true;save();}}else if(config.mode==='stamp'){if(p.nx>=0&&p.nx<=1&&p.ny>=0&&p.ny<=1){stamps.push({x:clamp(p.nx),y:clamp(p.ny),emoji:selectedEmoji});draw();save();}}
 else if(config.mode==='eraser'){eraseAt(p.nx,p.ny);}
 draw();}
 function move(e){if(panning){transform.x+=e.clientX-pointer.x;transform.y+=e.clientY-pointer.y;pointer.x=e.clientX;pointer.y=e.clientY;draw();save();return;}if(!dragging||!dragTarget)return;const p=pos(e);dragTarget.x=clamp(p.nx);dragTarget.y=clamp(p.ny);draw();}
@@ -458,6 +460,20 @@ function smoothWave(){
  draw();save();say('波を少しなめらかにしました');
 }
 function undo(){if(config.mode==='stamp'){stamps.pop()}else if(nodes.length>2){nodes.pop()}else{stamps.pop()}draw();save();say('ひとつ戻しました');}
+
+function zoomBy(factor){
+ const wrap=document.querySelector('.board-inner');
+ const rect=wrap.getBoundingClientRect();
+ const cx=rect.width/2;
+ const cy=rect.height/2;
+ const next=Math.min(6,Math.max(.7,transform.scale*factor));
+ const ratio=next/transform.scale;
+ transform.x=cx-(cx-transform.x)*ratio;
+ transform.y=cy-(cy-transform.y)*ratio;
+ transform.scale=next;
+ draw();save();
+ say(next>1?'拡大しました':'縮小しました');
+}
 function resetZoom(){transform={scale:1,x:0,y:0};draw();save();say('ズームを戻しました');}
 function fit(){resetZoom();say('表示を整えました');}
 function clearAll(){if(!confirm('すべて消去しますか？'))return;applyPreset(config.preset);stamps=[];resetZoom();draw();save();say('新しくやり直せます');}
