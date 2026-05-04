@@ -66,10 +66,10 @@ button,input{font:inherit}button{border:0;background:none;cursor:pointer}
 .fab{width:100%;aspect-ratio:1/1;border-radius:20px;background:white;box-shadow:0 10px 26px rgba(15,23,42,.08);border:1px solid #edf2f7;display:grid;place-items:center;padding:5px;font-size:11px;font-weight:900;color:#334155}.fab i{font-style:normal;font-size:20px}.fab.danger{color:#dc2626}
 .bottom{padding:0 18px 16px}.bottom-inner{border-radius:30px;padding:12px;display:grid;gap:12px}
 .mode-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.mode{border-radius:20px;padding:13px 14px;text-align:left;background:rgba(255,255,255,.78);border:1px solid rgba(15,23,42,.08)}
+.mode{border-radius:20px;padding:11px 10px;text-align:left;background:rgba(255,255,255,.78);border:1px solid rgba(15,23,42,.08)}
 .mode.active{background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(37,99,235,.12));border-color:rgba(124,58,237,.34);box-shadow:0 10px 26px rgba(79,70,229,.12)}
 .mode b{display:block;font-size:14px;margin-bottom:4px}.mode span{font-size:11px;color:var(--muted);line-height:1.6}
-.panel{min-height:88px;border-radius:24px;padding:12px;background:rgba(255,255,255,.72);border:1px solid rgba(15,23,42,.07);display:flex;align-items:center;gap:12px;overflow-x:auto}
+.panel{min-height:72px;border-radius:24px;padding:12px;background:rgba(255,255,255,.72);border:1px solid rgba(15,23,42,.07);display:flex;align-items:center;gap:12px;overflow-x:auto}
 .hint{flex:0 0 auto;padding:13px 14px;border-radius:18px;background:linear-gradient(180deg,#fbfdff,#f6f9fd);border:1px solid #e8eef6;min-width:245px}
 .hint b{display:block;font-size:13px;margin-bottom:4px}.hint p{font-size:12px;color:var(--muted);line-height:1.6}
 .toggle{flex:0 0 auto;border-radius:999px;padding:10px 14px;background:white;border:1px solid #e5ebf3;font-size:12px;font-weight:900;color:#334155}
@@ -87,7 +87,7 @@ button,input{font:inherit}button{border:0;background:none;cursor:pointer}
 .toast{position:fixed;left:50%;bottom:calc(108px + var(--safe-bottom));transform:translateX(-50%) translateY(20px);padding:12px 16px;border-radius:999px;background:rgba(15,23,42,.88);color:white;font-size:13px;font-weight:800;opacity:0;pointer-events:none;transition:.25s;z-index:120}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(max-width:900px){.welcome-card{grid-template-columns:1fr}.hero{min-height:280px}}
 @media(max-width:780px){.work{grid-template-columns:1fr;padding-inline:14px}.side{order:-1;display:grid;grid-template-columns:repeat(4,1fr)}.tools{padding:10px;border-radius:22px}.fab{height:64px;aspect-ratio:auto;border-radius:18px}.top{padding-inline:14px}.bottom{padding-inline:14px}.title{font-size:17px}}
-@media(max-width:560px){#welcome{padding:12px}.hero,.setup{padding:22px}.features{grid-template-columns:1fr 1fr}.pill{padding:10px 12px;font-size:12px}.logo{width:42px;height:42px}.mode{padding:12px}.mode b{font-size:13px}.mode span{font-size:10px}.panel{min-height:96px}.preview-actions{grid-template-columns:1fr}}
+@media(max-width:560px){#welcome{padding:12px}.hero,.setup{padding:22px}.features{grid-template-columns:1fr 1fr}.pill{padding:10px 12px;font-size:12px}.logo{width:42px;height:42px}.mode{padding:8px 7px}.mode b{font-size:13px}.mode span{font-size:10px}.panel{min-height:96px}.preview-actions{grid-template-columns:1fr}}
 
 /* ---- mobile layout stability patch ---- */
 @media(max-width:780px){
@@ -186,7 +186,7 @@ button,input{font:inherit}button{border:0;background:none;cursor:pointer}
   }
   .panel{
     min-height:70px;
-    max-height:86px;
+    max-height:76px;
     border-radius:18px;
     padding:8px;
     gap:8px;
@@ -271,8 +271,33 @@ button,input{font:inherit}button{border:0;background:none;cursor:pointer}
   .pill{padding:8px 8px;font-size:10px;}
   .mode-row{grid-template-columns:repeat(4, minmax(60px, 1fr));}
   .mode b{font-size:10px;}
-  .panel{max-height:78px;}
+  .panel{max-height:70px;}
   .hint{min-width:190px;}
+}
+
+
+/* ---- remove all lower explanations ---- */
+.mode span,
+.hint{
+  display:none !important;
+}
+.mode{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.mode b{
+  margin-bottom:0 !important;
+}
+.panel{
+  min-height:54px !important;
+}
+@media(max-width:780px){
+  .panel{
+    min-height:50px !important;
+    max-height:64px !important;
+  }
 }
 
 </style>
@@ -326,10 +351,10 @@ button,input{font:inherit}button{border:0;background:none;cursor:pointer}
   <footer class="bottom">
     <div class="bottom-inner glass">
       <div class="mode-row">
-        <button class="mode active" data-mode="path"><b>📈 波を描く</b><span>タップで点を追加。ドラッグで移動。</span></button>
-        <button class="mode" data-mode="stamp"><b>✨ スタンプ</b><span>出来事をポンと置く。</span></button>
-        <button class="mode" data-mode="eraser"><b>🧹 消しゴム</b><span>点やスタンプを消して直す。</span></button>
-        <button class="mode" data-mode="operate"><b>✋ 操作</b><span>移動・ズームで見やすく。</span></button>
+        <button class="mode active" data-mode="path"><b>📈 波を描く</b></button>
+        <button class="mode" data-mode="stamp"><b>✨ スタンプ</b></button>
+        <button class="mode" data-mode="eraser"><b>🧹 消しゴム</b></button>
+        <button class="mode" data-mode="operate"><b>✋ 操作</b></button>
       </div>
       <div class="panel" id="panel"></div>
     </div>
@@ -349,7 +374,7 @@ button,input{font:inherit}button{border:0;background:none;cursor:pointer}
 const STORAGE_KEY='life-wave-rich-v2';
 const config={name:'自分',birthYear:1995,age:30,mode:'path',preset:'flat'};
 let nodes=[],stamps=[],selectedEmoji='❤️',transform={scale:1,x:0,y:0},layout={w:0,h:0,px:0,py:0};
-let dragging=false,panning=false,dragTarget=null,pointer={x:0,y:0},activePointers=new Map(),pinchState=null,latestBlob=null,latestUrl='';
+let dragging=false,panning=false,dragTarget=null,pointer={x:0,y:0},activePointers=new Map(),pinchState=null,touchOp=null,latestBlob=null,latestUrl='';
 const presets={
  flat:{name:'フラット',desc:'真ん中から始める',nodes:[{x:0,y:.5},{x:1,y:.5}]},
  rise:{name:'右肩上がり',desc:'最後に向かって上昇',nodes:[{x:0,y:.62},{x:.3,y:.55},{x:.6,y:.42},{x:1,y:.24}]},
@@ -370,7 +395,12 @@ function init(){
  document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
  mainCanvas.addEventListener('pointerdown',down); mainCanvas.addEventListener('pointermove',move);
  mainCanvas.addEventListener('pointerup',up); mainCanvas.addEventListener('pointercancel',up);
- mainCanvas.addEventListener('wheel',wheel,{passive:false}); mainCanvas.oncontextmenu=e=>e.preventDefault();
+ mainCanvas.addEventListener('wheel',wheel,{passive:false});
+ mainCanvas.addEventListener('touchstart',touchStart,{passive:false});
+ mainCanvas.addEventListener('touchmove',touchMove,{passive:false});
+ mainCanvas.addEventListener('touchend',touchEnd,{passive:false});
+ mainCanvas.addEventListener('touchcancel',touchEnd,{passive:false});
+ mainCanvas.oncontextmenu=e=>e.preventDefault();
  window.addEventListener('resize',setupCanvas);
  renderPanel(); setupCanvas(); updateHeader();
 }
@@ -396,25 +426,20 @@ function setMode(m){config.mode=m;document.querySelectorAll('.mode').forEach(b=>
 function renderPanel(){
  panel.innerHTML='';
  if(config.mode==='path'){
-  panel.append(hint('波を描くモード','グラフ内をタップすると点が追加されます。点はドラッグで移動できます。尖りすぎた時は消しゴムで点を消せます。'));
   Object.entries(presets).forEach(([k,p])=>{const b=document.createElement('button');b.className='toggle'+(config.preset===k?' active':'');b.textContent=p.name;b.onclick=()=>{if(confirm(`「${p.name}」に入れ替えますか？`)){applyPreset(k);draw();save();say('テンプレートを切り替えました');}renderPanel();};panel.append(b);});
  }else if(config.mode==='stamp'){
-  panel.append(hint('スタンプモード','スタンプを選んでグラフ上をタップ。説明は足さず、聞きたくなる余白を残します。'));
   emojis.forEach(([e,l])=>{const b=document.createElement('button');b.className='stamp'+(selectedEmoji===e?' active':'');b.innerHTML=`<div class="e">${e}</div><div class="l">${l}</div>`;b.onclick=()=>{selectedEmoji=e;renderPanel();save();};panel.append(b);});
  }else if(config.mode==='eraser'){
-  panel.append(hint('消しゴムモード','消したい点やスタンプをタップします。波が尖りすぎた時は、不要な点を消すと自然に戻ります。'));
   panel.append(toggle('最後の点を消す',()=>{ if(nodes.length>2){nodes.pop(); draw(); save(); say('最後の点を消しました');} }));
   panel.append(toggle('最後のスタンプを消す',()=>{ if(stamps.length){stamps.pop(); draw(); save(); say('最後のスタンプを消しました');} }));
   panel.append(toggle('波をなめらかにする',smoothWave));
 }else{
-  panel.append(hint('操作モード','グラフを動かしたり、拡大・縮小したりできます。スマホでは1本指で移動、2本指のピンチイン・ピンチアウトでズームできます。'));
   panel.append(toggle('＋ 拡大',()=>zoomBy(1.18)));
   panel.append(toggle('− 縮小',()=>zoomBy(0.84)));
   panel.append(toggle('表示を戻す',resetZoom));
   panel.append(toggle('中央に整える',fit));
  }
 }
-function hint(b,p){const d=document.createElement('div');d.className='hint';d.innerHTML=`<b>${b}</b><p>${p}</p>`;return d;}
 function toggle(t,fn){const b=document.createElement('button');b.className='toggle';b.textContent=t;b.onclick=fn;return b;}
 function setupCanvas(){const wrap=document.querySelector('.board-inner');if(!wrap)return;const r=wrap.getBoundingClientRect(),dpr=window.devicePixelRatio||1;[bgCanvas,mainCanvas].forEach(c=>{c.width=Math.max(1,Math.round(r.width*dpr));c.height=Math.max(1,Math.round(r.height*dpr));const ctx=c.getContext('2d');ctx.setTransform(1,0,0,1,0,0);ctx.scale(dpr,dpr);});const isMobile=window.matchMedia('(max-width:780px)').matches;
 layout.w=r.width*(isMobile ? .86 : .84);
@@ -435,6 +460,112 @@ function move(e){if(panning){transform.x+=e.clientX-pointer.x;transform.y+=e.cli
 function up(){dragging=false;panning=false;dragTarget=null;save();}
 function wheel(e){e.preventDefault();const r=mainCanvas.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top,f=e.deltaY<0?1.07:.93,ns=Math.min(6,Math.max(.7,transform.scale*f)),ratio=ns/transform.scale;transform.x=cx-(cx-transform.x)*ratio;transform.y=cy-(cy-transform.y)*ratio;transform.scale=ns;draw();save();}
 
+
+function getTouchMid(touches){
+ const a=touches[0],b=touches[1];
+ return {x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2};
+}
+function getTouchDist(touches){
+ const a=touches[0],b=touches[1];
+ return Math.max(1,Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY));
+}
+function touchStart(e){
+ if(config.mode!=='operate') return;
+ e.preventDefault();
+ const rect=mainCanvas.getBoundingClientRect();
+ if(e.touches.length===1){
+  touchOp={
+   type:'pan',
+   startX:e.touches[0].clientX,
+   startY:e.touches[0].clientY,
+   lastX:e.touches[0].clientX,
+   lastY:e.touches[0].clientY
+  };
+ }else if(e.touches.length>=2){
+  const mid=getTouchMid(e.touches);
+  touchOp={
+   type:'pinch',
+   startDist:getTouchDist(e.touches),
+   startScale:transform.scale,
+   startTransformX:transform.x,
+   startTransformY:transform.y,
+   startMidX:mid.x-rect.left,
+   startMidY:mid.y-rect.top
+  };
+ }
+}
+function touchMove(e){
+ if(config.mode!=='operate' || !touchOp) return;
+ e.preventDefault();
+ const rect=mainCanvas.getBoundingClientRect();
+
+ if(e.touches.length>=2){
+  const mid=getTouchMid(e.touches);
+  const midX=mid.x-rect.left;
+  const midY=mid.y-rect.top;
+  const dist=getTouchDist(e.touches);
+
+  if(touchOp.type!=='pinch'){
+   touchOp={
+    type:'pinch',
+    startDist:dist,
+    startScale:transform.scale,
+    startTransformX:transform.x,
+    startTransformY:transform.y,
+    startMidX:midX,
+    startMidY:midY
+   };
+  }
+
+  const nextScale=Math.min(6,Math.max(.7,touchOp.startScale*(dist/touchOp.startDist)));
+  const ratio=nextScale/touchOp.startScale;
+
+  transform.scale=nextScale;
+  transform.x=midX-(touchOp.startMidX-touchOp.startTransformX)*ratio;
+  transform.y=midY-(touchOp.startMidY-touchOp.startTransformY)*ratio;
+
+  draw();
+  return;
+ }
+
+ if(e.touches.length===1){
+  const t=e.touches[0];
+  if(touchOp.type!=='pan'){
+   touchOp={type:'pan',lastX:t.clientX,lastY:t.clientY};
+  }
+  transform.x+=t.clientX-touchOp.lastX;
+  transform.y+=t.clientY-touchOp.lastY;
+  touchOp.lastX=t.clientX;
+  touchOp.lastY=t.clientY;
+  draw();
+ }
+}
+function touchEnd(e){
+ if(config.mode!=='operate') return;
+ e.preventDefault();
+ if(e.touches.length===0){
+  touchOp=null;
+  save();
+ }else if(e.touches.length===1){
+  touchOp={
+   type:'pan',
+   lastX:e.touches[0].clientX,
+   lastY:e.touches[0].clientY
+  };
+ }else if(e.touches.length>=2){
+  const rect=mainCanvas.getBoundingClientRect();
+  const mid=getTouchMid(e.touches);
+  touchOp={
+   type:'pinch',
+   startDist:getTouchDist(e.touches),
+   startScale:transform.scale,
+   startTransformX:transform.x,
+   startTransformY:transform.y,
+   startMidX:mid.x-rect.left,
+   startMidY:mid.y-rect.top
+  };
+ }
+}
 function eraseAt(nx,ny){
  const nodeHit=nodes.findIndex(n=>Math.hypot(n.x-nx,n.y-ny)<.065/transform.scale);
  if(nodeHit>-1 && nodes.length>2){
