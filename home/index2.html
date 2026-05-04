@@ -1,131 +1,356 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>ごきげんなかよしげーむ DX</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&display=swap');
-    :root{
-      --rose:#fb7185; --hot:#f43f5e; --ink:#334155; --paper:#fff; --bg:#fff1f2;
-      --gold:#f59e0b; --violet:#8b5cf6; --green:#10b981; --blue:#6366f1;
-    }
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    body{font-family:'Zen Maru Gothic',system-ui,sans-serif;background:radial-gradient(circle at 15% 5%,#fff 0 15%,transparent 38%),linear-gradient(150deg,#fff1f2,#ffe4e6 48%,#fdf2f8);min-height:100dvh;color:var(--ink);touch-action:manipulation;overflow-x:hidden;padding-bottom:118px}
-    button,input{font:inherit} button{touch-action:manipulation;user-select:none}
-    .glass{background:rgba(255,255,255,.82);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.9);box-shadow:0 18px 54px rgba(190,18,60,.13)}
-    .soft-card{background:rgba(255,255,255,.94);border:1px solid rgba(251,113,133,.18);box-shadow:0 14px 34px rgba(190,18,60,.1)}
-    .btn{border-radius:1.25rem;font-weight:900;min-height:52px;padding:.8rem 1rem;box-shadow:0 10px 22px rgba(244,63,94,.18);transition:.16s transform,.16s filter,.16s opacity}
-    .btn:active{transform:scale(.97)} .btn:disabled{opacity:.45;filter:grayscale(.5);box-shadow:none}
-    .btn-main{background:linear-gradient(135deg,#fb7185,#f43f5e);color:#fff}.btn-dark{background:#1e293b;color:#fff}.btn-sub{background:white;color:#fb7185;border:2px solid #ffe4e6;box-shadow:none}.btn-good{background:linear-gradient(135deg,#34d399,#10b981);color:white}.btn-gold{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:white}
-    .pop{animation:pop .34s cubic-bezier(.2,1.3,.25,1) both}@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
-    .word-in{animation:wordIn .7s cubic-bezier(.15,1.5,.25,1) both}@keyframes wordIn{0%{opacity:0;transform:scale(.35) rotate(-5deg)}65%{transform:scale(1.08) rotate(1deg)}100%{opacity:1;transform:scale(1)}}
-    .pulse-ring{position:relative}.pulse-ring:before{content:"";position:absolute;inset:-8px;border-radius:inherit;border:3px solid rgba(251,113,133,.3);animation:ring 1.3s infinite}@keyframes ring{to{opacity:0;transform:scale(1.12)}}
-    .stage{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.stage div{height:8px;border-radius:999px;background:#fecdd3}.stage .on{background:linear-gradient(90deg,#fb7185,#f59e0b)}
-    .stamp-icon{position:fixed;pointer-events:none;z-index:80;animation:stampPop .55s cubic-bezier(.17,.89,.25,1.35) forwards;font-size:3rem;text-shadow:0 8px 18px rgba(0,0,0,.13)}@keyframes stampPop{0%{opacity:0;transform:scale(0) rotate(-15deg)}70%{opacity:1;transform:scale(1.18) rotate(var(--r))}100%{opacity:.95;transform:scale(1) rotate(var(--r))}}
-    .spark{position:fixed;inset:0;pointer-events:none;z-index:70;background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.8),transparent 32%);animation:spark .75s ease both}@keyframes spark{from{opacity:0}40%{opacity:1}to{opacity:0}}
-    .reveal-curtain{animation:curtain 1.15s ease-in-out both}@keyframes curtain{0%{filter:blur(10px);transform:scale(.92);opacity:.4}55%{filter:blur(8px);transform:scale(1.04);opacity:1}100%{filter:none;transform:none;opacity:1}}
-    .gender-male{color:#6366f1}.gender-female{color:#fb7185}.gender-other{color:#8b5cf6}.icon-svg{width:34px;height:34px;fill:currentColor;display:inline-block}
-    .player-c0{background:#ffe4e6;color:#be123c}.player-c1{background:#e0e7ff;color:#4338ca}.player-c2{background:#d1fae5;color:#047857}.player-c3{background:#fef3c7;color:#b45309}.player-c4{background:#ede9fe;color:#6d28d9}.player-c5{background:#ccfbf1;color:#0f766e}.player-c6{background:#fce7f3;color:#be185d}.player-c7{background:#ffedd5;color:#c2410c}
-    #qrcode canvas,#qrcode img{margin:auto;border-radius:18px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ごきげんなかよしげーむ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&display=swap');
+        body { font-family: 'Zen Maru Gothic', sans-serif; background-color: #fff1f2; touch-action: manipulation; overflow: hidden; }
+        .word-zoom { animation: wordZoom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes wordZoom { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .stamp-icon { position: fixed; pointer-events: none; z-index: 10; animation: stampPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; font-size: 2.8rem; }
+        @keyframes stampPop { 0% { transform: scale(0); } 100% { transform: scale(1) rotate(var(--tw-r)); } }
+        .pop-up { animation: popUp 0.4s forwards; }
+        @keyframes popUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .selected-card { background-color: #fb7185 !important; color: white !important; border-color: #f43f5e !important; }
+        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .icon-svg { width: 32px; height: 32px; fill: currentColor; display: inline-block; }
+        .gender-male { color: #6366f1; }
+        .gender-female { color: #fb7185; }
+    </style>
 </head>
-<body>
-  <main class="max-w-md mx-auto px-4 pt-5">
-    <header class="text-center mb-4">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/75 border border-rose-100 text-[10px] font-black text-rose-400 tracking-widest">QR招待つき・褒め体験ゲーム</div>
-      <h1 class="mt-2 text-[2.15rem] leading-none font-black tracking-[-.08em] text-rose-500">ごきげんなかよしげーむ</h1>
-      <p class="text-[11px] font-black text-rose-400 mt-1">〜自己肯定感ぶち上げパーティーDX〜</p>
-    </header>
-    <section id="topStatus" class="mb-3"></section>
-    <section id="game-content" class="min-h-[410px]"></section>
-    <section id="hostPanel" class="mt-4"></section>
-    <div class="text-center mt-8"><button onclick="forceResetRoom()" class="text-[10px] text-rose-300 px-4 py-2 rounded-full border border-rose-100 bg-white/40">⚠️ この部屋をリセット</button></div>
-  </main>
+<body class="p-4 text-slate-700">
 
-  <div id="stamp-ui" class="fixed bottom-5 left-0 right-0 flex flex-col items-center gap-2 z-50 hidden px-3">
-    <div id="total-count" class="text-[10px] font-black text-rose-500 bg-white px-3 py-1 rounded-full shadow-sm border border-rose-100"></div>
-    <div class="grid grid-cols-4 gap-2 w-full max-w-md">
-      <button onclick="sendStamp('✨')" class="bg-white border-2 border-rose-100 text-rose-500 py-2 rounded-2xl font-black shadow-lg active:scale-95"><span class="text-[9px]">それそれ</span><br><span class="text-xl">✨</span></button>
-      <button onclick="sendStamp('🤝')" class="bg-white border-2 border-rose-100 text-rose-500 py-2 rounded-2xl font-black shadow-lg active:scale-95"><span class="text-[9px]">わかる</span><br><span class="text-xl">🤝</span></button>
-      <button onclick="sendStamp('🔥')" class="bg-white border-2 border-rose-100 text-rose-500 py-2 rounded-2xl font-black shadow-lg active:scale-95"><span class="text-[9px]">最高</span><br><span class="text-xl">🔥</span></button>
-      <button onclick="sendStamp('👏')" class="bg-white border-2 border-rose-100 text-rose-500 py-2 rounded-2xl font-black shadow-lg active:scale-95"><span class="text-[9px]">拍手</span><br><span class="text-xl">👏</span></button>
+    <div id="app" class="max-w-md mx-auto text-center pb-32">
+        <header class="mb-6 pt-4">
+            <h1 class="text-3xl font-black text-rose-500 tracking-tighter leading-none">ごきげんなかよしげーむ</h1>
+            <p class="text-[11px] font-bold text-rose-400 mt-2 italic">〜自己肯定感ぶち上げパーティー〜</p>
+        </header>
+
+        <div id="game-content" class="min-h-[350px]"></div>
+        <button onclick="forceResetRoom()" class="mt-8 text-[10px] text-rose-300 px-4 py-2 rounded-full border border-rose-100">⚠️ 部屋をリセット</button>
     </div>
-  </div>
 
-<script>
-const firebaseConfig={apiKey:"AIzaSyBmzPmehSaV--mn0Hd0S-fd97nf5RX4Dvg",authDomain:"membertoiro.firebaseapp.com",databaseURL:"https://membertoiro-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"membertoiro",storageBucket:"membertoiro.firebasestorage.app",messagingSenderId:"858132874746",appId:"1:858132874746:web:9d6e1156a350dd396b9043"};
-firebase.initializeApp(firebaseConfig); const db=firebase.database();
-const qs=new URLSearchParams(location.search);
-let roomId=qs.get('room')||''; let hostKey=qs.get('host')||localStorage.getItem('gokigen-host-key')||'';
-const uid=localStorage.getItem('gokigen-uid')||('u_'+Math.random().toString(36).slice(2)+Date.now().toString(36)); localStorage.setItem('gokigen-uid',uid);
-let myName=localStorage.getItem('gokigen-name')||''; let myGender=localStorage.getItem('gokigen-gender')||'male'; let gameState=null; let wordDict=null; let myHand=null; let myTempVotes=[]; let canShuffle=true; let selectedWinner=''; let localStampLimit=4; let lastRevealKey=''; let soundOn=localStorage.getItem('gokigen-sound')!=='off'; let typing=false; let invitedReady=false;
-const FALLBACK_WORDS={
- male:['頼れる','聞き上手','やさしい','場を明るくする','努力家','センスがいい','安心感がある','行動力がある','おもしろい','まじめ','面倒見がいい','自然体','芯がある','空気が読める','反応がいい','一緒にいて楽'],
- female:['やさしい','かわいい','聞き上手','気が利く','明るい','センスがいい','安心感がある','努力家','笑顔がいい','芯がある','自然体','話しやすい','空気がやわらぐ','おしゃれ','前向き','一緒にいて楽'],
- other:['やさしい','聞き上手','センスがいい','安心感がある','場がなごむ','努力家','自然体','芯がある','反応がいい','一緒にいて楽','空気が読める','おもしろい','前向き','頼れる','気が利く','話しやすい']
-};
-const TALK_PROMPTS=['どの瞬間にそう思った？','本人はその言葉、意外だった？','他にもその人っぽいエピソードある？','選んだ人は一言だけ理由をどうぞ','本人から、今日いちばん照れた言葉は？','周りから追加でひとこと褒めるなら？'];
-const sfx={tap:new Audio('https://assets.mixkit.co/sfx/preview/mixkit-modern-click-box-check-1120.mp3'),roll:new Audio('https://assets.mixkit.co/sfx/preview/mixkit-drum-roll-566.mp3'),win:new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3'),pop:new Audio('https://assets.mixkit.co/sfx/preview/mixkit-uplifting-bell-notification-wave-1598.mp3')};
-function play(k){if(soundOn&&sfx[k]){sfx[k].currentTime=0;sfx[k].play().catch(()=>{})}}
-function ref(path=''){return db.ref('praise_rooms/'+roomId+(path?'/'+path:''))}
-function makeCode(n=6){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<n;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
-function secret(){return Math.random().toString(36).slice(2,12)+Date.now().toString(36)}
-function esc(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-function icon(g){const cls=g==='female'?'gender-female':g==='other'?'gender-other':'gender-male';return `<svg class="icon-svg ${cls}" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`}
-function members(){return Object.entries(gameState?.members||{}).map(([id,m])=>({id,...m})).sort((a,b)=>(a.joinedAt||0)-(b.joinedAt||0))}
-function me(){return gameState?.members?.[uid]||null}
-function isHost(){return !!gameState && (gameState.hostId===uid || (hostKey&&hostKey===gameState.hostKey))}
-function parent(){return gameState?.parentId?{id:gameState.parentId,...gameState.members?.[gameState.parentId]}:null}
-function playerPill(m){return `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black player-${m.color||'c0'}">${esc(m.name)}</span>`}
-function participantUrl(){const u=new URL(location.href);u.searchParams.set('room',roomId);u.searchParams.delete('host');return u.toString()}
-function hostUrl(){const u=new URL(location.href);u.searchParams.set('room',roomId);u.searchParams.set('host',gameState?.hostKey||hostKey);return u.toString()}
-async function loadKeywords(){try{const r=await fetch('keywords.json');wordDict=await r.json()}catch(e){wordDict=FALLBACK_WORDS}render()} loadKeywords();
-function listen(){if(!roomId)return;ref().on('value',snap=>{const d=snap.val(); if(gameState&&!d){localStorage.removeItem('gokigen-name');localStorage.removeItem('gokigen-gender');location.href=location.pathname;return} gameState=d; if(gameState?.hostKey&&hostKey===gameState.hostKey)localStorage.setItem('gokigen-host-key',hostKey); const rk=(gameState?.phase||'')+'_'+(gameState?.revealIdx??''); if(rk!==lastRevealKey){localStampLimit=4;lastRevealKey=rk;document.querySelectorAll('.stamp-icon').forEach(e=>e.remove())} if(!typing)render();}); ref('stamps').on('child_added',snap=>{const d=snap.val();if(d&&Date.now()-d.ts<5000)spawnStamp(d.icon)})}
-async function createRoom(){const name=document.getElementById('name-input')?.value.trim(); const g=document.querySelector('input[name="gender"]:checked')?.value||'male'; if(!name)return alert('名前を入れてください'); roomId=makeCode(); hostKey=secret(); myName=name; myGender=g; localStorage.setItem('gokigen-name',name);localStorage.setItem('gokigen-gender',g);localStorage.setItem('gokigen-host-key',hostKey); try{await ref().set({hostId:uid,hostKey,phase:'setup',createdAt:Date.now(),voteLimit:1,members:{[uid]:{name,gender:g,color:'c0',joinedAt:Date.now()}}}); history.replaceState(null,'',`?room=${roomId}&host=${hostKey}`); listen(); play('pop'); render(); toast('部屋を作成しました')}catch(e){console.error(e); alert('部屋を作成できませんでした。Firebaseの接続または書き込み権限を確認してください。'); roomId=''; hostKey=''; render();}}
-function joinByCode(){const c=document.getElementById('join-code')?.value.trim().toUpperCase(); if(c) location.href='?room='+encodeURIComponent(c)}
-async function joinGame(){if(!roomId)return alert('先に部屋を作るか、ルームコードで参加してください');const name=document.getElementById('name-input')?.value.trim(); const g=document.querySelector('input[name="gender"]:checked')?.value||'male'; if(!name)return alert('名前を入れてください'); myName=name;myGender=g;localStorage.setItem('gokigen-name',name);localStorage.setItem('gokigen-gender',g); const idx=members().length%8; try{await ref('members/'+uid).set({name,gender:g,color:'c'+idx,joinedAt:Date.now()}); play('pop'); toast('参加しました'); render()}catch(e){console.error(e); alert('参加できませんでした。ルームコードまたはFirebase接続を確認してください。')}}
-function resetLocal(){localStorage.removeItem('gokigen-name');localStorage.removeItem('gokigen-gender');localStorage.removeItem('gokigen-host-key');location.reload()}
-function copyText(t){navigator.clipboard?.writeText(t).then(()=>toast('コピーしました')).catch(()=>prompt('コピーしてください',t))}
-function toast(msg){const el=document.createElement('div');el.className='fixed left-1/2 top-4 -translate-x-1/2 z-[100] bg-slate-800 text-white px-4 py-2 rounded-full text-xs font-black shadow-xl pop';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),1600)}
-function renderTop(){const el=document.getElementById('topStatus'); if(!roomId){el.innerHTML='';return} const ph=gameState?.phase||'setup'; const p={setup:0,voting:1,ready:2,revealing:3,result:4,winner:4}[ph]??0; el.innerHTML=`<div class="glass rounded-3xl p-3"><div class="flex justify-between items-center gap-2 mb-2"><div class="text-left"><div class="text-[10px] font-black text-rose-400">ROOM</div><div class="font-black tracking-widest text-slate-700">${esc(roomId)}</div></div><button onclick="copyText(participantUrl())" class="px-3 py-2 rounded-2xl bg-white text-rose-500 text-[11px] font-black border border-rose-100">招待URL</button><button onclick="soundOn=!soundOn;localStorage.setItem('gokigen-sound',soundOn?'on':'off');render()" class="px-3 py-2 rounded-2xl bg-white text-slate-500 text-[11px] font-black border border-rose-100">${soundOn?'音ON':'音OFF'}</button></div><div class="stage">${[0,1,2,3,4].map(i=>`<div class="${i<=p?'on':''}"></div>`).join('')}</div><div class="grid grid-cols-5 text-[9px] text-center text-rose-400 font-black mt-1"><span>準備</span><span>投票</span><span>待機</span><span>発表</span><span>余韻</span></div></div>`}
-function renderHostPanel(){const el=document.getElementById('hostPanel'); if(!roomId||!gameState||!isHost()){el.innerHTML='';return} const ms=members(); const votes=gameState.votes||{}; const p=parent(); el.innerHTML=`<div class="soft-card rounded-[2rem] p-4 pop"><div class="flex items-center justify-between mb-3"><h3 class="font-black text-slate-700">ホスト進行パネル</h3><span class="text-[10px] font-black text-rose-400">${ms.length}人参加</span></div><div class="grid grid-cols-2 gap-2 text-[11px] font-black"><button onclick="copyText(participantUrl())" class="btn btn-sub min-h-11">参加URLコピー</button><button onclick="copyText(hostUrl())" class="btn btn-sub min-h-11">ホストURLコピー</button></div><div class="mt-3 text-[11px] text-slate-500 leading-relaxed">${p?`主役：<b>${esc(p.name)}</b> ／ 投票済み：<b>${Object.keys(votes).length}</b>/${Math.max(0,ms.length-1)}`:'主役を選ぶと投票開始します。'}</div></div>`}
-function homeScreen(){const hasRoom=!!roomId; const hostExists=!!gameState?.hostId; if(!hasRoom){return `<div class="soft-card rounded-[2.4rem] p-6 pop"><h2 class="text-xl font-black text-slate-700 mb-1">部屋を作って招待</h2><p class="text-xs text-slate-500 leading-relaxed mb-5">ホストが部屋を作ると、参加用QRコードとURLが出ます。</p>${nameForm()}<button onclick="createRoom()" class="btn btn-main w-full mt-5">ホストとして部屋を作る</button><div class="mt-6 pt-5 border-t border-rose-100"><p class="text-[11px] font-black text-rose-400 mb-2">ルームコードで参加</p><div class="flex gap-2"><input id="join-code" class="flex-1 bg-white border-2 border-rose-100 rounded-2xl px-4 text-center font-black tracking-widest" placeholder="例 A7K9Q2"><button onclick="joinByCode()" class="btn btn-dark">入室</button></div></div></div>`}
- if(!gameState){return `<div class="soft-card rounded-[2rem] p-8 text-center pop"><p class="font-black text-rose-400 animate-pulse">部屋を読み込み中...</p></div>`}
- if(!me()){return `<div class="soft-card rounded-[2.4rem] p-6 pop"><h2 class="text-xl font-black text-slate-700 mb-1">${esc(roomId)} に参加</h2><p class="text-xs text-slate-500 leading-relaxed mb-5">名前を入れると、褒めワードを贈れるようになります。以前の名前が残っている場合も、このボタンでこの部屋に参加できます。</p>${nameForm()}<button onclick="joinGame()" class="btn btn-main w-full mt-5">この部屋に参加する</button><button onclick="resetLocal()" class="btn btn-sub w-full mt-3">名前を入れ直す</button></div>`}
- return setupScreen();}
-function nameForm(){return `<div class="flex justify-center gap-4 mb-5"><label class="cursor-pointer"><input type="radio" name="gender" value="male" ${myGender==='male'?'checked':''} class="hidden peer"><div class="p-4 rounded-3xl border-2 border-transparent peer-checked:border-indigo-400 peer-checked:bg-indigo-50 text-slate-300 peer-checked:text-indigo-500">${icon('male')}<p class="text-[9px] font-black mt-1">男性</p></div></label><label class="cursor-pointer"><input type="radio" name="gender" value="female" ${myGender==='female'?'checked':''} class="hidden peer"><div class="p-4 rounded-3xl border-2 border-transparent peer-checked:border-rose-400 peer-checked:bg-rose-50 text-slate-300 peer-checked:text-rose-500">${icon('female')}<p class="text-[9px] font-black mt-1">女性</p></div></label><label class="cursor-pointer"><input type="radio" name="gender" value="other" ${myGender==='other'?'checked':''} class="hidden peer"><div class="p-4 rounded-3xl border-2 border-transparent peer-checked:border-violet-400 peer-checked:bg-violet-50 text-slate-300 peer-checked:text-violet-500">${icon('other')}<p class="text-[9px] font-black mt-1">共通</p></div></label></div><input id="name-input" value="${esc(myName)}" onfocus="typing=true" onblur="typing=false" class="w-full bg-white border-2 border-rose-100 rounded-2xl px-4 py-3 text-center text-xl font-black outline-none focus:border-rose-400" placeholder="ニックネーム">`}
-function setupScreen(){const ms=members(); return `<div class="soft-card rounded-[2.4rem] p-5 pop"><div class="flex justify-between gap-2 items-start"><div class="text-left"><h2 class="text-xl font-black">褒める主役を選ぶ</h2><p class="text-xs text-slate-500 mt-1">本人以外が、似合う褒めワードを投票します。</p></div>${isHost()?`<button onclick="showInvite()" class="btn btn-gold !min-h-10 !px-3 text-xs">QR</button>`:''}</div>${isHost()?limitSelector():`<div class="mt-5 p-4 bg-rose-50 rounded-2xl text-xs font-black text-rose-400">ホストが主役を選ぶまで待ってください。</div>`}<div class="grid grid-cols-2 gap-3 mt-5">${ms.map(m=>`<button onclick="setParent('${m.id}')" ${!isHost()?'disabled':''} class="soft-card rounded-3xl p-4 text-center font-black ${isHost()?'hover:bg-rose-50':'opacity-75'}">${icon(m.gender)}<div class="mt-1 text-sm">${esc(m.name)}</div></button>`).join('')||'<p class="text-slate-400 text-sm">参加者がまだいません。</p>'}</div><div class="mt-5 grid grid-cols-2 gap-2">${ms.map(m=>playerPill(m)).join('')}</div></div>`}
-function limitSelector(){const v=gameState?.voteLimit||1;return `<div class="mt-5 p-4 bg-rose-50 rounded-3xl"><p class="text-[10px] font-black text-rose-400 mb-2">1人あたりの投票数</p><div class="grid grid-cols-3 gap-2">${[1,2,3].map(n=>`<button onclick="ref('voteLimit').set(${n})" class="h-11 rounded-2xl font-black ${v===n?'bg-rose-500 text-white':'bg-white text-rose-300 border-2 border-rose-100'}">${n}</button>`).join('')}</div></div>`}
-function showInvite(){setTimeout(()=>{const q=document.getElementById('qrcode'); if(q&&window.QRCode){q.innerHTML='';new QRCode(q,{text:participantUrl(),width:190,height:190})}},20); document.getElementById('game-content').innerHTML=`<div class="soft-card rounded-[2.4rem] p-6 pop text-center"><h2 class="text-xl font-black mb-1">INVITE QR</h2><p class="text-xs text-slate-500 mb-4">このQRを読み込むと参加できます。</p><div id="qrcode" class="inline-block bg-white p-3 rounded-3xl border border-rose-100"></div><div class="mt-4 font-black tracking-widest text-2xl text-slate-700">${esc(roomId)}</div><div class="grid grid-cols-2 gap-2 mt-5"><button onclick="copyText(participantUrl())" class="btn btn-main">URLコピー</button><button onclick="render()" class="btn btn-sub">戻る</button></div></div>`}
-async function setParent(id){if(!isHost())return; selectedWinner=''; myHand=null;myTempVotes=[];canShuffle=true; await ref().update({phase:'voting',parentId:id,votes:null,shuffledVotes:null,revealIdx:0,winnerWord:null,winnerId:null,stamps:null});play('pop')}
-function votingScreen(){const p=parent(); const isP=p?.id===uid; const votes=gameState.votes||{}; const total=Math.max(0,members().length-1); const done=Object.keys(votes).length; if(isP)return `<div class="soft-card rounded-[2.4rem] p-8 text-center pop"><div class="text-5xl mb-3">💐</div><h2 class="text-xl font-black text-rose-500">あなたが今回の主役です</h2><p class="text-sm text-slate-500 mt-3 leading-relaxed">みんながあなたに似合う褒めワードを選んでいます。発表まで少しだけ待ってね。</p>${progress(done,total)}${waitingList()}</div>`; if(votes[uid])return `<div class="soft-card rounded-[2.4rem] p-8 text-center pop"><div class="text-5xl mb-3">✅</div><h2 class="text-xl font-black">送信完了！</h2><p class="text-sm text-slate-500 mt-2">他の人の投票を待っています。</p>${progress(done,total)}${waitingList()}</div>`; if(!wordDict)return `<div class="p-10 text-center font-black text-rose-400">ワード取得中...</div>`; if(!myHand){const pool=wordDict[p?.gender||'other']||FALLBACK_WORDS.other; myHand=[...pool].sort(()=>.5-Math.random()).slice(0,8)} const limit=gameState.voteLimit||1; return `<div class="pop"><div class="text-center mb-4"><span class="inline-flex px-4 py-1 rounded-full bg-rose-500 text-white text-[10px] font-black tracking-widest">TO ${esc(p?.name)}さん</span><h2 class="mt-3 text-xl font-black">似合う褒めワードを<span class="text-rose-500 text-2xl">${limit}つ</span></h2><p class="text-[11px] font-black text-rose-400">選択中 ${myTempVotes.length}/${limit}</p></div><div class="grid grid-cols-2 gap-3">${myHand.map(w=>wordBtn(w)).join('')}</div><button onclick="shuffleHand()" ${!canShuffle?'disabled':''} class="mt-5 btn btn-sub w-full">${canShuffle?'🔄 1回だけ引き直す':'引き直し済み'}</button></div>`}
-function wordBtn(w){const on=myTempVotes.includes(w); return `<button onclick="handleVote('${esc(w)}')" class="h-20 rounded-3xl font-black text-sm px-2 transition-all ${on?'bg-rose-500 text-white shadow-inner translate-y-1':'soft-card text-rose-500 border-b-4 border-rose-200'}">${esc(w)}</button>`}
-function progress(done,total){const pct=total?Math.round(done/total*100):0;return `<div class="mt-6"><div class="flex justify-between text-[10px] font-black text-rose-400 mb-1"><span>投票状況</span><span>${done}/${total}</span></div><div class="h-4 rounded-full bg-rose-100 overflow-hidden"><div class="h-full bg-gradient-to-r from-rose-400 to-amber-400 rounded-full" style="width:${pct}%"></div></div></div>`}
-function waitingList(){const votes=gameState.votes||{}; const p=parent(); return `<div class="mt-5 grid grid-cols-2 gap-2">${members().filter(m=>m.id!==p?.id).map(m=>`<div class="rounded-2xl px-3 py-2 text-xs font-black ${votes[m.id]?'bg-emerald-50 text-emerald-600':'bg-slate-50 text-slate-400'}">${votes[m.id]?'済':'待'} ${esc(m.name)}</div>`).join('')}</div>`}
-function handleVote(w){const limit=gameState.voteLimit||1; if(myTempVotes.includes(w))myTempVotes=myTempVotes.filter(x=>x!==w); else if(myTempVotes.length<limit){myTempVotes.push(w);play('tap')} render(); if(myTempVotes.length===limit)setTimeout(()=>{if(confirm(`${myTempVotes.join('、')} で送信しますか？`))submitVote()},120)}
-function shuffleHand(){if(!canShuffle)return; canShuffle=false; myHand=null; play('tap'); render()}
-async function submitVote(){await ref('votes/'+uid).set(myTempVotes); await ref().transaction(c=>{if(c){const count=Object.keys(c.votes||{}).length; const total=Math.max(0,Object.keys(c.members||{}).length-1); if(count>=total){c.phase='ready'; c.shuffledVotes=Object.values(c.votes||{}).flat().sort(()=>.5-Math.random()); c.revealIdx=0}} return c})}
-function readyScreen(){const total=(gameState.shuffledVotes||[]).length; return `<div class="soft-card rounded-[2.4rem] p-8 text-center pop"><div class="text-6xl mb-3 pulse-ring inline-block rounded-full">🎁</div><h2 class="text-xl font-black">褒めワードが集まりました</h2><p class="text-sm text-slate-500 mt-2 leading-relaxed">全部で <span class="text-4xl text-rose-500 font-black">${total}</span> 個。<br>ここから1枚ずつ、ためて発表します。</p>${isHost()?`<button onclick="startReveal()" class="btn btn-main w-full mt-7 text-lg">ドラムロールで発表開始</button>`:`<p class="mt-7 text-rose-400 font-black animate-pulse">ホストの合図を待っています...</p>`}</div>`}
-async function startReveal(){play('roll'); await ref().update({phase:'revealing',revealIdx:0,stamps:null}); burst()}
-function revealingScreen(){const arr=gameState.shuffledVotes||[]; const idx=gameState.revealIdx||0; const word=arr[idx]||''; const p=parent(); return `<div class="text-center pop"><p class="text-[10px] font-black text-rose-400 tracking-widest mb-3">PRAISE ${idx+1} / ${arr.length}</p><div class="soft-card rounded-[3rem] p-8 border-4 border-rose-300 reveal-curtain"><p class="text-xs font-black text-slate-400 mb-3">${esc(p?.name)}さんへの言葉</p><div class="word-in text-[2.6rem] leading-tight font-black text-rose-600">「${esc(word)}」</div></div><p class="mt-4 text-xs text-slate-500 font-black">いいと思ったら下のスタンプで盛り上げ！</p>${isHost()?`<button onclick="nextReveal()" class="btn btn-main w-full mt-5">${idx<arr.length-1?'次の言葉へ':'一番うれしい言葉を選ぶ'}</button>`:`<p class="mt-5 text-rose-400 font-black animate-pulse">ホスト進行中...</p>`}</div>`}
-async function nextReveal(){const arr=gameState.shuffledVotes||[]; const idx=gameState.revealIdx||0; await ref('stamps').remove(); if(idx<arr.length-1){play('pop'); await ref('revealIdx').set(idx+1); burst(.45)} else {await ref('phase').set('result');}}
-function resultScreen(){const p=parent(); const unique=Array.from(new Set(Object.values(gameState.votes||{}).flat())); const isP=p?.id===uid; return `<div class="pop"><div class="text-center mb-5"><h2 class="text-xl font-black">${esc(p?.name)}さん、一番うれしかったのは？</h2><p class="text-xs text-slate-500 mt-2">主役が選ぶと、選んだ人も発表されます。</p></div><div class="grid grid-cols-2 gap-3">${unique.map(w=>`<button onclick="${isP?`selectedWinner='${esc(w)}';play('tap');render()`:'void(0)'}" class="min-h-20 rounded-3xl px-2 font-black ${selectedWinner===w?'bg-rose-500 text-white shadow-inner':'soft-card text-rose-500'}">${esc(w)}</button>`).join('')}</div>${isP?`<button onclick="confirmWinner()" ${!selectedWinner?'disabled':''} class="btn btn-main w-full mt-6">これが一番うれしい！</button>`:`<div class="soft-card rounded-3xl p-5 text-center mt-6 text-rose-400 font-black animate-pulse">主役が選んでいます...</div>`}</div>`}
-async function confirmWinner(){if(!selectedWinner)return; let winnerId=''; Object.entries(gameState.votes||{}).forEach(([id,words])=>{if(!winnerId&&words.includes(selectedWinner))winnerId=id}); await ref().update({phase:'winner',winnerWord:selectedWinner,winnerId}); play('win'); confetti({particleCount:180,spread:85,origin:{y:.62}})}
-function winnerScreen(){const p=parent(); const winner=gameState.members?.[gameState.winnerId]; const prompt=TALK_PROMPTS[Math.floor(((gameState.winnerWord||'').length+Date.now()/999999)%TALK_PROMPTS.length)]; if(!window._winShown){window._winShown=true;setTimeout(()=>confetti({particleCount:110,spread:80,origin:{y:.6}}),250)} return `<div class="pop text-center"><div class="rounded-[2.6rem] p-7 text-white shadow-2xl bg-gradient-to-br from-rose-400 via-pink-500 to-amber-400"><p class="text-xs font-black opacity-90 mb-2">${esc(p?.name)}さんが選んだ言葉</p><h2 class="text-[2.5rem] leading-tight font-black">「${esc(gameState.winnerWord)}」</h2><p class="mt-4 text-sm font-black bg-white/20 rounded-full py-2">贈った人：${esc(winner?.name||'誰か')}さん</p></div><div class="soft-card rounded-3xl p-5 mt-5 text-left"><p class="text-[10px] font-black text-rose-400 mb-1">話のタネ</p><h3 class="text-lg font-black text-slate-700">${esc(prompt)}</h3><p class="text-xs text-slate-500 mt-2 leading-relaxed">ここで30秒だけ話すと、ただの投票で終わらず“仲良くなる時間”になります。</p></div>${isHost()?`<button onclick="nextRound()" class="btn btn-dark w-full mt-5">次の主役へ</button>`:`<p class="mt-5 text-rose-400 font-black">次のラウンドを待っています</p>`}</div>`}
-async function nextRound(){window._winShown=false; selectedWinner=''; myHand=null;myTempVotes=[];canShuffle=true; await ref().update({phase:'setup',parentId:null,votes:null,shuffledVotes:null,revealIdx:0,winnerWord:null,winnerId:null,stamps:null})}
-function sendStamp(ic){if(localStampLimit<=0)return;localStampLimit--;ref('stamps').push({icon:ic,from:uid,ts:Date.now()});play('tap');render()}
-function spawnStamp(ic){const el=document.createElement('div');el.className='stamp-icon';el.textContent=ic;el.style.left=(8+Math.random()*78)+'%';el.style.top=(18+Math.random()*48)+'%';el.style.setProperty('--r',(Math.random()*50-25)+'deg');document.body.appendChild(el);setTimeout(()=>el.remove(),1500)}
-function burst(power=1){const s=document.createElement('div');s.className='spark';document.body.appendChild(s);setTimeout(()=>s.remove(),800); if(window.confetti)confetti({particleCount:Math.round(50*power),spread:60,origin:{y:.55}})}
-function renderStampUI(){const ui=document.getElementById('stamp-ui'); const p=parent(); if(myName&&gameState?.phase==='revealing'&&p?.id!==uid){ui.classList.remove('hidden');document.getElementById('total-count').textContent='残りスタンプ: '+localStampLimit}else ui.classList.add('hidden')}
-function render(){renderTop(); renderHostPanel(); renderStampUI(); const c=document.getElementById('game-content'); if(!roomId||!gameState||!me()) c.innerHTML=homeScreen(); else {const ph=gameState.phase||'setup'; if(ph==='setup')c.innerHTML=setupScreen(); else if(ph==='voting')c.innerHTML=votingScreen(); else if(ph==='ready')c.innerHTML=readyScreen(); else if(ph==='revealing')c.innerHTML=revealingScreen(); else if(ph==='result')c.innerHTML=resultScreen(); else if(ph==='winner')c.innerHTML=winnerScreen(); else c.innerHTML=setupScreen();}}
-function forceResetRoom(){if(!roomId)return; if(confirm('この部屋をリセットしますか？'))ref().remove()}
-if(roomId)listen(); render();
-</script>
+    <div id="stamp-ui" class="fixed bottom-6 left-0 right-0 flex flex-col items-center gap-2 z-50 hidden">
+        <div id="total-count" class="text-[10px] font-bold text-rose-400 bg-white px-3 py-1 rounded-full shadow-sm border border-rose-100"></div>
+        <div class="flex justify-center gap-3 px-4">
+            <button onclick="sendStamp('✨')" class="bg-white border-2 border-rose-100 text-rose-500 w-20 py-2 rounded-2xl font-black shadow-lg active:scale-90 transition-all">
+                <span class="text-[9px]">それそれ！</span><br><span class="text-xl">✨</span>
+            </button>
+            <button onclick="sendStamp('🤝')" class="bg-white border-2 border-rose-100 text-rose-500 w-20 py-2 rounded-2xl font-black shadow-lg active:scale-90 transition-all">
+                <span class="text-[9px]">わかるー</span><br><span class="text-xl">🤝</span>
+            </button>
+            <button onclick="sendStamp('🔥')" class="bg-white border-2 border-rose-100 text-rose-500 w-20 py-2 rounded-2xl font-black shadow-lg active:scale-90 transition-all">
+                <span class="text-[9px]">最高！</span><br><span class="text-xl">🔥</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBmzPmehSaV--mn0Hd0S-fd97nf5RX4Dvg",
+            authDomain: "membertoiro.firebaseapp.com",
+            databaseURL: "https://membertoiro-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "membertoiro",
+            storageBucket: "membertoiro.firebasestorage.app",
+            messagingSenderId: "858132874746",
+            appId: "1:858132874746:web:9d6e1156a350dd396b9043"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('room') || 'gokigen-room';
+        const roomRef = db.ref("praise_rooms/" + roomId);
+
+        let myName = localStorage.getItem("h-name") || "";
+        let myRole = localStorage.getItem("h-role") || "";
+        let myGender = localStorage.getItem("h-gender") || "male";
+        let wordDict = null; 
+        let gameState = null;
+        let localSelectedWinner = null;
+        let totalStampLimit = 3; 
+        let lastRevealIdx = -1;
+        let myHand = null; 
+        let myTempVotes = []; // 複数投票用の一時保存
+        let canShuffle = true;
+        let isInputting = false;
+
+        const sfx = { 
+            tap: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-selection-horizontal-drum-2014.mp3'), 
+            win: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3'), 
+            zoom: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-uplifting-bell-notification-wave-1598.mp3') 
+        };
+
+        const getIcon = (gender) => `<svg class="icon-svg ${gender === 'male' ? 'gender-male' : 'gender-female'}" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+
+        async function loadKeywords() {
+            try {
+                const response = await fetch('keywords.json');
+                wordDict = await response.json();
+                render(); 
+            } catch (e) { console.error("JSON Error", e); }
+        }
+        loadKeywords();
+
+        roomRef.on("value", (snap) => {
+            const data = snap.val();
+            if (gameState && !data) {
+                localStorage.clear();
+                location.reload();
+                return;
+            }
+            gameState = data;
+            if (gameState && (gameState.revealIdx !== lastRevealIdx || !gameState.stamps)) {
+                document.querySelectorAll('.stamp-icon').forEach(el => el.remove());
+                totalStampLimit = 3; 
+                lastRevealIdx = gameState.revealIdx;
+            }
+            if (!isInputting) render();
+        });
+
+        roomRef.child('stamps').on('child_added', (snap) => {
+            const d = snap.val();
+            if (d && Date.now() - d.ts < 5000) spawnStamp(d.icon);
+        });
+
+        function sendStamp(icon) {
+            if (totalStampLimit <= 0) return;
+            totalStampLimit--;
+            roomRef.child('stamps').push({ icon: icon, ts: Date.now(), from: myName });
+            sfx.tap.play().catch(()=>{});
+            render(); 
+        }
+
+        function spawnStamp(icon) {
+            const el = document.createElement('div');
+            el.className = 'stamp-icon';
+            el.innerText = icon;
+            el.style.left = (15 + Math.random() * 70) + '%';
+            el.style.top = (25 + Math.random() * 45) + '%';
+            el.style.setProperty('--tw-r', (Math.random() * 60 - 30) + 'deg');
+            document.body.appendChild(el);
+        }
+
+        function shuffleHand() {
+            if (!canShuffle) return;
+            canShuffle = false;
+            myHand = null; 
+            sfx.tap.play().catch(()=>{});
+            render();
+        }
+
+        function render() {
+            const container = document.getElementById('game-content');
+            const stampUI = document.getElementById('stamp-ui');
+            const totalCountEl = document.getElementById('total-count');
+            if (!container) return;
+
+            if (!myName) {
+                const hostExists = gameState && gameState.host && gameState.host !== "";
+                const existingInput = document.getElementById('name-input');
+                if (existingInput) {
+                    const hostBtn = container.querySelector('button[onclick="joinGame(\'host\')"]');
+                    if (hostBtn) {
+                        hostBtn.disabled = !!hostExists;
+                        hostBtn.className = hostExists ? "w-full bg-slate-200 cursor-not-allowed text-white h-14 rounded-2xl font-bold mb-3" : "w-full bg-rose-500 shadow-lg text-white h-14 rounded-2xl font-bold mb-3";
+                        hostBtn.innerText = hostExists ? 'ホストは入室済みです' : 'ホストで開始';
+                    }
+                    return;
+                }
+                container.innerHTML = `
+                    <div class="bg-white p-8 rounded-[2rem] shadow-xl pop-up border-t-8 border-rose-400 mt-4">
+                        <div class="flex justify-center mb-6 gap-8">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="gender" value="male" checked class="hidden peer">
+                                <div class="p-4 rounded-2xl border-2 border-transparent peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all text-slate-300 peer-checked:text-indigo-500">
+                                    ${getIcon('male')}
+                                    <p class="text-[10px] font-bold mt-1">MALE</p>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="gender" value="female" class="hidden peer">
+                                <div class="p-4 rounded-2xl border-2 border-transparent peer-checked:border-rose-500 peer-checked:bg-rose-50 transition-all text-slate-300 peer-checked:text-rose-500">
+                                    ${getIcon('female')}
+                                    <p class="text-[10px] font-bold mt-1">FEMALE</p>
+                                </div>
+                            </label>
+                        </div>
+                        <input id="name-input" type="text" placeholder="お名前" onfocus="isInputting=true" onblur="isInputting=false" class="w-full mb-6 border-b-2 border-rose-100 p-2 text-center text-xl font-bold outline-none bg-transparent">
+                        <button onclick="joinGame('host')" ${hostExists ? 'disabled' : ''} class="w-full ${hostExists ? 'bg-slate-200 cursor-not-allowed' : 'bg-rose-500 shadow-lg'} text-white h-14 rounded-2xl font-bold mb-3">
+                            ${hostExists ? 'ホストは入室済みです' : 'ホストで開始'}
+                        </button>
+                        <button onclick="joinGame('guest')" class="w-full text-rose-400 font-bold h-12">ゲストで参加</button>
+                    </div>`;
+                return;
+            }
+
+            const isParent = gameState?.parentName === myName;
+
+            if (myName && gameState?.phase === 'revealing' && !isParent) {
+                stampUI.classList.remove('hidden');
+                totalCountEl.innerText = `残りスタンプ: ${totalStampLimit}`;
+            } else { stampUI.classList.add('hidden'); }
+
+            if (!gameState || gameState.phase === 'setup') {
+                myHand = null; canShuffle = true; myTempVotes = [];
+                container.innerHTML = `
+                    <div class="bg-white p-6 rounded-[2rem] shadow-lg pop-up">
+                        <p class="text-[10px] text-slate-400 mb-2 font-bold tracking-widest uppercase">1人あたりの投票数</p>
+                        <div class="flex justify-center gap-2 mb-6">
+                            ${[1, 2, 3].map(num => `
+                                <button id="limit-${num}" onclick="window.currentLimit=${num}; updateLimitUI(${num})" 
+                                    class="w-10 h-10 rounded-full border-2 ${num===1?'bg-rose-500 border-rose-500 text-white':'border-rose-100 text-rose-300'} font-bold transition-all">
+                                    ${num}
+                                </button>
+                            `).join('')}
+                        </div>
+                        <p class="text-[10px] text-slate-400 mb-4 font-bold tracking-widest uppercase">褒める人を選んでスタート！</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            ${gameState?.members?.map(m => `
+                                <button onclick="setParent('${m.name}')" ${myRole!=='host'?'disabled':''} class="flex flex-col items-center bg-slate-50 p-4 rounded-2xl hover:bg-rose-50 border-2 border-transparent hover:border-rose-200 font-bold text-xs py-4">
+                                    ${getIcon(m.gender)}<span class="mt-1">${m.name}</span>
+                                </button>`).join('') || ''}
+                        </div>
+                    </div>`;
+                window.currentLimit = 1;
+            } else if (gameState.phase === 'voting') {
+                if (isParent) container.innerHTML = `<div class="p-10 text-rose-400 font-bold animate-pulse text-sm italic">主役待機中...<br>みんなが褒めワードを選んでいます</div>`;
+                else if (gameState.votes?.[myName]) container.innerHTML = `<div class="p-10 text-rose-400 font-bold animate-pulse text-sm italic">送信完了！<br>他のメンバーを待っています...</div>`;
+                else {
+                    if (!wordDict) { container.innerHTML = `<div class="p-10 text-rose-400 italic">ワード取得中...</div>`; return; }
+                    if (!myHand) {
+                        const parentData = gameState.members.find(m => m.name === gameState.parentName);
+                        const pool = wordDict[parentData?.gender || 'male'] || ["素敵"];
+                        myHand = [...pool].sort(() => 0.5 - Math.random()).slice(0, 8);
+                    }
+                    const limit = gameState.voteLimit || 1;
+                    container.innerHTML = `
+                        <div class="mb-4 text-center">
+                            <span class="text-[10px] bg-rose-500 text-white px-4 py-1 rounded-full font-bold uppercase tracking-widest">To: ${gameState.parentName}さん</span>
+                            <h2 class="text-lg font-black text-slate-700 mt-3">褒めワードを <span class="text-rose-500 text-2xl">${limit}つ</span> 選んで！</h2>
+                            <p class="text-[10px] text-rose-400 font-bold mt-1">（現在: ${myTempVotes.length} / ${limit}）</p>
+                        </div>
+                        <div class="card-grid">${myHand.map(k => {
+                            const isSelected = myTempVotes.includes(k);
+                            return `<button onclick="handleVoteClick('${k}')" class="h-16 rounded-2xl font-bold text-sm shadow-sm transition-all px-2 ${isSelected ? 'bg-rose-500 text-white border-b-0 translate-y-1' : 'bg-white text-rose-500 border-b-4 border-rose-200'}">${k}</button>`;
+                        }).join('')}</div>
+                        <button onclick="shuffleHand()" ${!canShuffle ? 'disabled' : ''} class="mt-6 w-full py-3 rounded-xl border-2 border-dashed ${canShuffle ? 'border-rose-300 text-rose-400' : 'border-slate-200 text-slate-300'} text-[10px] font-bold uppercase tracking-widest transition-all">
+                            ${canShuffle ? '🔄 1回だけ引き直す' : '引き直し済み'}
+                        </button>`;
+                }
+            } else if (gameState.phase === 'waiting-to-reveal') {
+                const totalVotes = Object.values(gameState.votes || {}).flat().length;
+                container.innerHTML = `
+                    <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border-4 border-rose-100 pop-up">
+                        <div class="text-rose-500 mb-6">✨</div>
+                        <h2 class="text-xl font-black text-slate-700 mb-2">${gameState.parentName}さんを褒める</h2>
+                        <p class="text-sm font-bold text-rose-400 mb-8 leading-relaxed">褒めワードが全部で<br><span class="text-4xl font-black mx-1">${totalVotes}</span>個届きました！</p>
+                        ${myRole === 'host' ? `<button onclick="roomRef.update({phase:'revealing'})" class="w-full bg-rose-500 text-white h-16 rounded-2xl font-black shadow-lg text-lg">発表をはじめる！</button>` : `<p class="text-rose-300 font-bold animate-pulse text-sm italic">ホストの合図を待っています...</p>`}
+                    </div>`;
+            } else if (gameState.phase === 'revealing') {
+                const currentWord = gameState.shuffledVotes[gameState.revealIdx];
+                container.innerHTML = `
+                    <div class="text-center px-4">
+                        <p class="text-rose-400 font-bold text-[10px] mb-4 uppercase tracking-widest">Praise ${gameState.revealIdx + 1} / ${gameState.shuffledVotes.length}</p>
+                        <div class="bg-white py-14 px-4 rounded-[3rem] shadow-xl border-4 border-rose-400 mb-4 word-zoom"><p class="text-4xl font-black text-rose-600">「${currentWord}」</p></div>
+                        ${myRole === 'host' ? `<button onclick="nextReveal()" class="w-full bg-rose-600 text-white h-16 rounded-2xl font-black shadow-lg text-lg">次へ</button>` : `<p class="text-rose-300 font-bold animate-pulse text-sm">ホストが準備中...</p>`}
+                    </div>`;
+            } else if (gameState.phase === 'result') {
+                const allUniqueVotes = Array.from(new Set(Object.values(gameState.votes).flat()));
+                container.innerHTML = `<div class="pop-up px-4"><h2 class="text-lg font-black mb-6 text-slate-700">${gameState.parentName}さん、一番うれしかったのは？</h2><div class="card-grid mb-8">${allUniqueVotes.map(v => `<button onclick="${isParent ? `localSelectedWinner='${v}'; render(); sfx.tap.play();` : ''}" class="p-4 rounded-2xl font-bold border-2 transition-all text-sm ${localSelectedWinner === v ? 'selected-card shadow-inner' : 'bg-white text-rose-500 border-rose-100 shadow-sm'}">${v}</button>`).join('')}</div>${isParent ? `<button onclick="confirmWinner()" class="w-full h-16 bg-rose-500 text-white rounded-2xl font-black text-xl shadow-lg ${!localSelectedWinner ? 'opacity-30' : ''}" ${!localSelectedWinner ? 'disabled' : ''}>OK</button>` : `<p class="text-rose-300 font-bold animate-pulse text-sm">親が選び中です...</p>`}</div>`;
+            } else if (gameState.phase === 'winner-announced') {
+                container.innerHTML = `<div class="pop-up text-center px-4"><div class="bg-gradient-to-br from-rose-400 to-pink-600 p-8 rounded-[2.5rem] shadow-2xl text-white mb-6"><h2 class="text-4xl font-black mb-4">「${gameState.winningKeyword}」</h2><p class="text-sm font-bold opacity-90">Winner: ${gameState.winnerName}さん</p></div><button onclick="roomRef.update({phase: 'setup', votes: null, parentName: null, winningKeyword: null, shuffledVotes:null, revealIdx:0, stamps: null, voteLimit: 1})" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-bold">もう一度あそぶ</button></div>`;
+                if (!window.winSfxPlayed) { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); sfx.win.play().catch(()=>{}); window.winSfxPlayed = true; }
+            } else { window.winSfxPlayed = false; localSelectedWinner = null; }
+        }
+
+        function updateLimitUI(selected) {
+            [1, 2, 3].forEach(num => {
+                const btn = document.getElementById(`limit-${num}`);
+                if (btn) {
+                    btn.className = num === selected ? "w-10 h-10 rounded-full border-2 bg-rose-500 border-rose-500 text-white font-bold transition-all" : "w-10 h-10 rounded-full border-2 border-rose-100 text-rose-300 font-bold transition-all";
+                }
+            });
+        }
+
+        function handleVoteClick(word) {
+            const limit = gameState.voteLimit || 1;
+            if (myTempVotes.includes(word)) {
+                myTempVotes = myTempVotes.filter(w => w !== word);
+            } else {
+                if (myTempVotes.length < limit) {
+                    myTempVotes.push(word);
+                    sfx.tap.play().catch(()=>{});
+                }
+            }
+            render();
+            if (myTempVotes.length === limit) {
+                setTimeout(() => { if(confirm(`${myTempVotes.join('、')} で送信しますか？`)) submitVote(myTempVotes); }, 100);
+            }
+        }
+
+        function joinGame(role) {
+            const input = document.getElementById('name-input');
+            const n = input?.value.trim();
+            const g = document.querySelector('input[name="gender"]:checked')?.value || "male";
+            if (!n) return alert("名前をいれてね");
+            isInputting = false;
+            myName = n; myRole = role; myGender = g;
+            localStorage.setItem("h-name", n); localStorage.setItem("h-role", role); localStorage.setItem("h-gender", g);
+            roomRef.transaction(c => {
+                if (!c) return { phase: 'setup', members: [{name:n, gender:g}], host: (role==='host'?n:""), voteLimit: 1 };
+                let actualRole = role;
+                if (role === 'host' && c.host && c.host !== "") { actualRole = 'guest'; myRole = 'guest'; }
+                let m = c.members || []; if (!m.find(x => x.name === n)) m.push({name:n, gender:g});
+                return { ...c, members: m, host: (actualRole==='host' ? n : (c.host || "")) };
+            });
+        }
+
+        function setParent(t) { 
+            roomRef.update({ 
+                phase: 'voting', 
+                parentName: t, 
+                votes: {}, 
+                revealIdx: 0, 
+                stamps: null, 
+                voteLimit: window.currentLimit || 1 
+            }); 
+        }
+
+        function submitVote(words) { 
+            roomRef.child(`votes/${myName}`).set(words).then(() => { 
+                roomRef.transaction(c => { 
+                    if (c && Object.keys(c.votes || {}).length === (c.members.length - 1)) { 
+                        c.phase = 'waiting-to-reveal'; 
+                        c.shuffledVotes = Object.values(c.votes).flat().sort(() => 0.5 - Math.random()); 
+                        c.revealIdx = 0; 
+                    } 
+                    return c; 
+                }); 
+            }); 
+        }
+
+        function nextReveal() { 
+            if (gameState.revealIdx < gameState.shuffledVotes.length - 1) { 
+                roomRef.child('stamps').remove().then(() => { roomRef.update({ revealIdx: gameState.revealIdx + 1 }); });
+                sfx.zoom.play().catch(()=>{}); 
+            } else { 
+                roomRef.child('stamps').remove().then(() => { roomRef.update({ phase: 'result' }); });
+            } 
+        }
+
+        function confirmWinner() { 
+            if (!localSelectedWinner) return; 
+            const winnerId = Object.keys(gameState.votes).find(k => gameState.votes[k].includes(localSelectedWinner)); 
+            roomRef.update({ phase: 'winner-announced', winningKeyword: localSelectedWinner, winnerName: winnerId }); 
+        }
+
+        function forceResetRoom() { if (confirm("リセットしますか？")) roomRef.remove(); }
+    </script>
 </body>
 </html>
