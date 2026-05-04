@@ -99,7 +99,12 @@
         .answer-chip { animation: chipDrop .36s cubic-bezier(.18,1.35,.36,1) both; }
         @keyframes chipDrop { from { opacity: 0; transform: translateY(-10px) scale(.75); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-        .invite-qr canvas, .invite-qr img { margin: 0 auto; border-radius: 22px; }
+        .invite-qr canvas, .invite-qr img { margin: 0 auto; border-radius: 0 !important; display:block; image-rendering: auto; }
+        .qr-square { width: 190px; min-height: 190px; margin: 0 auto; padding: 9px; background: #fff; border-radius: 0; box-shadow: 0 0 0 1px rgba(15,23,42,.08); }
+        details.invite-fold summary { list-style: none; cursor: pointer; }
+        details.invite-fold summary::-webkit-details-marker { display: none; }
+        details.invite-fold summary .chev { transition: transform .2s ease; }
+        details.invite-fold[open] summary .chev { transform: rotate(180deg); }
 
         .tiny-label { font-size: 10px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; color: #94a3b8; }
 
@@ -382,13 +387,21 @@
             }
         }
 
+        function clearLocalRoomInfo(showConfirm=true) {
+            if (showConfirm && !confirm('この端末に残っている部屋ID・名前・役割をリセットしますか？\n途中で入室状態がおかしくなった時に使ってください。')) return;
+            try { db.ref('rooms/' + currentRoomId).off(); } catch(e) {}
+            localStorage.removeItem('toiro-room-id');
+            localStorage.removeItem('toiro-name');
+            localStorage.removeItem('toiro-role');
+            currentRoomId = ''; myName = ''; myRole = ''; gameState = null; selectedColor = null; qrDrawnFor = '';
+            history.replaceState(null, '', location.pathname);
+            showToast('この端末の入室情報をリセットしました');
+            setTimeout(() => location.reload(), 450);
+        }
+
         function leaveRoom() {
             if (!confirm('この端末だけ退室しますか？')) return;
-            localStorage.removeItem('toiro-room-id');
-            localStorage.removeItem('toiro-role');
-            currentRoomId = ''; myRole = ''; gameState = null;
-            history.replaceState(null, '', location.pathname);
-            location.reload();
+            clearLocalRoomInfo(false);
         }
 
         function resetToSetup() {
@@ -504,11 +517,19 @@
         function renderBottomActions() {
             const bottom = document.getElementById('bottom-actions');
             if (!bottom) return;
-            if (!currentRoomId || !myName || !gameState) { bottom.innerHTML = ''; return; }
+
+            const hasRoomSession = !!(currentRoomId || localStorage.getItem('toiro-room-id') || localStorage.getItem('toiro-name') || localStorage.getItem('toiro-role'));
+            if (!currentRoomId || !myName || !gameState) {
+                bottom.innerHTML = hasRoomSession ? `
+                    <button onclick="clearLocalRoomInfo()" class="w-full bg-white/95 backdrop-blur border border-orange-200 text-orange-600 py-3 rounded-2xl text-[12px] font-black shadow-md active:scale-95 transition">この端末の入室情報リセット</button>
+                ` : '';
+                return;
+            }
             bottom.innerHTML = `
                 <div class="grid grid-cols-2 gap-2">
                     <button onclick="shareInvite()" class="bg-indigo-600 text-white py-3 rounded-2xl text-[12px] font-black shadow-lg active:scale-95 transition">招待する</button>
                     <button onclick="leaveRoom()" class="bg-white/90 backdrop-blur border border-slate-200 text-slate-500 py-3 rounded-2xl text-[12px] font-black shadow-md active:scale-95 transition">この端末だけ退室</button>
+                    <button onclick="clearLocalRoomInfo()" class="col-span-2 bg-white/95 backdrop-blur border border-orange-200 text-orange-600 py-3 rounded-2xl text-[12px] font-black shadow-md active:scale-95 transition">この端末の入室情報リセット</button>
                     ${myRole === 'host' ? `<button onclick="forceResetRoom()" class="col-span-2 bg-white/90 backdrop-blur border border-red-200 text-red-500 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-md active:scale-95 transition">部屋をリセット（全員退室）</button>` : ''}
                 </div>`;
         }
@@ -545,7 +566,8 @@
                             <button onclick="handleJoin('guest')" class="bg-indigo-500 text-white h-14 rounded-2xl font-black shadow-lg active:scale-95 transition">参加する</button>
                         </div>
                     </div>
-                    <p class="text-[10px] text-slate-400 font-bold text-center mt-5 leading-relaxed">QRから来た人はRoom IDが自動入力されます。<br>ホストは「新しい部屋を作る」→待機画面のQRを見せるだけでOK。</p>
+                    <button onclick="clearLocalRoomInfo()" class="mt-5 w-full bg-orange-50 border border-orange-100 text-orange-600 h-12 rounded-2xl text-[12px] font-black active:scale-95 transition">この端末の入室情報リセット</button>
+                    <p class="text-[10px] text-slate-400 font-bold text-center mt-4 leading-relaxed">QRから来た人はRoom IDが自動入力されます。<br>ホストは「新しい部屋を作る」→待機画面のQRを見せるだけでOK。</p>
                 </div>`;
                 return;
             }
@@ -562,18 +584,26 @@
                             </div>
                             <button onclick="shareInvite()" class="bg-indigo-600 text-white px-4 py-3 rounded-2xl text-xs font-black shadow-lg active:scale-95 transition">招待</button>
                         </div>
-                        <div class="invite-qr bg-white p-4 rounded-[2rem] mb-4 border border-slate-100 shadow-inner">
-                            <div class="tiny-label text-center mb-2 text-indigo-400">INVITE QR</div>
-                            <div id="qr-box" class="flex justify-center min-h-[172px] items-center"></div>
-                            <div class="mt-3 bg-slate-50 rounded-2xl p-3 text-center">
-                                <div class="text-[10px] font-black text-slate-400 tracking-widest">ROOM ID</div>
-                                <div class="text-xl font-black tracking-widest text-slate-800">${currentRoomId}</div>
+                        <details class="invite-fold invite-qr bg-white p-4 rounded-[2rem] mb-4 border border-slate-100 shadow-inner" open>
+                            <summary class="flex items-center justify-between gap-3">
+                                <div class="text-left">
+                                    <div class="tiny-label text-indigo-400">INVITE QR</div>
+                                    <div class="text-[11px] font-black text-slate-500 mt-1">タップでQR表示を開閉できます</div>
+                                </div>
+                                <div class="chev w-9 h-9 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center font-black">⌄</div>
+                            </summary>
+                            <div class="pt-4">
+                                <div id="qr-box" class="qr-square flex justify-center items-center"></div>
+                                <div class="mt-3 bg-slate-50 rounded-2xl p-3 text-center">
+                                    <div class="text-[10px] font-black text-slate-400 tracking-widest">ROOM ID</div>
+                                    <div class="text-xl font-black tracking-widest text-slate-800">${currentRoomId}</div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 mt-3">
+                                    <button onclick="copyInvite()" class="bg-slate-100 text-slate-600 py-3 rounded-xl text-[11px] font-black active:scale-95 transition">URLコピー</button>
+                                    <button onclick="shareInvite()" class="bg-pink-100 text-pink-600 py-3 rounded-xl text-[11px] font-black active:scale-95 transition">共有</button>
+                                </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-2 mt-3">
-                                <button onclick="copyInvite()" class="bg-slate-100 text-slate-600 py-3 rounded-xl text-[11px] font-black active:scale-95 transition">URLコピー</button>
-                                <button onclick="shareInvite()" class="bg-pink-100 text-pink-600 py-3 rounded-xl text-[11px] font-black active:scale-95 transition">共有</button>
-                            </div>
-                        </div>
+                        </details>
                         <div class="grid grid-cols-2 gap-2">${members.map((m, i) => `<div class="bg-white p-3 rounded-2xl font-black text-slate-600 text-[11px] border border-slate-100 truncate ${m === gameState.host ? 'ring-2 ring-indigo-100' : ''}"><span class="inline-block w-2 h-2 rounded-full mr-1" style="background:${COLORS[i % COLORS.length].code}"></span>${m}${m === gameState.host ? ' 👑' : ''}</div>`).join('')}</div>
                     </section>
                     ${myRole === 'host' ? `
