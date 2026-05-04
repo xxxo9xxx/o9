@@ -2,313 +2,66 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>おもいでめくり Firebase版</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>おもいでめくり</title>
+  <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
-    :root{
-      --bg:#fff7ed;--bg2:#fef3c7;--ink:#3f3428;--sub:#7a6a58;--card:rgba(255,255,255,.86);--line:rgba(120,82,40,.14);--orange:#f97316;--green:#059669;--red:#dc2626;--shadow:0 22px 60px rgba(92,63,31,.15);--r:28px;
-    }
-    *{box-sizing:border-box} body{margin:0;min-height:100vh;color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 12% 4%,#fff 0,rgba(255,255,255,.7) 20%,transparent 38%),linear-gradient(135deg,var(--bg),var(--bg2));padding:22px} button,input,textarea{font:inherit} button{cursor:pointer}.app{max-width:1180px;margin:auto}.header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:18px}.pill{display:inline-flex;border-radius:999px;padding:7px 12px;background:#fff8;border:1px solid var(--line);font-size:13px;font-weight:900;color:#b45309}h1{margin:10px 0 4px;font-size:clamp(34px,6vw,62px);letter-spacing:-.05em;line-height:1}.lead{margin:0;color:var(--sub);line-height:1.7}.nav{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:18px;padding:12px 16px;background:var(--ink);color:white;font-weight:900;box-shadow:0 8px 18px #3f342828}.btn:hover{transform:translateY(-1px)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.btn.secondary{background:#fff9;color:var(--ink);border:1px solid var(--line);box-shadow:none}.btn.orange{background:var(--orange)}.btn.green{background:var(--green)}.btn.red{background:var(--red)}.btn.small{padding:8px 11px;border-radius:13px;font-size:13px}.btn.active{background:var(--orange);color:#fff}.layout{display:grid;grid-template-columns:1fr 330px;gap:18px;align-items:start}.panel{background:var(--card);border:1px solid #ffffffe0;border-radius:var(--r);box-shadow:var(--shadow);backdrop-filter:blur(14px);padding:clamp(18px,3vw,30px)}.side{display:grid;gap:14px}.side .panel{padding:18px;box-shadow:0 14px 38px #5c3f1f1e}.section-title{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:18px}.section-title h2{margin:0;font-size:26px;letter-spacing:-.03em}.section-title p{margin:4px 0 0;color:var(--sub);line-height:1.6}input,textarea{width:100%;border:1px solid var(--line);background:#fffffff0;border-radius:18px;padding:13px 15px;color:var(--ink);outline:none}textarea{min-height:135px;resize:vertical;line-height:1.7}input:focus,textarea:focus{border-color:#fb923c;box-shadow:0 0 0 4px #fb923c22}.row{display:flex;gap:8px;flex-wrap:wrap}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{text-align:center;border-radius:22px;background:#fff7edbf;padding:15px}.stat strong{display:block;font-size:29px}.stat span{font-size:12px;color:var(--sub)}.tag{display:inline-flex;border-radius:999px;padding:7px 11px;font-size:13px;font-weight:900;border:1px solid transparent;white-space:nowrap}.cat{color:#c2410c;background:#ffedd5;border-color:#fed7aa}.host{color:#7c2d12;background:#fed7aa;border-color:#fdba74}.done{color:#047857;background:#d1fae5;border-color:#a7f3d0}.hidden{color:#57534e;background:#e7e5e4;border-color:#d6d3d1}.c0{color:#be123c;background:#ffe4e6;border-color:#fecdd3}.c1{color:#b45309;background:#fef3c7;border-color:#fde68a}.c2{color:#0369a1;background:#e0f2fe;border-color:#bae6fd}.c3{color:#047857;background:#d1fae5;border-color:#a7f3d0}.c4{color:#7c3aed;background:#ede9fe;border-color:#ddd6fe}.c5{color:#c2410c;background:#ffedd5;border-color:#fed7aa}.c6{color:#be185d;background:#fce7f3;border-color:#fbcfe8}.c7{color:#0f766e;background:#ccfbf1;border-color:#99f6e4}.choice{border:1px solid transparent;border-radius:999px;padding:9px 12px;font-weight:900;background:white}.choice.selected{background:var(--ink);color:white;border-color:var(--ink)}.topic-card{min-height:270px;border-radius:30px;background:linear-gradient(140deg,#fff,#fff7ed);border:1px solid #fed7aa;box-shadow:0 18px 42px #5c3f1f20;padding:24px;display:flex;flex-direction:column;justify-content:space-between;animation:flip .22s ease}@keyframes flip{from{transform:rotateY(45deg);opacity:0}to{transform:rotateY(0);opacity:1}}.topic-text{font-size:clamp(24px,4vw,34px);line-height:1.45;font-weight:1000;letter-spacing:-.03em}.write-box,.box{padding:18px;border-radius:28px;background:#fafaf9d0;border:1px solid var(--line)}.tiny{font-size:12px;color:var(--sub)}.muted{color:var(--sub)}.card-list{display:grid;gap:12px}.memory-card{background:#ffffffe6;border:1px solid var(--line);border-radius:24px;padding:16px}.memory-card.dim{opacity:.65;background:#e7e5e4cc}.card-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}.card-body{font-size:18px;font-weight:850;line-height:1.65}.big-memory{margin-top:18px;padding:clamp(24px,4vw,40px);border-radius:34px;background:linear-gradient(140deg,#fff,#fffbeb);border:1px solid #fed7aa;box-shadow:0 18px 42px #5c3f1f20}.big-memory .answer{margin-top:18px;font-size:clamp(26px,5vw,42px);line-height:1.45;font-weight:1000;letter-spacing:-.04em}.result-name{text-align:center;font-size:clamp(36px,7vw,60px);font-weight:1000;color:var(--green);letter-spacing:-.05em;margin:8px 0 20px}.bar-row{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;background:white;border-radius:999px;margin-top:7px}.screen{display:none}.screen.show{display:block}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:white;padding:12px 18px;border-radius:999px;font-weight:900;box-shadow:0 16px 34px #0003;opacity:0;pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}#qrcode{display:inline-block;background:white;padding:10px;border-radius:18px}.warn{background:#fff1f2;border:1px solid #fecdd3;color:#9f1239;border-radius:18px;padding:12px;line-height:1.65}.ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;border-radius:18px;padding:12px;line-height:1.65}.room-code{font-size:28px;font-weight:1000;letter-spacing:.08em;background:#fff;border:1px solid var(--line);border-radius:18px;padding:10px 14px;display:inline-flex}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}@media(max-width:900px){body{padding:14px}.header{align-items:flex-start;flex-direction:column}.layout,.grid2{grid-template-columns:1fr}.nav .btn{padding:10px 12px;font-size:13px}.section-title{flex-direction:column}}
+    :root{--bg:#fff7ed;--bg2:#fef3c7;--ink:#3f3428;--sub:#7a6a58;--card:rgba(255,255,255,.88);--line:rgba(120,82,40,.15);--orange:#f97316;--green:#059669;--red:#dc2626;--shadow:0 22px 60px rgba(92,63,31,.15)}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} body{margin:0;min-height:100vh;color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 12% 4%,#fff 0,rgba(255,255,255,.7) 20%,transparent 38%),linear-gradient(135deg,var(--bg),var(--bg2));padding:18px} button,input,textarea{font:inherit}button{cursor:pointer}.app{max-width:1180px;margin:auto}.header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:18px}.pill{display:inline-flex;border-radius:999px;padding:7px 12px;background:#fff8;border:1px solid var(--line);font-size:13px;font-weight:900;color:#b45309}h1{margin:10px 0 4px;font-size:clamp(34px,6vw,62px);letter-spacing:-.05em;line-height:1}.lead{margin:0;color:var(--sub);line-height:1.7}.nav{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:18px;padding:12px 16px;background:var(--ink);color:white;font-weight:900;box-shadow:0 8px 18px #3f342828}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.secondary{background:#fff9;color:var(--ink);border:1px solid var(--line);box-shadow:none}.btn.orange{background:var(--orange)}.btn.green{background:var(--green)}.btn.red{background:var(--red)}.btn.small{padding:8px 11px;border-radius:13px;font-size:13px}.btn.active{background:var(--orange);color:#fff}.layout{display:grid;grid-template-columns:1fr 330px;gap:18px;align-items:start}.panel{background:var(--card);border:1px solid #ffffffe0;border-radius:28px;box-shadow:var(--shadow);backdrop-filter:blur(14px);padding:clamp(18px,3vw,30px)}.side{display:grid;gap:14px}.side .panel{padding:18px;box-shadow:0 14px 38px #5c3f1f1e}.section-title{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:18px}.section-title h2{margin:0;font-size:26px;letter-spacing:-.03em}.section-title p{margin:4px 0 0;color:var(--sub);line-height:1.6}input,textarea{width:100%;border:1px solid var(--line);background:#fffffff0;border-radius:18px;padding:13px 15px;color:var(--ink);outline:none}textarea{min-height:135px;resize:vertical;line-height:1.7}input:focus,textarea:focus{border-color:#fb923c;box-shadow:0 0 0 4px #fb923c22}.row{display:flex;gap:8px;flex-wrap:wrap}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{text-align:center;border-radius:22px;background:#fff7edbf;padding:15px}.stat strong{display:block;font-size:29px}.stat span{font-size:12px;color:var(--sub)}.tag{display:inline-flex;border-radius:999px;padding:7px 11px;font-size:13px;font-weight:900;border:1px solid transparent;white-space:nowrap}.cat{color:#c2410c;background:#ffedd5;border-color:#fed7aa}.done{color:#047857;background:#d1fae5;border-color:#a7f3d0}.hidden{color:#57534e;background:#e7e5e4;border-color:#d6d3d1}.c0{color:#be123c;background:#ffe4e6;border-color:#fecdd3}.c1{color:#b45309;background:#fef3c7;border-color:#fde68a}.c2{color:#0369a1;background:#e0f2fe;border-color:#bae6fd}.c3{color:#047857;background:#d1fae5;border-color:#a7f3d0}.c4{color:#7c3aed;background:#ede9fe;border-color:#ddd6fe}.c5{color:#c2410c;background:#ffedd5;border-color:#fed7aa}.c6{color:#be185d;background:#fce7f3;border-color:#fbcfe8}.c7{color:#0f766e;background:#ccfbf1;border-color:#99f6e4}.choice{border:1px solid transparent;border-radius:999px;padding:9px 12px;font-weight:900;background:white}.choice.selected{background:var(--ink);color:white;border-color:var(--ink)}.topic-card{min-height:270px;border-radius:30px;background:linear-gradient(140deg,#fff,#fff7ed);border:1px solid #fed7aa;box-shadow:0 18px 42px #5c3f1f20;padding:24px;display:flex;flex-direction:column;justify-content:space-between;animation:flip .22s ease}@keyframes flip{from{transform:rotateY(45deg);opacity:0}to{transform:rotateY(0);opacity:1}}.topic-text{font-size:clamp(24px,4vw,34px);line-height:1.45;font-weight:1000;letter-spacing:-.03em}.box{padding:18px;border-radius:28px;background:#fafaf9d0;border:1px solid var(--line)}.tiny{font-size:12px;color:var(--sub)}.muted{color:var(--sub)}.card-list{display:grid;gap:12px}.memory-card{background:#ffffffe6;border:1px solid var(--line);border-radius:24px;padding:16px}.memory-card.dim{opacity:.65;background:#e7e5e4cc}.card-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}.card-body{font-size:18px;font-weight:850;line-height:1.65}.big-memory{margin-top:18px;padding:clamp(24px,4vw,40px);border-radius:34px;background:linear-gradient(140deg,#fff,#fffbeb);border:1px solid #fed7aa;box-shadow:0 18px 42px #5c3f1f20}.big-memory .answer{margin-top:18px;font-size:clamp(26px,5vw,42px);line-height:1.45;font-weight:1000;letter-spacing:-.04em}.result-name{text-align:center;font-size:clamp(36px,7vw,60px);font-weight:1000;color:var(--green);letter-spacing:-.05em;margin:8px 0 20px}.bar-row{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;background:white;border-radius:999px;margin-top:7px}.screen{display:none}.screen.show{display:block}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:white;padding:12px 18px;border-radius:999px;font-weight:900;box-shadow:0 16px 34px #0003;opacity:0;pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}#qrcode{display:inline-block;background:white;padding:10px;border-radius:18px}.warn{background:#fff1f2;border:1px solid #fecdd3;color:#9f1239;border-radius:18px;padding:12px;line-height:1.65}.ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;border-radius:18px;padding:12px;line-height:1.65}.room-code{font-size:28px;font-weight:1000;letter-spacing:.08em;background:#fff;border:1px solid var(--line);border-radius:18px;padding:10px 14px;display:inline-flex}.rule-list{counter-reset:rule;display:grid;gap:10px;margin:0;padding:0;list-style:none}.rule-list li{counter-increment:rule;display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:start;padding:12px;border-radius:18px;background:#ffffffaa;border:1px solid var(--line);line-height:1.65}.rule-list li::before{content:counter(rule);display:grid;place-items:center;width:34px;height:34px;border-radius:999px;background:var(--orange);color:white;font-weight:1000}@media(max-width:900px){body{padding:14px}.header{align-items:flex-start;flex-direction:column}.layout,.grid2{grid-template-columns:1fr}.nav .btn{padding:10px 12px;font-size:13px}.section-title{flex-direction:column}}
   </style>
 </head>
 <body>
 <div class="app">
   <header class="header">
-    <div>
-      <span class="pill">✨ Firebase対応 単体HTML版</span>
-      <h1>おもいでめくり</h1>
-      <p class="lead">参加者はお題をめくって、話してもいい思い出を投稿。ホストがランダムに1枚ずつめくります。</p>
-    </div>
-    <nav class="nav">
-      <button class="btn secondary active" data-nav="home">入室</button>
-      <button class="btn secondary" data-nav="post">投稿</button>
-      <button class="btn secondary" data-nav="play">めくる</button>
-      <button class="btn secondary hostOnly" data-nav="host">ホスト</button>
-      <button class="btn secondary hostOnly" data-nav="archive">過去確認</button>
-    </nav>
+    <div><span class="pill">✨ Firebase対応 単体HTML版</span><h1>おもいでめくり</h1><p class="lead">話してもいい思い出を投稿して、みんなで「これは誰の思い出か」を当てる会話ゲーム。</p></div>
+    <nav class="nav"><button class="btn secondary active" data-nav="home">入室</button><button class="btn secondary" data-nav="post">投稿</button><button class="btn secondary" data-nav="play">めくる</button><button class="btn secondary hostOnly" data-nav="host">ホスト</button><button class="btn secondary hostOnly" data-nav="archive">過去確認</button></nav>
   </header>
-
   <div class="layout">
     <main>
       <section id="screen-home" class="panel screen show">
         <div class="section-title"><div><h2>ルーム入室</h2><p>ホストはルームを作成。参加者はQRコードまたはルームコードで入室します。</p></div></div>
-        <div id="configWarning" class="warn" style="display:none;margin-bottom:14px;">Firebase設定が未入力です。HTML内の <b>firebaseConfig</b> を自分のFirebaseプロジェクト情報に差し替えてください。</div>
-        <div id="authStatus" class="ok" style="display:none;margin-bottom:14px;">Firebase接続中...</div>
+        <div id="authStatus" class="ok" style="margin-bottom:14px;">Firebase接続済み</div>
         <div class="grid2">
-          <div class="box">
-            <h3>ホストとして始める</h3>
-            <p class="muted">ルームを作ると、参加者用QRコードとホスト専用URLが作成されます。</p>
-            <button class="btn orange" id="createRoomBtn">新しいルームを作る</button>
-          </div>
-          <div class="box">
-            <h3>ルームコードで参加</h3>
-            <div class="row"><input id="joinCodeInput" placeholder="例：A7K9Q2" style="flex:1;min-width:180px"><button class="btn" id="joinBtn">参加</button></div>
-          </div>
+          <div class="box"><h3>ホストとして始める</h3><p class="muted">ルームを作ると、参加者用QRコードとホスト専用URLが作成されます。</p><button class="btn orange" id="createRoomBtn">新しいルームを作る</button></div>
+          <div class="box"><h3>ルームコードで参加</h3><div class="row"><input id="joinCodeInput" placeholder="例：A7K9Q2" style="flex:1;min-width:180px"><button class="btn" id="joinBtn">参加</button></div></div>
         </div>
-        <div id="roomInfo" class="box" style="display:none;margin-top:18px;">
-          <div class="row" style="justify-content:space-between;align-items:flex-start;">
-            <div>
-              <h3>現在のルーム</h3>
-              <div class="room-code" id="roomCodeView"></div>
-              <p class="tiny">参加者用URL：<span id="participantUrlText"></span></p>
-              <p class="tiny hostOnly">ホスト専用URL：<span id="hostUrlText"></span></p>
-              <div class="row"><button class="btn secondary small" id="copyParticipantUrlBtn">参加者URLコピー</button><button class="btn secondary small hostOnly" id="copyHostUrlBtn">ホストURLコピー</button></div>
-            </div>
-            <div><div id="qrcode"></div><p class="tiny" style="text-align:center;">参加者用QR</p></div>
-          </div>
-        </div>
-        <div class="box" style="margin-top:18px;">
-          <h3>名前登録</h3>
-          <p class="muted">参加後、投稿・投票に使う名前を入れてください。</p>
-          <div class="row"><input id="nameInput" placeholder="ニックネーム" style="flex:1;min-width:180px"><button class="btn green" id="saveNameBtn">名前を保存</button></div>
-        </div>
+        <div id="roomInfo" class="box" style="display:none;margin-top:18px;"><div class="row" style="justify-content:space-between;align-items:flex-start;"><div><h3>現在のルーム</h3><div class="room-code" id="roomCodeView"></div><p class="tiny">参加者用URL：<span id="participantUrlText"></span></p><p class="tiny hostOnly">ホスト専用URL：<span id="hostUrlText"></span></p><div class="row"><button class="btn secondary small" id="copyParticipantUrlBtn">参加者URLコピー</button><button class="btn secondary small hostOnly" id="copyHostUrlBtn">ホストURLコピー</button></div></div><div><div id="qrcode"></div><p class="tiny" style="text-align:center;">参加者用QR</p></div></div></div>
+        <div id="participantRuleBox" class="box" style="margin-top:18px; display:none;"><h3>参加ルール</h3><ol class="rule-list"><li>お題を何回かめくって、話してもいい思い出を探してください。</li><li>書けそうなお題だけ投稿してください。目安は1人2ポストですが、強制ではありません。</li><li>投稿した思い出は、名前を伏せたカードとして集められます。</li><li>ホストが集まったカードからランダムで1枚ずつめくります。</li><li>みんなで「これは誰の思い出か」を投票します。</li><li>正解発表後、その思い出について少し話したり、話さず次へ進んだりします。</li></ol></div>
+        <div class="box" style="margin-top:18px;"><h3>名前登録</h3><p class="muted">参加後、投稿・投票に使う名前を入れてください。</p><div class="row"><input id="nameInput" placeholder="ニックネーム" style="flex:1;min-width:180px"><button class="btn green" id="saveNameBtn">名前を保存</button></div></div>
       </section>
-
-      <section id="screen-post" class="panel screen">
-        <div class="section-title"><div><h2>お題をめくって投稿</h2><p>話してもいい思い出を投稿してください。目安は1人2ポスト。強制ではありません。</p></div><button class="btn secondary" id="nextTopicBtn">次のお題を見る</button></div>
-        <div class="grid2">
-          <div class="topic-card" id="topicCard"><div><span class="tag cat" id="topicCategory"></span></div><div class="topic-text" id="topicText"></div><p class="tiny">合わなければ何回でもめくってOK。</p></div>
-          <div class="write-box">
-            <strong>思い出カード</strong>
-            <textarea id="memoryInput" maxlength="140" placeholder="例：小学校のころ、給食のカレーだけは必ずおかわりしていた"></textarea>
-            <div class="row" style="justify-content:space-between"><span class="tiny">具体的だと当てる人が楽しいです。</span><span class="tiny"><span id="memoryCount">0</span>/140</span></div>
-            <div class="row" style="margin-top:14px"><button class="btn orange" id="submitCardBtn">投稿する</button><button class="btn secondary" id="clearDraftBtn">消す</button></div>
-          </div>
-        </div>
-        <div class="box" style="margin-top:18px;"><h3>自分の投稿</h3><div id="myCards" class="card-list"></div></div>
-      </section>
-
-      <section id="screen-play" class="panel screen">
-        <div id="noCurrentCard" style="text-align:center;padding:50px 0;"><h2>まだカードがめくられていません</h2><p class="muted">ホストがランダムで1枚めくると、ここに表示されます。</p></div>
-        <div id="playArea" style="display:none;">
-          <div class="section-title"><div><span class="tag cat" id="playCategory"></span><h2 style="margin-top:10px;">これは、だれの思い出？</h2></div><button class="btn orange hostOnly" id="drawCardBtnTop">ランダムに1枚めくる</button></div>
-          <div class="big-memory"><div class="tiny"><strong>お題：</strong><span id="playTopic"></span></div><div class="answer" id="playAnswer"></div></div>
-          <div class="box" id="voteBox" style="margin-top:18px;"><h3>投票</h3><p class="muted">この思い出を書いた人を選んでください。</p><div class="row" id="targetChoices"></div><div class="row" style="margin-top:14px"><button class="btn orange" id="submitVoteBtn">投票する</button><span class="tiny">投票済み：<span id="voteCount">0</span>/<span id="playerCountVote">0</span>人</span><button class="btn secondary hostOnly" id="revealBtn" style="margin-left:auto">正解を発表</button></div></div>
-          <div class="box" id="revealBox" style="display:none;margin-top:18px;"><p class="tiny" style="text-align:center;font-weight:900">正解は……</p><div class="result-name" id="answerName"></div><div class="grid2"><div class="box"><h3>正解した人</h3><p id="correctVoters" class="muted"></p></div><div class="box"><h3>投票分布</h3><div id="voteSummary"></div></div></div><div class="box" style="margin-top:14px;text-align:center"><h3>本人トーク</h3><p class="muted">思い出についてちょっと話したりします。話さなくてもOK。</p></div><div class="row" style="justify-content:center;margin-top:14px"><button class="btn orange hostOnly" id="drawNextAfterRevealBtn">次をランダムにめくる</button></div></div>
-        </div>
-      </section>
-
-      <section id="screen-host" class="panel screen">
-        <div class="section-title"><div><h2>ホストメニュー</h2><p>通常のカード管理では、投稿者名は表示しません。ランダムで1枚ずつ出題します。</p></div><button class="btn orange" id="drawCardBtn">ランダムに1枚めくる</button></div>
-        <div class="row" style="margin-bottom:14px"><button class="btn secondary" id="shuffleBtn">カード順シャッフル</button><button class="btn red" id="resetPostsBtn">投稿内容をリセット</button><button class="btn secondary" id="clearCurrentBtn">現在の出題を閉じる</button></div>
-        <div class="warn">注意：通常画面では投稿者を伏せています。確認が必要な場合だけ「過去確認」メニューを使ってください。</div>
-        <div style="margin-top:16px" id="hostCards" class="card-list"></div>
-      </section>
-
-      <section id="screen-archive" class="panel screen">
-        <div class="section-title"><div><h2>保存された過去の投稿者と内容</h2><p>ホスト専用確認メニューです。投稿者と内容を一覧で確認できます。</p></div></div>
-        <div class="row" style="margin-bottom:14px"><button class="btn red" id="resetPostsBtn2">投稿内容をリセット</button><button class="btn secondary" id="exportCsvBtn">CSV出力</button></div>
-        <div id="archiveCards" class="card-list"></div>
-      </section>
+      <section id="screen-post" class="panel screen"><div class="section-title"><div><h2>お題をめくって投稿</h2><p>話してもいい思い出を投稿してください。目安は1人2ポスト。強制ではありません。</p></div><button class="btn secondary" id="nextTopicBtn">次のお題を見る</button></div><div class="grid2"><div class="topic-card" id="topicCard"><div><span class="tag cat" id="topicCategory"></span></div><div class="topic-text" id="topicText"></div><p class="tiny">合わなければ何回でもめくってOK。</p></div><div class="box"><strong>思い出カード</strong><textarea id="memoryInput" maxlength="140" placeholder="例：小学校のころ、給食のカレーだけは必ずおかわりしていた"></textarea><div class="row" style="justify-content:space-between"><span class="tiny">具体的だと当てる人が楽しいです。</span><span class="tiny"><span id="memoryCount">0</span>/140</span></div><div class="row" style="margin-top:14px"><button class="btn orange" id="submitCardBtn">投稿する</button><button class="btn secondary" id="clearDraftBtn">消す</button></div></div></div><div class="box" style="margin-top:18px;"><h3>自分の投稿</h3><div id="myCards" class="card-list"></div></div></section>
+      <section id="screen-play" class="panel screen"><div id="noCurrentCard" style="text-align:center;padding:50px 0;"><h2>まだカードがめくられていません</h2><p class="muted">ホストがランダムで1枚めくると、ここに表示されます。</p></div><div id="playArea" style="display:none;"><div class="section-title"><div><span class="tag cat" id="playCategory"></span><h2 style="margin-top:10px;">これは、だれの思い出？</h2></div><button class="btn orange hostOnly" id="drawCardBtnTop">ランダムに1枚めくる</button></div><div class="big-memory"><div class="tiny"><strong>お題：</strong><span id="playTopic"></span></div><div class="answer" id="playAnswer"></div></div><div class="box" id="voteBox" style="margin-top:18px;"><h3>投票</h3><p class="muted">この思い出を書いた人を選んでください。</p><div class="row" id="targetChoices"></div><div class="row" style="margin-top:14px"><button class="btn orange" id="submitVoteBtn">投票する</button><span class="tiny">投票済み：<span id="voteCount">0</span>/<span id="playerCountVote">0</span>人</span><button class="btn secondary hostOnly" id="revealBtn" style="margin-left:auto">正解を発表</button></div></div><div class="box" id="revealBox" style="display:none;margin-top:18px;"><p class="tiny" style="text-align:center;font-weight:900">正解は……</p><div class="result-name" id="answerName"></div><div class="grid2"><div class="box"><h3>正解した人</h3><p id="correctVoters" class="muted"></p></div><div class="box"><h3>投票分布</h3><div id="voteSummary"></div></div></div><div class="box" style="margin-top:14px;text-align:center"><h3>本人トーク</h3><p class="muted">思い出についてちょっと話したりします。話さなくてもOK。</p></div><div class="row" style="justify-content:center;margin-top:14px"><button class="btn orange hostOnly" id="drawNextAfterRevealBtn">次をランダムにめくる</button></div></div></div></section>
+      <section id="screen-host" class="panel screen"><div class="section-title"><div><h2>ホストメニュー</h2><p>通常のカード管理では、投稿者名は表示しません。ランダムで1枚ずつ出題します。</p></div><button class="btn orange" id="drawCardBtn">ランダムに1枚めくる</button></div><div class="row" style="margin-bottom:14px"><button class="btn secondary" id="shuffleBtn">カード順シャッフル</button><button class="btn red" id="resetPostsBtn">投稿内容をリセット</button><button class="btn secondary" id="clearCurrentBtn">現在の出題を閉じる</button></div><div class="warn">注意：通常画面では投稿者を伏せています。確認が必要な場合だけ「過去確認」メニューを使ってください。</div><div style="margin-top:16px" id="hostCards" class="card-list"></div></section>
+      <section id="screen-archive" class="panel screen"><div class="section-title"><div><h2>保存された過去の投稿者と内容</h2><p>ホスト専用確認メニューです。投稿者と内容を一覧で確認できます。</p></div></div><div class="row" style="margin-bottom:14px"><button class="btn red" id="resetPostsBtn2">投稿内容をリセット</button><button class="btn secondary" id="exportCsvBtn">CSV出力</button></div><div id="archiveCards" class="card-list"></div></section>
     </main>
-
-    <aside class="side">
-      <div class="panel"><h3 style="margin-top:0">ルーム状態</h3><div class="stats"><div class="stat"><strong id="statPlayers">0</strong><span>参加者</span></div><div class="stat"><strong id="statCards">0</strong><span>投稿</span></div><div class="stat"><strong id="statUnplayed">0</strong><span>未出題</span></div><div class="stat"><strong id="statPlayed">0</strong><span>出題済み</span></div></div><p class="tiny" id="roleText"></p></div>
-      <div class="panel"><h3 style="margin-top:0">参加者</h3><div id="playersList" class="card-list"></div></div>
-      <div class="panel"><h3 style="margin-top:0">ルール</h3><p class="muted" style="line-height:1.75">参加者はお題を何回かめくって、話してもいい思い出を投稿してください。目安は1人2ポスト。強制ではありません。ホストが集まったカードをランダムで1枚ずつめくります。みんなで「これは誰の思い出か」を投票します。正解発表後、思い出についてちょっと話したりします。</p></div>
-    </aside>
+    <aside class="side"><div class="panel"><h3 style="margin-top:0">ルーム状態</h3><div class="stats"><div class="stat"><strong id="statPlayers">0</strong><span>参加者</span></div><div class="stat"><strong id="statCards">0</strong><span>投稿</span></div><div class="stat"><strong id="statUnplayed">0</strong><span>未出題</span></div><div class="stat"><strong id="statPlayed">0</strong><span>出題済み</span></div></div><p class="tiny" id="roleText"></p></div><div class="panel"><h3 style="margin-top:0">参加者</h3><div id="playersList" class="card-list"></div></div><div class="panel"><h3 style="margin-top:0">ルール</h3><ol class="rule-list"><li>お題を何回かめくって、話してもいい思い出を投稿します。</li><li>目安は1人2ポスト。強制ではありません。</li><li>ホストが集まったカードをランダムで1枚ずつめくります。</li><li>みんなで「これは誰の思い出か」を投票します。</li><li>正解発表後、思い出についてちょっと話したりします。</li></ol></div></aside>
   </div>
-</div>
-<div class="toast" id="toast"></div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-  import { getDatabase, ref, set, update, push, onValue, remove, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
-
-  // ここを自分のFirebaseプロジェクト情報に差し替えてください。
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
-
-  const TOPICS = [
-    { category:"幼稚園・保育園", text:"幼稚園・保育園のころ、なぜか今も覚えていることは？" },
-    { category:"幼稚園・保育園", text:"小さいころ、好きだった遊びは？" },
-    { category:"幼稚園・保育園", text:"小さいころ、怖かったものは？" },
-    { category:"幼稚園・保育園", text:"小さいころの将来の夢は？" },
-    { category:"小学校", text:"小学校で好きだった遊びは？" },
-    { category:"小学校", text:"好きだった給食は？" },
-    { category:"小学校", text:"休み時間によくしていたことは？" },
-    { category:"小学校", text:"小学校で流行っていたものは？" },
-    { category:"小学校", text:"先生に怒られた小さな理由は？" },
-    { category:"小学校", text:"子どものころ集めていたものは？" },
-    { category:"中学・高校", text:"学生時代に熱中していたことは？" },
-    { category:"中学・高校", text:"部活・クラブ・習い事の思い出は？" },
-    { category:"昔の仕事・バイト", text:"今の仕事以外でやったことがある仕事は？" },
-    { category:"昔の仕事・バイト", text:"学生時代のアルバイトの思い出は？" },
-    { category:"昔の仕事・バイト", text:"初めてお金をもらった仕事は？" },
-    { category:"昔の仕事・バイト", text:"仕事中に起きた小さな事件は？" },
-    { category:"昔の好きなもの", text:"昔から変わらず好きなものは？" },
-    { category:"昔の好きなもの", text:"昔好きだったテレビ番組・キャラクターは？" },
-    { category:"人柄", text:"昔のあだ名は？" },
-    { category:"人柄", text:"昔は苦手だったけど今は平気なものは？" },
-    { category:"人柄", text:"昔なぜかこだわっていたことは？" }
-  ];
-
-  const $ = id => document.getElementById(id);
-  const esc = s => String(s ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
-  const uid = () => Math.random().toString(36).slice(2,8).toUpperCase();
-  const secret = () => Math.random().toString(36).slice(2,12) + Math.random().toString(36).slice(2,12);
-  const color = i => `c${i % 8}`;
-
-  const state = {
-    app:null, auth:null, db:null, user:null, roomId:new URLSearchParams(location.search).get("room") || "", hostKey:new URLSearchParams(location.search).get("host") || "",
-    meta:null, players:{}, cards:{}, round:{}, topicIndex:0, selectedTargetId:"", screen:"home"
-  };
-
-  const configured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_");
-  if(!configured) $("configWarning").style.display = "block";
-
-  function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove("show"),1800)}
-  function roomRef(path=""){return ref(state.db, `omoideRooms/${state.roomId}${path?"/"+path:""}`)}
-  function isHost(){return !!state.meta && state.hostKey && state.hostKey === state.meta.hostKey}
-  function participantUrl(){const u=new URL(location.href);u.searchParams.set("room", state.roomId);u.searchParams.delete("host");return u.toString()}
-  function hostUrl(){const u=new URL(location.href);u.searchParams.set("room", state.roomId);u.searchParams.set("host", state.meta?.hostKey || state.hostKey);return u.toString()}
-
-  function go(screen){state.screen=screen;document.querySelectorAll(".screen").forEach(s=>s.classList.remove("show"));$("screen-"+screen).classList.add("show");document.querySelectorAll("[data-nav]").forEach(b=>b.classList.toggle("active",b.dataset.nav===screen));render()}
-  document.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>{ if(b.classList.contains("hostOnly")&&!isHost()) return toast("ホスト専用です"); go(b.dataset.nav)}));
-
-  function pickTopic(){let n=Math.floor(Math.random()*TOPICS.length);while(n===state.topicIndex&&TOPICS.length>1)n=Math.floor(Math.random()*TOPICS.length);state.topicIndex=n;renderTopic()}
-  function renderTopic(){const t=TOPICS[state.topicIndex];$("topicCategory").textContent=t.category;$("topicText").textContent=t.text;const card=$("topicCard");card.style.animation="none";card.offsetHeight;card.style.animation="flip .22s ease"}
-
-  async function createRoom(){
-    if(!state.user) return toast("Firebase接続後に作成してください");
-    const roomId = uid(); const key = secret(); state.roomId = roomId; state.hostKey = key;
-    await set(ref(state.db, `omoideRooms/${roomId}`), { meta:{ roomId, hostKey:key, createdAt:serverTimestamp(), currentCardId:"", revealed:false }});
-    history.replaceState(null,"",`?room=${roomId}&host=${key}`);
-    listenRoom(); go("home"); toast("ルームを作成しました");
-  }
-
-  function joinByCode(){const code=$("joinCodeInput").value.trim().toUpperCase();if(!code)return;location.href=`?room=${encodeURIComponent(code)}`}
-
-  async function saveName(){
-    if(!state.roomId) return toast("先にルームへ入室してください");
-    if(!state.user) return toast("Firebase接続中です");
-    const name=$("nameInput").value.trim(); if(!name) return toast("名前を入力してください");
-    const count=Object.keys(state.players).length;
-    await set(roomRef(`players/${state.user.uid}`), { name, color: color(count), joinedAt:serverTimestamp() });
-    toast("名前を保存しました"); go("post");
-  }
-
-  async function submitCard(){
-    if(!state.roomId || !state.user) return toast("入室と名前登録が必要です");
-    const me=state.players[state.user.uid]; if(!me) return toast("先に名前を保存してください");
-    const text=$("memoryInput").value.trim(); if(text.length<5) return toast("思い出をもう少しだけ書いてください");
-    const t=TOPICS[state.topicIndex]; const r=push(roomRef("cards"));
-    await set(r, { playerId:state.user.uid, playerName:me.name, playerColor:me.color, topic:t.text, category:t.category, answer:text, hidden:false, played:false, createdAt:serverTimestamp() });
-    $("memoryInput").value="";$("memoryCount").textContent="0";pickTopic();toast("投稿しました");
-  }
-
-  function cardsArray(){return Object.entries(state.cards||{}).map(([id,c])=>({id,...c}))}
-  function playableCards(){return cardsArray().filter(c=>!c.hidden&&!c.played)}
-  function currentCard(){return state.meta?.currentCardId ? { id:state.meta.currentCardId, ...state.cards[state.meta.currentCardId] } : null}
-
-  async function drawRandomCard(){
-    if(!isHost()) return toast("ホスト専用です");
-    const pool=playableCards(); if(!pool.length) return toast("未出題カードがありません");
-    const card=pool[Math.floor(Math.random()*pool.length)];
-    await update(roomRef(), { "meta/currentCardId":card.id, "meta/revealed":false, "round/votes":{} });
-    go("play");
-  }
-
-  async function revealAnswer(){
-    if(!isHost()) return toast("ホスト専用です");
-    const card=currentCard(); if(!card) return;
-    await update(roomRef(), { "meta/revealed":true, [`cards/${card.id}/played`]:true });
-  }
-
-  async function submitVote(){
-    const card=currentCard(); if(!card) return toast("まだ出題されていません");
-    const me=state.players[state.user?.uid]; if(!me) return toast("先に名前を保存してください");
-    if(!state.selectedTargetId) return toast("持ち主だと思う人を選んでください");
-    await set(roomRef(`round/votes/${state.user.uid}`), { targetId:state.selectedTargetId, voterName:me.name, at:serverTimestamp() });
-    state.selectedTargetId=""; toast("投票しました");
-  }
-
-  async function toggleHidden(id){ if(!isHost()) return; const c=state.cards[id]; await update(roomRef(`cards/${id}`), { hidden:!c.hidden }); }
-  async function clearCurrent(){ if(!isHost())return; await update(roomRef(), {"meta/currentCardId":"", "meta/revealed":false, "round/votes":{} }); }
-  async function resetPosts(){
-    if(!isHost()) return toast("ホスト専用です");
-    if(!confirm("投稿内容をすべて削除します。参加者・ルームは残します。よろしいですか？")) return;
-    await remove(roomRef("cards")); await update(roomRef(), {"meta/currentCardId":"", "meta/revealed":false, "round/votes":{} }); toast("投稿内容をリセットしました"); go("host");
-  }
-  function shuffleLocal(){ toast("ランダム出題なので、順番シャッフルは不要です"); }
-
-  async function copyText(text){try{await navigator.clipboard.writeText(text);toast("コピーしました")}catch{toast("コピーできませんでした")}}
-
-  function listenRoom(){
-    if(!state.roomId || !state.db) return;
-    onValue(roomRef("meta"), s=>{state.meta=s.val()||null;render()});
-    onValue(roomRef("players"), s=>{state.players=s.val()||{};render()});
-    onValue(roomRef("cards"), s=>{state.cards=s.val()||{};render()});
-    onValue(roomRef("round"), s=>{state.round=s.val()||{};render()});
-  }
-
-  function renderHome(){
-    const hasRoom=!!state.roomId; $("roomInfo").style.display=hasRoom?"block":"none";
-    if(hasRoom){$("roomCodeView").textContent=state.roomId;$("participantUrlText").textContent=participantUrl();$("hostUrlText").textContent=hostUrl(); const q=$("qrcode"); q.innerHTML=""; if(window.QRCode) new QRCode(q,{text:participantUrl(),width:150,height:150});}
-    $("authStatus").style.display = state.user ? "block" : "none"; $("authStatus").textContent = state.user ? "Firebase接続済み" : "Firebase接続中...";
-  }
-  function playerTag(p,label=p.name){return `<span class="tag ${esc(p.color||"c0")}">${esc(label)}</span>`}
-  function renderPlayers(){
-    const arr=Object.entries(state.players||{}).map(([id,p])=>({id,...p}));
-    $("playersList").innerHTML = arr.length ? arr.map(p=>`<div class="memory-card">${playerTag(p)}<span class="tiny"> 投稿 ${cardsArray().filter(c=>c.playerId===p.id).length}枚</span></div>`).join("") : `<p class="muted">まだ参加者がいません。</p>`;
-    $("playerCountVote").textContent=arr.length; document.querySelectorAll(".hostOnly").forEach(e=>e.style.display=isHost()?"":"none");
-    $("roleText").textContent = isHost()?"あなたはホストです。":"あなたは参加者です。";
-  }
-  function renderMyCards(){
-    const mine=cardsArray().filter(c=>c.playerId===state.user?.uid);
-    $("myCards").innerHTML = mine.length ? mine.map(c=>`<div class="memory-card"><div class="card-head"><span class="tag cat">${esc(c.category)}</span>${c.played?'<span class="tag done">出題済み</span>':''}</div><div class="tiny">${esc(c.topic)}</div><div class="card-body">${esc(c.answer)}</div></div>`).join("") : `<p class="muted">まだ投稿していません。</p>`;
-  }
-  function renderHostCards(){
-    const arr=cardsArray().sort((a,b)=>(a.played===b.played?0:a.played?1:-1));
-    $("hostCards").innerHTML = arr.length ? arr.map((c,i)=>`<div class="memory-card ${c.hidden?'dim':''}"><div class="card-head"><span class="tag cat">${esc(c.category)}</span>${c.played?'<span class="tag done">出題済み</span>':''}${c.hidden?'<span class="tag hidden">非表示</span>':''}<span class="tiny">投稿者は通常非表示</span></div><div class="tiny">${esc(c.topic)}</div><div class="card-body">${esc(c.answer)}</div><div class="row" style="margin-top:12px"><button class="btn secondary small" onclick="window.toggleHidden('${c.id}')">${c.hidden?'表示に戻す':'非表示'}</button></div></div>`).join("") : `<p class="muted">投稿カードはまだありません。</p>`;
-  }
-  function renderArchive(){
-    const arr=cardsArray().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    $("archiveCards").innerHTML = arr.length ? arr.map(c=>`<div class="memory-card"><div class="card-head"><span class="tag cat">${esc(c.category)}</span>${playerTag({name:c.playerName,color:c.playerColor||"c0"},`投稿者：${c.playerName}`)}${c.played?'<span class="tag done">出題済み</span>':''}</div><div class="tiny">${esc(c.topic)}</div><div class="card-body">${esc(c.answer)}</div></div>`).join("") : `<p class="muted">保存された投稿はありません。</p>`;
-  }
-  function renderPlay(){
-    const card=currentCard(); $("noCurrentCard").style.display=card?"none":"block"; $("playArea").style.display=card?"block":"none"; if(!card) return;
-    $("playCategory").textContent=card.category; $("playTopic").textContent=card.topic; $("playAnswer").textContent=card.answer;
-    const revealed=!!state.meta?.revealed; $("voteBox").style.display=revealed?"none":"block"; $("revealBox").style.display=revealed?"block":"none";
-    const players=Object.entries(state.players||{}).map(([id,p])=>({id,...p}));
-    $("targetChoices").innerHTML=players.map(p=>`<button class="choice ${state.selectedTargetId===p.id?'selected':esc(p.color||'c0')}" onclick="window.selectTarget('${p.id}')">${esc(p.name)}</button>`).join("");
-    const votes=state.round?.votes||{}; $("voteCount").textContent=Object.keys(votes).length;
-    if(revealed){
-      $("answerName").textContent=`${card.playerName}さん`;
-      const correct=Object.entries(votes).filter(([,v])=>v.targetId===card.playerId).map(([uid,v])=>v.voterName||state.players[uid]?.name).filter(Boolean);
-      $("correctVoters").textContent=correct.length?correct.join("、"):"今回は正解者なし";
-      const summary=players.map(p=>({p,count:0})); Object.values(votes).forEach(v=>{const row=summary.find(s=>s.p.id===v.targetId); if(row)row.count++}); summary.sort((a,b)=>b.count-a.count);
-      $("voteSummary").innerHTML=summary.map(s=>`<div class="bar-row"><span>${esc(s.p.name)}</span><strong>${s.count}票</strong></div>`).join("");
-    }
-  }
-  function renderStats(){
-    const arr=cardsArray(); $("statPlayers").textContent=Object.keys(state.players||{}).length; $("statCards").textContent=arr.length; $("statUnplayed").textContent=playableCards().length; $("statPlayed").textContent=arr.filter(c=>c.played).length;
-  }
-  function exportCsv(){
-    if(!isHost())return; const rows=[["投稿者","カテゴリ","お題","思い出","出題済み","非表示"],...cardsArray().map(c=>[c.playerName,c.category,c.topic,c.answer,c.played?"済":"未",c.hidden?"非表示":"表示"] )];
-    const csv=rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n"); const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`omoide_${state.roomId}.csv`; a.click(); URL.revokeObjectURL(a.href);
-  }
-  function render(){renderHome();renderPlayers();renderTopic();renderMyCards();renderHostCards();renderArchive();renderPlay();renderStats();}
-
-  window.selectTarget=id=>{state.selectedTargetId=id;renderPlay()}; window.toggleHidden=toggleHidden;
-  $("createRoomBtn").onclick=createRoom; $("joinBtn").onclick=joinByCode; $("saveNameBtn").onclick=saveName; $("nextTopicBtn").onclick=pickTopic; $("submitCardBtn").onclick=submitCard; $("clearDraftBtn").onclick=()=>{$("memoryInput").value="";$("memoryCount").textContent="0"}; $("memoryInput").oninput=e=>$("memoryCount").textContent=e.target.value.length;
-  $("drawCardBtn").onclick=drawRandomCard; $("drawCardBtnTop").onclick=drawRandomCard; $("drawNextAfterRevealBtn").onclick=drawRandomCard; $("revealBtn").onclick=revealAnswer; $("submitVoteBtn").onclick=submitVote; $("resetPostsBtn").onclick=resetPosts; $("resetPostsBtn2").onclick=resetPosts; $("clearCurrentBtn").onclick=clearCurrent; $("shuffleBtn").onclick=shuffleLocal; $("exportCsvBtn").onclick=exportCsv; $("copyParticipantUrlBtn").onclick=()=>copyText(participantUrl()); $("copyHostUrlBtn").onclick=()=>copyText(hostUrl());
-
-  if(configured){
-    state.app=initializeApp(firebaseConfig); state.auth=getAuth(state.app); state.db=getDatabase(state.app);
-    signInAnonymously(state.auth).catch(e=>toast("匿名ログインに失敗: "+e.message));
-    onAuthStateChanged(state.auth,user=>{state.user=user; if(state.roomId) listenRoom(); render();});
-  }
-  render();
+</div><div class="toast" id="toast"></div>
+<script>
+  const firebaseConfig={apiKey:"AIzaSyBmzPmehSaV--mn0Hd0S-fd97nf5RX4Dvg",authDomain:"membertoiro.firebaseapp.com",databaseURL:"https://membertoiro-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"membertoiro",storageBucket:"membertoiro.firebasestorage.app",messagingSenderId:"858132874746",appId:"1:858132874746:web:9d6e1156a350dd396b9043"};
+  firebase.initializeApp(firebaseConfig); const db=firebase.database();
+  const TOPICS=[{category:"幼稚園・保育園",text:"幼稚園・保育園のころ、なぜか今も覚えていることは？"},{category:"幼稚園・保育園",text:"小さいころ、好きだった遊びは？"},{category:"幼稚園・保育園",text:"小さいころ、怖かったものは？"},{category:"幼稚園・保育園",text:"小さいころの将来の夢は？"},{category:"小学校",text:"小学校で好きだった遊びは？"},{category:"小学校",text:"好きだった給食は？"},{category:"小学校",text:"休み時間によくしていたことは？"},{category:"小学校",text:"小学校で流行っていたものは？"},{category:"小学校",text:"先生に怒られた小さな理由は？"},{category:"小学校",text:"子どものころ集めていたものは？"},{category:"中学・高校",text:"学生時代に熱中していたことは？"},{category:"中学・高校",text:"部活・クラブ・習い事の思い出は？"},{category:"昔の仕事・バイト",text:"今の仕事以外でやったことがある仕事は？"},{category:"昔の仕事・バイト",text:"学生時代のアルバイトの思い出は？"},{category:"昔の仕事・バイト",text:"初めてお金をもらった仕事は？"},{category:"昔の仕事・バイト",text:"仕事中に起きた小さな事件は？"},{category:"昔の好きなもの",text:"昔から変わらず好きなものは？"},{category:"昔の好きなもの",text:"昔好きだったテレビ番組・キャラクターは？"},{category:"人柄",text:"昔のあだ名は？"},{category:"人柄",text:"昔は苦手だったけど今は平気なものは？"},{category:"人柄",text:"昔なぜかこだわっていたことは？"}];
+  const $=id=>document.getElementById(id); const esc=s=>String(s??"").replace(/[&<>'\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'\"':"&quot;"}[c])); const makeId=(n=6)=>{const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<n;i++)s+=c[Math.floor(Math.random()*c.length)];return s}; const secret=()=>Math.random().toString(36).slice(2,12)+Math.random().toString(36).slice(2,12); const color=i=>`c${i%8}`;
+  const params=new URLSearchParams(location.search); const state={roomId:params.get("room")||"",hostKey:params.get("host")||"",visitorId:localStorage.getItem("omoide-visitor")||secret(),meta:null,players:{},cards:{},round:{},topicIndex:0,selectedTargetId:"",screen:"home",listening:false}; localStorage.setItem("omoide-visitor",state.visitorId);
+  function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove("show"),1800)} function roomRef(path=""){return db.ref(`rooms/${state.roomId}_omoide_mekuri${path?"/"+path:""}`)} function isHost(){return !!state.meta&&state.hostKey&&state.hostKey===state.meta.hostKey} function participantUrl(){const u=new URL(location.href);u.searchParams.set("room",state.roomId);u.searchParams.delete("host");return u.toString()} function hostUrl(){const u=new URL(location.href);u.searchParams.set("room",state.roomId);u.searchParams.set("host",state.meta?.hostKey||state.hostKey);return u.toString()} function cardsArray(){return Object.entries(state.cards||{}).map(([id,c])=>({id,...c}))} function playableCards(){return cardsArray().filter(c=>!c.hidden&&!c.played)} function currentCard(){return state.meta?.currentCardId?{id:state.meta.currentCardId,...state.cards[state.meta.currentCardId]}:null} function playerTag(p,label=p.name){return `<span class="tag ${esc(p.color||"c0")}">${esc(label)}</span>`}
+  function go(screen){state.screen=screen;document.querySelectorAll(".screen").forEach(s=>s.classList.remove("show"));$("screen-"+screen).classList.add("show");document.querySelectorAll("[data-nav]").forEach(b=>b.classList.toggle("active",b.dataset.nav===screen));render()} document.querySelectorAll("[data-nav]").forEach(b=>b.addEventListener("click",()=>{if(b.classList.contains("hostOnly")&&!isHost())return toast("ホスト専用です");go(b.dataset.nav)}));
+  function pickTopic(){let n=Math.floor(Math.random()*TOPICS.length);while(n===state.topicIndex&&TOPICS.length>1)n=Math.floor(Math.random()*TOPICS.length);state.topicIndex=n;renderTopic()} function renderTopic(){const t=TOPICS[state.topicIndex];$("topicCategory").textContent=t.category;$("topicText").textContent=t.text;const card=$("topicCard");card.style.animation="none";card.offsetHeight;card.style.animation="flip .22s ease"}
+  async function createRoom(){const roomId=makeId(6),key=secret();state.roomId=roomId;state.hostKey=key;await db.ref(`rooms/${roomId}_omoide_mekuri`).set({meta:{roomId,hostKey:key,createdAt:Date.now(),currentCardId:"",revealed:false}});history.replaceState(null,"",`?room=${roomId}&host=${key}`);listenRoom();go("home");toast("ルームを作成しました")} function joinByCode(){const code=$("joinCodeInput").value.trim().toUpperCase();if(!code)return;location.href=`?room=${encodeURIComponent(code)}`}
+  async function saveName(){if(!state.roomId)return toast("先にルームへ入室してください");const name=$("nameInput").value.trim();if(!name)return toast("名前を入力してください");const count=Object.keys(state.players).length;await roomRef(`players/${state.visitorId}`).set({name,color:color(count),joinedAt:Date.now()});toast("名前を保存しました");go("post")} async function submitCard(){if(!state.roomId)return toast("入室と名前登録が必要です");const me=state.players[state.visitorId];if(!me)return toast("先に名前を保存してください");const text=$("memoryInput").value.trim();if(text.length<5)return toast("思い出をもう少しだけ書いてください");const t=TOPICS[state.topicIndex];const r=roomRef("cards").push();await r.set({playerId:state.visitorId,playerName:me.name,playerColor:me.color,topic:t.text,category:t.category,answer:text,hidden:false,played:false,createdAt:Date.now()});$("memoryInput").value="";$("memoryCount").textContent="0";pickTopic();toast("投稿しました")}
+  async function drawRandomCard(){if(!isHost())return toast("ホスト専用です");const pool=playableCards();if(!pool.length)return toast("未出題カードがありません");const card=pool[Math.floor(Math.random()*pool.length)];await roomRef().update({"meta/currentCardId":card.id,"meta/revealed":false,"round/votes":{}});go("play")} async function revealAnswer(){if(!isHost())return toast("ホスト専用です");const card=currentCard();if(!card)return;await roomRef().update({"meta/revealed":true,[`cards/${card.id}/played`]:true})} async function submitVote(){const card=currentCard();if(!card)return toast("まだ出題されていません");const me=state.players[state.visitorId];if(!me)return toast("先に名前を保存してください");if(!state.selectedTargetId)return toast("持ち主だと思う人を選んでください");await roomRef(`round/votes/${state.visitorId}`).set({targetId:state.selectedTargetId,voterName:me.name,at:Date.now()});state.selectedTargetId="";toast("投票しました")}
+  async function toggleHidden(id){if(!isHost())return;const c=state.cards[id];await roomRef(`cards/${id}`).update({hidden:!c.hidden})} async function clearCurrent(){if(!isHost())return;await roomRef().update({"meta/currentCardId":"","meta/revealed":false,"round/votes":{}})} async function resetPosts(){if(!isHost())return toast("ホスト専用です");if(!confirm("投稿内容をすべて削除します。参加者・ルームは残します。よろしいですか？"))return;await roomRef("cards").remove();await roomRef().update({"meta/currentCardId":"","meta/revealed":false,"round/votes":{}});toast("投稿内容をリセットしました");go("host")} function shuffleLocal(){toast("常にランダム出題なので、順番シャッフルは不要です")} async function copyText(text){try{await navigator.clipboard.writeText(text);toast("コピーしました")}catch{prompt("このURLをコピーしてください",text)}}
+  function listenRoom(){if(!state.roomId||state.listening)return;state.listening=true;roomRef("meta").on("value",s=>{state.meta=s.val()||null;render()});roomRef("players").on("value",s=>{state.players=s.val()||{};render()});roomRef("cards").on("value",s=>{state.cards=s.val()||{};render()});roomRef("round").on("value",s=>{state.round=s.val()||{};render()})}
+  function renderHome(){const hasRoom=!!state.roomId;$("roomInfo").style.display=hasRoom?"block":"none";$("participantRuleBox").style.display=(hasRoom&&!isHost())?"block":"none";if(hasRoom){$("roomCodeView").textContent=state.roomId;$("participantUrlText").textContent=participantUrl();$("hostUrlText").textContent=hostUrl();const q=$("qrcode");q.innerHTML="";if(window.QRCode)new QRCode(q,{text:participantUrl(),width:150,height:150})}}
+  function renderPlayers(){const arr=Object.entries(state.players||{}).map(([id,p])=>({id,...p}));$("playersList").innerHTML=arr.length?arr.map(p=>`<div class="memory-card">${playerTag(p)}<span class="tiny"> 投稿 ${cardsArray().filter(c=>c.playerId===p.id).length}枚</span></div>`).join(""):`<p class="muted">まだ参加者がいません。</p>`;$("playerCountVote").textContent=arr.length;document.querySelectorAll(".hostOnly").forEach(e=>e.style.display=isHost()?"":"none");$("roleText").textContent=isHost()?"あなたはホストです。":"あなたは参加者です。"}
+  function renderMyCards(){const mine=cardsArray().filter(c=>c.playerId===state.visitorId);$("myCards").innerHTML=mine.length?mine.map(c=>`<div class="memory-card"><div class="card-head"><span class="tag cat">${esc(c.category)}</span>${c.played?'<span class="tag done">出題済み</span>':''}</div><div class="tiny">${esc(c.topic)}</div><div class="card-body">${esc(c.answer)}</div></div>`).join(""):`<p class="muted">まだ投稿していません。</p>`}
+  function renderHostCards(){const arr=cardsArray().sort((a,b)=>(a.played===b.played?0:a.played?1:-1));$("hostCards").innerHTML=arr.length?arr.map(c=>`<div class="memory-card ${c.hidden?'dim':''}"><div class="card-head"><span class="tag cat">${esc(c.category)}</span>${c.played?'<span class="tag done">出題済み</span>':''}${c.hidden?'<span class="tag hidden">非表示</span>':''}<span class="tiny">投稿者は通常非表示</span></div><div class="tiny">${esc(c.topic)}</div><div class="card-body">${esc(c.answer)}</div><div class="row" style="margin-top:12px"><button class="btn secondary small" onclick="window.toggleHidden('${c.id}')">${c.hidden?'表示に戻す':'非表示'}</button></div></div>`).join(""):`<p class="muted">投稿カードはまだありません。</p>`}
+  function renderArchive(){const arr=cardsArray().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));$("archiveCards").innerHTML=arr.length?arr.map(c=>`<div class="memory-card"><div class="card-head"><span class="tag cat">${esc(c.category)}</span>${playerTag({name:c.playerName,color:c.playerColor||"c0"},`投稿者：${c.playerName}`)}${c.played?'<span class="tag done">出題済み</span>':''}</div><div class="tiny">${esc(c.topic)}</div><div class="card-body">${esc(c.answer)}</div></div>`).join(""):`<p class="muted">保存された投稿はありません。</p>`}
+  function renderPlay(){const card=currentCard();$("noCurrentCard").style.display=card?"none":"block";$("playArea").style.display=card?"block":"none";if(!card)return;$("playCategory").textContent=card.category;$("playTopic").textContent=card.topic;$("playAnswer").textContent=card.answer;const revealed=!!state.meta?.revealed;$("voteBox").style.display=revealed?"none":"block";$("revealBox").style.display=revealed?"block":"none";const players=Object.entries(state.players||{}).map(([id,p])=>({id,...p}));$("targetChoices").innerHTML=players.map(p=>`<button class="choice ${state.selectedTargetId===p.id?'selected':esc(p.color||'c0')}" onclick="window.selectTarget('${p.id}')">${esc(p.name)}</button>`).join("");const votes=state.round?.votes||{};$("voteCount").textContent=Object.keys(votes).length;if(revealed){$("answerName").textContent=`${card.playerName}さん`;const correct=Object.entries(votes).filter(([,v])=>v.targetId===card.playerId).map(([uid,v])=>v.voterName||state.players[uid]?.name).filter(Boolean);$("correctVoters").textContent=correct.length?correct.join("、"):"今回は正解者なし";const summary=players.map(p=>({p,count:0}));Object.values(votes).forEach(v=>{const row=summary.find(s=>s.p.id===v.targetId);if(row)row.count++});summary.sort((a,b)=>b.count-a.count);$("voteSummary").innerHTML=summary.map(s=>`<div class="bar-row"><span>${esc(s.p.name)}</span><strong>${s.count}票</strong></div>`).join("")}}
+  function renderStats(){const arr=cardsArray();$("statPlayers").textContent=Object.keys(state.players||{}).length;$("statCards").textContent=arr.length;$("statUnplayed").textContent=playableCards().length;$("statPlayed").textContent=arr.filter(c=>c.played).length} function exportCsv(){if(!isHost())return;const rows=[["投稿者","カテゴリ","お題","思い出","出題済み","非表示"],...cardsArray().map(c=>[c.playerName,c.category,c.topic,c.answer,c.played?"済":"未",c.hidden?"非表示":"表示"] )];const csv=rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`omoide_${state.roomId}.csv`;a.click();URL.revokeObjectURL(a.href)}
+  function render(){renderHome();renderPlayers();renderTopic();renderMyCards();renderHostCards();renderArchive();renderPlay();renderStats()}
+  window.selectTarget=id=>{state.selectedTargetId=id;renderPlay()};window.toggleHidden=toggleHidden;$("createRoomBtn").onclick=createRoom;$("joinBtn").onclick=joinByCode;$("saveNameBtn").onclick=saveName;$("nextTopicBtn").onclick=pickTopic;$("submitCardBtn").onclick=submitCard;$("clearDraftBtn").onclick=()=>{$("memoryInput").value="";$("memoryCount").textContent="0"};$("memoryInput").oninput=e=>$("memoryCount").textContent=e.target.value.length;$("drawCardBtn").onclick=drawRandomCard;$("drawCardBtnTop").onclick=drawRandomCard;$("drawNextAfterRevealBtn").onclick=drawRandomCard;$("revealBtn").onclick=revealAnswer;$("submitVoteBtn").onclick=submitVote;$("resetPostsBtn").onclick=resetPosts;$("resetPostsBtn2").onclick=resetPosts;$("clearCurrentBtn").onclick=clearCurrent;$("shuffleBtn").onclick=shuffleLocal;$("exportCsvBtn").onclick=exportCsv;$("copyParticipantUrlBtn").onclick=()=>copyText(participantUrl());$("copyHostUrlBtn").onclick=()=>copyText(hostUrl()); if(state.roomId)listenRoom(); render();
 </script>
 </body>
 </html>
