@@ -1,0 +1,560 @@
+import React, { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Shuffle, Plus, Eye, EyeOff, Vote, Users, MessageCircle, RotateCcw, Sparkles, ChevronRight, Send, Play, SkipForward } from "lucide-react";
+
+const TOPICS = [
+  { category: "幼稚園・保育園", text: "幼稚園・保育園のころ、なぜか今も覚えていることは？" },
+  { category: "幼稚園・保育園", text: "小さいころ、好きだった遊びは？" },
+  { category: "幼稚園・保育園", text: "小さいころ、怖かったものは？" },
+  { category: "幼稚園・保育園", text: "小さいころの将来の夢は？" },
+  { category: "小学校", text: "小学校で好きだった遊びは？" },
+  { category: "小学校", text: "好きだった給食は？" },
+  { category: "小学校", text: "休み時間によくしていたことは？" },
+  { category: "小学校", text: "小学校で流行っていたものは？" },
+  { category: "小学校", text: "先生に怒られた小さな理由は？" },
+  { category: "小学校", text: "子どものころ集めていたものは？" },
+  { category: "中学・高校", text: "学生時代に熱中していたことは？" },
+  { category: "中学・高校", text: "部活・クラブ・習い事の思い出は？" },
+  { category: "中学・高校", text: "学校行事で覚えていることは？" },
+  { category: "昔の仕事・バイト", text: "今の仕事以外でやったことがある仕事は？" },
+  { category: "昔の仕事・バイト", text: "学生時代のアルバイトの思い出は？" },
+  { category: "昔の仕事・バイト", text: "初めてお金をもらった仕事は？" },
+  { category: "昔の仕事・バイト", text: "もう一度やってもいい仕事・役割は？" },
+  { category: "昔の仕事・バイト", text: "仕事中に起きた小さな事件は？" },
+  { category: "昔の好きなもの", text: "昔から変わらず好きなものは？" },
+  { category: "昔の好きなもの", text: "昔好きだったテレビ番組・キャラクターは？" },
+  { category: "昔の好きなもの", text: "初めてハマった趣味は？" },
+  { category: "人柄", text: "昔のあだ名は？" },
+  { category: "人柄", text: "昔よく言われていた性格は？" },
+  { category: "人柄", text: "昔は苦手だったけど今は平気なものは？" },
+  { category: "人柄", text: "昔なぜかこだわっていたことは？" },
+];
+
+const SAMPLE_NAMES = ["たかし", "みほ", "けんじ", "あや"];
+const COLORS = ["bg-rose-100 text-rose-700 border-rose-200", "bg-amber-100 text-amber-700 border-amber-200", "bg-sky-100 text-sky-700 border-sky-200", "bg-emerald-100 text-emerald-700 border-emerald-200", "bg-violet-100 text-violet-700 border-violet-200", "bg-orange-100 text-orange-700 border-orange-200", "bg-pink-100 text-pink-700 border-pink-200", "bg-teal-100 text-teal-700 border-teal-200"];
+
+function uid() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+function pickRandomTopic(currentIndex) {
+  if (TOPICS.length <= 1) return 0;
+  let next = Math.floor(Math.random() * TOPICS.length);
+  while (next === currentIndex) next = Math.floor(Math.random() * TOPICS.length);
+  return next;
+}
+
+function shuffleArray(array) {
+  const next = [...array];
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+}
+
+export default function OmoideMekuriPrototype() {
+  const [screen, setScreen] = useState("setup");
+  const [players, setPlayers] = useState(SAMPLE_NAMES.map((name, i) => ({ id: uid(), name, color: COLORS[i % COLORS.length] })));
+  const [newPlayer, setNewPlayer] = useState("");
+  const [selectedPlayerId, setSelectedPlayerId] = useState("");
+  const [topicIndex, setTopicIndex] = useState(0);
+  const [draft, setDraft] = useState("");
+  const [cards, setCards] = useState([]);
+  const [currentCardId, setCurrentCardId] = useState(null);
+  const [votes, setVotes] = useState({});
+  const [voterId, setVoterId] = useState("");
+  const [voteTargetId, setVoteTargetId] = useState("");
+  const [revealed, setRevealed] = useState(false);
+  const [talkChoice, setTalkChoice] = useState("");
+
+  const currentTopic = TOPICS[topicIndex];
+  const currentCard = cards.find((card) => card.id === currentCardId) || null;
+  const activeCards = cards.filter((card) => !card.hidden);
+  const unplayedCards = activeCards.filter((card) => !card.played && card.id !== currentCardId);
+  const playedCards = activeCards.filter((card) => card.played);
+  const selectedPlayer = players.find((p) => p.id === selectedPlayerId) || null;
+
+  const voteSummary = useMemo(() => {
+    const summary = players.map((player) => ({ player, count: 0 }));
+    Object.values(votes).forEach((targetId) => {
+      const item = summary.find((s) => s.player.id === targetId);
+      if (item) item.count += 1;
+    });
+    return summary.sort((a, b) => b.count - a.count);
+  }, [votes, players]);
+
+  const correctVoters = useMemo(() => {
+    if (!currentCard) return [];
+    return Object.entries(votes)
+      .filter(([, targetId]) => targetId === currentCard.playerId)
+      .map(([voter]) => players.find((p) => p.id === voter)?.name)
+      .filter(Boolean);
+  }, [votes, currentCard, players]);
+
+  function addPlayer() {
+    const name = newPlayer.trim();
+    if (!name) return;
+    setPlayers((prev) => [...prev, { id: uid(), name, color: COLORS[prev.length % COLORS.length] }]);
+    setNewPlayer("");
+  }
+
+  function removePlayer(id) {
+    setPlayers((prev) => prev.filter((p) => p.id !== id));
+    setCards((prev) => prev.filter((c) => c.playerId !== id));
+    if (selectedPlayerId === id) setSelectedPlayerId("");
+  }
+
+  function submitCard() {
+    if (!selectedPlayer || draft.trim().length < 5) return;
+    const card = {
+      id: uid(),
+      playerId: selectedPlayer.id,
+      playerName: selectedPlayer.name,
+      topic: currentTopic.text,
+      category: currentTopic.category,
+      answer: draft.trim(),
+      hidden: false,
+      played: false,
+      createdAt: Date.now(),
+    };
+    setCards((prev) => [card, ...prev]);
+    setDraft("");
+    setTopicIndex((prev) => pickRandomTopic(prev));
+  }
+
+  function startRandomCard() {
+    const pool = unplayedCards.length ? unplayedCards : activeCards.filter((card) => card.id !== currentCardId);
+    if (!pool.length) return;
+    const card = pool[Math.floor(Math.random() * pool.length)];
+    setCurrentCardId(card.id);
+    setVotes({});
+    setVoterId("");
+    setVoteTargetId("");
+    setRevealed(false);
+    setTalkChoice("");
+    setScreen("play");
+  }
+
+  function chooseCard(cardId) {
+    setCurrentCardId(cardId);
+    setVotes({});
+    setVoterId("");
+    setVoteTargetId("");
+    setRevealed(false);
+    setTalkChoice("");
+    setScreen("play");
+  }
+
+  function submitVote() {
+    if (!voterId || !voteTargetId || !currentCard) return;
+    setVotes((prev) => ({ ...prev, [voterId]: voteTargetId }));
+    setVoterId("");
+    setVoteTargetId("");
+  }
+
+  function revealAnswer() {
+    setRevealed(true);
+    if (currentCard) {
+      setCards((prev) => prev.map((card) => (card.id === currentCard.id ? { ...card, played: true } : card)));
+    }
+  }
+
+  function toggleHidden(cardId) {
+    setCards((prev) => prev.map((card) => (card.id === cardId ? { ...card, hidden: !card.hidden } : card)));
+  }
+
+  function resetGame() {
+    setCurrentCardId(null);
+    setVotes({});
+    setRevealed(false);
+    setTalkChoice("");
+    setCards((prev) => prev.map((card) => ({ ...card, played: false, hidden: false })));
+    setScreen("collect");
+  }
+
+  function loadDemoCards() {
+    const demo = [
+      { playerName: "たかし", category: "小学校", topic: "好きだった給食は？", answer: "小学校のころ、カレーの日だけは必ずおかわりして、最後の一杯をめぐって友達とじゃんけんしていた。" },
+      { playerName: "みほ", category: "昔の仕事・バイト", topic: "学生時代のアルバイトの思い出は？", answer: "学生時代にパン屋で早朝バイトをしていて、焼きたての匂いで毎回お腹がすいていた。" },
+      { playerName: "けんじ", category: "幼稚園・保育園", topic: "小さいころ、好きだった遊びは？", answer: "幼稚園のころ、砂場で山を作るのが好きで、毎回トンネルを開通させることに本気だった。" },
+      { playerName: "あや", category: "人柄", topic: "昔なぜかこだわっていたことは？", answer: "小学生のころ、消しゴムの角を絶対に丸くしたくなくて、使う面を毎回決めていた。" },
+    ];
+    setCards((prev) => [
+      ...demo.map((item) => {
+        const player = players.find((p) => p.name === item.playerName) || players[0];
+        return { id: uid(), playerId: player.id, playerName: player.name, topic: item.topic, category: item.category, answer: item.answer, hidden: false, played: false, createdAt: Date.now() };
+      }),
+      ...prev,
+    ]);
+  }
+
+  const Header = () => (
+    <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+      <div>
+        <div className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-sm text-orange-700 shadow-sm ring-1 ring-orange-100">
+          <Sparkles size={16} /> 試作版 v0.1
+        </div>
+        <h1 className="mt-3 text-4xl font-black tracking-tight text-stone-800 md:text-5xl">おもいでめくり</h1>
+        <p className="mt-2 text-lg text-stone-600">これは、だれの思い出？ 話したい話題だけカードにする会話ゲーム。</p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {["setup", "collect", "host", "play", "finish"].map((item) => (
+          <Button key={item} variant={screen === item ? "default" : "outline"} className="rounded-full" onClick={() => setScreen(item)}>
+            {item === "setup" && "準備"}
+            {item === "collect" && "投稿"}
+            {item === "host" && "管理"}
+            {item === "play" && "めくる"}
+            {item === "finish" && "終了"}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const PlayerBadge = ({ player }) => <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-bold ${player.color}`}>{player.name}</span>;
+
+  return (
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#fff7ed,transparent_35%),linear-gradient(135deg,#fffaf0,#fef3c7_40%,#f5e7d1)] p-4 text-stone-800 md:p-8">
+      <div className="mx-auto max-w-6xl">
+        <Header />
+
+        <div className="mt-6 grid gap-4 md:grid-cols-[1fr_320px]">
+          <main>
+            <AnimatePresence mode="wait">
+              {screen === "setup" && (
+                <motion.div key="setup" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
+                  <Card className="overflow-hidden rounded-[2rem] border-white/70 bg-white/75 shadow-xl backdrop-blur">
+                    <CardContent className="p-6 md:p-8">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-orange-100 p-3 text-orange-700"><Users /></div>
+                        <div>
+                          <h2 className="text-2xl font-black">参加者を登録</h2>
+                          <p className="text-stone-600">まずは遊ぶ人の名前を入れます。あとから追加・削除できます。</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 flex gap-2">
+                        <Input value={newPlayer} onChange={(e) => setNewPlayer(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addPlayer()} placeholder="例：はる、みほ、店長" className="h-12 rounded-2xl bg-white text-base" />
+                        <Button onClick={addPlayer} className="h-12 rounded-2xl px-5"><Plus size={18} />追加</Button>
+                      </div>
+
+                      <div className="mt-6 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                        {players.map((player) => (
+                          <div key={player.id} className="flex items-center justify-between rounded-2xl bg-white/80 p-3 shadow-sm ring-1 ring-stone-100">
+                            <PlayerBadge player={player} />
+                            <Button variant="ghost" size="sm" onClick={() => removePlayer(player.id)} className="rounded-full text-stone-400 hover:text-red-500">削除</Button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-8 rounded-3xl bg-orange-50 p-5 text-stone-700 ring-1 ring-orange-100">
+                        <h3 className="font-black">遊び方</h3>
+                        <ol className="mt-2 list-decimal space-y-1 pl-5">
+                          <li>参加者はお題を何回かめくって、話してもいいものだけ投稿します。</li>
+                          <li>目安は1人2ポスト。強制ではありません。</li>
+                          <li>ホストが集まったカードを1枚ずつめくります。</li>
+                          <li>みんなで「これは誰の思い出か」を投票します。</li>
+                          <li>正解発表後、本人は話す・一言だけ・パスを選べます。</li>
+                        </ol>
+                      </div>
+
+                      <div className="mt-8 flex flex-wrap gap-3">
+                        <Button onClick={() => setScreen("collect")} className="h-12 rounded-2xl px-6 text-base"><Play size={18} />投稿を始める</Button>
+                        <Button onClick={loadDemoCards} variant="outline" className="h-12 rounded-2xl px-6 text-base">デモカード追加</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {screen === "collect" && (
+                <motion.div key="collect" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
+                  <Card className="overflow-hidden rounded-[2rem] border-white/70 bg-white/80 shadow-xl backdrop-blur">
+                    <CardContent className="p-6 md:p-8">
+                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <h2 className="text-2xl font-black">お題をめくって投稿</h2>
+                          <p className="text-stone-600">話してもいい思い出だけ書いてください。目安は1人2枚です。</p>
+                        </div>
+                        <Button variant="outline" className="rounded-2xl" onClick={() => setTopicIndex((prev) => pickRandomTopic(prev))}><Shuffle size={18} />次のお題を見る</Button>
+                      </div>
+
+                      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1fr]">
+                        <div>
+                          <AnimatePresence mode="wait">
+                            <motion.div key={topicIndex} initial={{ rotateY: 70, opacity: 0 }} animate={{ rotateY: 0, opacity: 1 }} exit={{ rotateY: -70, opacity: 0 }} transition={{ duration: 0.25 }}>
+                              <div className="min-h-[280px] rounded-[2rem] bg-gradient-to-br from-white to-orange-50 p-6 shadow-lg ring-1 ring-orange-100">
+                                <Badge className="rounded-full bg-orange-100 text-orange-700 hover:bg-orange-100">{currentTopic.category}</Badge>
+                                <div className="mt-8 text-3xl font-black leading-relaxed text-stone-800">{currentTopic.text}</div>
+                                <p className="mt-6 text-sm text-stone-500">合わなければ、何回でも次のお題を見てOK。</p>
+                              </div>
+                            </motion.div>
+                          </AnimatePresence>
+                        </div>
+
+                        <div className="rounded-[2rem] bg-stone-50 p-5 ring-1 ring-stone-100">
+                          <label className="text-sm font-bold text-stone-600">投稿する人</label>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {players.map((player) => (
+                              <button key={player.id} onClick={() => setSelectedPlayerId(player.id)} className={`rounded-full border px-3 py-2 text-sm font-bold transition ${selectedPlayerId === player.id ? "border-stone-800 bg-stone-800 text-white" : player.color}`}>
+                                {player.name}
+                              </button>
+                            ))}
+                          </div>
+
+                          <label className="mt-5 block text-sm font-bold text-stone-600">思い出カード</label>
+                          <Textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="例：小学校のころ、給食のカレーだけは必ずおかわりしていた" className="mt-2 min-h-[150px] rounded-2xl bg-white text-base" maxLength={120} />
+                          <div className="mt-2 flex items-center justify-between text-sm text-stone-500">
+                            <span>短くてもOK。具体的だと当てやすいです。</span>
+                            <span>{draft.length}/120</span>
+                          </div>
+
+                          <div className="mt-5 flex flex-wrap gap-3">
+                            <Button onClick={submitCard} disabled={!selectedPlayer || draft.trim().length < 5} className="rounded-2xl"><Send size={18} />投稿する</Button>
+                            <Button variant="outline" onClick={() => setDraft("")} className="rounded-2xl">消す</Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-8 flex justify-end">
+                        <Button onClick={() => setScreen("host")} className="rounded-2xl px-6">集まったカードを見る<ChevronRight size={18} /></Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {screen === "host" && (
+                <motion.div key="host" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
+                  <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl backdrop-blur">
+                    <CardContent className="p-6 md:p-8">
+                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <h2 className="text-2xl font-black">ホスト管理</h2>
+                          <p className="text-stone-600">カードを確認して、出題するものを選びます。非表示にもできます。</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" onClick={() => setCards((prev) => shuffleArray(prev))} className="rounded-2xl"><Shuffle size={18} />順番シャッフル</Button>
+                          <Button onClick={startRandomCard} disabled={!activeCards.length} className="rounded-2xl"><Eye size={18} />ランダムにめくる</Button>
+                        </div>
+                      </div>
+
+                      <Tabs defaultValue="active" className="mt-6">
+                        <TabsList className="rounded-2xl bg-orange-50 p-1">
+                          <TabsTrigger value="active" className="rounded-xl">未出題 {unplayedCards.length}</TabsTrigger>
+                          <TabsTrigger value="played" className="rounded-xl">出題済み {playedCards.length}</TabsTrigger>
+                          <TabsTrigger value="hidden" className="rounded-xl">非表示 {cards.filter((c) => c.hidden).length}</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="active" className="mt-4">
+                          <CardList cards={unplayedCards} players={players} onChoose={chooseCard} onToggleHidden={toggleHidden} />
+                        </TabsContent>
+                        <TabsContent value="played" className="mt-4">
+                          <CardList cards={playedCards} players={players} onChoose={chooseCard} onToggleHidden={toggleHidden} />
+                        </TabsContent>
+                        <TabsContent value="hidden" className="mt-4">
+                          <CardList cards={cards.filter((c) => c.hidden)} players={players} onChoose={chooseCard} onToggleHidden={toggleHidden} />
+                        </TabsContent>
+                      </Tabs>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {screen === "play" && (
+                <motion.div key="play" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
+                  <Card className="overflow-hidden rounded-[2rem] border-white/70 bg-white/80 shadow-xl backdrop-blur">
+                    <CardContent className="p-6 md:p-8">
+                      {!currentCard ? (
+                        <div className="py-16 text-center">
+                          <h2 className="text-2xl font-black">まだカードが選ばれていません</h2>
+                          <p className="mt-2 text-stone-600">ホスト管理からカードをめくってください。</p>
+                          <Button onClick={() => setScreen("host")} className="mt-6 rounded-2xl">ホスト管理へ</Button>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                            <div>
+                              <Badge className="rounded-full bg-orange-100 text-orange-700 hover:bg-orange-100">{currentCard.category}</Badge>
+                              <h2 className="mt-2 text-2xl font-black">これは、だれの思い出？</h2>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button variant="outline" className="rounded-2xl" onClick={() => setScreen("host")}><SkipForward size={18} />別カードへ</Button>
+                              <Button className="rounded-2xl" onClick={startRandomCard} disabled={!unplayedCards.length}>次をめくる</Button>
+                            </div>
+                          </div>
+
+                          <div className="mt-6 rounded-[2rem] bg-gradient-to-br from-white to-amber-50 p-8 shadow-lg ring-1 ring-orange-100">
+                            <p className="text-sm font-bold text-orange-700">お題：{currentCard.topic}</p>
+                            <div className="mt-5 text-3xl font-black leading-relaxed text-stone-800">{currentCard.answer}</div>
+                          </div>
+
+                          {!revealed && (
+                            <div className="mt-6 rounded-[2rem] bg-stone-50 p-5 ring-1 ring-stone-100">
+                              <h3 className="flex items-center gap-2 text-lg font-black"><Vote size={20} />投票</h3>
+                              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                                <div>
+                                  <label className="text-sm font-bold text-stone-600">投票する人</label>
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {players.map((player) => (
+                                      <button key={player.id} onClick={() => setVoterId(player.id)} className={`rounded-full border px-3 py-2 text-sm font-bold transition ${voterId === player.id ? "border-stone-800 bg-stone-800 text-white" : player.color}`}>{player.name}</button>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-bold text-stone-600">この思い出の持ち主は？</label>
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {players.map((player) => (
+                                      <button key={player.id} onClick={() => setVoteTargetId(player.id)} className={`rounded-full border px-3 py-2 text-sm font-bold transition ${voteTargetId === player.id ? "border-stone-800 bg-stone-800 text-white" : player.color}`}>{player.name}</button>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="mt-5 flex flex-wrap items-center gap-3">
+                                <Button onClick={submitVote} disabled={!voterId || !voteTargetId} className="rounded-2xl">投票する</Button>
+                                <span className="text-sm text-stone-500">投票済み：{Object.keys(votes).length}/{players.length}人</span>
+                                <Button variant="outline" onClick={revealAnswer} className="ml-auto rounded-2xl">正解を発表</Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {revealed && (
+                            <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="mt-6 rounded-[2rem] bg-white p-6 shadow-lg ring-1 ring-emerald-100">
+                              <div className="text-center">
+                                <p className="text-sm font-bold text-stone-500">正解は……</p>
+                                <div className="mt-2 text-4xl font-black text-emerald-700">{currentCard.playerName}さん</div>
+                              </div>
+
+                              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                                <div className="rounded-3xl bg-emerald-50 p-4">
+                                  <h3 className="font-black text-emerald-800">正解した人</h3>
+                                  <p className="mt-2 text-stone-700">{correctVoters.length ? correctVoters.join("、") : "今回は正解者なし"}</p>
+                                </div>
+                                <div className="rounded-3xl bg-orange-50 p-4">
+                                  <h3 className="font-black text-orange-800">投票分布</h3>
+                                  <div className="mt-2 space-y-2">
+                                    {voteSummary.map(({ player, count }) => (
+                                      <div key={player.id} className="flex items-center justify-between rounded-full bg-white px-3 py-2 text-sm">
+                                        <span>{player.name}</span><b>{count}票</b>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="mt-6 rounded-3xl bg-stone-50 p-5 text-center">
+                                <h3 className="flex items-center justify-center gap-2 text-lg font-black"><MessageCircle size={20} />本人トーク</h3>
+                                <p className="mt-1 text-sm text-stone-500">話しても、話さなくてもOK。</p>
+                                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                                  {["ちょっと話す", "一言だけ", "パス"].map((choice) => (
+                                    <Button key={choice} variant={talkChoice === choice ? "default" : "outline"} className="rounded-2xl" onClick={() => setTalkChoice(choice)}>{choice}</Button>
+                                  ))}
+                                </div>
+                                {talkChoice && <p className="mt-4 font-bold text-stone-700">選択：{talkChoice}</p>}
+                              </div>
+                            </motion.div>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {screen === "finish" && (
+                <motion.div key="finish" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }}>
+                  <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl backdrop-blur">
+                    <CardContent className="p-8 text-center">
+                      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-orange-100 text-orange-700"><Sparkles size={36} /></div>
+                      <h2 className="mt-5 text-3xl font-black">今日はここまで</h2>
+                      <p className="mt-2 text-stone-600">ランキングやベスト投票はなし。めくった分だけ、話のきっかけに。</p>
+                      <div className="mt-8 grid gap-3 md:grid-cols-3">
+                        <div className="rounded-3xl bg-white p-5 shadow-sm"><div className="text-3xl font-black">{players.length}</div><div className="text-sm text-stone-500">参加者</div></div>
+                        <div className="rounded-3xl bg-white p-5 shadow-sm"><div className="text-3xl font-black">{cards.length}</div><div className="text-sm text-stone-500">投稿カード</div></div>
+                        <div className="rounded-3xl bg-white p-5 shadow-sm"><div className="text-3xl font-black">{playedCards.length}</div><div className="text-sm text-stone-500">めくったカード</div></div>
+                      </div>
+                      <div className="mt-8 flex flex-wrap justify-center gap-3">
+                        <Button onClick={resetGame} className="rounded-2xl"><RotateCcw size={18} />もう一度めくる</Button>
+                        <Button variant="outline" onClick={() => setScreen("collect")} className="rounded-2xl">投稿に戻る</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </main>
+
+          <aside className="space-y-4">
+            <Card className="rounded-[2rem] border-white/70 bg-white/70 shadow-lg backdrop-blur">
+              <CardContent className="p-5">
+                <h3 className="font-black">現在の状態</h3>
+                <div className="mt-4 grid grid-cols-2 gap-2 text-center">
+                  <div className="rounded-2xl bg-orange-50 p-3"><div className="text-2xl font-black">{players.length}</div><div className="text-xs text-stone-500">参加者</div></div>
+                  <div className="rounded-2xl bg-orange-50 p-3"><div className="text-2xl font-black">{cards.length}</div><div className="text-xs text-stone-500">投稿</div></div>
+                  <div className="rounded-2xl bg-orange-50 p-3"><div className="text-2xl font-black">{unplayedCards.length}</div><div className="text-xs text-stone-500">未出題</div></div>
+                  <div className="rounded-2xl bg-orange-50 p-3"><div className="text-2xl font-black">{playedCards.length}</div><div className="text-xs text-stone-500">出題済み</div></div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-[2rem] border-white/70 bg-white/70 shadow-lg backdrop-blur">
+              <CardContent className="p-5">
+                <h3 className="font-black">投稿数</h3>
+                <div className="mt-3 space-y-2">
+                  {players.map((player) => {
+                    const count = cards.filter((card) => card.playerId === player.id).length;
+                    return (
+                      <div key={player.id} className="flex items-center justify-between rounded-2xl bg-white px-3 py-2">
+                        <PlayerBadge player={player} />
+                        <span className={`text-sm font-black ${count >= 2 ? "text-emerald-600" : "text-stone-500"}`}>{count}枚</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="mt-3 text-xs text-stone-500">目安は1人2枚。話したいものだけでOK。</p>
+              </CardContent>
+            </Card>
+          </aside>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CardList({ cards, players, onChoose, onToggleHidden }) {
+  if (!cards.length) {
+    return <div className="rounded-3xl bg-stone-50 p-8 text-center text-stone-500">カードはまだありません。</div>;
+  }
+  return (
+    <div className="grid gap-4">
+      {cards.map((card) => {
+        const player = players.find((p) => p.id === card.playerId);
+        return (
+          <div key={card.id} className={`rounded-3xl p-4 shadow-sm ring-1 ${card.hidden ? "bg-stone-100 opacity-70 ring-stone-200" : "bg-white ring-stone-100"}`}>
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="rounded-full bg-orange-100 text-orange-700 hover:bg-orange-100">{card.category}</Badge>
+                  {player && <span className={`inline-flex rounded-full border px-2 py-1 text-xs font-bold ${player.color}`}>作者：{player.name}</span>}
+                  {card.played && <Badge className="rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-100">出題済み</Badge>}
+                </div>
+                <p className="mt-3 text-xs font-bold text-stone-500">{card.topic}</p>
+                <p className="mt-2 text-lg font-bold leading-relaxed text-stone-800">{card.answer}</p>
+              </div>
+              <div className="flex shrink-0 gap-2">
+                <Button size="sm" className="rounded-xl" onClick={() => onChoose(card.id)}>めくる</Button>
+                <Button size="sm" variant="outline" className="rounded-xl" onClick={() => onToggleHidden(card.id)}>{card.hidden ? <Eye size={16} /> : <EyeOff size={16} />}</Button>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
