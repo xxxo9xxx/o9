@@ -99,12 +99,7 @@
         .answer-chip { animation: chipDrop .36s cubic-bezier(.18,1.35,.36,1) both; }
         @keyframes chipDrop { from { opacity: 0; transform: translateY(-10px) scale(.75); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-        .invite-qr canvas, .invite-qr img { margin: 0 auto; border-radius: 0 !important; display:block; image-rendering: auto; }
-        .qr-square { width: 190px; min-height: 190px; margin: 0 auto; padding: 9px; background: #fff; border-radius: 0; box-shadow: 0 0 0 1px rgba(15,23,42,.08); }
-        details.invite-fold summary { list-style: none; cursor: pointer; }
-        details.invite-fold summary::-webkit-details-marker { display: none; }
-        details.invite-fold summary .chev { transition: transform .2s ease; }
-        details.invite-fold[open] summary .chev { transform: rotate(180deg); }
+        .invite-qr canvas, .invite-qr img { margin: 0 auto; border-radius: 22px; }
 
         .tiny-label { font-size: 10px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; color: #94a3b8; }
 
@@ -116,22 +111,7 @@
         }
         @keyframes toast { 0%,100% { opacity: 0; transform: translate(-50%, 10px); } 14%,82% { opacity: 1; transform: translate(-50%, 0); } }
 
-        .bottom-safe { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
-
-        .sound-panel {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: rgba(255,255,255,.72); backdrop-filter: blur(14px);
-            border: 1px solid rgba(226,232,240,.85);
-            border-radius: 999px; padding: 6px; box-shadow: 0 10px 30px rgba(15,23,42,.08);
-        }
-        .sound-panel button {
-            min-width: 74px; padding: 8px 10px; border-radius: 999px;
-            font-size: 10px; font-weight: 900; letter-spacing: .08em;
-            color: #64748b; background: rgba(248,250,252,.86);
-            transition: transform .12s ease, background .12s ease, color .12s ease;
-        }
-        .sound-panel button:active { transform: scale(.96); }
-        .sound-panel button.on { background: linear-gradient(135deg,#6366f1,#ec4899); color: white; }
+        .bottom-safe { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
         .room-pill { max-width: calc(100vw - 32px); }
     </style>
 </head>
@@ -149,7 +129,7 @@
 
         <div id="game-content" class="min-h-[430px]"></div>
 
-        <div id="bottom-actions" class="mt-8 pb-8 text-center"></div>
+        <div id="bottom-actions" class="fixed bottom-5 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-40"></div>
     </div>
 
     <script>
@@ -199,16 +179,7 @@
         let lastPhase = '';
         let lastRevealIdx = -99;
 
-        let audioCtx = null;
-        let masterGain = null;
-        let bgmGain = null;
-        let sfxGain = null;
-        let bgmTimer = null;
-        let bgmOn = localStorage.getItem('toiro-bgm-on') === '1';
-        let sfxOn = localStorage.getItem('toiro-sfx-on') !== '0';
-        let bgmStep = 0;
-
-        if (currentRoomId && !invitedRoom) connectToRoom(currentRoomId);
+        if (currentRoomId) connectToRoom(currentRoomId);
         else render();
 
         function normalizeRoomId(id) {
@@ -286,7 +257,6 @@
             });
             history.replaceState(null, '', '?room=' + encodeURIComponent(currentRoomId));
             connectToRoom(currentRoomId);
-            playTone('join');
             showToast('部屋を作成しました');
         }
 
@@ -299,7 +269,7 @@
 
             db.ref("rooms/" + r).transaction((curr) => {
                 if (!curr) {
-                    if (role !== 'host') return;
+                    if (role !== 'host') return; // 招待ゲストは存在しない部屋を作らない
                     return {
                         phase: 'setup',
                         members: [n],
@@ -327,19 +297,19 @@
                     return;
                 }
                 if (!committed) {
-                    alert('この部屋は見つかりません。ホストに新しい招待QRを出してもらってください。');
+                    alert('この部屋はまだ見つかりません。ホストの待機画面にQRが表示されているか確認してください。');
                     return;
                 }
                 const room = snapshot.val() || {};
                 myName = n;
                 myRole = (room.hostId === myPlayerId) ? 'host' : 'guest';
                 currentRoomId = r;
+                gameState = room;
                 localStorage.setItem("toiro-name", myName);
                 localStorage.setItem("toiro-role", myRole);
                 localStorage.setItem("toiro-room-id", currentRoomId);
                 history.replaceState(null, '', '?room=' + encodeURIComponent(r));
                 connectToRoom(r);
-                playTone('join');
                 showToast('入室しました');
             });
         }
@@ -377,7 +347,6 @@
             for (let i = 0; i < roundCount; i++) themes.push(await fetchNewTheme(i, mode));
             const dealCount = parseInt(document.getElementById('card-count-select')?.value) || 10;
             const commonHand = [...COLORS].sort(() => 0.5 - Math.random()).slice(0, dealCount).map(c => c.id);
-            playTone('start');
             await db.ref("rooms/" + currentRoomId).update({
                 phase: 'playing',
                 themes,
@@ -397,14 +366,13 @@
             const round = gameState.currentRound;
             const newTheme = await fetchNewTheme(round, gameState.gameMode);
             db.ref(`rooms/${currentRoomId}/themes/${round}`).set(newTheme);
-            playTone('select');
             showToast('お題を変更しました');
         }
 
         function confirmAnswer() {
             if (!selectedColor) return;
             const round = gameState.currentRound;
-            playTone('decide');
+            playTone('select');
             db.ref(`rooms/${currentRoomId}/answers/${round}/${myName}`).set(selectedColor).then(() => {
                 selectedColor = null;
                 db.ref(`rooms/${currentRoomId}`).transaction((curr) => {
@@ -428,21 +396,13 @@
             }
         }
 
-        function clearLocalRoomInfo(showConfirm=true) {
-            if (showConfirm && !confirm('この端末に残っている部屋ID・名前・役割をリセットしますか？\n途中で入室状態がおかしくなった時に使ってください。')) return;
-            try { db.ref('rooms/' + currentRoomId).off(); } catch(e) {}
-            localStorage.removeItem('toiro-room-id');
-            localStorage.removeItem('toiro-name');
-            localStorage.removeItem('toiro-role');
-            currentRoomId = ''; myName = ''; myRole = ''; gameState = null; selectedColor = null; qrDrawnFor = '';
-            history.replaceState(null, '', location.pathname);
-            showToast('この端末の入室情報をリセットしました');
-            setTimeout(() => location.reload(), 450);
-        }
-
         function leaveRoom() {
             if (!confirm('この端末だけ退室しますか？')) return;
-            clearLocalRoomInfo(false);
+            localStorage.removeItem('toiro-room-id');
+            localStorage.removeItem('toiro-role');
+            currentRoomId = ''; myRole = ''; gameState = null;
+            history.replaceState(null, '', location.pathname);
+            location.reload();
         }
 
         function resetToSetup() {
@@ -513,121 +473,24 @@
             setTimeout(() => el.remove(), 1900);
         }
 
-        function ensureAudio() {
+        function playTone(type='select') {
             try {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) return null;
-                if (!audioCtx) {
-                    audioCtx = new AudioContext();
-                    masterGain = audioCtx.createGain();
-                    bgmGain = audioCtx.createGain();
-                    sfxGain = audioCtx.createGain();
-                    masterGain.gain.value = 0.82;
-                    bgmGain.gain.value = 0.045;
-                    sfxGain.gain.value = 0.18;
-                    bgmGain.connect(masterGain);
-                    sfxGain.connect(masterGain);
-                    masterGain.connect(audioCtx.destination);
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                const map = { select: 520, start: 360, reveal: 740, success: 880 };
+                o.frequency.value = map[type] || 520;
+                o.type = type === 'success' ? 'triangle' : 'sine';
+                g.gain.setValueAtTime(.001, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(.07, ctx.currentTime + .02);
+                g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .16);
+                o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + .18);
+                if (type === 'success') {
+                    setTimeout(() => playTone('reveal'), 95);
                 }
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                return audioCtx;
-            } catch(e) { return null; }
-        }
-
-        function beep(freq, start=0, duration=.12, type='sine', volume=1) {
-            const ctx = ensureAudio();
-            if (!ctx || !sfxOn) return;
-            const o = ctx.createOscillator();
-            const g = ctx.createGain();
-            o.type = type;
-            o.frequency.setValueAtTime(freq, ctx.currentTime + start);
-            g.gain.setValueAtTime(0.0001, ctx.currentTime + start);
-            g.gain.exponentialRampToValueAtTime(Math.max(0.0002, 0.22 * volume), ctx.currentTime + start + .012);
-            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
-            o.connect(g); g.connect(sfxGain);
-            o.start(ctx.currentTime + start);
-            o.stop(ctx.currentTime + start + duration + .02);
-        }
-
-        function playTone(type='select') {
-            if (!sfxOn) return;
-            const patterns = {
-                select: [[520,0,.07,'triangle',.65],[660,.065,.08,'triangle',.55]],
-                decide: [[392,0,.09,'sine',.75],[588,.08,.12,'triangle',.85]],
-                start: [[330,0,.09,'triangle',.7],[440,.09,.10,'triangle',.7],[660,.19,.16,'triangle',.9]],
-                reveal: [[220,0,.10,'sawtooth',.35],[330,.08,.10,'sawtooth',.4],[740,.19,.16,'triangle',.75]],
-                success: [[660,0,.09,'triangle',.8],[880,.09,.10,'triangle',.85],[1175,.2,.22,'triangle',.9]],
-                join: [[440,0,.08,'sine',.55],[660,.07,.10,'sine',.65]],
-                error: [[180,0,.18,'sawtooth',.35]]
-            };
-            (patterns[type] || patterns.select).forEach(n => beep(...n));
-        }
-
-        function playBgmNote(freq, start, duration, volume=.55) {
-            const ctx = ensureAudio();
-            if (!ctx || !bgmOn) return;
-            const o = ctx.createOscillator();
-            const g = ctx.createGain();
-            o.type = 'triangle';
-            o.frequency.setValueAtTime(freq, ctx.currentTime + start);
-            g.gain.setValueAtTime(0.0001, ctx.currentTime + start);
-            g.gain.exponentialRampToValueAtTime(0.11 * volume, ctx.currentTime + start + .03);
-            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
-            o.connect(g); g.connect(bgmGain);
-            o.start(ctx.currentTime + start);
-            o.stop(ctx.currentTime + start + duration + .04);
-        }
-
-        function scheduleBgmBar() {
-            if (!bgmOn) return;
-            const melody = [523.25, 659.25, 783.99, 659.25, 587.33, 739.99, 880, 739.99];
-            const bass = [261.63, 261.63, 293.66, 293.66, 349.23, 349.23, 392.00, 392.00];
-            for (let i=0; i<4; i++) {
-                const idx = (bgmStep + i) % melody.length;
-                playBgmNote(melody[idx], i*.36, .28, .42);
-                if (i % 2 === 0) playBgmNote(bass[idx], i*.36, .34, .25);
-            }
-            bgmStep = (bgmStep + 4) % melody.length;
-            bgmTimer = setTimeout(scheduleBgmBar, 1380);
-        }
-
-        function startBgm() {
-            ensureAudio();
-            stopBgm(false);
-            bgmOn = true;
-            localStorage.setItem('toiro-bgm-on', '1');
-            scheduleBgmBar();
-            renderSoundControls();
-            showToast('BGM ON');
-        }
-
-        function stopBgm(show=true) {
-            if (bgmTimer) clearTimeout(bgmTimer);
-            bgmTimer = null;
-            if (!show) return;
-            bgmOn = false;
-            localStorage.setItem('toiro-bgm-on', '0');
-            renderSoundControls();
-            showToast('BGM OFF');
-        }
-
-        function toggleBgm() {
-            if (bgmOn) stopBgm(true);
-            else startBgm();
-        }
-
-        function toggleSfx() {
-            sfxOn = !sfxOn;
-            localStorage.setItem('toiro-sfx-on', sfxOn ? '1' : '0');
-            if (sfxOn) playTone('join');
-            renderSoundControls();
-            showToast(sfxOn ? '効果音 ON' : '効果音 OFF');
-        }
-
-        function renderSoundControls() {
-            const el = document.getElementById('sound-controls');
-            if (!el) return;
-            el.innerHTML = `<div class="sound-panel"><button onclick="toggleBgm()" class="${bgmOn ? 'on' : ''}">♪ BGM ${bgmOn ? 'ON' : 'OFF'}</button><button onclick="toggleSfx()" class="${sfxOn ? 'on' : ''}">🔊 SE ${sfxOn ? 'ON' : 'OFF'}</button></div>`;
+            } catch(e) {}
         }
 
         function celebrate(level=1) {
@@ -655,18 +518,12 @@
         function renderBottomActions() {
             const bottom = document.getElementById('bottom-actions');
             if (!bottom) return;
-            if (!currentRoomId || !myName || !gameState) {
-                bottom.innerHTML = '';
-                return;
-            }
+            if (!currentRoomId || !myName || !gameState) { bottom.innerHTML = ''; return; }
             bottom.innerHTML = `
-                <div id="sound-controls" class="mb-5"></div>
-                <div class="flex items-center justify-center gap-4 text-[10px] font-black text-slate-300 tracking-widest">
-                    <button onclick="leaveRoom()" class="hover:text-slate-500 underline underline-offset-4 active:scale-95 transition">退出</button>
-                    ${myRole === 'host' ? `<button onclick="forceResetRoom()" class="hover:text-red-400 underline underline-offset-4 active:scale-95 transition">部屋リセット</button>` : ''}
+                <div class="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[10px] font-black text-slate-300">
+                    <button onclick="leaveRoom()" class="hover:text-slate-500 underline underline-offset-4">退出</button>
+                    ${myRole === 'host' ? `<button onclick="forceResetRoom()" class="hover:text-red-400 underline underline-offset-4">部屋リセット</button>` : ''}
                 </div>`;
-            renderSoundControls();
-            if (bgmOn && !bgmTimer) setTimeout(() => startBgm(), 50);
         }
 
         function render() {
@@ -677,34 +534,32 @@
 
             if (!currentRoomId || !myName || !gameState) {
                 const invited = invitedRoom || currentRoomId;
-                const isInvitedGuest = !!invitedRoom;
+                const isInvited = !!invitedRoom;
                 container.innerHTML = `
                 <div class="glass p-7 rounded-[2.5rem] fade-in text-left">
                     <div class="text-center mb-7">
-                        <div class="inline-flex items-center gap-2 bg-white rounded-full px-3 py-1 text-[10px] font-black text-indigo-500 tracking-widest mb-3">${isInvitedGuest ? 'INVITED ROOM' : 'ROOM SETUP'}</div>
+                        <div class="inline-flex items-center gap-2 bg-white rounded-full px-3 py-1 text-[10px] font-black text-indigo-500 tracking-widest mb-3">${isInvited ? 'INVITED ROOM' : 'CREATE ROOM'}</div>
                         <h2 class="text-2xl font-black tracking-tight text-slate-800">色でわかる、みんなの感覚。</h2>
                         <p class="text-xs font-bold text-slate-400 leading-relaxed mt-2">同じお題に、同じ色を選べたらシンクロ成功。<br>結果は一枚ずつめくるのでドキドキ感が出ます。</p>
                     </div>
                     <div class="space-y-4">
-                        ${isInvitedGuest ? `
-                            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 text-center">
-                                <div class="tiny-label text-indigo-400">ROOM ID</div>
-                                <div class="text-xl font-black tracking-widest text-slate-800">${invited}</div>
-                            </div>
+                        ${isInvited ? `
+                        <div class="bg-white rounded-2xl p-4 border border-slate-100 text-center">
+                            <div class="tiny-label mb-1">招待された部屋</div>
+                            <div class="text-xl font-black tracking-widest text-slate-800">${invited}</div>
                             <input id="room-input" type="hidden" value="${invited}">
-                        ` : `
-                            <div>
-                                <label class="block tiny-label mb-1 ml-2">Room ID</label>
-                                <input id="room-input" type="text" value="${invited || 'toiro-party'}" onfocus="isInputting=true" onblur="isInputting=false" class="w-full border-2 border-slate-100 bg-white p-4 rounded-2xl font-black outline-none focus:border-indigo-300">
-                            </div>
-                        `}
+                        </div>` : `
+                        <div>
+                            <label class="block tiny-label mb-1 ml-2">Room ID</label>
+                            <input id="room-input" type="text" value="${invited || 'toiro-party'}" onfocus="isInputting=true" onblur="isInputting=false" class="w-full border-2 border-slate-100 bg-white p-4 rounded-2xl font-black outline-none focus:border-indigo-300">
+                        </div>`}
                         <div>
                             <label class="block tiny-label mb-1 ml-2">Name</label>
                             <input id="name-input" type="text" value="${myName || ''}" placeholder="名前をいれてね" onfocus="isInputting=true" onblur="isInputting=false" class="w-full border-2 border-slate-100 bg-white p-4 rounded-2xl font-black outline-none focus:border-pink-300">
                         </div>
                     </div>
                     <div class="grid grid-cols-1 gap-3 mt-7">
-                        ${isInvitedGuest ? `
+                        ${isInvited ? `
                             <button onclick="handleJoin('guest')" class="w-full bg-indigo-500 text-white h-16 rounded-2xl font-black shadow-lg active:scale-95 transition pulse-glow">参加する</button>
                         ` : `
                             <button onclick="createNewRoom()" class="w-full bg-slate-900 text-white h-16 rounded-2xl font-black shadow-xl active:scale-95 transition pulse-glow">新しい部屋を作る</button>
@@ -714,7 +569,7 @@
                             </div>
                         `}
                     </div>
-                    <p class="text-[10px] text-slate-400 font-bold text-center mt-4 leading-relaxed">${isInvitedGuest ? '招待された人は名前を入れて「参加する」だけでOKです。' : 'ホストは「新しい部屋を作る」→待機画面のQRを見せるだけでOK。'}</p>
+                    <p class="text-[10px] text-slate-400 font-bold text-center mt-5 leading-relaxed">${isInvited ? '名前を入れて「参加する」を押してください。' : 'ホストは「新しい部屋を作る」→待機画面のQRを見せるだけでOK。'}</p>
                 </div>`;
                 return;
             }
@@ -751,8 +606,7 @@
                                     <button onclick="shareInvite()" class="bg-pink-100 text-pink-600 py-3 rounded-xl text-[11px] font-black active:scale-95 transition">共有</button>
                                 </div>
                             </div>
-                        </details>
-                        ` : ''}
+                        </details>` : ''}
                         <div class="grid grid-cols-2 gap-2">${members.map((m, i) => `<div class="bg-white p-3 rounded-2xl font-black text-slate-600 text-[11px] border border-slate-100 truncate ${m === gameState.host ? 'ring-2 ring-indigo-100' : ''}"><span class="inline-block w-2 h-2 rounded-full mr-1" style="background:${COLORS[i % COLORS.length].code}"></span>${m}${m === gameState.host ? ' 👑' : ''}</div>`).join('')}</div>
                     </section>
                     ${myRole === 'host' ? `
@@ -766,7 +620,7 @@
                         <button onclick="startGame()" class="w-full bg-gradient-to-r from-indigo-600 to-pink-500 text-white h-16 rounded-2xl text-xl font-black shadow-xl active:scale-95 transition pulse-glow">ゲーム開始</button>
                     </section>` : `<section class="soft-card p-8 rounded-[2.5rem]"><p class="animate-pulse text-slate-400 font-black">ホストが準備しています...</p><p class="text-[11px] text-slate-400 font-bold mt-2">開始までこのままお待ちください。</p></section>`}
                 </div>`;
-                setTimeout(renderInviteQr, 50);
+                if (myRole === 'host') setTimeout(renderInviteQr, 50);
             } else if (gameState.phase === 'playing') {
                 const round = gameState.currentRound || 0;
                 const totalRounds = gameState.roundCount || 5;
