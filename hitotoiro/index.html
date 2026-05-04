@@ -134,21 +134,21 @@
 
     <script>
         const COLORS = [
-            { id: 'red', name: 'あか', code: '#ef4444', text: 'white', emoji: '🍓' },
-            { id: 'pink', name: 'ももいろ', code: '#f472b6', text: 'white', emoji: '🌸' },
-            { id: 'orange', name: 'だいだい', code: '#fb923c', text: 'white', emoji: '🍊' },
-            { id: 'yellow', name: 'きいろ', code: '#facc15', text: 'black', emoji: '🌟' },
-            { id: 'lime', name: 'きみどり', code: '#a3e635', text: 'black', emoji: '🌱' },
-            { id: 'green', name: 'みどり', code: '#22c55e', text: 'white', emoji: '🍀' },
-            { id: 'cyan', name: 'みずいろ', code: '#22d3ee', text: 'black', emoji: '💧' },
-            { id: 'blue', name: 'あお', code: '#3b82f6', text: 'white', emoji: '🌊' },
-            { id: 'purple', name: 'むらさき', code: '#a855f7', text: 'white', emoji: '🔮' },
-            { id: 'brown', name: 'ちゃいろ', code: '#78350f', text: 'white', emoji: '🌰' },
-            { id: 'white', name: 'しろ', code: '#ffffff', text: 'black', emoji: '☁️' },
-            { id: 'black', name: 'くろ', code: '#000000', text: 'white', emoji: '🕶️' },
-            { id: 'gray', name: 'はいいろ', code: '#64748b', text: 'white', emoji: '🪨' },
-            { id: 'gold', name: 'きん', code: '#d4af37', text: 'white', emoji: '🏆' },
-            { id: 'silver', name: 'ぎん', code: '#c0c0c0', text: 'black', emoji: '✨' }
+            { id: 'red', name: 'あか', code: '#ef4444', text: 'white' },
+            { id: 'pink', name: 'ももいろ', code: '#f472b6', text: 'white' },
+            { id: 'orange', name: 'だいだい', code: '#fb923c', text: 'white' },
+            { id: 'yellow', name: 'きいろ', code: '#facc15', text: 'black' },
+            { id: 'lime', name: 'きみどり', code: '#a3e635', text: 'black' },
+            { id: 'green', name: 'みどり', code: '#22c55e', text: 'white' },
+            { id: 'cyan', name: 'みずいろ', code: '#22d3ee', text: 'black' },
+            { id: 'blue', name: 'あお', code: '#3b82f6', text: 'white' },
+            { id: 'purple', name: 'むらさき', code: '#a855f7', text: 'white' },
+            { id: 'brown', name: 'ちゃいろ', code: '#78350f', text: 'white' },
+            { id: 'white', name: 'しろ', code: '#ffffff', text: 'black' },
+            { id: 'black', name: 'くろ', code: '#000000', text: 'white' },
+            { id: 'gray', name: 'はいいろ', code: '#64748b', text: 'white' },
+            { id: 'gold', name: 'きん', code: '#d4af37', text: 'white' },
+            { id: 'silver', name: 'ぎん', code: '#c0c0c0', text: 'black' }
         ];
 
         const firebaseConfig = {
@@ -179,7 +179,7 @@
         let lastPhase = '';
         let lastRevealIdx = -99;
 
-        if (currentRoomId) connectToRoom(currentRoomId);
+        if (currentRoomId && !invitedRoom) connectToRoom(currentRoomId);
         else render();
 
         function normalizeRoomId(id) {
@@ -261,28 +261,33 @@
         }
 
         function handleJoin(role) {
-            if (invitedRoom) role = 'guest';
-            const r = normalizeRoomId(document.getElementById('room-input')?.value || currentRoomId || invitedRoom);
+            const r = normalizeRoomId(document.getElementById('room-input')?.value || currentRoomId);
             const n = document.getElementById('name-input')?.value.trim();
-            if (!r || !n) return alert("お名前を入力してください");
+            if (!r || !n) return alert("部屋IDとお名前を入力してください");
             isInputting = false;
-
+            myName = n;
+            myRole = role;
+            localStorage.setItem("toiro-name", n);
+            localStorage.setItem("toiro-role", role);
+            currentRoomId = r;
+            localStorage.setItem("toiro-room-id", r);
+            history.replaceState(null, '', '?room=' + encodeURIComponent(r));
+            connectToRoom(r);
             db.ref("rooms/" + r).transaction((curr) => {
-                if (!curr) {
-                    if (role !== 'host') return; // 招待ゲストは存在しない部屋を作らない
-                    return {
-                        phase: 'setup',
-                        members: [n],
-                        host: n,
-                        hostId: myPlayerId,
-                        players: { [myPlayerId]: { name: n, role: 'host', joinedAt: Date.now() } },
-                        createdAt: Date.now(),
-                        roomMood: 'ready'
-                    };
-                }
+                if (!curr) return {
+                    phase: 'setup',
+                    members: [n],
+                    host: role === 'host' ? n : '',
+                    hostId: role === 'host' ? myPlayerId : '',
+                    players: { [myPlayerId]: { name: n, role, joinedAt: Date.now() } },
+                    createdAt: Date.now(),
+                    roomMood: 'ready'
+                };
                 let actualRole = role;
                 if (role === 'host' && curr.host && curr.host !== '' && curr.hostId !== myPlayerId) {
                     actualRole = 'guest';
+                    myRole = 'guest';
+                    localStorage.setItem("toiro-role", 'guest');
                     setTimeout(() => showToast('ホスト入室済みなのでゲスト参加しました'), 150);
                 }
                 if (!curr.members) curr.members = [];
@@ -291,27 +296,8 @@
                 curr.players[myPlayerId] = { name: n, role: actualRole, joinedAt: Date.now() };
                 if (actualRole === 'host') { curr.host = n; curr.hostId = myPlayerId; }
                 return curr;
-            }, (error, committed, snapshot) => {
-                if (error) {
-                    alert('入室処理でエラーが発生しました。もう一度お試しください。');
-                    return;
-                }
-                if (!committed) {
-                    alert('この部屋はまだ見つかりません。ホストの待機画面にQRが表示されているか確認してください。');
-                    return;
-                }
-                const room = snapshot.val() || {};
-                myName = n;
-                myRole = (room.hostId === myPlayerId) ? 'host' : 'guest';
-                currentRoomId = r;
-                gameState = room;
-                localStorage.setItem("toiro-name", myName);
-                localStorage.setItem("toiro-role", myRole);
-                localStorage.setItem("toiro-room-id", currentRoomId);
-                history.replaceState(null, '', '?room=' + encodeURIComponent(r));
-                connectToRoom(r);
-                showToast('入室しました');
             });
+            showToast('入室しました');
         }
 
         async function fetchNewTheme(roundIndex, mode) {
@@ -520,9 +506,10 @@
             if (!bottom) return;
             if (!currentRoomId || !myName || !gameState) { bottom.innerHTML = ''; return; }
             bottom.innerHTML = `
-                <div class="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[10px] font-black text-slate-300">
-                    <button onclick="leaveRoom()" class="hover:text-slate-500 underline underline-offset-4">退出</button>
-                    ${myRole === 'host' ? `<button onclick="forceResetRoom()" class="hover:text-red-400 underline underline-offset-4">部屋リセット</button>` : ''}
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="shareInvite()" class="bg-indigo-600 text-white py-3 rounded-2xl text-[12px] font-black shadow-lg active:scale-95 transition">招待する</button>
+                    <button onclick="leaveRoom()" class="bg-white/90 backdrop-blur border border-slate-200 text-slate-500 py-3 rounded-2xl text-[12px] font-black shadow-md active:scale-95 transition">この端末だけ退室</button>
+                    ${myRole === 'host' ? `<button onclick="forceResetRoom()" class="col-span-2 bg-white/90 backdrop-blur border border-red-200 text-red-500 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-md active:scale-95 transition">部屋をリセット（全員退室）</button>` : ''}
                 </div>`;
         }
 
@@ -534,42 +521,31 @@
 
             if (!currentRoomId || !myName || !gameState) {
                 const invited = invitedRoom || currentRoomId;
-                const isInvited = !!invitedRoom;
                 container.innerHTML = `
                 <div class="glass p-7 rounded-[2.5rem] fade-in text-left">
                     <div class="text-center mb-7">
-                        <div class="inline-flex items-center gap-2 bg-white rounded-full px-3 py-1 text-[10px] font-black text-indigo-500 tracking-widest mb-3">${isInvited ? 'INVITED ROOM' : 'CREATE ROOM'}</div>
+                        <div class="inline-flex items-center gap-2 bg-white rounded-full px-3 py-1 text-[10px] font-black text-indigo-500 tracking-widest mb-3">QR INVITE READY</div>
                         <h2 class="text-2xl font-black tracking-tight text-slate-800">色でわかる、みんなの感覚。</h2>
                         <p class="text-xs font-bold text-slate-400 leading-relaxed mt-2">同じお題に、同じ色を選べたらシンクロ成功。<br>結果は一枚ずつめくるのでドキドキ感が出ます。</p>
                     </div>
                     <div class="space-y-4">
-                        ${isInvited ? `
-                        <div class="bg-white rounded-2xl p-4 border border-slate-100 text-center">
-                            <div class="tiny-label mb-1">招待された部屋</div>
-                            <div class="text-xl font-black tracking-widest text-slate-800">${invited}</div>
-                            <input id="room-input" type="hidden" value="${invited}">
-                        </div>` : `
                         <div>
                             <label class="block tiny-label mb-1 ml-2">Room ID</label>
                             <input id="room-input" type="text" value="${invited || 'toiro-party'}" onfocus="isInputting=true" onblur="isInputting=false" class="w-full border-2 border-slate-100 bg-white p-4 rounded-2xl font-black outline-none focus:border-indigo-300">
-                        </div>`}
+                        </div>
                         <div>
                             <label class="block tiny-label mb-1 ml-2">Name</label>
                             <input id="name-input" type="text" value="${myName || ''}" placeholder="名前をいれてね" onfocus="isInputting=true" onblur="isInputting=false" class="w-full border-2 border-slate-100 bg-white p-4 rounded-2xl font-black outline-none focus:border-pink-300">
                         </div>
                     </div>
                     <div class="grid grid-cols-1 gap-3 mt-7">
-                        ${isInvited ? `
-                            <button onclick="handleJoin('guest')" class="w-full bg-indigo-500 text-white h-16 rounded-2xl font-black shadow-lg active:scale-95 transition pulse-glow">参加する</button>
-                        ` : `
-                            <button onclick="createNewRoom()" class="w-full bg-slate-900 text-white h-16 rounded-2xl font-black shadow-xl active:scale-95 transition pulse-glow">新しい部屋を作る</button>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button onclick="handleJoin('host')" class="bg-white border-2 border-slate-800 text-slate-800 h-14 rounded-2xl font-black active:scale-95 transition">ホスト参加</button>
-                                <button onclick="handleJoin('guest')" class="bg-indigo-500 text-white h-14 rounded-2xl font-black shadow-lg active:scale-95 transition">参加する</button>
-                            </div>
-                        `}
+                        <button onclick="createNewRoom()" class="w-full bg-slate-900 text-white h-16 rounded-2xl font-black shadow-xl active:scale-95 transition pulse-glow">新しい部屋を作る</button>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="handleJoin('host')" class="bg-white border-2 border-slate-800 text-slate-800 h-14 rounded-2xl font-black active:scale-95 transition">ホスト参加</button>
+                            <button onclick="handleJoin('guest')" class="bg-indigo-500 text-white h-14 rounded-2xl font-black shadow-lg active:scale-95 transition">参加する</button>
+                        </div>
                     </div>
-                    <p class="text-[10px] text-slate-400 font-bold text-center mt-5 leading-relaxed">${isInvited ? '名前を入れて「参加する」を押してください。' : 'ホストは「新しい部屋を作る」→待機画面のQRを見せるだけでOK。'}</p>
+                    <p class="text-[10px] text-slate-400 font-bold text-center mt-5 leading-relaxed">QRから来た人はRoom IDが自動入力されます。<br>ホストは「新しい部屋を作る」→待機画面のQRを見せるだけでOK。</p>
                 </div>`;
                 return;
             }
@@ -584,29 +560,20 @@
                                 <p class="tiny-label">Waiting Room</p>
                                 <h2 class="text-2xl font-black">${members.length}人が参加中</h2>
                             </div>
-                            ${myRole === 'host' ? `<button onclick="shareInvite()" class="bg-indigo-600 text-white px-4 py-3 rounded-2xl text-xs font-black shadow-lg active:scale-95 transition">招待</button>` : ''}
+                            <button onclick="shareInvite()" class="bg-indigo-600 text-white px-4 py-3 rounded-2xl text-xs font-black shadow-lg active:scale-95 transition">招待</button>
                         </div>
-                        ${myRole === 'host' ? `
-                        <details class="invite-fold invite-qr bg-white p-4 rounded-[2rem] mb-4 border border-slate-100 shadow-inner" open>
-                            <summary class="flex items-center justify-between gap-3">
-                                <div class="text-left">
-                                    <div class="tiny-label text-indigo-400">INVITE QR</div>
-                                    <div class="text-[11px] font-black text-slate-500 mt-1">タップでQR表示を開閉できます</div>
-                                </div>
-                                <div class="chev w-9 h-9 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center font-black">⌄</div>
-                            </summary>
-                            <div class="pt-4">
-                                <div id="qr-box" class="qr-square flex justify-center items-center"></div>
-                                <div class="mt-3 bg-slate-50 rounded-2xl p-3 text-center">
-                                    <div class="text-[10px] font-black text-slate-400 tracking-widest">ROOM ID</div>
-                                    <div class="text-xl font-black tracking-widest text-slate-800">${currentRoomId}</div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-2 mt-3">
-                                    <button onclick="copyInvite()" class="bg-slate-100 text-slate-600 py-3 rounded-xl text-[11px] font-black active:scale-95 transition">URLコピー</button>
-                                    <button onclick="shareInvite()" class="bg-pink-100 text-pink-600 py-3 rounded-xl text-[11px] font-black active:scale-95 transition">共有</button>
-                                </div>
+                        <div class="invite-qr bg-white p-4 rounded-[2rem] mb-4 border border-slate-100 shadow-inner">
+                            <div class="tiny-label text-center mb-2 text-indigo-400">INVITE QR</div>
+                            <div id="qr-box" class="flex justify-center min-h-[172px] items-center"></div>
+                            <div class="mt-3 bg-slate-50 rounded-2xl p-3 text-center">
+                                <div class="text-[10px] font-black text-slate-400 tracking-widest">ROOM ID</div>
+                                <div class="text-xl font-black tracking-widest text-slate-800">${currentRoomId}</div>
                             </div>
-                        </details>` : ''}
+                            <div class="grid grid-cols-2 gap-2 mt-3">
+                                <button onclick="copyInvite()" class="bg-slate-100 text-slate-600 py-3 rounded-xl text-[11px] font-black active:scale-95 transition">URLコピー</button>
+                                <button onclick="shareInvite()" class="bg-pink-100 text-pink-600 py-3 rounded-xl text-[11px] font-black active:scale-95 transition">共有</button>
+                            </div>
+                        </div>
                         <div class="grid grid-cols-2 gap-2">${members.map((m, i) => `<div class="bg-white p-3 rounded-2xl font-black text-slate-600 text-[11px] border border-slate-100 truncate ${m === gameState.host ? 'ring-2 ring-indigo-100' : ''}"><span class="inline-block w-2 h-2 rounded-full mr-1" style="background:${COLORS[i % COLORS.length].code}"></span>${m}${m === gameState.host ? ' 👑' : ''}</div>`).join('')}</div>
                     </section>
                     ${myRole === 'host' ? `
@@ -618,9 +585,9 @@
                             <div><span class="text-[10px] font-black text-slate-400 ml-1">難易度モード</span><select id="mode-select" class="w-full p-4 rounded-2xl font-black text-sm bg-slate-50 border-none"><option value="れんしゅう">れんしゅう：Easyのみ</option><option value="ほんばん" selected>ほんばん：徐々に難化</option><option value="ランダム">ランダム：全難易度混在</option></select></div>
                         </div>
                         <button onclick="startGame()" class="w-full bg-gradient-to-r from-indigo-600 to-pink-500 text-white h-16 rounded-2xl text-xl font-black shadow-xl active:scale-95 transition pulse-glow">ゲーム開始</button>
-                    </section>` : `<section class="soft-card p-8 rounded-[2.5rem]"><p class="animate-pulse text-slate-400 font-black">ホストが準備しています...</p><p class="text-[11px] text-slate-400 font-bold mt-2">開始までこのままお待ちください。</p></section>`}
+                    </section>` : `<section class="soft-card p-8 rounded-[2.5rem]"><p class="animate-pulse text-slate-400 font-black">ホストが準備しています...</p><p class="text-[11px] text-slate-400 font-bold mt-2">始まるまで、QRから友だちを呼べます。</p></section>`}
                 </div>`;
-                if (myRole === 'host') setTimeout(renderInviteQr, 50);
+                setTimeout(renderInviteQr, 50);
             } else if (gameState.phase === 'playing') {
                 const round = gameState.currentRound || 0;
                 const totalRounds = gameState.roundCount || 5;
@@ -665,22 +632,28 @@
                                 <p class="text-[11px] font-bold text-slate-400 mt-3">直感で“この色だ”と思うカードを選んでください</p>
                             </div>
                         </section>
-                        <div class="color-grid mb-6">${currentHand.map(cid => { const c = colorObj(cid); return `<button onclick="selectedColor='${c.id}'; playTone('select'); render();" style="background-color:${c.code}; color:${c.text}" class="color-button h-20 rounded-[1.35rem] font-black shadow-md ring-4 ${selectedColor === cid ? 'ring-indigo-500 scale-105 shadow-indigo-100' : 'ring-transparent'} border-b-4 border-black/10 transition-all text-xs active:scale-95"><span class="relative z-10 text-lg block mb-1">${c.emoji}</span><span class="relative z-10">${c.name}</span></button>`; }).join('')}</div>
-                        <div class="min-h-24">${selObj ? `<button onclick="confirmAnswer()" style="background-color:${selObj.code}; color:${selObj.text}" class="w-full h-20 rounded-[2rem] text-xl font-black shadow-2xl border-4 border-white/70 active:scale-95 transition pop-in">${selObj.emoji}【 ${selObj.name} 】で決定！</button>` : `<div class="bg-white/70 rounded-[2rem] p-6 border border-white text-slate-400 font-black text-sm">色を選ぶと決定ボタンが出ます</div>`}</div>
+                        <div class="color-grid mb-6">${currentHand.map(cid => { const c = colorObj(cid); return `<button onclick="selectedColor='${c.id}'; playTone('select'); render();" style="background-color:${c.code}; color:${c.text}" class="color-button h-20 rounded-[1.35rem] font-black shadow-md ring-4 ${selectedColor === cid ? 'ring-indigo-500 scale-105 shadow-indigo-100' : 'ring-transparent'} border-b-4 border-black/10 transition-all text-xs active:scale-95"><span class="relative z-10">${c.name}</span></button>`; }).join('')}</div>
+                        <div class="min-h-24">${selObj ? `<button onclick="confirmAnswer()" style="background-color:${selObj.code}; color:${selObj.text}" class="w-full h-20 rounded-[2rem] text-xl font-black shadow-2xl border-4 border-white/70 active:scale-95 transition pop-in">【 ${selObj.name} 】で決定！</button>` : `<div class="bg-white/70 rounded-[2rem] p-6 border border-white text-slate-400 font-black text-sm">色を選ぶと決定ボタンが出ます</div>`}</div>
                     </div>`;
                 }
             } else if (gameState.phase === 'revealing') {
                 const idx = gameState.revealIdx ?? -1;
                 const totalRounds = gameState.roundCount || 5;
                 let resultsHtml = '';
-                for (let r=0; r<totalRounds; r++) {
+                const revealOrder = [
+                    ...Array.from({length: Math.max(idx + 1, 0)}, (_, i) => idx - i),
+                    ...Array.from({length: Math.max(totalRounds - idx - 1, 0)}, (_, i) => idx + 1 + i)
+                ];
+                for (const r of revealOrder) {
                     const isRevealed = r <= idx;
+                    const isLatestReveal = r === idx;
                     const ans = (gameState.answers && gameState.answers[r]) || {};
                     const vals = Object.values(ans);
                     const isMatch = vals.length > 0 && vals.length === (gameState.members || []).length && vals.every(v => v === vals[0]);
                     const matchColor = isMatch ? colorObj(vals[0]) : null;
+                    const cardModeClass = isRevealed ? ('soft-card ' + (isLatestReveal ? 'reveal-flash' : '')) : 'locked-card';
                     resultsHtml += `
-                    <div class="${isRevealed ? 'soft-card reveal-flash' : 'locked-card'} p-5 rounded-[2rem] mb-4 border transition-all duration-500 ${isRevealed && isMatch ? 'border-green-300 ring-4 ring-green-50' : 'border-white/80'}">
+                    <div class="${cardModeClass} p-5 rounded-[2rem] mb-4 border transition-all duration-500 ${isRevealed && isMatch ? 'border-green-300 ring-4 ring-green-50' : 'border-white/80'}">
                         <div class="flex justify-between items-start gap-3 mb-3">
                             <div class="text-left">
                                 <span class="tiny-label">Round ${r+1}</span>
@@ -689,7 +662,7 @@
                             ${isRevealed ? (isMatch ? `<span class="text-[10px] font-black text-green-600 bg-green-50 px-3 py-1 rounded-full animate-pulse">SYNC!</span>` : `<span class="text-[10px] font-black text-slate-400 bg-slate-50 px-3 py-1 rounded-full">OPEN</span>`) : `<span class="mark text-2xl">？</span>`}
                         </div>
                         ${isRevealed ? `
-                            ${isMatch ? `<div class="mb-4 rounded-2xl p-4 text-center" style="background:${matchColor.code}; color:${matchColor.text}"><div class="text-[10px] font-black tracking-widest opacity-80">みんな一致！</div><div class="text-2xl font-black">${matchColor.emoji} ${matchColor.name}</div></div>` : ''}
+                            ${isMatch ? `<div class="mb-4 rounded-2xl p-4 text-center" style="background:${matchColor.code}; color:${matchColor.text}"><div class="text-[10px] font-black tracking-widest opacity-80">みんな一致！</div><div class="text-2xl font-black">${matchColor.name}</div></div>` : ''}
                             <div class="flex flex-wrap gap-2 justify-center">${Object.entries(ans).map(([name, cid], i) => { const c = colorObj(cid); return `<div class="answer-chip flex flex-col items-center" style="animation-delay:${i*45}ms"><div class="w-12 h-12 rounded-2xl shadow-inner ring-2 ring-white border border-slate-100" style="background-color:${c.code}"></div><div class="text-[9px] font-black text-slate-500 truncate w-14 mt-1 text-center">${name}</div></div>`; }).join('')}</div>
                         ` : `<div class="h-20 flex items-center justify-center text-xs text-slate-500 font-black tracking-[0.45em] uppercase">まだ秘密</div>`}
                     </div>`;
