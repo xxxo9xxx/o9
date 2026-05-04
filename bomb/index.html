@@ -1,0 +1,1739 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CODEWIRE 2R: ドキドキ解除ロジック</title>
+  <style>
+    :root {
+      --bg0: #070914;
+      --bg1: #0e1426;
+      --panel: rgba(15, 23, 42, 0.88);
+      --panel2: rgba(23, 34, 61, 0.92);
+      --line: rgba(148, 163, 184, 0.22);
+      --line2: rgba(148, 163, 184, 0.38);
+      --text: #f8fafc;
+      --muted: #a8b3c7;
+      --dim: #71809a;
+      --accent: #67e8f9;
+      --accent2: #c084fc;
+      --good: #58f29a;
+      --warn: #ffd166;
+      --bad: #ff5f7e;
+      --ink: #152032;
+      --paper: #fff4d8;
+      --radius: 22px;
+      --shadow: 0 24px 72px rgba(0, 0, 0, 0.44);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--bg0); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at 12% 4%, rgba(103, 232, 249, 0.17), transparent 32%),
+        radial-gradient(circle at 92% 0%, rgba(192, 132, 252, 0.17), transparent 32%),
+        radial-gradient(circle at 50% 100%, rgba(88, 242, 154, 0.10), transparent 44%),
+        linear-gradient(145deg, #060816 0%, #0f172a 50%, #07111f 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, black, transparent 88%);
+    }
+
+    button, input { font: inherit; }
+    button {
+      border: 0;
+      color: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:disabled { opacity: 0.46; cursor: not-allowed; }
+    .hidden { display: none !important; }
+
+    .app {
+      width: min(1220px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 18px 0 42px;
+    }
+
+    .panel, .hero-card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 18px;
+      min-height: calc(100vh - 36px);
+      align-items: stretch;
+    }
+
+    .hero-card {
+      overflow: hidden;
+      position: relative;
+      padding: 34px;
+    }
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -20% -35% 25%;
+      height: 360px;
+      background: radial-gradient(circle, rgba(103, 232, 249, 0.16), transparent 62%);
+      pointer-events: none;
+    }
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      font-weight: 900;
+      text-transform: uppercase;
+      font-size: 12px;
+      border: 1px solid rgba(103, 232, 249, 0.35);
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(103, 232, 249, 0.08);
+    }
+    h1 {
+      margin: 20px 0 12px;
+      line-height: 1.02;
+      font-size: clamp(38px, 6vw, 76px);
+      letter-spacing: -0.06em;
+    }
+    .subtitle {
+      max-width: 760px;
+      color: #dbe5f6;
+      font-size: clamp(16px, 2.1vw, 22px);
+      line-height: 1.72;
+      margin: 0;
+    }
+    .notice {
+      margin-top: 18px;
+      color: var(--muted);
+      line-height: 1.72;
+      font-size: 14px;
+      max-width: 780px;
+    }
+
+    .start-box {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .field-label {
+      display: block;
+      color: #dce7f7;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 15px 14px;
+      color: var(--text);
+      border: 1px solid var(--line2);
+      border-radius: 14px;
+      outline: none;
+      background: rgba(2, 6, 23, 0.52);
+      font-family: var(--mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    input[type="text"]:focus {
+      border-color: rgba(103, 232, 249, 0.78);
+      box-shadow: 0 0 0 4px rgba(103, 232, 249, 0.10);
+    }
+
+    .btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 12px 15px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 26px rgba(0,0,0,0.20);
+      font-weight: 900;
+      transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+      user-select: none;
+    }
+    .btn:hover { transform: translateY(-1px); border-color: rgba(103, 232, 249, 0.50); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary {
+      color: #06111a;
+      background: linear-gradient(135deg, #69e6ff 0%, #7cf6b8 100%);
+      border-color: rgba(255,255,255,0.35);
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, #ff5f7e 0%, #ffb86b 100%);
+      color: #21070b;
+    }
+    .btn-small { min-height: 34px; padding: 8px 10px; border-radius: 11px; font-size: 13px; }
+    .btn-ghost { background: rgba(255,255,255,0.06); box-shadow: none; }
+    .start-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .rules {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 12px;
+    }
+    .rules li {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 10px;
+      align-items: start;
+      color: #d9e4f7;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+    .rule-no {
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: #07111f;
+      font-weight: 1000;
+      background: linear-gradient(135deg, #69e6ff, #7cf6b8);
+    }
+
+    .game { display: flex; flex-direction: column; gap: 14px; }
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: stretch;
+      padding: 14px;
+    }
+    .mission {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+    .id-pill {
+      font-family: var(--mono);
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(103,232,249,0.36);
+      background: rgba(103,232,249,0.08);
+      border-radius: 999px;
+      padding: 9px 12px;
+      font-weight: 900;
+      color: #dffbff;
+    }
+    .phase-pill {
+      border-radius: 999px;
+      padding: 9px 12px;
+      font-weight: 1000;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--line);
+    }
+    .phase-pill.wire { color: var(--accent); border-color: rgba(103,232,249,0.38); }
+    .phase-pill.code { color: var(--warn); border-color: rgba(255,209,102,0.42); }
+    .phase-pill.done { color: var(--good); border-color: rgba(88,242,154,0.42); }
+    .phase-pill.fail { color: var(--bad); border-color: rgba(255,95,126,0.42); }
+
+    .stats {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      min-width: 92px;
+      padding: 9px 11px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(2,6,23,0.30);
+    }
+    .stat small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+    .stat b {
+      display: block;
+      margin-top: 3px;
+      font-family: var(--mono);
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(350px, 0.9fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 0 0 12px;
+    }
+    .panel-title h2, .panel-title h3 {
+      margin: 0;
+      letter-spacing: -0.03em;
+    }
+    .panel-sub {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .bomb-panel { padding: 16px; overflow: hidden; }
+    .bomb-shell {
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background:
+        radial-gradient(circle at 12% 12%, rgba(255,255,255,0.07), transparent 35%),
+        linear-gradient(145deg, rgba(30, 41, 59, 0.96), rgba(9, 14, 29, 0.96));
+      border-radius: 28px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .bomb-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+      transform: skewX(-18deg) translateX(-30%);
+    }
+    .bomb-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .led-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .led {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 9px;
+      border-radius: 999px;
+      background: rgba(2,6,23,0.36);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+    }
+    .led::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--dim);
+      box-shadow: 0 0 0 3px rgba(113,128,154,0.12);
+    }
+    .led.on-wire { color: var(--accent); border-color: rgba(103,232,249,0.34); }
+    .led.on-wire::before { background: var(--accent); box-shadow: 0 0 16px rgba(103,232,249,0.72); }
+    .led.on-code { color: var(--warn); border-color: rgba(255,209,102,0.36); }
+    .led.on-code::before { background: var(--warn); box-shadow: 0 0 16px rgba(255,209,102,0.72); }
+    .led.on-good { color: var(--good); border-color: rgba(88,242,154,0.36); }
+    .led.on-good::before { background: var(--good); box-shadow: 0 0 16px rgba(88,242,154,0.72); }
+    .led.on-bad { color: var(--bad); border-color: rgba(255,95,126,0.36); }
+    .led.on-bad::before { background: var(--bad); box-shadow: 0 0 16px rgba(255,95,126,0.72); }
+    .screen {
+      min-width: 142px;
+      border: 1px solid rgba(103,232,249,0.24);
+      background: rgba(0, 7, 18, 0.70);
+      border-radius: 16px;
+      padding: 10px 12px;
+      font-family: var(--mono);
+      box-shadow: inset 0 0 26px rgba(103,232,249,0.08);
+    }
+    .screen small { display: block; color: var(--dim); font-size: 10px; letter-spacing: 0.10em; }
+    .screen b { display: block; margin-top: 3px; color: #bff8ff; font-size: 20px; }
+
+    .rounds {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .round-card {
+      border: 1px solid var(--line);
+      background: rgba(2, 6, 23, 0.25);
+      border-radius: 18px;
+      padding: 12px;
+    }
+    .round-card.active { border-color: rgba(103,232,249,0.54); box-shadow: 0 0 0 4px rgba(103,232,249,0.08); }
+    .round-card.code.active { border-color: rgba(255,209,102,0.54); box-shadow: 0 0 0 4px rgba(255,209,102,0.08); }
+    .round-card.complete { border-color: rgba(88,242,154,0.42); }
+    .round-card.locked { opacity: 0.72; }
+    .round-card h3 { margin: 0 0 4px; font-size: 15px; }
+    .round-card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+
+    .wire-stage, .code-stage {
+      border: 1px solid rgba(148,163,184,0.18);
+      border-radius: 24px;
+      background: rgba(2, 6, 23, 0.22);
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .stage-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .stage-head h3 { margin: 0; font-size: 18px; }
+    .stage-note { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .cut-progress {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      color: #dbeafe;
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+    .cut-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line2);
+      background: rgba(255,255,255,0.05);
+      color: var(--dim);
+      font-weight: 1000;
+    }
+    .cut-dot.filled { background: var(--wire-color); color: #08111f; border-color: rgba(255,255,255,0.42); }
+
+    .wire-rack {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .wire-button {
+      display: grid;
+      grid-template-columns: 74px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      position: relative;
+      overflow: hidden;
+    }
+    .wire-button:hover:not(:disabled) { border-color: rgba(255,255,255,0.28); transform: translateY(-1px); }
+    .wire-button:active:not(:disabled) { transform: translateY(0); }
+    .wire-button.cut { opacity: 0.58; }
+    .wire-button.cut .wire-core::after { transform: translateX(-50%) rotate(15deg); opacity: 1; }
+    .wire-button.cut .wire-line { filter: saturate(0.35); opacity: 0.58; }
+    .wire-label { font-weight: 1000; letter-spacing: 0.06em; }
+    .wire-line {
+      position: relative;
+      height: 20px;
+      border-radius: 999px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.32), transparent 46%, rgba(0,0,0,0.22) 58%, rgba(0,0,0,0.08)),
+        var(--wire-color);
+      box-shadow: 0 5px 20px color-mix(in srgb, var(--wire-color) 32%, transparent), inset 0 0 0 1px rgba(255,255,255,0.18);
+    }
+    .wire-line::before, .wire-line::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 9px;
+      height: 34px;
+      transform: translateY(-50%);
+      background: #cbd5e1;
+      border-radius: 4px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.18);
+    }
+    .wire-line::before { left: -4px; }
+    .wire-line::after { right: -4px; }
+    .wire-core { position: relative; }
+    .wire-core::after {
+      content: "CUT";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translateX(-50%) rotate(-8deg);
+      opacity: 0;
+      margin-top: -18px;
+      color: #07111f;
+      background: #f8fafc;
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 1000;
+      padding: 3px 7px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.22);
+    }
+    .wire-tag {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+      white-space: nowrap;
+    }
+
+    .dials {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .dial {
+      position: relative;
+      border: 1px solid var(--line);
+      background: rgba(2, 6, 23, 0.28);
+      border-radius: 22px;
+      padding: 12px;
+      text-align: center;
+      min-height: 188px;
+    }
+    .dial.disabled { opacity: 0.54; filter: grayscale(0.4); }
+    .dial-name {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .dial-face {
+      width: min(108px, 100%);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      margin: 10px auto;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,0.16);
+      background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,0.22), transparent 23%),
+        radial-gradient(circle, rgba(2,6,23,0.30) 0 42%, transparent 43%),
+        conic-gradient(from 18deg, rgba(103,232,249,0.28), rgba(255,209,102,0.28), rgba(192,132,252,0.28), rgba(103,232,249,0.28));
+      box-shadow: inset 0 0 20px rgba(255,255,255,0.08), 0 14px 28px rgba(0,0,0,0.22);
+      color: #f8fafc;
+      font-family: var(--mono);
+      font-size: 42px;
+      font-weight: 1000;
+    }
+    .dial-controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+    .dial-controls button {
+      width: 38px;
+      height: 34px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-weight: 1000;
+      font-family: var(--mono);
+    }
+    .code-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .code-readout {
+      font-family: var(--mono);
+      color: #e0f2fe;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.20);
+      border-radius: 14px;
+      padding: 10px 12px;
+      letter-spacing: 0.16em;
+      font-weight: 1000;
+    }
+    .lock-overlay {
+      margin-top: 10px;
+      border: 1px dashed rgba(255,209,102,0.34);
+      background: rgba(255,209,102,0.07);
+      color: #fde68a;
+      border-radius: 16px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .side { display: flex; flex-direction: column; gap: 14px; }
+    .hint-panel, .log-panel, .memo-panel { padding: 16px; }
+    .hint-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .hint-card {
+      position: relative;
+      min-height: 156px;
+      padding: 13px;
+      border-radius: 18px;
+      border: 1px solid rgba(94, 74, 31, 0.22);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.52), rgba(255,255,255,0.10)),
+        repeating-linear-gradient(45deg, rgba(0,0,0,0.035) 0 1px, transparent 1px 11px),
+        var(--paper);
+      color: var(--ink);
+      box-shadow: 0 14px 26px rgba(0,0,0,0.22);
+      text-align: left;
+      overflow: hidden;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .hint-card:hover:not(:disabled) { transform: translateY(-2px) rotate(-0.5deg); box-shadow: 0 18px 34px rgba(0,0,0,0.28); }
+    .hint-card:active:not(:disabled) { transform: translateY(0); }
+    .hint-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -36px -36px auto;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.07);
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+    .card-score {
+      font-family: var(--mono);
+      font-weight: 1000;
+      border: 2px solid rgba(21,32,50,0.18);
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: rgba(255,255,255,0.46);
+    }
+    .card-type {
+      font-size: 12px;
+      font-weight: 1000;
+      color: rgba(21,32,50,0.70);
+      letter-spacing: 0.07em;
+    }
+    .card-logo {
+      position: relative;
+      z-index: 1;
+      font-family: var(--mono);
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: 0.08em;
+      font-weight: 1000;
+      margin-top: 4px;
+    }
+    .card-help {
+      position: relative;
+      z-index: 1;
+      margin: 10px 0 0;
+      color: rgba(21,32,50,0.68);
+      font-size: 12px;
+      line-height: 1.5;
+      font-weight: 800;
+    }
+    .deck-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .log-list {
+      display: grid;
+      gap: 8px;
+      max-height: 300px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+    .empty-log {
+      color: var(--muted);
+      line-height: 1.6;
+      border: 1px dashed var(--line2);
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(255,255,255,0.04);
+    }
+    .log-item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: start;
+      border: 1px solid var(--line);
+      background: rgba(2, 6, 23, 0.26);
+      border-radius: 16px;
+      padding: 10px;
+    }
+    .log-badge {
+      min-width: 46px;
+      text-align: center;
+      font-family: var(--mono);
+      font-weight: 1000;
+      color: #06111a;
+      background: linear-gradient(135deg, #fef3c7, #fcd34d);
+      border-radius: 999px;
+      padding: 5px 7px;
+      font-size: 12px;
+    }
+    .log-badge.sys { background: linear-gradient(135deg, #bae6fd, #67e8f9); }
+    .log-body b { display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 3px; }
+    .log-body p { margin: 0; color: #d8e2f3; line-height: 1.5; font-size: 13px; }
+
+    .memo-section { display: grid; gap: 12px; }
+    .memo-block {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(2, 6, 23, 0.22);
+      padding: 12px;
+      overflow: auto;
+    }
+    .memo-block h3 { margin: 0 0 8px; font-size: 15px; }
+    .memo-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 5px;
+      min-width: 330px;
+    }
+    .memo-table th {
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+      font-weight: 900;
+    }
+    .memo-table .rowhead {
+      text-align: right;
+      color: #e2e8f0;
+      font-size: 12px;
+      padding-right: 4px;
+      font-weight: 900;
+    }
+    .memo-cell {
+      width: 38px;
+      height: 34px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-weight: 1000;
+    }
+    .memo-cell.no { color: #fecdd3; background: rgba(255,95,126,0.10); border-color: rgba(255,95,126,0.24); }
+    .memo-cell.yes { color: #bbf7d0; background: rgba(88,242,154,0.11); border-color: rgba(88,242,154,0.30); }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%) translateY(80px);
+      opacity: 0;
+      z-index: 40;
+      max-width: min(560px, calc(100% - 28px));
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(10, 16, 30, 0.94);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.42);
+      color: #eef6ff;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      pointer-events: none;
+      line-height: 1.5;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 35;
+      background: rgba(2, 6, 23, 0.72);
+      backdrop-filter: blur(8px);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+    .modal {
+      width: min(620px, 100%);
+      border: 1px solid var(--line2);
+      background: rgba(15, 23, 42, 0.96);
+      box-shadow: var(--shadow);
+      border-radius: 26px;
+      padding: 22px;
+    }
+    .modal h2 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4vw, 48px);
+      letter-spacing: -0.04em;
+    }
+    .modal p { color: #dbe5f6; line-height: 1.65; }
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .result-card {
+      border: 1px solid var(--line);
+      background: rgba(2, 6, 23, 0.28);
+      border-radius: 16px;
+      padding: 11px;
+    }
+    .result-card small { display:block; color: var(--muted); font-size: 11px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+    .result-card b { display:block; margin-top:4px; font-family: var(--mono); font-size: 19px; }
+    .answer-reveal {
+      border: 1px solid rgba(103,232,249,0.28);
+      background: rgba(103,232,249,0.08);
+      border-radius: 18px;
+      padding: 12px;
+      font-family: var(--mono);
+      color: #e0fbff;
+      line-height: 1.8;
+    }
+    .modal-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+    .boom {
+      animation: shake 0.35s ease-in-out 2;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(7px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(4px); }
+    }
+
+    @media (max-width: 940px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+      .topbar { grid-template-columns: 1fr; }
+      .stats { justify-content: flex-start; }
+      .side { order: -1; }
+      .hint-grid { grid-template-columns: repeat(4, minmax(130px, 1fr)); overflow-x: auto; padding-bottom: 3px; }
+      .hint-card { min-width: 130px; }
+    }
+    @media (max-width: 620px) {
+      .app { width: min(100% - 18px, 1220px); padding-top: 9px; }
+      .hero-card, .start-box, .bomb-panel, .hint-panel, .log-panel, .memo-panel { padding: 14px; }
+      .input-row { flex-direction: column; align-items: stretch; }
+      .rounds, .dials, .result-grid { grid-template-columns: 1fr; }
+      .wire-button { grid-template-columns: 48px 1fr; }
+      .wire-tag { grid-column: 1 / -1; }
+      .hint-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; }
+      .hint-card { min-width: 0; min-height: 144px; }
+      .bomb-head { flex-direction: column; align-items: stretch; }
+      .screen { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section id="startScreen" class="hero">
+      <div class="hero-card">
+        <span class="kicker">CODEWIRE 2R / SOLO LOGIC BOMB</span>
+        <h1>ドキドキ解除<br>ロジック</h1>
+        <p class="subtitle">ヒントカードを選んで使い、まずは4色ワイヤーを正しい順にタップして切断。解除に成功したら、1〜5の数字ダイヤルを合わせて最終コードを入力します。</p>
+        <p class="notice">同じ問題IDなら、答え・ヒント山札・カードの補充順まで同じです。低いヒント点数でクリアできた人ほどすごい、競えるソロパズルです。</p>
+      </div>
+
+      <div class="panel start-box">
+        <div>
+          <label class="field-label" for="idInput">問題ID</label>
+          <div class="input-row">
+            <input id="idInput" type="text" value="CW-DEMO42" maxlength="18" autocomplete="off" />
+            <button id="startBtn" class="btn btn-primary">解除任務へ</button>
+          </div>
+        </div>
+        <div class="start-actions">
+          <button id="randomBtn" class="btn btn-ghost">IDを生成</button>
+          <button id="demoBtn" class="btn btn-ghost">デモID</button>
+        </div>
+        <ul class="rules">
+          <li><span class="rule-no">1</span><span>ワイヤー解除中は、ワイヤー専用ヒントだけが出ます。4枚の候補から1枚使うと、すぐ1枚補充されます。</span></li>
+          <li><span class="rule-no">2</span><span>自信が出たら、色の線を直接タップして切断します。順番を間違えると即失敗です。</span></li>
+          <li><span class="rule-no">3</span><span>4本すべて正しく切ると、数字ダイヤルが起動。今度は数字専用ヒントを集め、1〜5の3つのダイヤルを合わせます。</span></li>
+          <li><span class="rule-no">4</span><span>スコアは使ったヒントカードの合計点。低い点数、少ない枚数、短い時間の順にすごい記録です。</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="game hidden">
+      <header class="panel topbar">
+        <div class="mission">
+          <span id="missionId" class="id-pill">CW-----</span>
+          <span id="phasePill" class="phase-pill wire">ROUND 1: WIRE</span>
+          <button id="copyIdBtn" class="btn btn-small btn-ghost">IDコピー</button>
+          <button id="newGameBtn" class="btn btn-small btn-ghost">別IDへ</button>
+        </div>
+        <div class="stats">
+          <div class="stat"><small>Score</small><b id="scoreStat">0pt</b></div>
+          <div class="stat"><small>Wire</small><b id="wireScoreStat">0pt</b></div>
+          <div class="stat"><small>Dial</small><b id="codeScoreStat">0pt</b></div>
+          <div class="stat"><small>Time</small><b id="timeStat">00:00</b></div>
+          <div class="stat"><small>Best</small><b id="bestStat">--</b></div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel bomb-panel" id="bombPanel">
+          <div class="panel-title">
+            <div>
+              <h2>解除装置</h2>
+              <p id="mainInstruction" class="panel-sub">ヒントカードを使い、正しい切断順を推理してください。</p>
+            </div>
+          </div>
+
+          <div class="bomb-shell">
+            <div class="bomb-head">
+              <div class="led-row" id="ledRow"></div>
+              <div class="screen"><small>ACTIVE MODULE</small><b id="moduleScreen">WIRE</b></div>
+            </div>
+
+            <div class="rounds">
+              <div id="roundWire" class="round-card active">
+                <h3>ROUND 1 / ワイヤー</h3>
+                <p>4色の線を正しい順にタップして切断。</p>
+              </div>
+              <div id="roundCode" class="round-card code locked">
+                <h3>ROUND 2 / 数字ダイヤル</h3>
+                <p>ワイヤー解除後、1〜5の3ダイヤルを合わせる。</p>
+              </div>
+            </div>
+
+            <div class="wire-stage">
+              <div class="stage-head">
+                <div>
+                  <h3>ワイヤーカット</h3>
+                  <p class="stage-note">切るときは下の色線を直接タップ。判定はその瞬間に行われます。</p>
+                </div>
+                <div class="cut-progress" id="cutProgress"></div>
+              </div>
+              <div id="wireRack" class="wire-rack"></div>
+            </div>
+
+            <div class="code-stage">
+              <div class="stage-head">
+                <div>
+                  <h3>数字ダイヤル</h3>
+                  <p class="stage-note">数字は1〜5。3つのダイヤルに同じ数字は使われません。</p>
+                </div>
+              </div>
+              <div id="dialRack" class="dials"></div>
+              <div id="dialLock" class="lock-overlay">ワイヤー4本を正しく切ると、数字ヒント山札とダイヤル操作が起動します。</div>
+              <div class="code-actions">
+                <div id="codeReadout" class="code-readout">1 - 1 - 1</div>
+                <button id="submitCodeBtn" class="btn btn-danger" disabled>OK：最終コード入力</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side">
+          <section class="panel hint-panel">
+            <div class="panel-title">
+              <div>
+                <h2 id="hintTitle">ワイヤーヒントカード</h2>
+                <p id="hintSub" class="panel-sub">4枚から1枚選んで使用。使ったカードの点数がスコアに加算されます。</p>
+              </div>
+            </div>
+            <div id="hintGrid" class="hint-grid"></div>
+            <div class="deck-meta">
+              <span id="deckRemain">山札: --</span>
+              <span>カードは常に4枚まで補充</span>
+            </div>
+          </section>
+
+          <section class="panel log-panel">
+            <div class="panel-title">
+              <div>
+                <h2>使用済みヒント</h2>
+                <p class="panel-sub">ここに出た情報だけを使って推理します。</p>
+              </div>
+            </div>
+            <div id="hintLog" class="log-list"></div>
+          </section>
+        </aside>
+      </main>
+
+      <section class="panel memo-panel">
+        <div class="panel-title">
+          <div>
+            <h2>メモパネル</h2>
+            <p class="panel-sub">マスをタップすると「? → × → ○」で切り替わります。自分用の推理メモです。</p>
+          </div>
+        </div>
+        <div class="memo-section">
+          <div class="memo-block">
+            <h3>ワイヤー順メモ</h3>
+            <div id="wireMemo"></div>
+          </div>
+          <div class="memo-block">
+            <h3>数字ダイヤルメモ</h3>
+            <div id="codeMemo"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <div id="resultModal" class="modal-backdrop hidden"></div>
+
+  <script>
+    const COLORS = [
+      { id: "red", jp: "赤", css: "#ff4d65", mark: "R" },
+      { id: "blue", jp: "青", css: "#4dabff", mark: "B" },
+      { id: "yellow", jp: "黄", css: "#ffd34d", mark: "Y" },
+      { id: "green", jp: "緑", css: "#57e389", mark: "G" }
+    ];
+    const DIGITS = [1, 2, 3, 4, 5];
+    const CODE_LEN = 3;
+    const SLOT_COUNT = 4;
+
+    const $ = (q) => document.querySelector(q);
+    const $$ = (q) => Array.from(document.querySelectorAll(q));
+
+    let state = null;
+    let timerHandle = null;
+    let toastHandle = null;
+    let audioCtx = null;
+
+    function xmur3(str) {
+      let h = 1779033703 ^ str.length;
+      for (let i = 0; i < str.length; i++) {
+        h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+        h = (h << 13) | (h >>> 19);
+      }
+      return function() {
+        h = Math.imul(h ^ (h >>> 16), 2246822507);
+        h = Math.imul(h ^ (h >>> 13), 3266489909);
+        return (h ^= h >>> 16) >>> 0;
+      };
+    }
+
+    function mulberry32(a) {
+      return function() {
+        let t = (a += 0x6D2B79F5);
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function rngFor(seed) {
+      return mulberry32(xmur3(seed)());
+    }
+
+    function shuffle(array, rng) {
+      const arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function normalizeId(raw) {
+      let s = String(raw || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (s.startsWith("CW")) s = s.slice(2);
+      if (!s) s = randomSuffix();
+      return `CW-${s.slice(0, 10)}`;
+    }
+
+    function randomSuffix() {
+      const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      const bytes = new Uint8Array(6);
+      if (window.crypto && window.crypto.getRandomValues) {
+        window.crypto.getRandomValues(bytes);
+      } else {
+        for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+      }
+      return Array.from(bytes, b => alphabet[b % alphabet.length]).join("");
+    }
+
+    function colorById(id) {
+      return COLORS.find(c => c.id === id);
+    }
+
+    function jpColor(id) {
+      return colorById(id).jp;
+    }
+
+    function posLabel(n) {
+      return `${n}番目`;
+    }
+
+    function slotLabel(i) {
+      return ["左", "中央", "右"][i] || `${i + 1}桁目`;
+    }
+
+    function addUnique(list, seen, card) {
+      if (seen.has(card.key)) return;
+      seen.add(card.key);
+      list.push(card);
+    }
+
+    function makeWireHints(order) {
+      const hints = [];
+      const seen = new Set();
+      const pos = Object.fromEntries(order.map((id, i) => [id, i + 1]));
+      const add = (score, type, text, key) => addUnique(hints, seen, { round: "wire", score, type, text, key });
+
+      for (const c of COLORS) {
+        const p = pos[c.id];
+        add(4, "位置", `${c.jp}の線は${posLabel(p)}に切る。`, `exact-${c.id}-${p}`);
+        for (let n = 1; n <= 4; n++) {
+          if (n !== p) add(1, "否定", `${c.jp}の線は${posLabel(n)}ではない。`, `not-${c.id}-${n}`);
+        }
+        if (p <= 2) add(2, "範囲", `${c.jp}の線は前半、つまり1番目か2番目に切る。`, `half-${c.id}-front`);
+        else add(2, "範囲", `${c.jp}の線は後半、つまり3番目か4番目に切る。`, `half-${c.id}-back`);
+        if (p === 1) add(3, "端", `${c.jp}の線より前に切る線はない。`, `edge-${c.id}-first`);
+        if (p === 4) add(3, "端", `${c.jp}の線より後に切る線はない。`, `edge-${c.id}-last`);
+      }
+
+      for (let n = 1; n <= 4; n++) {
+        const actual = order[n - 1];
+        add(4, "位置", `${posLabel(n)}に切るのは${jpColor(actual)}の線。`, `slot-${n}-${actual}`);
+        for (const c of COLORS) {
+          if (c.id !== actual) add(1, "否定", `${posLabel(n)}に切るのは${c.jp}の線ではない。`, `slot-not-${n}-${c.id}`);
+        }
+      }
+
+      for (let i = 0; i < COLORS.length; i++) {
+        for (let j = i + 1; j < COLORS.length; j++) {
+          const a = COLORS[i];
+          const b = COLORS[j];
+          if (pos[a.id] < pos[b.id]) add(2, "順序", `${a.jp}の線は${b.jp}の線より前に切る。`, `before-${a.id}-${b.id}`);
+          else add(2, "順序", `${a.jp}の線は${b.jp}の線より後に切る。`, `after-${a.id}-${b.id}`);
+
+          const adjacent = Math.abs(pos[a.id] - pos[b.id]) === 1;
+          if (adjacent) add(3, "隣接", `${a.jp}の線と${b.jp}の線は連続して切る。`, `adj-${a.id}-${b.id}`);
+          else add(2, "隣接", `${a.jp}の線と${b.jp}の線は連続していない。`, `notadj-${a.id}-${b.id}`);
+        }
+      }
+
+      const firstHalf = order.slice(0, 2).map(jpColor).join("・");
+      const lastHalf = order.slice(2, 4).map(jpColor).join("・");
+      const middle = order.slice(1, 3).map(jpColor).join("・");
+      add(3, "集合", `前半2本に含まれる色は「${firstHalf}」。順番まではわからない。`, `set-front-${order.slice(0,2).sort().join("-")}`);
+      add(3, "集合", `後半2本に含まれる色は「${lastHalf}」。順番まではわからない。`, `set-back-${order.slice(2,4).sort().join("-")}`);
+      add(3, "集合", `中央2本、つまり2番目と3番目に含まれる色は「${middle}」。`, `set-mid-${order.slice(1,3).sort().join("-")}`);
+      add(4, "ペア", `最初の2本は ${jpColor(order[0])} → ${jpColor(order[1])} の順に切る。`, `pair-first-${order[0]}-${order[1]}`);
+      add(4, "ペア", `最後の2本は ${jpColor(order[2])} → ${jpColor(order[3])} の順に切る。`, `pair-last-${order[2]}-${order[3]}`);
+
+      return hints.map((h, i) => ({ ...h, id: `W${i + 1}` }));
+    }
+
+    function makeCodeHints(code) {
+      const hints = [];
+      const seen = new Set();
+      const add = (score, type, text, key) => addUnique(hints, seen, { round: "code", score, type, text, key });
+      const used = new Set(code);
+
+      for (let i = 0; i < CODE_LEN; i++) {
+        const v = code[i];
+        add(4, "位置", `${slotLabel(i)}ダイヤルは ${v} 。`, `exact-${i}-${v}`);
+        for (const d of DIGITS) {
+          if (d !== v) add(1, "否定", `${slotLabel(i)}ダイヤルは ${d} ではない。`, `not-${i}-${d}`);
+        }
+        add(2, "偶奇", `${slotLabel(i)}ダイヤルは${v % 2 ? "奇数" : "偶数"}。`, `parity-${i}-${v % 2}`);
+        if (v <= 2) add(2, "範囲", `${slotLabel(i)}ダイヤルは 1 か 2 。`, `range-low-${i}`);
+        else if (v >= 4) add(2, "範囲", `${slotLabel(i)}ダイヤルは 4 か 5 。`, `range-high-${i}`);
+        else add(3, "範囲", `${slotLabel(i)}ダイヤルは中央の数字、つまり 3 。`, `range-mid-${i}`);
+      }
+
+      for (const d of DIGITS) {
+        if (used.has(d)) add(2, "含有", `コードには ${d} が含まれる。`, `contains-${d}`);
+        else add(1, "不使用", `コードには ${d} は含まれない。`, `notcontains-${d}`);
+      }
+
+      for (let i = 0; i < CODE_LEN; i++) {
+        for (let j = i + 1; j < CODE_LEN; j++) {
+          if (code[i] < code[j]) add(2, "比較", `${slotLabel(i)}ダイヤルは${slotLabel(j)}ダイヤルより小さい。`, `lt-${i}-${j}`);
+          else add(2, "比較", `${slotLabel(i)}ダイヤルは${slotLabel(j)}ダイヤルより大きい。`, `gt-${i}-${j}`);
+          add(3, "合計", `${slotLabel(i)}と${slotLabel(j)}の合計は ${code[i] + code[j]} 。`, `pair-sum-${i}-${j}`);
+        }
+      }
+
+      const sum = code.reduce((a, b) => a + b, 0);
+      add(3, "合計", `3つのダイヤルの合計は ${sum} 。`, `sum-${sum}`);
+      add(2, "合計", `3つのダイヤルの合計は ${sum >= 9 ? "9以上" : "8以下"}。`, `sum-band-${sum >= 9 ? "hi" : "lo"}`);
+
+      const max = Math.max(...code);
+      const min = Math.min(...code);
+      add(3, "最大", `一番大きい数字は${slotLabel(code.indexOf(max))}ダイヤルにある。`, `max-${code.indexOf(max)}`);
+      add(3, "最小", `一番小さい数字は${slotLabel(code.indexOf(min))}ダイヤルにある。`, `min-${code.indexOf(min)}`);
+      add(2, "制約", `3つのダイヤルに同じ数字は使われていない。`, `unique`);
+
+      const missing = DIGITS.filter(d => !used.has(d));
+      add(2, "不使用", `使われていない数字は ${missing.join(" と ")} 。`, `missing-${missing.join("-")}`);
+
+      return hints.map((h, i) => ({ ...h, id: `D${i + 1}` }));
+    }
+
+    function newGame(rawId) {
+      const id = normalizeId(rawId);
+      const rng = rngFor(`${id}:answer`);
+      const wireAnswer = shuffle(COLORS.map(c => c.id), rng);
+      const codeAnswer = shuffle(DIGITS, rng).slice(0, CODE_LEN);
+      const wireDeck = shuffle(makeWireHints(wireAnswer), rngFor(`${id}:wireDeck`));
+      const codeDeck = shuffle(makeCodeHints(codeAnswer), rngFor(`${id}:codeDeck`));
+
+      state = {
+        id,
+        phase: "wire",
+        answer: { wire: wireAnswer, code: codeAnswer },
+        wireDeck,
+        codeDeck,
+        deck: wireDeck.slice(),
+        slots: [],
+        usedHints: [],
+        score: { wire: 0, code: 0 },
+        cutIndex: 0,
+        cutLog: [],
+        dials: [1, 1, 1],
+        memoWire: makeWireMemo(),
+        memoCode: makeCodeMemo(),
+        startedAt: Date.now(),
+        finishedAt: null,
+        failReason: ""
+      };
+      drawSlots();
+      logSystem("任務開始。ROUND 1：ワイヤー専用ヒントが有効です。");
+      $("#idInput").value = id;
+      $("#startScreen").classList.add("hidden");
+      $("#gameScreen").classList.remove("hidden");
+      clearInterval(timerHandle);
+      timerHandle = setInterval(renderTime, 1000);
+      render();
+      toast("問題IDを読み込みました。同じIDならカード順も同じです。");
+    }
+
+    function makeWireMemo() {
+      const obj = {};
+      for (const c of COLORS) {
+        obj[c.id] = ["?", "?", "?", "?"];
+      }
+      return obj;
+    }
+
+    function makeCodeMemo() {
+      return Array.from({ length: CODE_LEN }, () => Object.fromEntries(DIGITS.map(d => [d, "?"])));
+    }
+
+    function drawSlots() {
+      state.slots = [];
+      for (let i = 0; i < SLOT_COUNT; i++) state.slots.push(state.deck.shift() || null);
+    }
+
+    function refillSlot(index) {
+      state.slots[index] = state.deck.shift() || null;
+    }
+
+    function useCard(index) {
+      if (!state || state.phase === "done" || state.phase === "fail") return;
+      const card = state.slots[index];
+      if (!card) return;
+      if (state.phase === "wire" && card.round !== "wire") return;
+      if (state.phase === "code" && card.round !== "code") return;
+
+      state.usedHints.push({ ...card, at: Date.now() });
+      state.score[card.round] += card.score;
+      refillSlot(index);
+      beep(card.round === "wire" ? 520 : 650, 0.045);
+      render();
+      toast(`${card.score}点ヒント：${card.text}`);
+    }
+
+    function logSystem(text) {
+      state.usedHints.push({ round: "system", score: 0, type: "SYS", text, id: `S${state.usedHints.length + 1}`, at: Date.now() });
+    }
+
+    function cutWire(colorId) {
+      if (!state || state.phase !== "wire") return;
+      if (state.cutLog.includes(colorId)) {
+        toast(`${jpColor(colorId)}の線はすでに切断済みです。`);
+        return;
+      }
+      const expected = state.answer.wire[state.cutIndex];
+      if (colorId === expected) {
+        state.cutLog.push(colorId);
+        state.cutIndex += 1;
+        autoMarkWire(colorId, state.cutIndex);
+        beep(760 + state.cutIndex * 80, 0.06);
+        toast(`${jpColor(colorId)}の線を切断。${state.cutIndex}/4 成功。`);
+        if (state.cutIndex >= 4) {
+          setTimeout(activateCodeRound, 280);
+        }
+      } else {
+        fail(`切断順ミス：${jpColor(colorId)}の線を切った瞬間、警告回路が作動しました。`);
+      }
+      render();
+    }
+
+    function autoMarkWire(colorId, pos) {
+      for (let i = 0; i < 4; i++) state.memoWire[colorId][i] = i === pos - 1 ? "○" : "×";
+      for (const c of COLORS) {
+        if (c.id !== colorId) state.memoWire[c.id][pos - 1] = "×";
+      }
+    }
+
+    function activateCodeRound() {
+      if (!state || state.phase !== "wire" || state.cutIndex < 4) return;
+      state.phase = "code";
+      state.deck = state.codeDeck.slice();
+      drawSlots();
+      logSystem("ワイヤー解除成功。ROUND 2：数字専用ヒントが有効になりました。");
+      beep(900, 0.08);
+      setTimeout(() => beep(1180, 0.08), 100);
+      render();
+      toast("ワイヤー解除成功。数字ダイヤルが起動しました。今度は数字ヒントを選んでください。");
+    }
+
+    function changeDial(index, delta) {
+      if (!state || state.phase !== "code") return;
+      let v = state.dials[index] + delta;
+      if (v < 1) v = 5;
+      if (v > 5) v = 1;
+      state.dials[index] = v;
+      beep(360 + v * 65, 0.035);
+      renderDials();
+      renderStats();
+    }
+
+    function submitCode() {
+      if (!state || state.phase !== "code") return;
+      if (state.dials.join("-") === state.answer.code.join("-")) {
+        success();
+      } else {
+        fail(`コード不一致：${state.dials.join("-")} を送信したため、ロックアウトしました。`);
+      }
+    }
+
+    function success() {
+      state.phase = "done";
+      state.finishedAt = Date.now();
+      clearInterval(timerHandle);
+      beep(880, 0.08);
+      setTimeout(() => beep(1170, 0.10), 110);
+      setTimeout(() => beep(1480, 0.12), 230);
+      updateBest();
+      render();
+      showResult(true);
+    }
+
+    function fail(reason) {
+      state.phase = "fail";
+      state.finishedAt = Date.now();
+      state.failReason = reason;
+      clearInterval(timerHandle);
+      const bomb = $("#bombPanel");
+      bomb.classList.remove("boom");
+      void bomb.offsetWidth;
+      bomb.classList.add("boom");
+      beep(160, 0.18, "sawtooth");
+      setTimeout(() => beep(96, 0.24, "sawtooth"), 160);
+      render();
+      showResult(false);
+    }
+
+    function totalScore() {
+      return state.score.wire + state.score.code;
+    }
+
+    function elapsedSeconds() {
+      const end = state.finishedAt || Date.now();
+      return Math.max(0, Math.floor((end - state.startedAt) / 1000));
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function rankFor(score) {
+      if (score <= 8) return "S+";
+      if (score <= 12) return "S";
+      if (score <= 16) return "A";
+      if (score <= 22) return "B";
+      return "C";
+    }
+
+    function bestKey() {
+      return `codewire2r.best.${state.id}`;
+    }
+
+    function getBest() {
+      try {
+        const raw = localStorage.getItem(bestKey());
+        return raw ? JSON.parse(raw) : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function updateBest() {
+      const current = { score: totalScore(), hints: state.usedHints.filter(h => h.score > 0).length, time: elapsedSeconds(), at: new Date().toISOString() };
+      const best = getBest();
+      const better = !best || current.score < best.score || (current.score === best.score && current.hints < best.hints) || (current.score === best.score && current.hints === best.hints && current.time < best.time);
+      if (!better) return;
+      try {
+        localStorage.setItem(bestKey(), JSON.stringify(current));
+      } catch (_) {
+        // localStorage が使えない環境でも、ゲーム本体はそのまま続行します。
+      }
+    }
+
+    function render() {
+      if (!state) return;
+      renderTop();
+      renderBombStatus();
+      renderWires();
+      renderDials();
+      renderCards();
+      renderLog();
+      renderMemos();
+      renderStats();
+      renderTime();
+    }
+
+    function renderTop() {
+      $("#missionId").textContent = state.id;
+      const pill = $("#phasePill");
+      pill.className = `phase-pill ${state.phase}`;
+      if (state.phase === "wire") pill.textContent = "ROUND 1: WIRE";
+      else if (state.phase === "code") pill.textContent = "ROUND 2: DIAL";
+      else if (state.phase === "done") pill.textContent = "解除成功";
+      else pill.textContent = "解除失敗";
+
+      const mainInstruction = $("#mainInstruction");
+      if (state.phase === "wire") mainInstruction.textContent = "ワイヤー専用ヒントを集め、正しい順に色線をタップして切断してください。";
+      else if (state.phase === "code") mainInstruction.textContent = "数字専用ヒントを集め、1〜5のダイヤルを合わせてOKを押してください。";
+      else if (state.phase === "done") mainInstruction.textContent = "解除成功。結果をコピーしてスコアを競えます。";
+      else mainInstruction.textContent = "解除失敗。答えを確認して、同じIDで再挑戦できます。";
+    }
+
+    function renderBombStatus() {
+      const ledRow = $("#ledRow");
+      const wireClass = state.phase === "wire" ? "on-wire" : (state.cutIndex >= 4 ? "on-good" : "");
+      const codeClass = state.phase === "code" ? "on-code" : (state.phase === "done" ? "on-good" : (state.phase === "fail" ? "on-bad" : ""));
+      ledRow.innerHTML = `
+        <span class="led ${wireClass}">WIRE</span>
+        <span class="led ${codeClass}">DIAL</span>
+        <span class="led ${state.phase === "fail" ? "on-bad" : state.phase === "done" ? "on-good" : ""}">CORE</span>
+      `;
+      $("#moduleScreen").textContent = state.phase === "wire" ? "WIRE" : state.phase === "code" ? "DIAL" : state.phase === "done" ? "SAFE" : "ALERT";
+      $("#roundWire").className = `round-card ${state.phase === "wire" ? "active" : state.cutIndex >= 4 ? "complete" : ""}`;
+      $("#roundCode").className = `round-card code ${state.phase === "code" ? "active" : state.phase === "done" ? "complete" : state.cutIndex >= 4 ? "" : "locked"}`;
+      $("#dialLock").classList.toggle("hidden", state.phase !== "wire");
+      $("#submitCodeBtn").disabled = state.phase !== "code";
+    }
+
+    function renderWires() {
+      const rack = $("#wireRack");
+      rack.innerHTML = COLORS.map(c => {
+        const cutAt = state.cutLog.indexOf(c.id);
+        const isCut = cutAt !== -1;
+        const disabled = state.phase !== "wire" || isCut;
+        return `
+          <button class="wire-button ${isCut ? "cut" : ""}" data-wire="${c.id}" style="--wire-color:${c.css}" ${disabled ? "disabled" : ""}>
+            <span class="wire-label">${c.jp}</span>
+            <span class="wire-core"><span class="wire-line"></span></span>
+            <span class="wire-tag">${isCut ? `CUT #${cutAt + 1}` : state.phase === "wire" ? "TAP TO CUT" : "LOCKED"}</span>
+          </button>
+        `;
+      }).join("");
+      rack.querySelectorAll("[data-wire]").forEach(btn => btn.addEventListener("click", () => cutWire(btn.dataset.wire)));
+
+      const progress = $("#cutProgress");
+      progress.innerHTML = Array.from({ length: 4 }, (_, i) => {
+        const color = state.cutLog[i];
+        const filled = Boolean(color);
+        const style = filled ? `style="--wire-color:${colorById(color).css}"` : "";
+        return `<span class="cut-dot ${filled ? "filled" : ""}" ${style}>${filled ? colorById(color).mark : i + 1}</span>`;
+      }).join("");
+    }
+
+    function renderDials() {
+      const rack = $("#dialRack");
+      const locked = state.phase !== "code";
+      rack.innerHTML = state.dials.map((v, i) => `
+        <div class="dial ${locked ? "disabled" : ""}">
+          <div class="dial-name">${slotLabel(i)} DIAL</div>
+          <button class="dial-face" data-dial-roll="${i}" ${locked ? "disabled" : ""}>${v}</button>
+          <div class="dial-controls">
+            <button data-dial-dec="${i}" ${locked ? "disabled" : ""}>−</button>
+            <button data-dial-inc="${i}" ${locked ? "disabled" : ""}>＋</button>
+          </div>
+        </div>
+      `).join("");
+      rack.querySelectorAll("[data-dial-dec]").forEach(btn => btn.addEventListener("click", () => changeDial(Number(btn.dataset.dialDec), -1)));
+      rack.querySelectorAll("[data-dial-inc]").forEach(btn => btn.addEventListener("click", () => changeDial(Number(btn.dataset.dialInc), 1)));
+      rack.querySelectorAll("[data-dial-roll]").forEach(btn => btn.addEventListener("click", () => changeDial(Number(btn.dataset.dialRoll), 1)));
+      $("#codeReadout").textContent = state.dials.join(" - ");
+    }
+
+    function renderCards() {
+      const isWire = state.phase === "wire";
+      const isCode = state.phase === "code";
+      $("#hintTitle").textContent = isWire ? "ワイヤーヒントカード" : isCode ? "数字ヒントカード" : "ヒントカード";
+      $("#hintSub").textContent = isWire
+        ? "ワイヤー解除中はワイヤーのヒントだけが出ます。4枚から選ぶと補充されます。"
+        : isCode
+          ? "数字ダイヤル用のヒントだけが出ます。1〜5の3桁コードを推理してください。"
+          : "ゲーム終了。再挑戦する場合は同じIDを使えます。";
+      const grid = $("#hintGrid");
+      grid.innerHTML = state.slots.map((card, i) => {
+        if (!card) return `<button class="hint-card" disabled><div class="card-logo">EMPTY</div><p class="card-help">山札切れ</p></button>`;
+        const locked = state.phase !== card.round;
+        const logo = card.round === "wire" ? "WIRE" : "DIAL";
+        return `
+          <button class="hint-card" data-card="${i}" ${locked ? "disabled" : ""}>
+            <div class="card-top">
+              <span class="card-score">${card.score}pt</span>
+              <span class="card-type">${card.type}</span>
+            </div>
+            <div class="card-logo">${logo}</div>
+            <p class="card-help">使用すると内容を公開。公開後、山札から1枚補充。</p>
+          </button>
+        `;
+      }).join("");
+      grid.querySelectorAll("[data-card]").forEach(btn => btn.addEventListener("click", () => useCard(Number(btn.dataset.card))));
+      $("#deckRemain").textContent = `山札: ${state.deck.length}枚`;
+    }
+
+    function renderLog() {
+      const log = $("#hintLog");
+      if (!state.usedHints.length) {
+        log.innerHTML = `<div class="empty-log">まだヒントは使っていません。</div>`;
+        return;
+      }
+      log.innerHTML = state.usedHints.slice().reverse().map(h => {
+        const sys = h.round === "system";
+        const round = h.round === "wire" ? "WIRE" : h.round === "code" ? "DIAL" : "SYSTEM";
+        return `
+          <div class="log-item">
+            <div class="log-badge ${sys ? "sys" : ""}">${sys ? "SYS" : `${h.score}pt`}</div>
+            <div class="log-body">
+              <b>${round} / ${h.type}</b>
+              <p>${escapeHtml(h.text)}</p>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderMemos() {
+      renderWireMemo();
+      renderCodeMemo();
+    }
+
+    function renderWireMemo() {
+      const el = $("#wireMemo");
+      const header = `<tr><th></th>${[1,2,3,4].map(n => `<th>${n}番目</th>`).join("")}</tr>`;
+      const rows = COLORS.map(c => `
+        <tr>
+          <th class="rowhead">${c.jp}</th>
+          ${state.memoWire[c.id].map((v, i) => `<td><button class="memo-cell ${memoClass(v)}" data-memo-wire="${c.id}" data-memo-pos="${i}">${v}</button></td>`).join("")}
+        </tr>
+      `).join("");
+      el.innerHTML = `<table class="memo-table">${header}${rows}</table>`;
+      el.querySelectorAll("[data-memo-wire]").forEach(btn => btn.addEventListener("click", () => {
+        const c = btn.dataset.memoWire;
+        const p = Number(btn.dataset.memoPos);
+        state.memoWire[c][p] = nextMemo(state.memoWire[c][p]);
+        renderWireMemo();
+      }));
+    }
+
+    function renderCodeMemo() {
+      const el = $("#codeMemo");
+      const header = `<tr><th></th>${[0,1,2].map(i => `<th>${slotLabel(i)}</th>`).join("")}</tr>`;
+      const rows = DIGITS.map(d => `
+        <tr>
+          <th class="rowhead">${d}</th>
+          ${[0,1,2].map(i => `<td><button class="memo-cell ${memoClass(state.memoCode[i][d])}" data-memo-code="${i}" data-memo-digit="${d}">${state.memoCode[i][d]}</button></td>`).join("")}
+        </tr>
+      `).join("");
+      el.innerHTML = `<table class="memo-table">${header}${rows}</table>`;
+      el.querySelectorAll("[data-memo-code]").forEach(btn => btn.addEventListener("click", () => {
+        const i = Number(btn.dataset.memoCode);
+        const d = btn.dataset.memoDigit;
+        state.memoCode[i][d] = nextMemo(state.memoCode[i][d]);
+        renderCodeMemo();
+      }));
+    }
+
+    function nextMemo(v) {
+      return v === "?" ? "×" : v === "×" ? "○" : "?";
+    }
+
+    function memoClass(v) {
+      return v === "×" ? "no" : v === "○" ? "yes" : "";
+    }
+
+    function renderStats() {
+      $("#scoreStat").textContent = `${totalScore()}pt`;
+      $("#wireScoreStat").textContent = `${state.score.wire}pt`;
+      $("#codeScoreStat").textContent = `${state.score.code}pt`;
+      const best = getBest();
+      $("#bestStat").textContent = best ? `${best.score}pt` : "--";
+    }
+
+    function renderTime() {
+      if (!state) return;
+      $("#timeStat").textContent = formatTime(elapsedSeconds());
+    }
+
+    function showResult(successFlag) {
+      const modal = $("#resultModal");
+      const score = totalScore();
+      const hintCount = state.usedHints.filter(h => h.score > 0).length;
+      const time = elapsedSeconds();
+      const answerWire = state.answer.wire.map(jpColor).join(" → ");
+      const answerCode = state.answer.code.join(" - ");
+      const title = successFlag ? "解除成功！" : "解除失敗";
+      const lead = successFlag
+        ? `評価 ${rankFor(score)}。低いヒント点で解除できました。`
+        : state.failReason;
+      modal.innerHTML = `
+        <div class="modal">
+          <h2>${title}</h2>
+          <p>${escapeHtml(lead)}</p>
+          <div class="result-grid">
+            <div class="result-card"><small>Problem ID</small><b>${state.id}</b></div>
+            <div class="result-card"><small>Total Score</small><b>${score}pt</b></div>
+            <div class="result-card"><small>Hints</small><b>${hintCount}枚</b></div>
+            <div class="result-card"><small>Time</small><b>${formatTime(time)}</b></div>
+          </div>
+          <div class="answer-reveal">
+            正解ワイヤー：${answerWire}<br>
+            正解ダイヤル：${answerCode}
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-primary" id="copyResultBtn">結果コピー</button>
+            <button class="btn btn-ghost" id="retrySameBtn">同じIDで再挑戦</button>
+            <button class="btn btn-ghost" id="closeResultBtn">閉じる</button>
+          </div>
+        </div>
+      `;
+      modal.classList.remove("hidden");
+      $("#copyResultBtn").addEventListener("click", copyResult);
+      $("#retrySameBtn").addEventListener("click", () => {
+        modal.classList.add("hidden");
+        newGame(state.id);
+      });
+      $("#closeResultBtn").addEventListener("click", () => modal.classList.add("hidden"));
+    }
+
+    function resultText() {
+      const successFlag = state.phase === "done";
+      const hintCount = state.usedHints.filter(h => h.score > 0).length;
+      return [
+        `CODEWIRE 2R ${successFlag ? "解除成功" : "解除失敗"}`,
+        `問題ID: ${state.id}`,
+        `スコア: ${totalScore()}pt`,
+        `ヒント: ${hintCount}枚`,
+        `時間: ${formatTime(elapsedSeconds())}`,
+        successFlag ? `評価: ${rankFor(totalScore())}` : `理由: ${state.failReason}`
+      ].join("\n");
+    }
+
+    async function copyResult() {
+      try {
+        await navigator.clipboard.writeText(resultText());
+        toast("結果をコピーしました。");
+      } catch (_) {
+        toast("コピーに失敗しました。ブラウザの権限を確認してください。");
+      }
+    }
+
+    async function copyId() {
+      try {
+        await navigator.clipboard.writeText(state.id);
+        toast("問題IDをコピーしました。");
+      } catch (_) {
+        toast("コピーに失敗しました。ブラウザの権限を確認してください。");
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[ch]));
+    }
+
+    function toast(message) {
+      const el = $("#toast");
+      el.textContent = message;
+      el.classList.add("show");
+      clearTimeout(toastHandle);
+      toastHandle = setTimeout(() => el.classList.remove("show"), 2600);
+    }
+
+    function beep(freq, duration, wave = "triangle") {
+      try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = wave;
+        osc.frequency.value = freq;
+        gain.gain.value = 0.035;
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (_) {}
+    }
+
+    $("#startBtn").addEventListener("click", () => newGame($("#idInput").value));
+    $("#idInput").addEventListener("keydown", (e) => { if (e.key === "Enter") newGame($("#idInput").value); });
+    $("#randomBtn").addEventListener("click", () => { $("#idInput").value = normalizeId(randomSuffix()); });
+    $("#demoBtn").addEventListener("click", () => { $("#idInput").value = "CW-DEMO42"; });
+    $("#copyIdBtn").addEventListener("click", copyId);
+    $("#newGameBtn").addEventListener("click", () => {
+      clearInterval(timerHandle);
+      $("#gameScreen").classList.add("hidden");
+      $("#startScreen").classList.remove("hidden");
+    });
+    $("#submitCodeBtn").addEventListener("click", submitCode);
+  </script>
+</body>
+</html>
