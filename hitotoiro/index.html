@@ -99,7 +99,7 @@
         .answer-chip { animation: chipDrop .36s cubic-bezier(.18,1.35,.36,1) both; }
         @keyframes chipDrop { from { opacity: 0; transform: translateY(-10px) scale(.75); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-        .invite-qr canvas, .invite-qr img { margin: 0 auto; border-radius: 22px; }
+        .invite-qr canvas, .invite-qr img { margin: 0 auto; border-radius: 0 !important; }
 
         .tiny-label { font-size: 10px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; color: #94a3b8; }
 
@@ -111,7 +111,7 @@
         }
         @keyframes toast { 0%,100% { opacity: 0; transform: translate(-50%, 10px); } 14%,82% { opacity: 1; transform: translate(-50%, 0); } }
 
-        .bottom-safe { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
+        .bottom-safe { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
         .room-pill { max-width: calc(100vw - 32px); }
     </style>
 </head>
@@ -129,7 +129,7 @@
 
         <div id="game-content" class="min-h-[430px]"></div>
 
-        <div id="bottom-actions" class="fixed bottom-5 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-40"></div>
+        <div id="bottom-actions" class="mt-10 mb-6"></div>
     </div>
 
     <script>
@@ -404,7 +404,8 @@
         function publishFinalScore() {
             if (myRole !== 'host') return;
             const matchCount = calcMatchCount();
-            db.ref('rooms/' + currentRoomId).update({ phase: 'result', finalMatchCount: matchCount });
+            const closenessScore = calcClosenessScore();
+            db.ref('rooms/' + currentRoomId).update({ phase: 'result', finalMatchCount: matchCount, finalClosenessScore: closenessScore });
         }
 
         function calcMatchCount() {
@@ -415,6 +416,22 @@
                 if (ans.length > 0 && ans.length === (gameState.members || []).length && ans.every(v => v === ans[0])) matchCount++;
             }
             return matchCount;
+        }
+
+        function calcClosenessScore() {
+            const totalRounds = gameState.roundCount || 5;
+            const memberCount = (gameState.members || []).length;
+            if (!memberCount || !totalRounds) return 0;
+            let total = 0;
+            for (let r = 0; r < totalRounds; r++) {
+                const ans = Object.values((gameState.answers && gameState.answers[r]) || {});
+                if (!ans.length) continue;
+                const counts = {};
+                ans.forEach(cid => { counts[cid] = (counts[cid] || 0) + 1; });
+                const maxSame = Math.max(...Object.values(counts));
+                total += maxSame / memberCount;
+            }
+            return Math.round((total / totalRounds) * 100);
         }
 
         function renderInviteQr() {
@@ -504,13 +521,9 @@
         function renderBottomActions() {
             const bottom = document.getElementById('bottom-actions');
             if (!bottom) return;
-            if (!currentRoomId || !myName || !gameState) { bottom.innerHTML = ''; return; }
+            if (!currentRoomId || !myName || !gameState || myRole !== 'host') { bottom.innerHTML = ''; return; }
             bottom.innerHTML = `
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="shareInvite()" class="bg-indigo-600 text-white py-3 rounded-2xl text-[12px] font-black shadow-lg active:scale-95 transition">招待する</button>
-                    <button onclick="leaveRoom()" class="bg-white/90 backdrop-blur border border-slate-200 text-slate-500 py-3 rounded-2xl text-[12px] font-black shadow-md active:scale-95 transition">この端末だけ退室</button>
-                    ${myRole === 'host' ? `<button onclick="forceResetRoom()" class="col-span-2 bg-white/90 backdrop-blur border border-red-200 text-red-500 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-md active:scale-95 transition">部屋をリセット（全員退室）</button>` : ''}
-                </div>`;
+                <button onclick="forceResetRoom()" class="text-[10px] text-red-300 hover:text-red-500 font-black tracking-widest underline underline-offset-4 active:scale-95 transition">部屋をリセット</button>`;
         }
 
         function render() {
@@ -680,29 +693,34 @@
             } else if (gameState.phase === 'result') {
                 const totalRounds = gameState.roundCount || 5;
                 const matchCount = gameState.finalMatchCount ?? calcMatchCount();
-                const score = Math.round((matchCount / totalRounds) * 100);
-                const rank = score === 100 ? { title: '奇跡の完全シンクロ！', sub: '同じ感覚がそろいすぎ。今日は伝説回です。', icon: '🌈' }
-                    : score >= 70 ? { title: 'かなり通じ合ってる！', sub: '違いもありつつ、同じ色を見る瞬間が多いチームです。', icon: '✨' }
-                    : score >= 40 ? { title: 'ちょうどいい個性派！', sub: 'そろう時とズレる時の差が、話のタネになります。', icon: '🎨' }
-                    : { title: 'バラバラが楽しいチーム！', sub: '同じお題でも見えている世界が違う。会話が広がります。', icon: '🧩' };
+                const closenessScore = gameState.finalClosenessScore ?? calcClosenessScore();
+                const completeScore = Math.round((matchCount / totalRounds) * 100);
+                const score = closenessScore;
+                const rank = matchCount === totalRounds ? { title: '奇跡の完全シンクロ！', sub: '全員一致が連発。今日は伝説回です。', icon: '🌈' }
+                    : score >= 85 ? { title: 'ほぼ同じ感覚！', sub: '全員一致ではない回も、かなり近い色に集まりました。', icon: '✨' }
+                    : score >= 65 ? { title: '通じ合いつつ個性あり！', sub: '近い感覚と違う視点の両方が見える、会話が広がるチームです。', icon: '🎨' }
+                    : { title: 'バラバラが楽しいチーム！', sub: '同じお題でも見えている世界が違う。違いを聞くほど盛り上がります。', icon: '🧩' };
                 container.innerHTML = `
                 <div class="fade-in text-center">
                     <section class="glass p-8 rounded-[2.5rem] overflow-hidden relative">
                         <div class="absolute inset-x-0 bottom-0 h-2 bg-slate-100"><div class="h-full bg-gradient-to-r from-indigo-500 via-pink-400 to-yellow-300" style="width:${score}%"></div></div>
                         <div class="text-6xl mb-2 pop-in">${rank.icon}</div>
-                        <p class="tiny-label text-indigo-400 mb-2">Group Sync Rate</p>
+                        <p class="tiny-label text-indigo-400 mb-2">みんなの近さスコア</p>
                         <h2 class="text-8xl font-black text-slate-800 mb-4 italic tracking-tighter"><span id="count-up-score">0</span><small class="text-3xl">%</small></h2>
                         <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-5">
                             <div class="text-2xl font-black text-slate-800 mb-2">${rank.title}</div>
                             <p class="text-xs text-slate-400 font-bold leading-relaxed">${rank.sub}</p>
                         </div>
-                        <div class="grid grid-cols-${Math.min(totalRounds, 7)} gap-1 mb-5">${Array.from({length: totalRounds}).map((_, i) => `<div class="h-3 rounded-full ${i < matchCount ? 'bg-green-400' : 'bg-slate-200'}"></div>`).join('')}</div>
-                        <p class="text-xs text-slate-400 font-black tracking-tight">${matchCount} / ${totalRounds} ラウンド一致</p>
+                        <div class="grid grid-cols-${Math.min(totalRounds, 7)} gap-1 mb-3">${Array.from({length: totalRounds}).map((_, i) => `<div class="h-3 rounded-full ${i < matchCount ? 'bg-green-400' : 'bg-slate-200'}"></div>`).join('')}</div>
+                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                            <p class="text-xs text-slate-500 font-black tracking-tight">完全シンクロ：${matchCount} / ${totalRounds} 回</p>
+                            <p class="text-[10px] text-slate-400 font-bold mt-1">近さスコアは、各ラウンドで一番多く集まった色の票数をもとに計算しています。</p>
+                        </div>
                     </section>
                     ${myRole === 'host' ? `<button onclick="resetToSetup()" class="mt-5 w-full bg-slate-900 text-white h-16 rounded-2xl font-black shadow-xl active:scale-95 transition">もう一度あそぶ</button>` : ``}
                 </div>`;
                 setTimeout(() => animateCountUp(score), 120);
-                if (score >= 70) setTimeout(() => celebrate(score === 100 ? 4 : 2), 250);
+                if (score >= 70 || matchCount > 0) setTimeout(() => celebrate(matchCount === totalRounds ? 4 : 2), 250);
             }
         }
 
