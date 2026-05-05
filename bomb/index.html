@@ -1566,6 +1566,7 @@
         phase: "wire",
         revealed: [],
         score: 0,
+        singleStreak: { wire: 0, code: 0 },
         cutIndex: 0,
         cutLog: [],
         dials: [1, 1, 1],
@@ -1597,24 +1598,55 @@
     }
 
     function activeDeck() { return State.phase === "wire" ? State.decks.wire : State.decks.code; }
+    function isSingleHint(card) {
+      return card && card.category !== "複合";
+    }
+
+    function shouldBlockSingleHint() {
+      return State && State.difficulty === "hard" && State.singleStreak[State.phase] >= 3;
+    }
+
     function refillSlots() {
       const deck = activeDeck();
       while (State.slots.length < OFFER_COUNT && deck.length) {
         const usedGroups = new Set(State.slots.filter(Boolean).map(cardGroupKey));
-        let pickIndex = deck.findIndex(card => !usedGroups.has(cardGroupKey(card)));
+        const blockSingle = shouldBlockSingleHint();
+
+        let pickIndex = deck.findIndex(card => {
+          if (blockSingle && isSingleHint(card)) return false;
+          return !usedGroups.has(cardGroupKey(card));
+        });
+
+        if (pickIndex === -1 && blockSingle) {
+          pickIndex = deck.findIndex(card => !isSingleHint(card));
+        }
+
+        if (pickIndex === -1) {
+          pickIndex = deck.findIndex(card => !usedGroups.has(cardGroupKey(card)));
+        }
+
         if (pickIndex === -1) pickIndex = 0;
+
         const [picked] = deck.splice(pickIndex, 1);
         State.slots.push(picked);
       }
       while (State.slots.length < OFFER_COUNT) State.slots.push(null);
     }
+
     function useCard(index) {
       if (!State || State.locked) return;
       const card = State.slots[index];
       if (!card) return;
+
       State.revealed.push(card);
       State.score += card.score;
       State.logs.push(card.text);
+
+      if (State.difficulty === "hard") {
+        if (isSingleHint(card)) State.singleStreak[card.round] += 1;
+        else State.singleStreak[card.round] = 0;
+      }
+
       State.slots.splice(index, 1);
       refillSlots();
       renderAll();
@@ -1785,7 +1817,7 @@
             </div>
             <p class="card-title">${escapeHtml(card.title)}</p>
             <div class="target-row">${targetBadgeMarkup(card.target, card.round)}</div>
-            <p class="card-text">ヒントをめくる</p>
+            <p class="card-text">${shouldBlockSingleHint() ? "単独3枚後のため、複合カード優先中" : "ヒントをめくる"}</p>
             <div class="btn btn-small btn-primary choose-card">このカードを見る</div>
           </button>`;
       }).join("");
