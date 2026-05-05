@@ -8,21 +8,16 @@
     :root {
       --bg0: #070914;
       --bg1: #101526;
-      --bg2: #171f35;
       --panel: rgba(17, 25, 45, 0.86);
-      --panel-strong: rgba(23, 34, 61, 0.96);
       --line: rgba(148, 163, 184, 0.22);
       --line-strong: rgba(148, 163, 184, 0.38);
       --text: #f8fafc;
       --muted: #a9b4c7;
       --dim: #6f7d96;
       --accent: #66e3ff;
-      --accent2: #b18cff;
       --good: #5cf2a2;
       --warn: #ffd166;
       --bad: #ff637d;
-      --card: #f8f1df;
-      --cardText: #1f2937;
       --shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
       --radius: 22px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -42,7 +37,6 @@
         radial-gradient(circle at 55% 100%, rgba(92, 242, 162, 0.10), transparent 45%),
         linear-gradient(145deg, #060816 0%, #0d1324 45%, #08101b 100%);
     }
-
     body::before {
       content: "";
       position: fixed;
@@ -55,7 +49,7 @@
       mask-image: linear-gradient(to bottom, black, transparent 88%);
     }
 
-    button, input, select, textarea { font: inherit; }
+    button, input, select { font: inherit; }
     button {
       border: 0;
       color: inherit;
@@ -78,7 +72,6 @@
       align-items: stretch;
       min-height: calc(100vh - 36px);
     }
-
     .hero-card, .panel {
       border: 1px solid var(--line);
       background: var(--panel);
@@ -86,13 +79,11 @@
       backdrop-filter: blur(14px);
       border-radius: var(--radius);
     }
-
     .hero-card {
       overflow: hidden;
       position: relative;
       padding: 34px;
     }
-
     .hero-card::after {
       content: "";
       position: absolute;
@@ -101,7 +92,6 @@
       background: radial-gradient(circle, rgba(102, 227, 255, 0.16), transparent 62%);
       pointer-events: none;
     }
-
     .kicker {
       display: inline-flex;
       align-items: center;
@@ -116,14 +106,12 @@
       border-radius: 999px;
       background: rgba(102, 227, 255, 0.08);
     }
-
     h1 {
       margin: 20px 0 12px;
       line-height: 1.02;
       font-size: clamp(38px, 6vw, 76px);
       letter-spacing: -0.06em;
     }
-
     .subtitle {
       max-width: 720px;
       color: #dbe5f6;
@@ -131,7 +119,6 @@
       line-height: 1.72;
       margin: 0;
     }
-
     .notice {
       margin-top: 18px;
       color: var(--muted);
@@ -139,28 +126,20 @@
       font-size: 14px;
       max-width: 760px;
     }
-
     .start-box {
       padding: 24px;
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
-
-    .input-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
     .field-label {
       display: block;
       color: #dce7f7;
       font-weight: 800;
       margin-bottom: 8px;
     }
-
-    input[type="text"] {
+    .input-row { display: flex; gap: 10px; align-items: center; }
+    input[type="text"], select {
       width: 100%;
       padding: 15px 14px;
       color: var(--text);
@@ -170,9 +149,8 @@
       background: rgba(2, 6, 23, 0.52);
       font-family: var(--mono);
       letter-spacing: 0.08em;
-      text-transform: uppercase;
     }
-
+    input[type="text"] { text-transform: uppercase; }
     input[type="text"]:focus, select:focus {
       border-color: rgba(102, 227, 255, 0.78);
       box-shadow: 0 0 0 4px rgba(102, 227, 255, 0.10);
@@ -192,8 +170,8 @@
       font-weight: 900;
       transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
     }
-    .btn:hover { transform: translateY(-1px); border-color: rgba(102, 227, 255, 0.50); }
-    .btn:active { transform: translateY(0); }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); border-color: rgba(102, 227, 255, 0.50); }
+    .btn:active:not(:disabled) { transform: translateY(0); }
     .btn-primary {
       color: #06111a;
       background: linear-gradient(135deg, #69e6ff 0%, #7cf6b8 100%);
@@ -203,22 +181,11 @@
       background: linear-gradient(135deg, #ff637d 0%, #ffb86b 100%);
       color: #21070b;
     }
-    .btn-small {
-      min-height: 34px;
-      padding: 8px 10px;
-      border-radius: 11px;
-      font-size: 13px;
-    }
+    .btn-small { min-height: 34px; padding: 8px 10px; border-radius: 11px; font-size: 13px; }
     .btn-ghost { background: rgba(255,255,255,0.06); box-shadow: none; }
-
     .start-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    .rules {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      display: grid;
-      gap: 12px;
-    }
+
+    .rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
     .rules li {
       display: grid;
       grid-template-columns: 34px 1fr;
@@ -248,12 +215,7 @@
       justify-content: space-between;
       margin-bottom: 14px;
     }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
     .brand-mark {
       width: 48px;
       height: 48px;
@@ -264,6 +226,7 @@
       border: 1px solid var(--line);
       box-shadow: 0 0 30px rgba(102, 227, 255, 0.12);
       font-size: 25px;
+      flex: 0 0 auto;
     }
     .brand h2 { margin: 0; font-size: 20px; letter-spacing: -0.02em; }
     .brand p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
@@ -299,17 +262,16 @@
       text-overflow: ellipsis;
     }
     .score-value { color: var(--warn); }
-    .par-value { color: var(--accent); }
+    .phase-value { color: var(--accent); }
 
     .game-layout {
       display: grid;
-      grid-template-columns: 0.95fr 1.05fr;
+      grid-template-columns: minmax(0, 0.98fr) minmax(320px, 0.82fr);
       gap: 14px;
+      align-items: start;
     }
-
-    .panel {
-      padding: 18px;
-    }
+    .play-col, .card-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+    .panel { padding: 18px; }
     .panel-title {
       display: flex;
       align-items: center;
@@ -319,15 +281,9 @@
       font-size: 16px;
       letter-spacing: -0.01em;
     }
-    .panel-title small {
-      color: var(--muted);
-      font-weight: 600;
-    }
+    .panel-title small { color: var(--muted); font-weight: 600; }
 
-    .bomb-panel {
-      position: relative;
-      overflow: hidden;
-    }
+    .bomb-panel { position: relative; overflow: hidden; }
     .bomb-panel::before {
       content: "";
       position: absolute;
@@ -357,7 +313,9 @@
     }
     .leds { display: flex; gap: 7px; }
     .led {
-      width: 12px; height: 12px; border-radius: 999px;
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
       background: var(--bad);
       box-shadow: 0 0 16px var(--bad);
       animation: blink 1.1s infinite ease-in-out;
@@ -375,18 +333,56 @@
       border-radius: 999px;
       padding: 6px 9px;
       background: rgba(2,6,23,0.42);
+      white-space: nowrap;
     }
 
-    .wire-box {
+    .round-strip {
       display: grid;
-      gap: 12px;
-      margin: 14px 0;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
     }
+    .round-lamp {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      background: rgba(2, 6, 23, 0.34);
+      color: var(--muted);
+      padding: 8px 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.07em;
+      font-weight: 900;
+      min-width: 0;
+    }
+    .round-lamp::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: #465166;
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+    }
+    .round-lamp.active { color: #dffbff; border-color: rgba(102, 227, 255, 0.34); }
+    .round-lamp.active::before {
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(102, 227, 255, 0.72);
+      animation: lampPulse 1s infinite ease-in-out;
+    }
+    .round-lamp.done { color: #a7f3d0; border-color: rgba(92,242,162,0.26); }
+    .round-lamp.done::before { background: var(--good); box-shadow: 0 0 10px rgba(92,242,162,0.35); opacity: .45; }
+    @keyframes lampPulse { 0%, 100% { opacity: .45; transform: scale(.86); } 45% { opacity: 1; transform: scale(1.12); } }
+
+    .wire-box { display: grid; gap: 12px; margin: 14px 0; }
     .wire-line {
       display: grid;
       grid-template-columns: 62px 1fr 62px;
       align-items: center;
       gap: 12px;
+      position: relative;
     }
     .terminal {
       height: 30px;
@@ -395,6 +391,13 @@
       border: 1px solid rgba(255,255,255,0.15);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
     }
+    .wire-action {
+      padding: 0;
+      background: transparent;
+      display: block;
+      width: 100%;
+      border-radius: 999px;
+    }
     .wire {
       height: 16px;
       border-radius: 999px;
@@ -402,7 +405,9 @@
       box-shadow: inset 0 3px 4px rgba(255,255,255,0.20), inset 0 -3px 5px rgba(0,0,0,0.28), 0 7px 18px rgba(0,0,0,0.20);
       position: relative;
       overflow: hidden;
+      transition: transform .12s ease, filter .12s ease, opacity .12s ease;
     }
+    .wire-action:hover:not(:disabled) .wire { transform: scaleY(1.12); filter: brightness(1.08); }
     .wire::after {
       content: "";
       position: absolute;
@@ -414,20 +419,56 @@
     .blue-wire { background: linear-gradient(90deg, #0b3b83, #3b8dff, #0b3b83); }
     .yellow-wire { background: linear-gradient(90deg, #8a6110, #ffd166, #8a6110); }
     .green-wire { background: linear-gradient(90deg, #0f6b42, #5cf2a2, #0f6b42); }
+    .wire-line.cut .wire { opacity: .36; filter: saturate(.25); }
+    .wire-line.cut::after {
+      content: "CUT";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(-12deg);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      color: #06111a;
+      background: #f8fafc;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-weight: 1000;
+      box-shadow: 0 10px 26px rgba(0,0,0,.28);
+      pointer-events: none;
+    }
+    .wire-line.flash .wire { animation: wireFlash .5s ease; }
+    @keyframes wireFlash { 0% { box-shadow: 0 0 0 rgba(255,255,255,0); } 35% { box-shadow: 0 0 0 8px rgba(102,227,255,.18), 0 0 34px rgba(102,227,255,.55); } 100% { box-shadow: 0 0 0 rgba(255,255,255,0); } }
 
-    .code-display {
+    .code-control-row {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      grid-template-columns: minmax(0, 1fr) minmax(148px, 180px);
+      align-items: stretch;
+      gap: 12px;
       margin-top: 14px;
     }
-    .digit-slot {
-      height: 64px;
+    .code-display {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      min-width: 0;
+    }
+    .dial-unit {
+      border: 1px solid rgba(102,227,255,0.16);
       border-radius: 14px;
+      background: rgba(2,6,23,.42);
+      padding: 8px;
+      min-width: 0;
+      text-align: center;
+    }
+    .dial-label { font-family: var(--mono); color: var(--muted); font-size: 11px; margin-bottom: 5px; }
+    .digit-slot {
+      height: 44px;
+      border-radius: 10px;
       display: grid;
       place-items: center;
       font-family: var(--mono);
-      font-size: 32px;
+      font-size: 24px;
       font-weight: 900;
       letter-spacing: 0.08em;
       background: #030712;
@@ -435,6 +476,36 @@
       box-shadow: inset 0 0 25px rgba(102, 227, 255, 0.06);
       color: rgba(102, 227, 255, 0.9);
       text-shadow: 0 0 18px rgba(102, 227, 255, 0.30);
+      margin: 5px 0;
+    }
+    .dial-controls { display: flex; justify-content: center; gap: 6px; }
+    .dial-btn {
+      width: 30px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+      font-family: var(--mono);
+      font-weight: 1000;
+    }
+    .dial-btn:hover:not(:disabled) { border-color: rgba(102, 227, 255, 0.50); }
+    .code-submit-box {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid rgba(255,209,102,0.22);
+      background: rgba(255,209,102,0.06);
+      border-radius: 14px;
+      padding: 10px;
+      min-width: 0;
+    }
+    .code-submit-box .btn { width: 100%; }
+    .code-note {
+      color: #fde68a;
+      font-size: 12px;
+      line-height: 1.45;
+      text-align: center;
     }
 
     .logbox {
@@ -452,30 +523,26 @@
     .logbox p { margin: 0 0 6px; }
     .logbox p:last-child { margin-bottom: 0; }
 
-    .offer-grid {
+    .hint-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: 1fr;
       gap: 12px;
-      margin: 12px 0 14px;
+      margin-top: 12px;
     }
-    .hint-back, .hint-card {
-      min-height: 164px;
+    .hint-card {
+      min-height: 142px;
       border-radius: 18px;
       padding: 14px;
       position: relative;
       overflow: hidden;
       box-shadow: 0 16px 30px rgba(0,0,0,0.22);
-    }
-    .hint-back {
       border: 1px solid rgba(102, 227, 255, 0.28);
       background:
         radial-gradient(circle at 15% 10%, rgba(102, 227, 255, 0.22), transparent 30%),
         linear-gradient(135deg, #192743, #0c1324 72%);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      text-align: left;
     }
-    .hint-back::before {
+    .hint-card::before {
       content: "";
       position: absolute;
       inset: 10px;
@@ -483,13 +550,8 @@
       border-radius: 14px;
       pointer-events: none;
     }
-    .hint-card {
-      border: 1px solid rgba(15, 23, 42, 0.22);
-      background:
-        radial-gradient(circle at 110% -20%, rgba(255, 209, 102, 0.28), transparent 40%),
-        linear-gradient(145deg, #fff8e8, #eadfc3);
-      color: var(--cardText);
-    }
+    .hint-card:hover:not(:disabled) { transform: translateY(-1px); border-color: rgba(102, 227, 255, 0.48); }
+    .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; position: relative; z-index: 1; }
     .score-badge {
       display: inline-flex;
       align-items: center;
@@ -504,8 +566,6 @@
       border: 1px solid rgba(255, 209, 102, 0.42);
       color: #ffdd7b;
     }
-    .hint-card .score-badge, .mini-card .score-badge { color: #6d3e00; background: #ffe199; border-color: #dbab3b; }
-    .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
     .category-pill {
       display: inline-flex;
       align-items: center;
@@ -518,63 +578,42 @@
       font-size: 12px;
       color: #dff6ff;
     }
-    .hint-card .category-pill, .mini-card .category-pill { color: #263244; border-color: rgba(31,41,55,0.20); background: rgba(255,255,255,0.48); }
-    .card-title {
-      font-weight: 1000;
-      letter-spacing: -0.02em;
-      font-size: 16px;
-      margin: 0 0 8px;
-    }
-    .card-text {
-      font-size: 15px;
-      line-height: 1.6;
-      margin: 0;
-      font-weight: 750;
-    }
-    .card-code {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: rgba(255,255,255,0.48);
-      letter-spacing: 0.14em;
-    }
-    .hint-card .card-code { color: rgba(31,41,55,0.55); }
-    .choose-card {
-      width: 100%;
-      margin-top: 12px;
-    }
-    .empty-offer {
-      border: 1px dashed var(--line-strong);
-      color: var(--muted);
-      border-radius: 18px;
-      min-height: 160px;
-      display: grid;
-      place-items: center;
-      text-align: center;
-      padding: 18px;
-      grid-column: 1 / -1;
-      background: rgba(255,255,255,0.04);
-      line-height: 1.6;
-    }
+    .card-title { position: relative; z-index: 1; font-weight: 1000; letter-spacing: -0.02em; font-size: 16px; margin: 0 0 8px; }
+    .card-text { position: relative; z-index: 1; font-size: 13px; line-height: 1.55; margin: 0; color: #c8d6e8; font-weight: 700; }
+    .card-code { position: relative; z-index: 1; font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.48); letter-spacing: 0.14em; margin-top: 10px; }
+    .choose-card { position: relative; z-index: 1; width: 100%; margin-top: 12px; }
 
     .revealed-list {
       display: grid;
       gap: 10px;
-      max-height: 420px;
+      max-height: 340px;
       overflow: auto;
       padding-right: 3px;
     }
     .mini-card {
       border: 1px solid rgba(31, 41, 55, 0.18);
       background: linear-gradient(145deg, #fff9eb, #eadfc4);
-      color: var(--cardText);
+      color: #1f2937;
       border-radius: 16px;
       padding: 12px;
     }
-    .mini-card .card-title { font-size: 13px; margin-bottom: 5px; }
-    .mini-card .card-text { font-size: 14px; }
-    .mini-card .card-top { margin-bottom: 7px; }
+    .mini-card .category-pill { color: #263244; border-color: rgba(31,41,55,0.20); background: rgba(255,255,255,0.48); }
+    .mini-card .score-badge { color: #6d3e00; background: #ffe199; border-color: #dbab3b; }
+    .mini-card .card-title { font-size: 13px; margin-bottom: 5px; color: #1f2937; }
+    .mini-card .card-text { font-size: 14px; color: #1f2937; }
+    .empty-card {
+      border: 1px dashed var(--line-strong);
+      color: var(--muted);
+      border-radius: 18px;
+      min-height: 112px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 18px;
+      background: rgba(255,255,255,0.04);
+      line-height: 1.6;
+    }
 
-    .memo-panel { margin-top: 14px; }
     .tabs { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
     .tab {
       padding: 9px 12px;
@@ -586,14 +625,31 @@
     }
     .tab.active { color: #06111a; background: linear-gradient(135deg, #69e6ff, #7cf6b8); }
     .memo-help { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 0 0 10px; }
-    .memo-grid-wrap { overflow: auto; border-radius: 16px; border: 1px solid var(--line); background: rgba(2, 6, 23, 0.28); }
+    .memo-grid-wrap {
+      overflow: auto;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(2, 6, 23, 0.28);
+    }
     table.memo-grid { width: 100%; border-collapse: collapse; min-width: 420px; }
-    .memo-grid th, .memo-grid td { border-bottom: 1px solid rgba(148,163,184,0.14); border-right: 1px solid rgba(148,163,184,0.12); text-align: center; padding: 8px; }
-    .memo-grid th { color: #dce7f7; font-size: 12px; background: rgba(255,255,255,0.055); position: sticky; top: 0; }
+    .memo-grid th, .memo-grid td {
+      border-bottom: 1px solid rgba(148,163,184,0.14);
+      border-right: 1px solid rgba(148,163,184,0.12);
+      text-align: center;
+      padding: 8px;
+    }
+    .memo-grid th {
+      color: #dce7f7;
+      font-size: 12px;
+      background: rgba(255,255,255,0.055);
+      position: sticky;
+      top: 0;
+    }
     .memo-grid th:first-child { left: 0; z-index: 2; }
     .memo-grid td:first-child, .memo-grid th:first-child { font-weight: 900; text-align: left; min-width: 92px; }
     .memo-btn {
-      width: 36px; height: 32px;
+      width: 36px;
+      height: 32px;
       border-radius: 10px;
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.12);
@@ -602,38 +658,8 @@
       font-weight: 1000;
     }
     .memo-btn.no { color: #ff9aad; border-color: rgba(255,99,125,0.34); background: rgba(255,99,125,0.10); }
+    .memo-btn.maybe { color: #fde68a; border-color: rgba(255,209,102,0.42); background: rgba(255,209,102,0.12); }
     .memo-btn.yes { color: #7cf6b8; border-color: rgba(92,242,162,0.35); background: rgba(92,242,162,0.10); }
-
-    .answer-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-    .answer-section {
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: rgba(255,255,255,0.04);
-      padding: 12px;
-    }
-    .answer-section h4 { margin: 0 0 10px; }
-    .select-row {
-      display: grid;
-      gap: 8px;
-      grid-template-columns: repeat(4, 1fr);
-    }
-    .select-row.code { grid-template-columns: repeat(3, 1fr); }
-    .select-group label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 6px; }
-    select {
-      width: 100%;
-      min-height: 44px;
-      border-radius: 12px;
-      border: 1px solid var(--line-strong);
-      background: rgba(2, 6, 23, 0.54);
-      color: var(--text);
-      padding: 0 10px;
-      outline: none;
-    }
-    .answer-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 
     .toast {
       position: fixed;
@@ -704,6 +730,38 @@
     }
     .modal-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
 
+    .fx-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      z-index: 75;
+      opacity: 0;
+      transition: opacity .12s ease;
+    }
+    .fx-overlay.show { opacity: 1; }
+    .fx-card {
+      position: relative;
+      padding: 22px 28px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: var(--shadow);
+      text-align: center;
+      min-width: min(80vw,420px);
+      backdrop-filter: blur(8px);
+      animation: popIn .85s ease both;
+    }
+    .fx-card strong { display: block; font-size: 38px; letter-spacing: .06em; }
+    .fx-card span { display: block; margin-top: 8px; font-family: var(--mono); letter-spacing: .16em; color: #e5eefb; }
+    .fx-overlay.cut .fx-card { background: linear-gradient(145deg,rgba(6,34,54,.94),rgba(12,68,108,.9)); color:#dff6ff; }
+    .fx-overlay.phase .fx-card { background: linear-gradient(145deg,rgba(57,39,4,.96),rgba(127,88,8,.92)); color:#fff1bf; }
+    .fx-overlay.success .fx-card { background: linear-gradient(145deg,rgba(3,52,28,.96),rgba(18,112,60,.92)); color:#e0ffea; }
+    .fx-overlay.fail .fx-card { background: linear-gradient(145deg,rgba(75,8,24,.96),rgba(149,19,48,.92)); color:#ffe6ec; }
+    @keyframes popIn { 0% { transform: scale(.7); opacity: 0; } 18% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+    .shake { animation: shake .46s ease-in-out 2; }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-9px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(5px); } }
+
     .footer-note {
       margin: 18px 0 0;
       color: var(--dim);
@@ -715,189 +773,48 @@
     @media (max-width: 980px) {
       .hero, .game-layout { grid-template-columns: 1fr; }
       .status-grid { grid-template-columns: repeat(3, 1fr); }
-      .offer-grid { grid-template-columns: 1fr; }
-      .hint-back, .hint-card { min-height: 138px; }
+      .card-col { order: 2; }
+      .hint-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .revealed-list { max-height: 280px; }
     }
-    @media (max-width: 640px) {
+    @media (max-width: 720px) {
       .app { width: min(100% - 18px, 1180px); padding-top: 9px; }
       .hero-card, .start-box, .panel { padding: 16px; }
       .input-row { flex-direction: column; align-items: stretch; }
-      .start-actions, .game-header { flex-direction: column; align-items: stretch; }
-      .status-grid { grid-template-columns: repeat(2, 1fr); }
+      .game-header { flex-direction: column; align-items: stretch; }
+      .game-header .start-actions { width: 100%; }
+      .game-header .start-actions .btn { flex: 1 1 auto; }
+      .status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .status-value { font-size: 15px; }
-      .select-row, .select-row.code { grid-template-columns: 1fr; }
-      .result-stats { grid-template-columns: repeat(2, 1fr); }
+      .round-strip { grid-template-columns: 1fr; }
       .wire-line { grid-template-columns: 44px 1fr 44px; gap: 8px; }
       .terminal { height: 26px; }
+      .hint-grid { grid-template-columns: 1fr; }
+      .result-stats { grid-template-columns: repeat(2, 1fr); }
+      table.memo-grid { min-width: 360px; }
+      .memo-grid th, .memo-grid td { padding: 6px; }
     }
-  
-    /* --- interactive remake overrides --- */
-    .status-grid { grid-template-columns: repeat(6, minmax(90px,1fr)); }
-    .bomb-panel .panel-title{align-items:flex-end}
-    .bomb-core{padding:18px 18px 16px;}
-    .bomb-phase{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;padding:6px 10px;border-radius:999px;border:1px solid rgba(102,227,255,.24);background:rgba(102,227,255,.08);color:#dff6ff}
-    .bomb-phase.code{border-color:rgba(255,209,102,.34);background:rgba(255,209,102,.08);color:#ffe9ab}
-    .wire-box{margin:14px 0 12px;}
-    .wire-line{position:relative}
-    .wire-action{display:block;width:100%;padding:0;background:transparent;border:0}
-    .wire-action:disabled{opacity:1}
-    .wire{cursor:pointer;transition:transform .12s ease, filter .12s ease, opacity .12s ease, box-shadow .12s ease;}
-    .wire:hover{transform:scaleY(1.06);filter:brightness(1.06)}
-    .wire-action:active .wire{transform:scaleY(1)}
-    .wire-line.cut .wire{opacity:.38;filter:saturate(.2)}
-    .wire-line.cut::after{content:"CUT";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-12deg);font-family:var(--mono);font-size:12px;font-weight:1000;letter-spacing:.14em;color:#06111a;background:#f8fafc;padding:5px 12px;border-radius:999px;box-shadow:0 10px 26px rgba(0,0,0,.22)}
-    .wire-line.current .wire{box-shadow: inset 0 3px 4px rgba(255,255,255,0.20), inset 0 -3px 5px rgba(0,0,0,0.28), 0 0 0 3px rgba(255,255,255,.06), 0 0 22px rgba(102,227,255,.20)}
-    .wire-line.flash .wire{animation:wireFlash .5s ease}
-    @keyframes wireFlash{0%{box-shadow:0 0 0 rgba(255,255,255,0)}35%{box-shadow:0 0 0 8px rgba(102,227,255,.18),0 0 34px rgba(102,227,255,.55)}100%{box-shadow:0 0 0 rgba(255,255,255,0)}}
-    .code-display{grid-template-columns:repeat(3,72px);justify-content:start;gap:12px;align-items:start}
-    .dial-unit{border:1px solid rgba(102,227,255,.16);border-radius:14px;background:rgba(2,6,23,.42);padding:8px;text-align:center}
-    .dial-unit .digit-slot{height:44px;font-size:24px;border-radius:10px;margin:6px 0}
-    .dial-top{font-size:11px;color:var(--muted);font-family:var(--mono)}
-    .dial-controls{display:flex;justify-content:center;gap:6px}
-    .dial-btn{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);font-family:var(--mono);font-weight:1000}
-    .dial-btn:hover{border-color:rgba(102,227,255,.34)}
-    .code-submit{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
-    .code-submit .hint{font-size:12px;color:var(--muted)}
-    .offer-grid{grid-template-columns:1fr;}
-    .hint-back,.hint-card{min-height:146px}
-    .hint-back{display:none}
-    .hint-card{background:linear-gradient(145deg, #15213a, #0b1120 75%);color:#eef6ff;border:1px solid rgba(102,227,255,.18)}
-    .hint-card .score-badge{color:#ffdd7b;background:rgba(255,209,102,.14);border-color:rgba(255,209,102,.34)}
-    .hint-card .category-pill{color:#dff6ff;border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.06)}
-    .hint-card .card-code{color:rgba(219,229,246,.42)}
-    .revealed-list{max-height:500px}
-    .mini-card{background:linear-gradient(145deg,#fff8e8,#eadfc4)}
-    .empty-offer{min-height:120px}
-    .control-note{color:var(--muted);font-size:12px;line-height:1.55;margin:0 0 10px}
-    .fx-overlay{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:75;opacity:0;transition:opacity .12s ease}
-    .fx-overlay.show{opacity:1}
-    .fx-backdrop{position:absolute;inset:0;background:radial-gradient(circle at center, rgba(255,255,255,.05), rgba(0,0,0,.0) 40%)}
-    .fx-card{position:relative;padding:22px 28px;border-radius:24px;border:1px solid rgba(255,255,255,.18);box-shadow:var(--shadow);text-align:center;min-width:min(80vw,420px);backdrop-filter:blur(8px);animation:popIn .85s ease both}
-    .fx-card strong{display:block;font-size:38px;letter-spacing:.06em}
-    .fx-card span{display:block;margin-top:8px;font-family:var(--mono);letter-spacing:.16em;color:#e5eefb}
-    .fx-overlay.cut .fx-card{background:linear-gradient(145deg,rgba(6,34,54,.94),rgba(12,68,108,.9));color:#dff6ff}
-    .fx-overlay.phase .fx-card{background:linear-gradient(145deg,rgba(57,39,4,.96),rgba(127,88,8,.92));color:#fff1bf}
-    .fx-overlay.success .fx-card{background:linear-gradient(145deg,rgba(3,52,28,.96),rgba(18,112,60,.92));color:#e0ffea}
-    .fx-overlay.fail .fx-card{background:linear-gradient(145deg,rgba(75,8,24,.96),rgba(149,19,48,.92));color:#ffe6ec}
-    @keyframes popIn{0%{transform:scale(.7);opacity:0}18%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
-    .shake{animation:shake .46s ease-in-out 2}
-    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(7px)}60%{transform:translateX(-6px)}80%{transform:translateX(5px)}}
-    @media (max-width:980px){ .offer-grid{grid-template-columns:1fr;} .code-display{grid-template-columns:repeat(3,72px)} }
-    @media (max-width:640px){ .status-grid{grid-template-columns:repeat(2,1fr)} .code-display{grid-template-columns:repeat(3,1fr)} .dial-unit{padding:6px} .dial-unit .digit-slot{font-size:22px} }
-
-  
-    .difficulty-select {
-      width: 100%;
-      min-height: 44px;
-      border-radius: 14px;
-      border: 1px solid var(--line-strong);
-      background: rgba(2, 6, 23, 0.52);
-      color: var(--text);
-      padding: 0 12px;
-      outline: none;
-      font-weight: 800;
+    @media (max-width: 560px) {
+      .code-control-row { grid-template-columns: 1fr; }
+      .code-submit-box { flex-direction: row; align-items: center; justify-content: space-between; }
+      .code-submit-box .btn { width: auto; min-width: 150px; }
+      .code-note { text-align: left; }
+      .brand h2 { font-size: 18px; }
+      .brand p { font-size: 12px; }
+      .status-grid { gap: 8px; }
+      .status { padding: 9px 10px; }
+      .bomb-label { white-space: normal; }
     }
-    .phase-row, .number-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 8px;
+    @media (max-width: 420px) {
+      .app { width: min(100% - 12px, 1180px); }
+      .code-display { gap: 7px; }
+      .dial-unit { padding: 6px; }
+      .dial-btn { width: 26px; }
+      .digit-slot { font-size: 22px; }
+      .code-submit-box { flex-direction: column; align-items: stretch; }
+      .code-submit-box .btn { width: 100%; }
+      .code-note { text-align: center; }
     }
-    .number-head { margin-top: 16px; margin-bottom: 10px; }
-    .phase-module {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 1000;
-      letter-spacing: 0.13em;
-      color: #d9e9f8;
-      border: 1px solid rgba(255,255,255,0.13);
-      border-radius: 999px;
-      padding: 7px 10px;
-      background: rgba(2,6,23,0.40);
-      transition: opacity .18s ease, border-color .18s ease, box-shadow .18s ease;
-    }
-    .phase-lamp {
-      width: 11px;
-      height: 11px;
-      border-radius: 50%;
-      background: #334155;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
-    }
-    .phase-module.active {
-      border-color: rgba(102, 227, 255, 0.40);
-      box-shadow: 0 0 20px rgba(102,227,255,.08);
-    }
-    .phase-module.active .phase-lamp {
-      background: var(--accent);
-      box-shadow: 0 0 16px var(--accent);
-      animation: blink 1.1s infinite ease-in-out;
-    }
-    .phase-module.complete {
-      opacity: .55;
-      border-color: rgba(92,242,162,.20);
-    }
-    .phase-module.complete .phase-lamp {
-      background: #334155;
-      box-shadow: none;
-      animation: none;
-    }
-    .phase-module.dormant { opacity: .62; }
-    .phase-module.dormant .phase-lamp { background: #1e293b; box-shadow: none; animation: none; }
-    .phase-module.failed { border-color: rgba(255,99,125,.36); color: #ffdbe3; }
-    .phase-module.failed .phase-lamp { background: var(--bad); box-shadow: 0 0 16px var(--bad); animation: blink .65s infinite ease-in-out; }
-    .number-control-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .number-control-row .code-display { margin-top: 0; flex: 0 1 auto; }
-    .number-control-row .code-submit {
-      margin-top: 0;
-      flex-direction: column;
-      align-items: flex-start;
-      max-width: 180px;
-    }
-    .number-control-row .code-submit .hint { line-height: 1.45; }
-    .hint-card.locked-card {
-      min-height: 146px;
-      background:
-        radial-gradient(circle at 16% 12%, rgba(102, 227, 255, 0.18), transparent 32%),
-        linear-gradient(145deg, #15213a, #0b1120 75%);
-      color: #eef6ff;
-    }
-    .hint-card.locked-card .card-title { color: #dff6ff; }
-    .hint-card.locked-card .card-text { color: #9fb1c8; font-size: 13px; }
-    .hint-card.locked-card .preview-line {
-      border: 1px dashed rgba(255,255,255,.16);
-      border-radius: 12px;
-      padding: 10px;
-      margin-top: 10px;
-      color: #dbeafe;
-      background: rgba(255,255,255,.035);
-      font-weight: 900;
-      line-height: 1.5;
-    }
-    .logic-chip {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      padding: 5px 8px;
-      background: rgba(177,140,255,.12);
-      border: 1px solid rgba(177,140,255,.28);
-      color: #e9ddff;
-      font-size: 11px;
-      font-weight: 1000;
-      letter-spacing: .07em;
-    }
-    .mini-card.logic-hard { border-color: rgba(177,140,255,.35); box-shadow: 0 0 0 2px rgba(177,140,255,.08) inset; }
-    @media (max-width:640px){ .number-control-row { align-items: stretch; } .number-control-row .code-submit { max-width: none; width: 100%; } }
-
   </style>
 </head>
 <body>
@@ -907,12 +824,12 @@
         <div class="kicker">CODEWIRE // SOLO LOGIC GAME</div>
         <h1>ドキドキ<br>解除ロジック</h1>
         <p class="subtitle">問題IDで同じ訓練爆弾を再現。ヒントカードをめくるたび点数が増え、低い点数で解除できるほどすごい。</p>
-        <p class="notice">これは論理パズル用の架空の訓練装置です。現実の爆発物・配線作業とは無関係です。遊び方は「色のワイヤー順」と「3桁コード」を、カードのヒントだけで推理するだけ。</p>
+        <p class="notice">これは論理パズル用の架空の訓練装置です。現実の爆発物・配線作業とは無関係です。ROUND 1は色ワイヤー、ROUND 2は1〜5の数字ダイヤルを推理します。</p>
         <div style="height: 24px"></div>
         <ul class="rules">
           <li><span class="rule-num">1</span><span><b>問題ID</b>を入力または生成します。同じIDなら、答え・山札・カード順まで同じです。</span></li>
-          <li><span class="rule-num">2</span><span><b>4枚のヒントカード</b>から1枚を選びます。1枚使うたびに、同じラウンドの山札から補充されます。</span></li>
-          <li><span class="rule-num">3</span><span><b>ヒント合計点</b>が低いまま、4本のワイヤー順と3桁コードを当てれば高評価です。</span></li>
+          <li><span class="rule-num">2</span><span><b>4枚のヒントカード</b>から1枚を選びます。表面には点数と対象だけが見えます。</span></li>
+          <li><span class="rule-num">3</span><span><b>ROUND 1</b>はワイヤーを直接タップしてカット。成功すると数字ダイヤルが起動します。</span></li>
         </ul>
       </div>
 
@@ -926,9 +843,9 @@
         </div>
         <div>
           <label class="field-label" for="difficultySelect">難易度</label>
-          <select id="difficultySelect" class="difficulty-select">
+          <select id="difficultySelect">
             <option value="normal">ふつう：素直なヒント中心</option>
-            <option value="hard">むずかしい：どちらかだけ/どちらもヒント入り</option>
+            <option value="hard">むずかしい：どちらかだけ / どちらも ヒント入り</option>
           </select>
         </div>
         <div class="start-actions">
@@ -936,9 +853,9 @@
           <button id="demoBtn" class="btn btn-ghost" type="button">デモIDを入れる</button>
         </div>
         <div class="logbox" aria-live="polite">
-          <p><b>スコア式：</b>めくったヒントカードの合計点。低いほど上位。</p>
-          <p><b>タイブレーク：</b>同点なら使用カード枚数、さらに同点なら時間。</p>
-          <p><b>おすすめ：</b>ふつうで操作に慣れてから、むずかしいの「どちらかだけ」カードに挑戦。</p>
+          <p><b>スコア式：</b>使ったヒントカードの合計点。低いほど上位。</p>
+          <p><b>メモ：</b>? → × → △ → ○ で切り替え。△は「ありそう・仮置き」に使えます。</p>
+          <p><b>おすすめ：</b>取得済みヒントを見ながら、メモ表で候補を消してから解除。</p>
         </div>
       </aside>
     </section>
@@ -961,42 +878,45 @@
 
       <div class="status-grid" aria-live="polite">
         <div class="status"><span class="status-label">問題ID</span><span id="statusId" class="status-value">-</span></div>
-        <div class="status"><span class="status-label">フェーズ</span><span id="statusPhase" class="status-value">WIRE</span></div>
+        <div class="status"><span class="status-label">ROUND</span><span id="statusPhase" class="status-value phase-value">WIRE</span></div>
         <div class="status"><span class="status-label">ヒント点</span><span id="statusScore" class="status-value score-value">0</span></div>
-        <div class="status"><span class="status-label">基準 PAR</span><span id="statusPar" class="status-value par-value">-</span></div>
         <div class="status"><span class="status-label">時間</span><span id="statusTime" class="status-value">00:00</span></div>
+        <div class="status"><span class="status-label">カード</span><span id="statusCards" class="status-value">0</span></div>
         <div class="status"><span class="status-label">自己ベスト</span><span id="statusBest" class="status-value">-</span></div>
       </div>
 
       <div class="game-layout">
-        <div class="left-col">
+        <div class="play-col">
           <section class="panel bomb-panel">
-            <h3 class="panel-title">訓練爆弾ユニット <small>見た目の並びは答えではありません</small></h3>
+            <h3 class="panel-title">訓練爆弾ユニット <small>表示順は答えではありません</small></h3>
             <div class="bomb-core" id="bombCore">
               <div class="warning-row">
                 <div class="leds"><span class="led"></span><span class="led"></span><span class="led"></span></div>
                 <div class="bomb-label">SIMULATED DEVICE</div>
               </div>
-              <div class="phase-row">
-                <div id="wirePhaseModule" class="phase-module active"><span class="phase-lamp"></span><b>ROUND 1 / WIRE</b></div>
-                <div id="cutProgress" class="bomb-label">CUT 0 / 4</div>
+
+              <div class="round-strip">
+                <div id="wireLamp" class="round-lamp active">ROUND 1 / WIRE</div>
+                <div id="numberLamp" class="round-lamp">ROUND 2 / NUMBER</div>
               </div>
+
               <div class="wire-box" id="wireBox" aria-label="ワイヤー表示">
                 <div class="wire-line" data-wire-line="red"><div class="terminal"></div><button class="wire-action" data-cut-wire="red" type="button"><div class="wire red-wire"></div></button><div class="terminal"></div></div>
                 <div class="wire-line" data-wire-line="blue"><div class="terminal"></div><button class="wire-action" data-cut-wire="blue" type="button"><div class="wire blue-wire"></div></button><div class="terminal"></div></div>
                 <div class="wire-line" data-wire-line="yellow"><div class="terminal"></div><button class="wire-action" data-cut-wire="yellow" type="button"><div class="wire yellow-wire"></div></button><div class="terminal"></div></div>
                 <div class="wire-line" data-wire-line="green"><div class="terminal"></div><button class="wire-action" data-cut-wire="green" type="button"><div class="wire green-wire"></div></button><div class="terminal"></div></div>
               </div>
-              <div class="number-head">
-                <div id="numberPhaseModule" class="phase-module dormant"><span class="phase-lamp"></span><b>ROUND 2 / NUMBER</b></div>
-              </div>
-              <div class="number-control-row">
+
+              <div class="code-control-row">
                 <div class="code-display" aria-label="解除コード操作" id="codeDisplay">
-                  <div class="dial-unit"><div class="dial-top">1st</div><button class="dial-btn" data-dial="0" data-delta="1" type="button">＋</button><div id="digitSlot0" class="digit-slot">?</div><button class="dial-btn" data-dial="0" data-delta="-1" type="button">−</button></div>
-                  <div class="dial-unit"><div class="dial-top">2nd</div><button class="dial-btn" data-dial="1" data-delta="1" type="button">＋</button><div id="digitSlot1" class="digit-slot">?</div><button class="dial-btn" data-dial="1" data-delta="-1" type="button">−</button></div>
-                  <div class="dial-unit"><div class="dial-top">3rd</div><button class="dial-btn" data-dial="2" data-delta="1" type="button">＋</button><div id="digitSlot2" class="digit-slot">?</div><button class="dial-btn" data-dial="2" data-delta="-1" type="button">−</button></div>
+                  <div class="dial-unit"><div class="dial-label">1st</div><button class="dial-btn" data-dial="0" data-delta="1" type="button">＋</button><div id="digitSlot0" class="digit-slot">?</div><button class="dial-btn" data-dial="0" data-delta="-1" type="button">−</button></div>
+                  <div class="dial-unit"><div class="dial-label">2nd</div><button class="dial-btn" data-dial="1" data-delta="1" type="button">＋</button><div id="digitSlot1" class="digit-slot">?</div><button class="dial-btn" data-dial="1" data-delta="-1" type="button">−</button></div>
+                  <div class="dial-unit"><div class="dial-label">3rd</div><button class="dial-btn" data-dial="2" data-delta="1" type="button">＋</button><div id="digitSlot2" class="digit-slot">?</div><button class="dial-btn" data-dial="2" data-delta="-1" type="button">−</button></div>
                 </div>
-                <div class="code-submit"><button id="submitCodeBtn" class="btn btn-danger btn-small" type="button">コード入力 OK</button><span id="codeHintNote" class="hint">ワイヤー解除後にダイヤル操作が有効になります。</span></div>
+                <div class="code-submit-box">
+                  <button id="submitCodeBtn" class="btn btn-danger btn-small" type="button">コード入力 OK</button>
+                  <div id="codeHintNote" class="code-note">ワイヤー解除後に有効。</div>
+                </div>
               </div>
             </div>
             <div style="height: 12px"></div>
@@ -1004,35 +924,34 @@
           </section>
 
           <section class="panel memo-panel">
-            <h3 class="panel-title">メモパネル <small>タップで ? → × → ○</small></h3>
+            <h3 class="panel-title">メモパネル <small>タップで ? → × → △ → ○</small></h3>
             <div class="tabs">
               <button id="wireMemoTab" class="tab active" type="button">ワイヤー順</button>
               <button id="codeMemoTab" class="tab" type="button">コード</button>
             </div>
-            <p class="memo-help">このメモは完全に手動です。ゲーム側が勝手に正解を埋めることはありません。</p>
+            <p class="memo-help">△は「候補かも」「一時保留」の印です。ゲーム側が勝手に正解を埋めることはありません。</p>
             <div id="wireMemoWrap" class="memo-grid-wrap"></div>
             <div id="codeMemoWrap" class="memo-grid-wrap hidden"></div>
           </section>
-        </div>
 
-        <div class="right-col">
-          <section class="panel">
-            <h3 class="panel-title">ヒントカード候補 <small>常に4枚表示 / 1枚使うと補充</small></h3>
-            <p id="roundGuide" class="control-note">ROUND 1 ではワイヤー専用ヒントだけが出ます。</p>
-            <div id="offerGrid" class="offer-grid"></div>
-          </section>
-
-          <section class="panel" style="margin-top:14px;">
+          <section class="panel revealed-panel">
             <h3 class="panel-title">取得済みヒント <small id="revealedSummary">0枚</small></h3>
             <div id="revealedList" class="revealed-list"></div>
           </section>
         </div>
+
+        <div class="card-col">
+          <section class="panel hint-panel">
+            <h3 class="panel-title">ヒントカード候補 <small>常に4枚 / 1枚使うと補充</small></h3>
+            <p id="roundGuide" class="memo-help">ROUND 1 ではワイヤー専用ヒントだけが出ます。</p>
+            <div id="hintGrid" class="hint-grid"></div>
+          </section>
+        </div>
       </div>
+
       <p class="footer-note">ヒント点が低いほど強い記録です。問題IDを友達に送ると、同じ爆弾・同じ山札で競えます。</p>
     </section>
   </div>
-
-  <div id="fxOverlay" class="fx-overlay hidden"></div>
 
   <div id="resultModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
     <div class="modal-card">
@@ -1050,749 +969,745 @@
     </div>
   </div>
 
+  <div id="fxOverlay" class="fx-overlay hidden"></div>
   <div id="toast" class="toast"></div>
 
   <script>
-"use strict";
+    "use strict";
 
-const WIRES = [
-  { id: "red", name: "赤", emoji: "🔴" },
-  { id: "blue", name: "青", emoji: "🔵" },
-  { id: "yellow", name: "黄", emoji: "🟡" },
-  { id: "green", name: "緑", emoji: "🟢" }
-];
-const WIRE_BY_ID = Object.fromEntries(WIRES.map(w => [w.id, w]));
-const DIGITS = [1, 2, 3, 4, 5];
-const CODE_LEN = 3;
-const WIRE_LEN = 4;
-const OFFER_COUNT = 4;
+    const COLORS = [
+      { id: "red", jp: "赤", css: "#ff3b59", emoji: "🔴" },
+      { id: "blue", jp: "青", css: "#3b8dff", emoji: "🔵" },
+      { id: "yellow", jp: "黄", css: "#ffd166", emoji: "🟡" },
+      { id: "green", jp: "緑", css: "#5cf2a2", emoji: "🟢" }
+    ];
+    const DIGITS = [1, 2, 3, 4, 5];
+    const CODE_LEN = 3;
+    const OFFER_COUNT = 4;
 
-const $ = selector => document.querySelector(selector);
-const $$ = selector => Array.from(document.querySelectorAll(selector));
+    const $ = selector => document.querySelector(selector);
+    const $$ = selector => Array.from(document.querySelectorAll(selector));
 
-const els = {
-  startScreen: $("#startScreen"),
-  gameScreen: $("#gameScreen"),
-  problemIdInput: $("#problemIdInput"),
-  difficultySelect: $("#difficultySelect"),
-  randomIdBtn: $("#randomIdBtn"),
-  demoBtn: $("#demoBtn"),
-  startBtn: $("#startBtn"),
-  statusId: $("#statusId"),
-  statusPhase: $("#statusPhase"),
-  statusScore: $("#statusScore"),
-  statusPar: $("#statusPar"),
-  statusTime: $("#statusTime"),
-  statusBest: $("#statusBest"),
-  missionLog: $("#missionLog"),
-  offerGrid: $("#offerGrid"),
-  revealedList: $("#revealedList"),
-  revealedSummary: $("#revealedSummary"),
-  roundGuide: $("#roundGuide"),
-  wirePhaseModule: $("#wirePhaseModule"),
-  numberPhaseModule: $("#numberPhaseModule"),
-  cutProgress: $("#cutProgress"),
-  bombCore: $("#bombCore"),
-  submitCodeBtn: $("#submitCodeBtn"),
-  codeHintNote: $("#codeHintNote"),
-  wireMemoTab: $("#wireMemoTab"),
-  codeMemoTab: $("#codeMemoTab"),
-  wireMemoWrap: $("#wireMemoWrap"),
-  codeMemoWrap: $("#codeMemoWrap"),
-  copyIdBtn: $("#copyIdBtn"),
-  newGameBtn: $("#newGameBtn"),
-  backToStartBtn: $("#backToStartBtn"),
-  resultModal: $("#resultModal"),
-  resultIcon: $("#resultIcon"),
-  resultTitle: $("#resultTitle"),
-  resultMessage: $("#resultMessage"),
-  resultStats: $("#resultStats"),
-  answerReveal: $("#answerReveal"),
-  copyResultBtn: $("#copyResultBtn"),
-  retrySameBtn: $("#retrySameBtn"),
-  freshFromResultBtn: $("#freshFromResultBtn"),
-  closeResultBtn: $("#closeResultBtn"),
-  toast: $("#toast"),
-  fxOverlay: $("#fxOverlay")
-};
+    const els = {
+      startScreen: $("#startScreen"),
+      gameScreen: $("#gameScreen"),
+      problemIdInput: $("#problemIdInput"),
+      randomIdBtn: $("#randomIdBtn"),
+      demoBtn: $("#demoBtn"),
+      difficultySelect: $("#difficultySelect"),
+      startBtn: $("#startBtn"),
+      statusId: $("#statusId"),
+      statusPhase: $("#statusPhase"),
+      statusScore: $("#statusScore"),
+      statusTime: $("#statusTime"),
+      statusCards: $("#statusCards"),
+      statusBest: $("#statusBest"),
+      missionLog: $("#missionLog"),
+      hintGrid: $("#hintGrid"),
+      revealedList: $("#revealedList"),
+      revealedSummary: $("#revealedSummary"),
+      roundGuide: $("#roundGuide"),
+      wireLamp: $("#wireLamp"),
+      numberLamp: $("#numberLamp"),
+      bombCore: $("#bombCore"),
+      submitCodeBtn: $("#submitCodeBtn"),
+      codeHintNote: $("#codeHintNote"),
+      wireMemoTab: $("#wireMemoTab"),
+      codeMemoTab: $("#codeMemoTab"),
+      wireMemoWrap: $("#wireMemoWrap"),
+      codeMemoWrap: $("#codeMemoWrap"),
+      copyIdBtn: $("#copyIdBtn"),
+      newGameBtn: $("#newGameBtn"),
+      backToStartBtn: $("#backToStartBtn"),
+      resultModal: $("#resultModal"),
+      resultIcon: $("#resultIcon"),
+      resultTitle: $("#resultTitle"),
+      resultMessage: $("#resultMessage"),
+      resultStats: $("#resultStats"),
+      answerReveal: $("#answerReveal"),
+      copyResultBtn: $("#copyResultBtn"),
+      retrySameBtn: $("#retrySameBtn"),
+      freshFromResultBtn: $("#freshFromResultBtn"),
+      closeResultBtn: $("#closeResultBtn"),
+      fxOverlay: $("#fxOverlay"),
+      toast: $("#toast")
+    };
 
-let State = null;
+    let State = null;
 
-function xmur3(str) {
-  let h = 1779033703 ^ str.length;
-  for (let i = 0; i < str.length; i++) {
-    h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
-    h = (h << 13) | (h >>> 19);
-  }
-  return function() {
-    h = Math.imul(h ^ (h >>> 16), 2246822507);
-    h = Math.imul(h ^ (h >>> 13), 3266489909);
-    return (h ^= h >>> 16) >>> 0;
-  };
-}
-function mulberry32(a) {
-  return function() {
-    let t = a += 0x6D2B79F5;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-function seededRng(seedText) { return mulberry32(xmur3(seedText)()); }
-function shuffle(array, rng) {
-  const a = array.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-function pick(array, rng) { return array[Math.floor(rng() * array.length)]; }
-function normalizeId(value) {
-  return String(value || "")
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9\-]/g, "")
-    .replace(/\-+/g, "-")
-    .replace(/^\-+|\-+$/g, "");
-}
-function normalizeProblemId(raw) {
-  let id = normalizeId(raw);
-  if (!id) id = generateProblemId();
-  if (!id.startsWith("CW-")) id = `CW-${id}`;
-  return id;
-}
-function generateProblemId() {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const bytes = new Uint8Array(6);
-  if (window.crypto && window.crypto.getRandomValues) {
-    window.crypto.getRandomValues(bytes);
-  } else {
-    for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
-  }
-  return "CW-" + Array.from(bytes, b => alphabet[b % alphabet.length]).join("");
-}
-function permutations(arr, len = arr.length) {
-  const result = [];
-  const used = new Array(arr.length).fill(false);
-  const current = [];
-  function backtrack() {
-    if (current.length === len) { result.push(current.slice()); return; }
-    for (let i = 0; i < arr.length; i++) {
-      if (used[i]) continue;
-      used[i] = true;
-      current.push(arr[i]);
+    function xmur3(str) {
+      let h = 1779033703 ^ str.length;
+      for (let i = 0; i < str.length; i++) {
+        h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+        h = (h << 13) | (h >>> 19);
+      }
+      return function() {
+        h = Math.imul(h ^ (h >>> 16), 2246822507);
+        h = Math.imul(h ^ (h >>> 13), 3266489909);
+        return (h ^= h >>> 16) >>> 0;
+      };
+    }
+    function mulberry32(a) {
+      return function() {
+        let t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+    function seededRng(seedText) { return mulberry32(xmur3(seedText)()); }
+    function shuffle(array, rng) {
+      const a = array.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    function normalizeId(value) {
+      return String(value || "").trim().toUpperCase().replace(/[^A-Z0-9\-]/g, "").replace(/\-+/g, "-").replace(/^\-+|\-+$/g, "");
+    }
+    function generateProblemId() {
+      const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      const bytes = new Uint8Array(6);
+      if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(bytes);
+      else for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+      return "CW-" + Array.from(bytes, b => alphabet[b % alphabet.length]).join("");
+    }
+
+    function permutations(arr, len = arr.length) {
+      const result = [], used = new Array(arr.length).fill(false), current = [];
+      function backtrack() {
+        if (current.length === len) { result.push(current.slice()); return; }
+        for (let i = 0; i < arr.length; i++) {
+          if (used[i]) continue;
+          used[i] = true;
+          current.push(arr[i]);
+          backtrack();
+          current.pop();
+          used[i] = false;
+        }
+      }
       backtrack();
-      current.pop();
-      used[i] = false;
+      return result;
     }
-  }
-  backtrack();
-  return result;
-}
-function makeWireCandidate(wires) {
-  const wpos = {};
-  wires.forEach((id, i) => { wpos[id] = i + 1; });
-  return { wires, wpos };
-}
-function makeAnswer(wires, code) { return { ...makeWireCandidate(wires), code }; }
-const WIRE_CANDIDATES = permutations(WIRES.map(w => w.id), WIRE_LEN).map(makeWireCandidate);
-const CODE_CANDIDATES = permutations(DIGITS, CODE_LEN).map(code => ({ code }));
 
-function wireName(id) { return `${WIRE_BY_ID[id].emoji}${WIRE_BY_ID[id].name}`; }
-function wirePlain(id) { return WIRE_BY_ID[id].name; }
-function sameSet(a, b) { return a.length === b.length && a.slice().sort().join("|") === b.slice().sort().join("|"); }
-function sum(arr) { return arr.reduce((a, b) => a + b, 0); }
+    const WIRE_CANDIDATES = permutations(COLORS.map(c => c.id));
+    const CODE_CANDIDATES = permutations(DIGITS, CODE_LEN);
+    const colorById = id => COLORS.find(c => c.id === id);
+    const colorName = id => `${colorById(id).emoji}${colorById(id).jp}`;
+    const simpleColorName = id => colorById(id).jp;
+    const posMap = order => Object.fromEntries(order.map((id, index) => [id, index + 1]));
+    const sameSet = (a, b) => a.length === b.length && a.slice().sort().join("|") === b.slice().sort().join("|");
 
-function scoreFromMatches(matches, total, bonus = 0) {
-  const info = Math.log2(total / Math.max(1, matches));
-  let score = 1;
-  if (info >= 1.15) score = 2;
-  if (info >= 1.85) score = 3;
-  if (info >= 2.65) score = 4;
-  if (info >= 3.45) score = 5;
-  return Math.max(1, Math.min(5, score + bonus));
-}
-
-function categoryIcon(category) {
-  if (category === "配線") return "〽️";
-  if (category === "暗号") return "#️⃣";
-  if (category === "どちらかだけ") return "◇";
-  if (category === "どちらも") return "◆";
-  return "🔎";
-}
-
-function addHint(list, phase, key, category, title, text, predicate, preview, bonus = 0) {
-  const pool = phase === "wire" ? WIRE_CANDIDATES : CODE_CANDIDATES;
-  const matches = pool.filter(predicate).length;
-  if (matches <= 0 || matches >= pool.length) return;
-  const score = scoreFromMatches(matches, pool.length, bonus);
-  list.push({ phase, key, category, title, text, predicate, preview, score, matches });
-}
-
-function generateWireHints(answer, rng) {
-  const hints = [];
-  const seen = new Set();
-  const titles = ["端子台の焦げ跡", "絶縁テープの記録", "ワイヤー診断ログ", "回路板のメモ", "工具箱のタグ"];
-  const add = (key, text, predicate, preview, bonus = 0) => {
-    if (seen.has(key)) return;
-    seen.add(key);
-    if (!predicate(answer)) return;
-    addHint(hints, "wire", key, "配線", pick(titles, rng), text, predicate, preview, bonus);
-  };
-
-  for (const w of WIRES) {
-    const color = w.id;
-    const pos = answer.wpos[color];
-    for (let p = 1; p <= WIRE_LEN; p++) {
-      if (p !== pos) add(`wpos:${color}:neq:${p}`, `${wireName(color)}線は、${p}番目ではない。`, c => c.wpos[color] !== p, `${wireName(color)}線について`);
+    function scoreFromMatches(matches, total) {
+      const ratio = matches / total;
+      if (ratio >= 0.65) return 1;
+      if (ratio >= 0.42) return 2;
+      if (ratio >= 0.25) return 3;
+      if (ratio >= 0.13) return 4;
+      return 5;
     }
-    add(`half:${color}:${pos <= 2 ? "front" : "back"}`, `${wireName(color)}線は、${pos <= 2 ? "前半2本" : "後半2本"}のどちらか。`, c => pos <= 2 ? c.wpos[color] <= 2 : c.wpos[color] >= 3, `${wireName(color)}線について`);
-    add(`parity:${color}:${pos % 2}`, `${wireName(color)}線は、${pos % 2 ? "奇数" : "偶数"}番目に切る。`, c => c.wpos[color] % 2 === pos % 2, `${wireName(color)}線について`);
-  }
 
-  for (let i = 0; i < WIRES.length; i++) {
-    for (let j = i + 1; j < WIRES.length; j++) {
-      const a = WIRES[i].id;
-      const b = WIRES[j].id;
-      const apos = answer.wpos[a];
-      const bpos = answer.wpos[b];
-      const earlier = apos < bpos ? a : b;
-      const later = apos < bpos ? b : a;
-      add(`order:${earlier}:before:${later}`, `${wireName(earlier)}線は、${wireName(later)}線より前に切る。`, c => c.wpos[earlier] < c.wpos[later], `${wireName(earlier)}・${wireName(later)}について`);
-      if (Math.abs(apos - bpos) === 1) {
-        add(`adj:${a}:${b}:yes`, `${wireName(a)}線と${wireName(b)}線は、隣り合って切る。`, c => Math.abs(c.wpos[a] - c.wpos[b]) === 1, `${wireName(a)}・${wireName(b)}について`);
-      } else {
-        add(`adj:${a}:${b}:no`, `${wireName(a)}線と${wireName(b)}線は、隣り合っていない。`, c => Math.abs(c.wpos[a] - c.wpos[b]) !== 1, `${wireName(a)}・${wireName(b)}について`);
+    function addHint(list, seen, total, answerValue, candidateList, data) {
+      if (seen.has(data.key)) return;
+      if (!data.test(answerValue)) return;
+      const matches = candidateList.filter(data.test).length;
+      if (matches <= 0 || matches >= total) return;
+      seen.add(data.key);
+      list.push({
+        ...data,
+        score: scoreFromMatches(matches, total),
+        matches
+      });
+    }
+
+    function generateWireHints(answerOrder, difficulty) {
+      const list = [], seen = new Set(), total = WIRE_CANDIDATES.length, answerPos = posMap(answerOrder);
+      const add = data => addHint(list, seen, total, answerOrder, WIRE_CANDIDATES, data);
+
+      for (const c of COLORS) {
+        const id = c.id, p = answerPos[id];
+        for (let n = 1; n <= 4; n++) {
+          if (n !== p) add({ key:`w:not:${id}:${n}`, round:"wire", category:"配線", target:`${c.jp}線`, title:"端子台の焦げ跡", text:`${colorName(id)}線は、${n}番目ではない。`, test: order => posMap(order)[id] !== n });
+        }
+        add({ key:`w:half:${id}:${p<=2?"front":"back"}`, round:"wire", category:"配線", target:`${c.jp}線`, title:"絶縁テープの記録", text:`${colorName(id)}線は、${p<=2 ? "前半2本のどちらか" : "後半2本のどちらか"}。`, test: order => p<=2 ? posMap(order)[id] <= 2 : posMap(order)[id] >= 3 });
+        add({ key:`w:par:${id}:${p%2}`, round:"wire", category:"配線", target:`${c.jp}線`, title:"ワイヤー診断ログ", text:`${colorName(id)}線は、${p%2 ? "奇数番目" : "偶数番目"}に切る。`, test: order => posMap(order)[id] % 2 === p % 2 });
       }
-      if (Math.abs(apos - bpos) === 2) {
-        add(`gap:${a}:${b}:one`, `${wireName(a)}線と${wireName(b)}線の間には、ちょうど1本の線がある。`, c => Math.abs(c.wpos[a] - c.wpos[b]) === 2, `${wireName(a)}・${wireName(b)}について`);
+
+      for (let i = 0; i < COLORS.length; i++) {
+        for (let j = i + 1; j < COLORS.length; j++) {
+          const a = COLORS[i].id, b = COLORS[j].id;
+          const ap = answerPos[a], bp = answerPos[b];
+          const earlier = ap < bp ? a : b, later = ap < bp ? b : a;
+          add({ key:`w:before:${earlier}:${later}`, round:"wire", category:"配線", target:`${simpleColorName(earlier)}・${simpleColorName(later)}線`, title:"回路板のメモ", text:`${colorName(earlier)}線は、${colorName(later)}線より前に切る。`, test: order => posMap(order)[earlier] < posMap(order)[later] });
+          const adj = Math.abs(ap - bp) === 1;
+          add({ key:`w:adj:${a}:${b}:${adj}`, round:"wire", category:"配線", target:`${simpleColorName(a)}・${simpleColorName(b)}線`, title:"工具箱のタグ", text:`${colorName(a)}線と${colorName(b)}線は、${adj ? "隣り合って切る" : "隣り合っていない"}。`, test: order => (Math.abs(posMap(order)[a] - posMap(order)[b]) === 1) === adj });
+          if (ap + 1 === bp) add({ key:`w:imm:${a}:${b}`, round:"wire", category:"配線", target:`${simpleColorName(a)}→${simpleColorName(b)}`, title:"制御盤の傷", text:`${colorName(a)}線の直後に、${colorName(b)}線を切る。`, test: order => posMap(order)[a] + 1 === posMap(order)[b] });
+          if (bp + 1 === ap) add({ key:`w:imm:${b}:${a}`, round:"wire", category:"配線", target:`${simpleColorName(b)}→${simpleColorName(a)}`, title:"制御盤の傷", text:`${colorName(b)}線の直後に、${colorName(a)}線を切る。`, test: order => posMap(order)[b] + 1 === posMap(order)[a] });
+        }
       }
-      if (Math.abs(apos - bpos) === 3) {
-        add(`ends:${a}:${b}`, `${wireName(a)}線と${wireName(b)}線は、両端に分かれている。`, c => Math.abs(c.wpos[a] - c.wpos[b]) === 3, `${wireName(a)}・${wireName(b)}について`);
+
+      const front = answerOrder.slice(0, 2), back = answerOrder.slice(2, 4);
+      add({ key:`w:front:${front.slice().sort().join("-")}`, round:"wire", category:"配線", target:"前半2本", title:"前半回路ログ", text:`前半2本には、${colorName(front[0])}線と${colorName(front[1])}線が含まれる。`, test: order => sameSet(order.slice(0, 2), front) });
+      add({ key:`w:back:${back.slice().sort().join("-")}`, round:"wire", category:"配線", target:"後半2本", title:"後半回路ログ", text:`後半2本には、${colorName(back[0])}線と${colorName(back[1])}線が含まれる。`, test: order => sameSet(order.slice(2, 4), back) });
+
+      if (difficulty === "hard") addCompoundWireHints(list, seen, answerOrder);
+      return list;
+    }
+
+    function generateBasicCodePredicates(answerCode) {
+      const preds = [];
+      for (let i = 0; i < CODE_LEN; i++) {
+        const v = answerCode[i];
+        for (const d of DIGITS) {
+          if (d !== v) preds.push({ label:`${i+1}桁目は${d}ではない`, target:`${i+1}桁目`, test: code => code[i] !== d });
+        }
+        preds.push({ label:`${i+1}桁目は${v % 2 ? "奇数" : "偶数"}`, target:`${i+1}桁目`, test: code => code[i] % 2 === v % 2 });
+        if (v <= 3) preds.push({ label:`${i+1}桁目は3以下`, target:`${i+1}桁目`, test: code => code[i] <= 3 });
+        if (v >= 3) preds.push({ label:`${i+1}桁目は3以上`, target:`${i+1}桁目`, test: code => code[i] >= 3 });
+        if (v !== 3) preds.push({ label:`${i+1}桁目は3ではない`, target:`${i+1}桁目`, test: code => code[i] !== 3 });
       }
+      for (const d of DIGITS) {
+        const used = answerCode.includes(d);
+        preds.push({ label:`コードには${d}${used ? "が含まれる" : "は含まれない"}`, target:`数字${d}`, test: code => used ? code.includes(d) : !code.includes(d) });
+      }
+      for (let i = 0; i < CODE_LEN; i++) {
+        for (let j = i + 1; j < CODE_LEN; j++) {
+          const a = answerCode[i], b = answerCode[j];
+          preds.push({ label:`${i+1}桁目は${j+1}桁目より${a < b ? "小さい" : "大きい"}`, target:`${i+1}桁目・${j+1}桁目`, test: code => a < b ? code[i] < code[j] : code[i] > code[j] });
+          const consecutive = Math.abs(a - b) === 1;
+          preds.push({ label:`${i+1}桁目と${j+1}桁目は${consecutive ? "連続した数字" : "連続した数字ではない"}`, target:`${i+1}桁目・${j+1}桁目`, test: code => (Math.abs(code[i] - code[j]) === 1) === consecutive });
+          const sum = a + b;
+          preds.push({ label:`${i+1}桁目と${j+1}桁目の合計は${sum}`, target:`${i+1}+${j+1}合計`, test: code => code[i] + code[j] === sum });
+        }
+      }
+      const total = answerCode.reduce((s, v) => s + v, 0);
+      preds.push({ label:`3桁の合計は${total}`, target:"合計", test: code => code.reduce((s, v) => s + v, 0) === total });
+      const maxPos = answerCode.indexOf(Math.max(...answerCode));
+      const minPos = answerCode.indexOf(Math.min(...answerCode));
+      preds.push({ label:`一番大きい数字は${maxPos + 1}桁目にある`, target:"最大数字", test: code => code.indexOf(Math.max(...code)) === maxPos });
+      preds.push({ label:`一番小さい数字は${minPos + 1}桁目にある`, target:"最小数字", test: code => code.indexOf(Math.min(...code)) === minPos });
+      return preds;
     }
-  }
 
-  const front = answer.wires.slice(0, 2);
-  const back = answer.wires.slice(2, 4);
-  add(`front:${front.slice().sort().join("-")}`, `前半2本には、${wireName(front[0])}線と${wireName(front[1])}線が含まれる。順番まではわからない。`, c => sameSet(c.wires.slice(0, 2), front), "前半2本について", 1);
-  add(`back:${back.slice().sort().join("-")}`, `後半2本には、${wireName(back[0])}線と${wireName(back[1])}線が含まれる。順番まではわからない。`, c => sameSet(c.wires.slice(2, 4), back), "後半2本について", 1);
+    function generateCodeHints(answerCode, difficulty) {
+      const list = [], seen = new Set(), total = CODE_CANDIDATES.length;
+      const add = data => addHint(list, seen, total, answerCode, CODE_CANDIDATES, data);
+      const preds = generateBasicCodePredicates(answerCode);
 
-  return hints;
-}
+      for (const p of preds) {
+        add({
+          key:`c:${p.label}`,
+          round:"code",
+          category:"暗号",
+          target:p.target,
+          title:"数値ロックのログ",
+          text:p.label + "。",
+          test:p.test
+        });
+      }
 
-function propositionPoolForCode(answer) {
-  const props = [];
-  const add = (key, text, predicate, preview) => props.push({ key, text, predicate, preview, truth: predicate(answer) });
-  for (let pos = 1; pos <= CODE_LEN; pos++) {
-    const i = pos - 1;
-    add(`p${pos}:odd`, `${pos}桁目は奇数`, c => c.code[i] % 2 === 1, `${pos}桁目`);
-    add(`p${pos}:even`, `${pos}桁目は偶数`, c => c.code[i] % 2 === 0, `${pos}桁目`);
-    add(`p${pos}:low12`, `${pos}桁目は1か2`, c => c.code[i] <= 2, `${pos}桁目`);
-    add(`p${pos}:high45`, `${pos}桁目は4か5`, c => c.code[i] >= 4, `${pos}桁目`);
-    add(`p${pos}:low3`, `${pos}桁目は3以下`, c => c.code[i] <= 3, `${pos}桁目`);
-    add(`p${pos}:high3`, `${pos}桁目は3以上`, c => c.code[i] >= 3, `${pos}桁目`);
-    for (const d of DIGITS) {
-      add(`p${pos}:not:${d}`, `${pos}桁目は${d}ではない`, c => c.code[i] !== d, `${pos}桁目`);
+      if (difficulty === "hard") {
+        const truePreds = preds.filter(p => p.test(answerCode));
+        const falsePreds = [];
+        // false statements are made by taking simple altered predicates that fail for the actual answer.
+        for (let i = 0; i < CODE_LEN; i++) {
+          const wrongParityOdd = answerCode[i] % 2 === 0;
+          falsePreds.push({ label:`${i+1}桁目は${wrongParityOdd ? "奇数" : "偶数"}`, target:`${i+1}桁目`, test: code => (code[i] % 2 === 1) === wrongParityOdd });
+          const wrongRangeLow = answerCode[i] > 3;
+          falsePreds.push({ label:`${i+1}桁目は${wrongRangeLow ? "3以下" : "4以上"}`, target:`${i+1}桁目`, test: code => wrongRangeLow ? code[i] <= 3 : code[i] >= 4 });
+        }
+        for (let i = 0; i < Math.min(16, truePreds.length); i++) {
+          const a = truePreds[i];
+          const b = truePreds[(i * 7 + 5) % truePreds.length];
+          if (a.label !== b.label) {
+            add({
+              key:`and:${a.label}|${b.label}`,
+              round:"code",
+              category:"複合",
+              target:`${a.target} + ${b.target}`,
+              title:"どちらも正しいカード",
+              text:`次の2つは、どちらも正しいです。 A：${a.label}。 B：${b.label}。`,
+              test: code => a.test(code) && b.test(code)
+            });
+          }
+        }
+        for (let i = 0; i < Math.min(20, truePreds.length); i++) {
+          const a = truePreds[(i * 3 + 2) % truePreds.length];
+          const b = falsePreds[(i * 5 + 1) % falsePreds.length];
+          add({
+            key:`xor:${a.label}|${b.label}`,
+            round:"code",
+            category:"複合",
+            target:`${a.target} / ${b.target}`,
+            title:"どちらかだけ正しいカード",
+            text:`次の2つのうち、正しいのはちょうど1つだけです。もう1つは正しくありません。 A：${a.label}。 B：${b.label}。`,
+            test: code => (a.test(code) ? 1 : 0) + (b.test(code) ? 1 : 0) === 1
+          });
+        }
+      }
+      return list.filter(h => !/^.*桁目は、?\d。?$/.test(h.text));
     }
-  }
-  for (const d of DIGITS) {
-    add(`contains:${d}`, `コードに${d}が含まれる`, c => c.code.includes(d), `数字${d}`);
-    add(`notcontains:${d}`, `コードに${d}は含まれない`, c => !c.code.includes(d), `数字${d}`);
-  }
-  for (let i = 0; i < CODE_LEN; i++) {
-    for (let j = i + 1; j < CODE_LEN; j++) {
-      const a = i + 1;
-      const b = j + 1;
-      add(`cmp:${a}:${b}:lt`, `${a}桁目は${b}桁目より小さい`, c => c.code[i] < c.code[j], `${a}桁目・${b}桁目`);
-      add(`cmp:${a}:${b}:gt`, `${a}桁目は${b}桁目より大きい`, c => c.code[i] > c.code[j], `${a}桁目・${b}桁目`);
-      add(`consec:${a}:${b}:yes`, `${a}桁目と${b}桁目は連続した数字`, c => Math.abs(c.code[i] - c.code[j]) === 1, `${a}桁目・${b}桁目`);
-      add(`consec:${a}:${b}:no`, `${a}桁目と${b}桁目は連続した数字ではない`, c => Math.abs(c.code[i] - c.code[j]) !== 1, `${a}桁目・${b}桁目`);
-      const pairSum = answer.code[i] + answer.code[j];
-      add(`pairsum:${a}:${b}:${pairSum}`, `${a}桁目と${b}桁目の合計は${pairSum}`, c => c.code[i] + c.code[j] === pairSum, `${a}+${b}合計`);
-      add(`pairsumband:${a}:${b}:${pairSum >= 6 ? "hi" : "lo"}`, `${a}桁目と${b}桁目の合計は${pairSum >= 6 ? "6以上" : "5以下"}`, c => pairSum >= 6 ? c.code[i] + c.code[j] >= 6 : c.code[i] + c.code[j] <= 5, `${a}+${b}合計`);
-    }
-  }
-  const total = sum(answer.code);
-  add(`sum:band:${total >= 9 ? "hi" : "lo"}`, `コード3桁の合計は${total >= 9 ? "9以上" : "8以下"}`, c => total >= 9 ? sum(c.code) >= 9 : sum(c.code) <= 8, "3桁合計");
-  add(`sum:parity:${total % 2}`, `コード3桁の合計は${total % 2 ? "奇数" : "偶数"}`, c => sum(c.code) % 2 === total % 2, "3桁合計");
-  const maxIndex = answer.code.indexOf(Math.max(...answer.code));
-  const minIndex = answer.code.indexOf(Math.min(...answer.code));
-  for (let i = 0; i < CODE_LEN; i++) {
-    add(`max:${i}`, `一番大きい数字は${i + 1}桁目にある`, c => c.code.indexOf(Math.max(...c.code)) === i, "最大数字");
-    add(`min:${i}`, `一番小さい数字は${i + 1}桁目にある`, c => c.code.indexOf(Math.min(...c.code)) === i, "最小数字");
-  }
-  return props;
-}
 
-function generateCodeHints(answer, rng, difficulty) {
-  const hints = [];
-  const seen = new Set();
-  const titles = ["キーパッド残留反応", "暗号パネル断片", "数値ロックのログ", "入力履歴の影", "検算チップ"];
-  const add = (key, text, predicate, preview, bonus = 0) => {
-    if (seen.has(key)) return;
-    seen.add(key);
-    if (!predicate(answer)) return;
-    addHint(hints, "code", key, "暗号", pick(titles, rng), text, predicate, preview, bonus);
-  };
-
-  for (let pos = 1; pos <= CODE_LEN; pos++) {
-    const i = pos - 1;
-    const actual = answer.code[i];
-    for (const d of DIGITS) {
-      if (d !== actual) add(`cpos:${pos}:neq:${d}`, `${pos}桁目は、${d}ではない。`, c => c.code[i] !== d, `${pos}桁目について`);
-    }
-    add(`cpos:${pos}:parity:${actual % 2}`, `${pos}桁目は、${actual % 2 ? "奇数" : "偶数"}。`, c => c.code[i] % 2 === actual % 2, `${pos}桁目について`);
-    if (actual <= 2) add(`cpos:${pos}:low12`, `${pos}桁目は、1か2。`, c => c.code[i] <= 2, `${pos}桁目について`);
-    if (actual >= 4) add(`cpos:${pos}:high45`, `${pos}桁目は、4か5。`, c => c.code[i] >= 4, `${pos}桁目について`);
-    add(`cpos:${pos}:band:${actual <= 3 ? "low" : "high"}`, `${pos}桁目は、${actual <= 3 ? "3以下" : "3以上"}。`, c => actual <= 3 ? c.code[i] <= 3 : c.code[i] >= 3, `${pos}桁目について`);
-  }
-
-  for (const d of DIGITS) {
-    if (answer.code.includes(d)) {
-      add(`contains:${d}`, `コードには、${d}が含まれる。`, c => c.code.includes(d), `数字${d}について`);
-    } else {
-      add(`notcontains:${d}`, `コードには、${d}は含まれない。`, c => !c.code.includes(d), `数字${d}について`);
-    }
-  }
-
-  for (let i = 0; i < CODE_LEN; i++) {
-    for (let j = i + 1; j < CODE_LEN; j++) {
-      const a = i + 1;
-      const b = j + 1;
-      const av = answer.code[i];
-      const bv = answer.code[j];
-      add(`cmp:${a}:${b}:${av < bv ? "lt" : "gt"}`, `${a}桁目の数字は、${b}桁目の数字より${av < bv ? "小さい" : "大きい"}。`, c => av < bv ? c.code[i] < c.code[j] : c.code[i] > c.code[j], `${a}桁目・${b}桁目について`);
-      add(`consec:${a}:${b}:${Math.abs(av - bv) === 1 ? "yes" : "no"}`, `${a}桁目と${b}桁目は、連続した数字${Math.abs(av - bv) === 1 ? "" : "ではない"}。`, c => Math.abs(av - bv) === 1 ? Math.abs(c.code[i] - c.code[j]) === 1 : Math.abs(c.code[i] - c.code[j]) !== 1, `${a}桁目・${b}桁目について`);
-      const pair = av + bv;
-      add(`pairsum:${a}:${b}:${pair}`, `${a}桁目と${b}桁目の合計は、${pair}。`, c => c.code[i] + c.code[j] === pair, `${a}+${b}合計について`, 1);
-      add(`pairsumband:${a}:${b}:${pair >= 6 ? "hi" : "lo"}`, `${a}桁目と${b}桁目の合計は、${pair >= 6 ? "6以上" : "5以下"}。`, c => pair >= 6 ? c.code[i] + c.code[j] >= 6 : c.code[i] + c.code[j] <= 5, `${a}+${b}合計について`);
-    }
-  }
-
-  const total = sum(answer.code);
-  add(`sum:band:${total >= 9 ? "hi" : "lo"}`, `コード3桁の合計は、${total >= 9 ? "9以上" : "8以下"}。`, c => total >= 9 ? sum(c.code) >= 9 : sum(c.code) <= 8, "3桁合計について");
-  add(`sum:parity:${total % 2}`, `コード3桁の合計は、${total % 2 ? "奇数" : "偶数"}。`, c => sum(c.code) % 2 === total % 2, "3桁合計について");
-
-  const maxPos = answer.code.indexOf(Math.max(...answer.code));
-  const minPos = answer.code.indexOf(Math.min(...answer.code));
-  add(`maxpos:${maxPos + 1}`, `一番大きい数字は、${maxPos + 1}桁目にある。`, c => c.code.indexOf(Math.max(...c.code)) === maxPos, "最大数字について", 1);
-  add(`minpos:${minPos + 1}`, `一番小さい数字は、${minPos + 1}桁目にある。`, c => c.code.indexOf(Math.min(...c.code)) === minPos, "最小数字について", 1);
-
-  if (difficulty === "hard") {
-    const props = propositionPoolForCode(answer);
-    const pairs = [];
-    for (let i = 0; i < props.length; i++) {
-      for (let j = i + 1; j < props.length; j++) {
-        if (props[i].preview === props[j].preview && rng() < 0.72) continue;
-        pairs.push([props[i], props[j]]);
+    function addCompoundWireHints(list, seen, answerOrder) {
+      const total = WIRE_CANDIDATES.length;
+      const p = posMap(answerOrder);
+      const pairs = [];
+      for (let i = 0; i < COLORS.length; i++) {
+        for (let j = i + 1; j < COLORS.length; j++) {
+          const a = COLORS[i].id, b = COLORS[j].id;
+          pairs.push({
+            label:`${colorName(a)}線は${colorName(b)}線より前`,
+            target:`${simpleColorName(a)}・${simpleColorName(b)}線`,
+            test: order => posMap(order)[a] < posMap(order)[b],
+            actual: p[a] < p[b]
+          });
+        }
+      }
+      const truePairs = pairs.filter(x => x.actual);
+      const falsePairs = pairs.filter(x => !x.actual);
+      for (let i = 0; i < Math.min(6, truePairs.length); i++) {
+        const a = truePairs[i], b = falsePairs[(i + 2) % falsePairs.length];
+        addHint(list, seen, total, answerOrder, WIRE_CANDIDATES, {
+          key:`wxor:${a.label}|${b.label}`,
+          round:"wire",
+          category:"複合",
+          target:`${a.target} / ${b.target}`,
+          title:"どちらかだけ正しいカード",
+          text:`次の2つのうち、正しいのはちょうど1つだけです。もう1つは正しくありません。 A：${a.label}。 B：${b.label}。`,
+          test: order => (a.test(order) ? 1 : 0) + (b.test(order) ? 1 : 0) === 1
+        });
       }
     }
-    const shuffledPairs = shuffle(pairs, rng);
-    let xorCount = 0;
-    let andCount = 0;
-    for (const [a, b] of shuffledPairs) {
-      if (xorCount < 18 && a.truth !== b.truth) {
-        const text = `次の2つのうち、正しいのはちょうど1つだけ。もう1つは正しくありません。\nA：${a.text}\nB：${b.text}`;
-        const key = `xor:${a.key}|${b.key}`;
-        addHint(hints, "code", key, "どちらかだけ", "二択論理センサー", text, c => a.predicate(c) !== b.predicate(c), `どちらかだけ / ${a.preview}・${b.preview}`, 1);
-        xorCount++;
+
+    function cardIcon(category) {
+      if (category === "配線") return "〽️";
+      if (category === "暗号") return "#️⃣";
+      return "◇";
+    }
+
+    function buildPuzzle(id, difficulty) {
+      const rng = seededRng(`CODEWIRE|${id}|${difficulty}|v4`);
+      const wire = shuffle(COLORS.map(c => c.id), rng);
+      const code = shuffle(DIGITS, rng).slice(0, CODE_LEN);
+      const wireHints = shuffle(generateWireHints(wire, difficulty), seededRng(id + ":wireHints:" + difficulty));
+      const codeHints = shuffle(generateCodeHints(code, difficulty), seededRng(id + ":codeHints:" + difficulty));
+      return { wire, code, wireDeck: wireHints, codeDeck: codeHints };
+    }
+
+    function newState(rawId, difficulty) {
+      let id = normalizeId(rawId);
+      if (!id) id = generateProblemId();
+      if (!id.startsWith("CW-")) id = "CW-" + id;
+      const puzzle = buildPuzzle(id, difficulty);
+      return {
+        id,
+        difficulty,
+        answer: { wire: puzzle.wire, code: puzzle.code },
+        decks: { wire: puzzle.wireDeck.slice(), code: puzzle.codeDeck.slice() },
+        slots: [],
+        phase: "wire",
+        revealed: [],
+        score: 0,
+        cutIndex: 0,
+        cutLog: [],
+        dials: [1, 1, 1],
+        memo: {
+          wire: Object.fromEntries(COLORS.map(c => [c.id, Array(4).fill("?")])),
+          code: Array.from({ length: CODE_LEN }, () => Object.fromEntries(DIGITS.map(d => [d, "?"])))
+        },
+        logs: [],
+        startedAt: Date.now(),
+        finishedAt: null,
+        timer: null,
+        locked: false,
+        resultText: ""
+      };
+    }
+
+    function startGame(rawId = els.problemIdInput.value) {
+      State = newState(rawId, els.difficultySelect.value);
+      els.problemIdInput.value = State.id;
+      els.startScreen.classList.add("hidden");
+      els.gameScreen.classList.remove("hidden");
+      els.resultModal.classList.add("hidden");
+      State.logs.push(`任務開始。${State.id} の訓練爆弾を起動しました。`);
+      State.logs.push("ROUND 1：ワイヤー専用ヒントを使って、正しい順番で線をカットしてください。");
+      refillSlots();
+      stopTimer();
+      State.timer = setInterval(renderTime, 500);
+      renderAll();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function activeDeck() { return State.phase === "wire" ? State.decks.wire : State.decks.code; }
+    function refillSlots() {
+      const deck = activeDeck();
+      while (State.slots.length < OFFER_COUNT && deck.length) State.slots.push(deck.shift());
+      while (State.slots.length < OFFER_COUNT) State.slots.push(null);
+    }
+    function useCard(index) {
+      if (!State || State.locked) return;
+      const card = State.slots[index];
+      if (!card) return;
+      State.revealed.push(card);
+      State.score += card.score;
+      State.logs.push(`ヒント取得：${card.category}カード +${card.score}点`);
+      State.slots.splice(index, 1);
+      refillSlots();
+      renderAll();
+      toast(`カードをめくりました。+${card.score}点`);
+    }
+
+    function cutWire(colorId) {
+      if (!State || State.locked || State.phase !== "wire") return;
+      if (State.cutLog.includes(colorId)) {
+        toast("その線はすでにカット済みです。");
+        return;
       }
-      if (andCount < 10 && a.truth && b.truth) {
-        const text = `次の2つは、どちらも正しいです。\nA：${a.text}\nB：${b.text}`;
-        const key = `and:${a.key}|${b.key}`;
-        addHint(hints, "code", key, "どちらも", "複合チェックログ", text, c => a.predicate(c) && b.predicate(c), `どちらも / ${a.preview}・${b.preview}`, 1);
-        andCount++;
+      const expected = State.answer.wire[State.cutIndex];
+      if (colorId !== expected) {
+        fail(`切断順ミス：${colorName(colorId)}線を切った瞬間、警告回路が作動しました。`);
+        return;
       }
-      if (xorCount >= 18 && andCount >= 10) break;
-    }
-  }
-
-  return hints;
-}
-
-function estimatePar(deck, candidates) {
-  let possible = candidates.slice();
-  const used = new Set();
-  let score = 0;
-  let steps = 0;
-  while (possible.length > 1 && steps < 16) {
-    let bestIndex = -1;
-    let bestMetric = -Infinity;
-    let bestNextCount = Infinity;
-    for (let i = 0; i < deck.length; i++) {
-      if (used.has(i)) continue;
-      const h = deck[i];
-      const nextCount = possible.filter(h.predicate).length;
-      if (nextCount <= 0 || nextCount >= possible.length) continue;
-      const reduction = possible.length - nextCount;
-      const metric = reduction / h.score;
-      if (metric > bestMetric || (Math.abs(metric - bestMetric) < 1e-9 && nextCount < bestNextCount)) {
-        bestIndex = i;
-        bestMetric = metric;
-        bestNextCount = nextCount;
+      State.cutLog.push(colorId);
+      State.cutIndex++;
+      const line = document.querySelector(`[data-wire-line="${colorId}"]`);
+      if (line) {
+        line.classList.add("flash");
+        setTimeout(() => line.classList.remove("flash"), 500);
       }
+      showFx("cut", `${simpleColorName(colorId)} CUT`, `${State.cutIndex} / 4 SUCCESS`);
+      State.logs.push(`${colorName(colorId)}線をカット。${State.cutIndex}/4 成功。`);
+      if (State.cutIndex >= 4) {
+        State.phase = "code";
+        State.slots = [];
+        refillSlots();
+        State.logs.push("ROUND 2：数字ダイヤルが解放されました。数字専用ヒントを使ってコードを合わせてください。");
+        showFx("phase", "NUMBER UNLOCKED", "ROUND 2 START");
+      }
+      renderAll();
     }
-    if (bestIndex === -1) break;
-    used.add(bestIndex);
-    possible = possible.filter(deck[bestIndex].predicate);
-    score += deck[bestIndex].score;
-    steps++;
-  }
-  return Math.max(4, score || 8);
-}
 
-function buildPuzzle(id, difficulty) {
-  const answerRng = seededRng(`CODEWIRE|${id}|answer|v2`);
-  const wires = shuffle(WIRES.map(w => w.id), answerRng);
-  const code = shuffle(DIGITS, answerRng).slice(0, CODE_LEN);
-  const answer = makeAnswer(wires, code);
-  const hintRng = seededRng(`CODEWIRE|${id}|${difficulty}|hints|v2`);
-  const wireHints = generateWireHints(answer, hintRng);
-  const codeHints = generateCodeHints(answer, hintRng, difficulty);
-  const wireDeck = shuffle(wireHints, seededRng(`CODEWIRE|${id}|${difficulty}|wireDeck|v2`)).map((h, i) => ({ ...h, deckId: i + 1 }));
-  const codeDeck = shuffle(codeHints, seededRng(`CODEWIRE|${id}|${difficulty}|codeDeck|v2`)).map((h, i) => ({ ...h, deckId: i + 1 }));
-  const par = estimatePar(wireDeck, WIRE_CANDIDATES) + estimatePar(codeDeck, CODE_CANDIDATES);
-  return { answer, wireDeck, codeDeck, par };
-}
-
-function startGame(rawId) {
-  const id = normalizeProblemId(rawId);
-  const difficulty = els.difficultySelect ? els.difficultySelect.value : "normal";
-  const puzzle = buildPuzzle(id, difficulty);
-  State = {
-    id,
-    difficulty,
-    answer: puzzle.answer,
-    wireDeck: puzzle.wireDeck.slice(),
-    codeDeck: puzzle.codeDeck.slice(),
-    par: puzzle.par,
-    available: [],
-    revealed: [],
-    logs: [`任務開始。${difficulty === "hard" ? "むずかしい" : "ふつう"}モードです。`, "ROUND 1：ワイヤー専用ヒントを集めてください。"],
-    score: 0,
-    phase: "wire",
-    cutIndex: 0,
-    cutOrder: [],
-    dials: [1, 1, 1],
-    startedAt: Date.now(),
-    finishedAt: null,
-    timer: null,
-    locked: false,
-    resultText: "",
-    memo: { wire: {}, code: {} }
-  };
-  fillOffers();
-  els.problemIdInput.value = id;
-  els.startScreen.classList.add("hidden");
-  els.gameScreen.classList.remove("hidden");
-  els.resultModal.classList.add("hidden");
-  stopTimer();
-  State.timer = setInterval(renderClock, 1000);
-  renderAll();
-  toast("SIMULATED DEVICE を起動しました。");
-}
-
-function currentDeck() { return State.phase === "wire" ? State.wireDeck : State.codeDeck; }
-function currentCandidates() { return State.phase === "wire" ? WIRE_CANDIDATES : CODE_CANDIDATES; }
-function fillOffers() {
-  if (!State || State.locked || State.phase === "done" || State.phase === "fail") return;
-  const deck = currentDeck();
-  while (State.available.length < OFFER_COUNT && deck.length) State.available.push(deck.shift());
-  while (State.available.length < OFFER_COUNT) State.available.push(null);
-}
-function useOffer(index) {
-  if (!State || State.locked) return;
-  const card = State.available[index];
-  if (!card) return;
-  State.revealed.push(card);
-  State.score += card.score;
-  State.logs.push(`ヒント取得：${card.category}カード +${card.score}点「${card.text.replace(/\n/g, " / ")}」`);
-  State.available.splice(index, 1);
-  State.available = State.available.filter(v => v !== undefined);
-  fillOffers();
-  const remaining = countRemainingForPhase(card.phase);
-  if (remaining === 1) State.logs.push(`${card.phase === "wire" ? "ワイヤー" : "数字"}候補は、論理上1通りまで絞れています。`);
-  else if (remaining <= 4) State.logs.push(`${card.phase === "wire" ? "ワイヤー" : "数字"}候補はかなり少なくなっています。`);
-  renderAll();
-  toast(`カードをめくりました。+${card.score}点`);
-}
-function countRemainingForPhase(phase) {
-  const pool = phase === "wire" ? WIRE_CANDIDATES : CODE_CANDIDATES;
-  const cards = State.revealed.filter(h => h.phase === phase);
-  return pool.filter(c => cards.every(h => h.predicate(c))).length;
-}
-
-function cutWire(color) {
-  if (!State || State.locked || State.phase !== "wire") return;
-  if (State.cutOrder.includes(color)) { toast("その線はすでにカット済みです。"); return; }
-  const expected = State.answer.wires[State.cutIndex];
-  if (color === expected) {
-    State.cutOrder.push(color);
-    State.cutIndex++;
-    State.logs.push(`${wireName(color)}線をカット。 ${State.cutIndex}/4 成功。`);
-    const line = document.querySelector(`[data-wire-line="${color}"]`);
-    if (line) { line.classList.add("flash"); setTimeout(() => line.classList.remove("flash"), 500); }
-    showFx("cut", `${wirePlain(color)} CUT`, `${State.cutIndex} / 4 SUCCESS`);
-    if (State.cutIndex >= WIRE_LEN) {
-      State.phase = "code";
-      State.available = [];
-      fillOffers();
-      State.logs.push("ROUND 1 完了。ワイヤーモジュールを消灯し、数字モジュールを起動しました。");
-      State.logs.push("ROUND 2：数字専用ヒントを集めてください。");
-      showFx("phase", "NUMBER ONLINE", "ROUND 2 START");
-      codeMemoTab();
+    function changeDial(i, delta) {
+      if (!State || State.locked || State.phase !== "code") return;
+      let v = State.dials[i] + delta;
+      if (v < 1) v = 5;
+      if (v > 5) v = 1;
+      State.dials[i] = v;
+      renderDials();
     }
-    renderAll();
-  } else {
-    fail(`切断順ミス：${wireName(color)}線を切った瞬間、警告回路が作動しました。`);
-  }
-}
-function changeDial(i, delta) {
-  if (!State || State.locked || State.phase !== "code") return;
-  let v = State.dials[i] + delta;
-  if (v < 1) v = 5;
-  if (v > 5) v = 1;
-  State.dials[i] = v;
-  renderDials();
-}
-function submitCode() {
-  if (!State || State.locked) return;
-  if (State.phase !== "code") { toast("まだ数字モジュールはロック中です。"); return; }
-  if (new Set(State.dials).size !== CODE_LEN) { toast("コードは重複なしで合わせてください。"); return; }
-  if (arraysEqual(State.dials, State.answer.code)) success();
-  else fail(`コード不一致：${State.dials.join("")} を送信したため、ロックアウトしました。`);
-}
-function arraysEqual(a, b) { return a.length === b.length && a.every((x, i) => x === b[i]); }
-function success() {
-  State.finishedAt = Date.now();
-  stopTimer();
-  State.locked = true;
-  State.phase = "done";
-  const result = { score: State.score, cards: State.revealed.length, time: elapsedSeconds(), id: State.id, difficulty: State.difficulty };
-  const best = getBest(State.id, State.difficulty);
-  if (isBetter(result, best)) setBest(State.id, State.difficulty, result);
-  State.resultText = `CODEWIRE 解除成功｜ID:${State.id}｜${State.difficulty === "hard" ? "むずかしい" : "ふつう"}｜${State.score}点｜${State.revealed.length}枚｜${fmtTime(result.time)}`;
-  showFx("success", "DISARMED", "SIMULATED DEVICE SAFE");
-  showResult(true);
-  renderAll();
-}
-function fail(msg) {
-  State.finishedAt = Date.now();
-  stopTimer();
-  State.locked = true;
-  State.phase = "fail";
-  State.logs.push(msg);
-  els.bombCore.classList.remove("shake");
-  void els.bombCore.offsetWidth;
-  els.bombCore.classList.add("shake");
-  State.resultText = `CODEWIRE 訓練失敗｜ID:${State.id}｜${State.score}点｜${State.revealed.length}枚｜${fmtTime(elapsedSeconds())}`;
-  showFx("fail", "DETONATION", "MISSION FAILED");
-  showResult(false, msg);
-  renderAll();
-}
 
-function renderAll() {
-  if (!State) return;
-  renderStatus();
-  renderMissionLog();
-  renderOffers();
-  renderRevealed();
-  renderMemoGrids();
-  renderBomb();
-  renderDials();
-  renderClock();
-}
-function renderStatus() {
-  const best = getBest(State.id, State.difficulty);
-  els.statusId.textContent = State.id;
-  els.statusPhase.textContent = State.phase === "wire" ? "WIRE" : State.phase === "code" ? "NUMBER" : State.phase === "done" ? "SAFE" : "FAIL";
-  els.statusScore.textContent = String(State.score);
-  els.statusPar.textContent = String(State.par);
-  els.statusBest.textContent = best ? `${best.score}点` : "-";
-}
-function renderClock() { if (State) els.statusTime.textContent = fmtTime(elapsedSeconds()); }
-function renderMissionLog() { els.missionLog.innerHTML = State.logs.slice(-6).map(line => `<p>${escapeHtml(line)}</p>`).join(""); els.missionLog.scrollTop = els.missionLog.scrollHeight; }
-function renderOffers() {
-  fillOffers();
-  els.roundGuide.textContent = State.phase === "wire"
-    ? "ROUND 1：ワイヤー専用カード。表面には点数と対象だけが表示されます。"
-    : State.phase === "code"
-      ? `${State.difficulty === "hard" ? "むずかしい：『どちらかだけ』『どちらも』カードが混ざります。" : "ROUND 2：数字専用カード。表面には点数と対象だけが表示されます。"}`
-      : "任務は終了しました。";
-  const items = State.available.map((card, i) => {
-    if (!card) return `<div class="empty-offer">山札切れ</div>`;
-    const hard = card.category === "どちらかだけ" || card.category === "どちらも";
-    return `<article class="hint-card locked-card">
-      <div class="card-top">
-        <span class="category-pill">${categoryIcon(card.category)} ${escapeHtml(card.category)}</span>
-        <span class="score-badge">${card.score}pt</span>
-      </div>
-      <p class="card-title">暗号化ヒントカード</p>
-      <div class="preview-line">${escapeHtml(card.preview)}</div>
-      ${hard ? `<div style="height:8px"></div><span class="logic-chip">${card.category === "どちらかだけ" ? "正しいのは1つだけ" : "2つとも正しい"}</span>` : ""}
-      <div style="height:8px"></div>
-      <p class="card-text">内容はまだ見えません。めくるとスコアに加算されます。</p>
-      <div class="card-code">CARD ${String(card.deckId).padStart(2, "0")} // ${card.phase.toUpperCase()}</div>
-      <button class="btn btn-small btn-primary choose-card" data-offer="${i}" type="button" ${State.locked ? "disabled" : ""}>このカードをめくる</button>
-    </article>`;
-  }).join("");
-  els.offerGrid.innerHTML = items || `<div class="empty-offer">もう引けるカードがありません。</div>`;
-  $$('[data-offer]').forEach(btn => btn.addEventListener('click', () => useOffer(Number(btn.dataset.offer))));
-}
-function renderRevealed() {
-  els.revealedSummary.textContent = `${State.revealed.length}枚 / 合計${State.score}点`;
-  if (!State.revealed.length) {
-    els.revealedList.innerHTML = `<div class="empty-offer" style="min-height:110px;">まだヒントを取得していません。</div>`;
-    return;
-  }
-  els.revealedList.innerHTML = State.revealed.slice().reverse().map((card, reverseIndex) => {
-    const order = State.revealed.length - reverseIndex;
-    const hard = card.category === "どちらかだけ" || card.category === "どちらも";
-    return `<article class="mini-card ${hard ? "logic-hard" : ""}">
-      <div class="card-top">
-        <span class="category-pill">${categoryIcon(card.category)} ${escapeHtml(card.category)}</span>
-        <span class="score-badge">${card.score}pt</span>
-      </div>
-      <p class="card-title">#${order} ${escapeHtml(card.title)}</p>
-      <p class="card-text">${escapeHtml(card.text).replace(/\n/g, "<br>")}</p>
-    </article>`;
-  }).join("");
-}
-function renderBomb() {
-  const wireMod = els.wirePhaseModule;
-  const numMod = els.numberPhaseModule;
-  wireMod.className = "phase-module";
-  numMod.className = "phase-module";
-  if (State.phase === "wire") { wireMod.classList.add("active"); numMod.classList.add("dormant"); }
-  else if (State.phase === "code") { wireMod.classList.add("complete"); numMod.classList.add("active"); }
-  else if (State.phase === "done") { wireMod.classList.add("complete"); numMod.classList.add("complete"); }
-  else { wireMod.classList.add("failed"); numMod.classList.add("failed"); }
-  els.cutProgress.textContent = `CUT ${State.cutIndex} / 4`;
-  WIRES.forEach(w => {
-    const line = document.querySelector(`[data-wire-line="${w.id}"]`);
-    const btn = document.querySelector(`[data-cut-wire="${w.id}"]`);
-    if (!line || !btn) return;
-    line.classList.toggle("cut", State.cutOrder.includes(w.id));
-    line.classList.toggle("current", !State.cutOrder.includes(w.id) && State.phase === "wire");
-    btn.disabled = State.locked || State.phase !== "wire" || State.cutOrder.includes(w.id);
-  });
-  els.codeHintNote.textContent = State.phase === "wire" ? "ワイヤー解除後に有効。" : State.phase === "code" ? "1〜5を合わせて送信。" : "任務終了。";
-  els.submitCodeBtn.disabled = State.locked || State.phase !== "code";
-}
-function renderDials() {
-  for (let i = 0; i < CODE_LEN; i++) {
-    const slot = $(`#digitSlot${i}`);
-    if (slot) slot.textContent = State.phase === "wire" ? "?" : State.dials[i];
-  }
-  $$('[data-dial]').forEach(btn => { btn.disabled = State.locked || State.phase !== "code"; });
-}
-function buildWireMemoHtml() {
-  let html = '<table class="memo-grid"><thead><tr><th>線</th>';
-  for (let p = 1; p <= WIRE_LEN; p++) html += `<th>${p}番目</th>`;
-  html += '</tr></thead><tbody>';
-  for (const w of WIRES) {
-    html += `<tr><td>${w.emoji} ${w.name}</td>`;
-    for (let p = 1; p <= WIRE_LEN; p++) {
-      const key = `${w.id}:${p}`;
-      html += `<td><button class="memo-btn" data-kind="wire" data-key="${key}" type="button">?</button></td>`;
+    function submitCode() {
+      if (!State || State.locked) return;
+      if (State.phase !== "code") {
+        toast("コード入力はワイヤー解除後に有効です。");
+        return;
+      }
+      if (new Set(State.dials).size !== CODE_LEN) {
+        toast("コードは重複なしで合わせてください。");
+        return;
+      }
+      if (arraysEqual(State.dials, State.answer.code)) success();
+      else fail(`コード不一致：${State.dials.join("")} を送信したため、ロックアウトしました。`);
     }
-    html += '</tr>';
-  }
-  html += '</tbody></table>';
-  return html;
-}
-function buildCodeMemoHtml() {
-  let html = '<table class="memo-grid"><thead><tr><th>数字</th>';
-  for (let p = 1; p <= CODE_LEN; p++) html += `<th>${p}桁目</th>`;
-  html += '</tr></thead><tbody>';
-  for (const d of DIGITS) {
-    html += `<tr><td>${d}</td>`;
-    for (let p = 1; p <= CODE_LEN; p++) {
-      const key = `${d}:${p}`;
-      html += `<td><button class="memo-btn" data-kind="code" data-key="${key}" type="button">?</button></td>`;
-    }
-    html += '</tr>';
-  }
-  html += '</tbody></table>';
-  return html;
-}
-function renderMemoGrids() {
-  els.wireMemoWrap.innerHTML = buildWireMemoHtml();
-  els.codeMemoWrap.innerHTML = buildCodeMemoHtml();
-  $$('.memo-btn').forEach(btn => {
-    const store = State.memo[btn.dataset.kind];
-    const key = btn.dataset.key;
-    applyMemoButtonState(btn, store[key] || 0);
-    btn.addEventListener('click', () => {
-      store[key] = ((store[key] || 0) + 1) % 3;
-      applyMemoButtonState(btn, store[key]);
-    });
-  });
-}
-function applyMemoButtonState(btn, state) {
-  btn.classList.remove('no', 'yes');
-  btn.textContent = state === 0 ? '?' : state === 1 ? '×' : '○';
-  if (state === 1) btn.classList.add('no');
-  if (state === 2) btn.classList.add('yes');
-}
-function wireMemoTab() { els.wireMemoTab.classList.add('active'); els.codeMemoTab.classList.remove('active'); els.wireMemoWrap.classList.remove('hidden'); els.codeMemoWrap.classList.add('hidden'); }
-function codeMemoTab() { els.codeMemoTab.classList.add('active'); els.wireMemoTab.classList.remove('active'); els.codeMemoWrap.classList.remove('hidden'); els.wireMemoWrap.classList.add('hidden'); }
-function stopTimer() { if (State && State.timer) { clearInterval(State.timer); State.timer = null; } }
-function elapsedSeconds() { if (!State) return 0; const end = State.finishedAt || Date.now(); return Math.max(0, Math.floor((end - State.startedAt) / 1000)); }
-function fmtTime(sec) { const m = Math.floor(sec / 60); const s = sec % 60; return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; }
-function bestKey(id, difficulty) { return `codewire.best.${difficulty}.${id}`; }
-function getBest(id, difficulty) { try { const raw = localStorage.getItem(bestKey(id, difficulty)); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } }
-function setBest(id, difficulty, data) { try { localStorage.setItem(bestKey(id, difficulty), JSON.stringify(data)); } catch (_) {} }
-function isBetter(a, b) { return !b || a.score < b.score || (a.score === b.score && a.cards < b.cards) || (a.score === b.score && a.cards === b.cards && a.time < b.time); }
-function rankForScore(score, par) { if (score <= par) return "S+"; if (score <= par + 3) return "S"; if (score <= par + 7) return "A"; if (score <= par + 13) return "B"; return "C"; }
-function answerText() { return `ワイヤー順：${State.answer.wires.map(wireName).join(' → ')}\n解除コード：${State.answer.code.join('')}`; }
-function showResult(ok, failMsg = '') {
-  const time = elapsedSeconds();
-  const rank = rankForScore(State.score, State.par);
-  els.resultModal.classList.remove('hidden');
-  els.resultIcon.textContent = ok ? '✅' : '💥';
-  els.resultTitle.textContent = ok ? `解除成功：RANK ${rank}` : '訓練失敗';
-  els.resultMessage.textContent = ok ? '低いヒント点で解除できるほど強い記録です。' : failMsg;
-  els.copyResultBtn.classList.toggle('hidden', !ok);
-  els.resultStats.innerHTML = [['問題ID', State.id], ['難易度', State.difficulty === 'hard' ? 'むずかしい' : 'ふつう'], ['ヒント点', String(State.score)], ['時間', fmtTime(time)]].map(([l, v]) => `<div class="result-stat"><span>${escapeHtml(l)}</span><b>${escapeHtml(v)}</b></div>`).join('');
-  els.answerReveal.textContent = answerText();
-}
-function showFx(type, title, sub) {
-  els.fxOverlay.innerHTML = `<div class="fx-backdrop"></div><div class="fx-card"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(sub || '')}</span></div>`;
-  els.fxOverlay.className = `fx-overlay ${type} show`;
-  clearTimeout(showFx._t);
-  showFx._t = setTimeout(() => { els.fxOverlay.className = 'fx-overlay hidden'; els.fxOverlay.innerHTML = ''; }, type === 'success' || type === 'fail' ? 1400 : 900);
-}
-function toast(msg, ms = 2400) { els.toast.textContent = msg; els.toast.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => els.toast.classList.remove('show'), ms); }
-function copyText(text) { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(() => fallbackCopy(text)); else fallbackCopy(text); }
-function fallbackCopy(text) { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (_) {} ta.remove(); }
-function copyId() { copyText(State ? State.id : normalizeProblemId(els.problemIdInput.value)); toast('問題IDをコピーしました。'); }
-function copyResult() { copyText(State.resultText || `CODEWIRE｜ID:${State.id}｜${State.score}点`); toast('結果をコピーしました。'); }
-function escapeHtml(v) { return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
-function backToStart() { stopTimer(); els.gameScreen.classList.add('hidden'); els.startScreen.classList.remove('hidden'); els.resultModal.classList.add('hidden'); }
-function bindEvents() {
-  els.randomIdBtn.addEventListener('click', () => els.problemIdInput.value = generateProblemId());
-  els.demoBtn.addEventListener('click', () => { els.problemIdInput.value = 'CW-DEMO42'; });
-  els.startBtn.addEventListener('click', () => startGame(els.problemIdInput.value));
-  els.problemIdInput.addEventListener('keydown', e => { if (e.key === 'Enter') startGame(els.problemIdInput.value); });
-  els.copyIdBtn.addEventListener('click', copyId);
-  els.newGameBtn.addEventListener('click', () => startGame(generateProblemId()));
-  els.backToStartBtn.addEventListener('click', backToStart);
-  els.wireMemoTab.addEventListener('click', wireMemoTab);
-  els.codeMemoTab.addEventListener('click', codeMemoTab);
-  els.submitCodeBtn.addEventListener('click', submitCode);
-  $$('[data-cut-wire]').forEach(btn => btn.addEventListener('click', () => cutWire(btn.dataset.cutWire)));
-  $$('[data-dial]').forEach(btn => btn.addEventListener('click', () => changeDial(Number(btn.dataset.dial), Number(btn.dataset.delta))));
-  els.copyResultBtn.addEventListener('click', copyResult);
-  els.retrySameBtn.addEventListener('click', () => startGame(State.id));
-  els.freshFromResultBtn.addEventListener('click', () => startGame(generateProblemId()));
-  els.closeResultBtn.addEventListener('click', () => els.resultModal.classList.add('hidden'));
-}
 
-bindEvents();
-els.problemIdInput.value = generateProblemId();
-</script>
+    function success() {
+      State.finishedAt = Date.now();
+      State.locked = true;
+      State.phase = "done";
+      stopTimer();
+      const result = { score: State.score, cards: State.revealed.length, time: elapsedSeconds(), id: State.id };
+      const best = getBest(State.id);
+      if (isBetter(result, best)) setBest(State.id, result);
+      State.resultText = `CODEWIRE 解除成功｜ID:${State.id}｜${State.score}点｜${State.revealed.length}枚｜${fmtTime(result.time)}`;
+      showFx("success", "DISARMED", "SIMULATED DEVICE SAFE");
+      renderAll();
+      showResult(true);
+    }
+
+    function fail(msg) {
+      State.finishedAt = Date.now();
+      State.locked = true;
+      State.phase = "fail";
+      stopTimer();
+      State.logs.push(msg);
+      els.bombCore.classList.remove("shake");
+      void els.bombCore.offsetWidth;
+      els.bombCore.classList.add("shake");
+      State.resultText = `CODEWIRE 訓練失敗｜ID:${State.id}｜${State.score}点｜${State.revealed.length}枚｜${fmtTime(elapsedSeconds())}`;
+      showFx("fail", "DETONATION", "MISSION FAILED");
+      renderAll();
+      showResult(false, msg);
+    }
+
+    function arraysEqual(a, b) { return a.length === b.length && a.every((x, i) => x === b[i]); }
+    function stopTimer() { if (State && State.timer) { clearInterval(State.timer); State.timer = null; } }
+    function elapsedSeconds() {
+      if (!State) return 0;
+      const end = State.finishedAt || Date.now();
+      return Math.max(0, Math.floor((end - State.startedAt) / 1000));
+    }
+    function fmtTime(sec) {
+      const m = Math.floor(sec / 60), s = sec % 60;
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+    function bestKey(id) { return `CODEWIRE_BEST_V4_${id}`; }
+    function getBest(id) { try { const raw = localStorage.getItem(bestKey(id)); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } }
+    function setBest(id, best) { try { localStorage.setItem(bestKey(id), JSON.stringify(best)); } catch (_) {} }
+    function isBetter(a, b) {
+      if (!b) return true;
+      if (a.score !== b.score) return a.score < b.score;
+      if (a.cards !== b.cards) return a.cards < b.cards;
+      return a.time < b.time;
+    }
+
+    function renderAll() {
+      renderStatus();
+      renderBomb();
+      renderDials();
+      renderCards();
+      renderRevealed();
+      renderMemos();
+      renderLogs();
+      renderTime();
+    }
+
+    function renderStatus() {
+      const best = getBest(State.id);
+      els.statusId.textContent = State.id;
+      els.statusPhase.textContent = State.phase === "wire" ? "WIRE" : State.phase === "code" ? "NUMBER" : State.phase === "done" ? "SAFE" : "FAIL";
+      els.statusScore.textContent = String(State.score);
+      els.statusCards.textContent = `${State.revealed.length}`;
+      els.statusBest.textContent = best ? `${best.score}点 ${fmtTime(best.time)}` : "-";
+    }
+
+    function renderTime() { if (State) els.statusTime.textContent = fmtTime(elapsedSeconds()); }
+
+    function renderBomb() {
+      els.wireLamp.className = `round-lamp ${State.phase === "wire" ? "active" : State.cutIndex >= 4 || State.phase === "done" ? "done" : ""}`;
+      els.numberLamp.className = `round-lamp ${State.phase === "code" ? "active" : State.phase === "done" ? "done" : ""}`;
+      els.codeHintNote.textContent = State.phase === "wire" ? "ワイヤー解除後に有効。" : State.phase === "code" ? "数字を合わせて送信。" : "任務終了。";
+      els.submitCodeBtn.disabled = State.locked || State.phase !== "code";
+      COLORS.forEach(c => {
+        const line = document.querySelector(`[data-wire-line="${c.id}"]`);
+        const btn = document.querySelector(`[data-cut-wire="${c.id}"]`);
+        const cut = State.cutLog.includes(c.id);
+        line.classList.toggle("cut", cut);
+        btn.disabled = State.locked || State.phase !== "wire" || cut;
+      });
+    }
+
+    function renderDials() {
+      for (let i = 0; i < CODE_LEN; i++) {
+        const slot = $(`#digitSlot${i}`);
+        slot.textContent = State.phase === "wire" ? "?" : State.dials[i];
+      }
+      $$("[data-dial]").forEach(btn => btn.disabled = State.locked || State.phase !== "code");
+    }
+
+    function renderCards() {
+      refillSlots();
+      els.roundGuide.textContent = State.phase === "wire"
+        ? "ROUND 1 ではワイヤー専用ヒントだけが出ます。"
+        : State.phase === "code"
+          ? "ROUND 2 では数字専用ヒントだけが出ます。"
+          : "任務は終了しました。";
+      els.hintGrid.innerHTML = State.slots.map((card, i) => {
+        if (!card) return `<div class="empty-card">山札切れ</div>`;
+        return `
+          <button class="hint-card" data-card-slot="${i}" type="button" ${State.locked ? "disabled" : ""}>
+            <div class="card-top">
+              <span class="category-pill">${cardIcon(card.category)} ${escapeHtml(card.category)}</span>
+              <span class="score-badge">${card.score}点</span>
+            </div>
+            <p class="card-title">${escapeHtml(card.title)}</p>
+            <p class="card-text">対象：${escapeHtml(card.target)}<br>内容はめくるまで見えません。</p>
+            <div class="card-code">${State.phase.toUpperCase()} // CARD ${String(i + 1).padStart(2, "0")}</div>
+            <div class="btn btn-small btn-primary choose-card">このカードを見る</div>
+          </button>`;
+      }).join("");
+      $$("[data-card-slot]").forEach(btn => btn.addEventListener("click", () => useCard(Number(btn.dataset.cardSlot))));
+    }
+
+    function renderRevealed() {
+      els.revealedSummary.textContent = `${State.revealed.length}枚 / 合計${State.score}点`;
+      if (!State.revealed.length) {
+        els.revealedList.innerHTML = `<div class="empty-card">まだヒントを取得していません。</div>`;
+        return;
+      }
+      els.revealedList.innerHTML = State.revealed.slice().reverse().map((h, reverseIndex) => {
+        const order = State.revealed.length - reverseIndex;
+        return `
+          <article class="mini-card">
+            <div class="card-top">
+              <span class="category-pill">${cardIcon(h.category)} ${escapeHtml(h.category)}</span>
+              <span class="score-badge">${h.score}点</span>
+            </div>
+            <p class="card-title">#${order} ${escapeHtml(h.title)}</p>
+            <p class="card-text">${escapeHtml(h.text)}</p>
+          </article>`;
+      }).join("");
+    }
+
+    function renderLogs() {
+      els.missionLog.innerHTML = State.logs.slice(-6).map(line => `<p>${escapeHtml(line)}</p>`).join("");
+      els.missionLog.scrollTop = els.missionLog.scrollHeight;
+    }
+
+    function renderMemos() {
+      renderWireMemo();
+      renderCodeMemo();
+    }
+    function renderWireMemo() {
+      let html = `<table class="memo-grid"><thead><tr><th>線</th>`;
+      for (let p = 1; p <= 4; p++) html += `<th>${p}番目</th>`;
+      html += `</tr></thead><tbody>`;
+      for (const c of COLORS) {
+        html += `<tr><td>${c.emoji} ${c.jp}</td>`;
+        for (let p = 0; p < 4; p++) {
+          const v = State.memo.wire[c.id][p];
+          html += `<td><button class="memo-btn ${memoClass(v)}" data-memo-kind="wire" data-color="${c.id}" data-pos="${p}" type="button">${v}</button></td>`;
+        }
+        html += `</tr>`;
+      }
+      html += `</tbody></table>`;
+      els.wireMemoWrap.innerHTML = html;
+      els.wireMemoWrap.querySelectorAll("[data-memo-kind='wire']").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const c = btn.dataset.color, p = Number(btn.dataset.pos);
+          State.memo.wire[c][p] = nextMemo(State.memo.wire[c][p]);
+          renderWireMemo();
+        });
+      });
+    }
+    function renderCodeMemo() {
+      let html = `<table class="memo-grid"><thead><tr><th>数字</th>`;
+      for (let p = 1; p <= CODE_LEN; p++) html += `<th>${p}桁目</th>`;
+      html += `</tr></thead><tbody>`;
+      for (const d of DIGITS) {
+        html += `<tr><td>${d}</td>`;
+        for (let p = 0; p < CODE_LEN; p++) {
+          const v = State.memo.code[p][d];
+          html += `<td><button class="memo-btn ${memoClass(v)}" data-memo-kind="code" data-digit="${d}" data-pos="${p}" type="button">${v}</button></td>`;
+        }
+        html += `</tr>`;
+      }
+      html += `</tbody></table>`;
+      els.codeMemoWrap.innerHTML = html;
+      els.codeMemoWrap.querySelectorAll("[data-memo-kind='code']").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const d = btn.dataset.digit, p = Number(btn.dataset.pos);
+          State.memo.code[p][d] = nextMemo(State.memo.code[p][d]);
+          renderCodeMemo();
+        });
+      });
+    }
+    function nextMemo(v) {
+      if (v === "?") return "×";
+      if (v === "×") return "△";
+      if (v === "△") return "○";
+      return "?";
+    }
+    function memoClass(v) {
+      if (v === "×") return "no";
+      if (v === "△") return "maybe";
+      if (v === "○") return "yes";
+      return "";
+    }
+
+    function wireMemoTab() {
+      els.wireMemoTab.classList.add("active");
+      els.codeMemoTab.classList.remove("active");
+      els.wireMemoWrap.classList.remove("hidden");
+      els.codeMemoWrap.classList.add("hidden");
+    }
+    function codeMemoTab() {
+      els.codeMemoTab.classList.add("active");
+      els.wireMemoTab.classList.remove("active");
+      els.codeMemoWrap.classList.remove("hidden");
+      els.wireMemoWrap.classList.add("hidden");
+    }
+
+    function showResult(success, failMessage = "") {
+      els.resultModal.classList.remove("hidden");
+      els.resultIcon.textContent = success ? "✅" : "💥";
+      els.resultTitle.textContent = success ? "解除成功" : "訓練失敗";
+      els.resultMessage.textContent = success ? "低いヒント点で解除できるほど強い記録です。" : failMessage;
+      els.copyResultBtn.classList.toggle("hidden", !success);
+      els.resultStats.innerHTML = [
+        ["問題ID", State.id],
+        ["ヒント点", `${State.score}`],
+        ["使用カード", `${State.revealed.length}`],
+        ["時間", fmtTime(elapsedSeconds())]
+      ].map(([label, value]) => `<div class="result-stat"><span>${escapeHtml(label)}</span><b>${escapeHtml(value)}</b></div>`).join("");
+      els.answerReveal.textContent = `ワイヤー順：${State.answer.wire.map(colorName).join(" → ")}\n解除コード：${State.answer.code.join("")}`;
+    }
+
+    function showFx(type, title, sub = "") {
+      els.fxOverlay.innerHTML = `<div class="fx-card"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(sub)}</span></div>`;
+      els.fxOverlay.className = `fx-overlay ${type} show`;
+      clearTimeout(showFx._timer);
+      showFx._timer = setTimeout(() => {
+        els.fxOverlay.className = "fx-overlay hidden";
+        els.fxOverlay.innerHTML = "";
+      }, type === "success" || type === "fail" ? 1400 : 900);
+    }
+    function toast(message, ms = 2200) {
+      els.toast.textContent = message;
+      els.toast.classList.add("show");
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => els.toast.classList.remove("show"), ms);
+    }
+    function escapeHtml(value) {
+      return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+      else fallbackCopy(text);
+    }
+    function fallbackCopy(text) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); } catch (_) {}
+      ta.remove();
+    }
+    function copyId() { copyText(State ? State.id : normalizeId(els.problemIdInput.value)); toast("問題IDをコピーしました。"); }
+    function copyResult() { copyText(State.resultText || `CODEWIRE｜ID:${State.id}｜${State.score}点`); toast("結果をコピーしました。"); }
+    function backToStart() {
+      stopTimer();
+      els.gameScreen.classList.add("hidden");
+      els.startScreen.classList.remove("hidden");
+      els.resultModal.classList.add("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function bindEvents() {
+      els.randomIdBtn.addEventListener("click", () => { els.problemIdInput.value = generateProblemId(); });
+      els.demoBtn.addEventListener("click", () => { els.problemIdInput.value = "CW-DEMO42"; });
+      els.startBtn.addEventListener("click", () => startGame());
+      els.problemIdInput.addEventListener("keydown", e => { if (e.key === "Enter") startGame(); });
+      els.copyIdBtn.addEventListener("click", copyId);
+      els.newGameBtn.addEventListener("click", () => startGame(generateProblemId()));
+      els.backToStartBtn.addEventListener("click", backToStart);
+      els.wireMemoTab.addEventListener("click", wireMemoTab);
+      els.codeMemoTab.addEventListener("click", codeMemoTab);
+      els.submitCodeBtn.addEventListener("click", submitCode);
+      $$("[data-cut-wire]").forEach(btn => btn.addEventListener("click", () => cutWire(btn.dataset.cutWire)));
+      $$("[data-dial]").forEach(btn => btn.addEventListener("click", () => changeDial(Number(btn.dataset.dial), Number(btn.dataset.delta))));
+      els.copyResultBtn.addEventListener("click", copyResult);
+      els.retrySameBtn.addEventListener("click", () => startGame(State.id));
+      els.freshFromResultBtn.addEventListener("click", () => startGame(generateProblemId()));
+      els.closeResultBtn.addEventListener("click", () => els.resultModal.classList.add("hidden"));
+    }
+
+    bindEvents();
+    els.problemIdInput.value = generateProblemId();
+  </script>
 </body>
 </html>
