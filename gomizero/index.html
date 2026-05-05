@@ -3,191 +3,747 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>ごみゼロ分別マスター 浜松市イベント版</title>
+<title>ごみゼロ分別チャレンジ｜浜松市版 200問</title>
 <style>
-:root{--blue:#2f80ed;--green:#2fbf71;--red:#eb5757;--yellow:#f2c94c;--dark:#263238;--panel:rgba(255,255,255,.94);--shadow:0 14px 30px rgba(0,0,0,.18);}
+:root{
+  --blue:#2f7df2;--blue2:#9fd9ff;--blueDeep:#1554b7;
+  --green:#28b979;--green2:#b9f0d5;--greenDeep:#167b50;
+  --red:#ef615c;--red2:#ffc2bd;--redDeep:#bd3432;
+  --yellow:#f4ca4f;--yellow2:#fff0a6;--yellowDeep:#7b5a00;
+  --ink:#17323b;--muted:#60747b;--paper:#fffdf7;--panel:rgba(255,255,255,.86);
+  --shadow:0 30px 80px rgba(15,55,65,.25);--soft:0 16px 34px rgba(15,55,65,.14);
+  --font:"M PLUS Rounded 1c","Zen Maru Gothic","Hiragino Maru Gothic ProN","BIZ UDPGothic","Yu Gothic UI","Hiragino Sans","Yu Gothic",system-ui,-apple-system,sans-serif;
+}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:radial-gradient(circle at top,#fff8d8,#dff7ff 52%,#d7f8df);color:var(--dark);overflow:hidden;touch-action:none;user-select:none}
-.app{position:relative;width:100vw;height:100vh;padding:94px 132px;display:flex;align-items:center;justify-content:center}
-.guide{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:1000;color:white;text-shadow:0 2px 0 rgba(0,0,0,.14);letter-spacing:.02em;box-shadow:var(--shadow);z-index:3;border:0;transition:height .25s,width .25s,opacity .2s}
-.guide>div{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px}.guide .small{display:block;font-size:clamp(11px,1.35vw,17px);font-weight:900;margin-top:4px;line-height:1.25}
+html,body{width:100%;height:100%;min-height:100dvh}
+body{margin:0;overflow:hidden;touch-action:none;user-select:none;color:var(--ink);font-family:var(--font);font-feature-settings:"palt" 1;background:radial-gradient(circle at 16% 10%,rgba(255,239,161,.95),transparent 28%),radial-gradient(circle at 88% 20%,rgba(166,226,255,.95),transparent 28%),radial-gradient(circle at 75% 90%,rgba(184,243,207,.92),transparent 34%),linear-gradient(135deg,#fff8d7 0%,#e7f8ff 48%,#e9ffe9 100%);}
+body::before,body::after{content:"";position:fixed;inset:auto;z-index:0;pointer-events:none;border-radius:999px;filter:blur(8px);opacity:.54}
+body::before{width:34vw;height:34vw;left:-10vw;bottom:-12vw;background:radial-gradient(circle,#ffffff 0%,rgba(255,255,255,0) 70%)}
+body::after{width:30vw;height:30vw;right:-8vw;top:-9vw;background:radial-gradient(circle,#ffffff 0%,rgba(255,255,255,0) 70%)}
+.app{position:relative;z-index:1;width:100vw;height:100dvh;padding:94px 132px;display:flex;align-items:center;justify-content:center;transition:padding .24s ease}
+.guide{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:1000;color:white;text-shadow:0 2px 0 rgba(0,0,0,.14);letter-spacing:.02em;z-index:3;border:0;outline:0;overflow:hidden;transition:opacity .22s,filter .22s,width .22s,height .22s,transform .22s}
+.guide::before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,rgba(255,255,255,.32),rgba(255,255,255,0) 46%,rgba(0,0,0,.08));pointer-events:none}
+.guide>div{position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px}
 .guide .big{display:block;font-size:clamp(18px,2.35vw,34px);line-height:1.1}
-.guide.up{top:0;left:50%;transform:translateX(-50%);width:min(720px,64vw);height:86px;background:var(--blue);border-radius:0 0 24px 24px}
-.guide.down{bottom:0;left:50%;transform:translateX(-50%);width:min(720px,64vw);height:86px;background:var(--green);border-radius:24px 24px 0 0}
-.guide.left{left:0;top:50%;transform:translateY(-50%);width:156px;height:min(650px,86vh);background:var(--red);border-radius:0 24px 24px 0}
-.guide.right{right:0;top:50%;transform:translateY(-50%);width:156px;height:min(650px,86vh);background:var(--yellow);color:#5d4500;text-shadow:none;border-radius:24px 0 0 24px}
+.guide .small{display:block;font-size:clamp(11px,1.35vw,17px);font-weight:900;margin-top:4px;line-height:1.25;opacity:.9}
+.guide.up{top:0;left:50%;transform:translateX(-50%);width:min(720px,64vw);height:86px;background:linear-gradient(135deg,var(--blue),var(--blueDeep));border-radius:0 0 26px 26px;box-shadow:var(--soft)}
+.guide.down{bottom:0;left:50%;transform:translateX(-50%);width:min(720px,64vw);height:86px;background:linear-gradient(135deg,var(--green),var(--greenDeep));border-radius:26px 26px 0 0;box-shadow:var(--soft)}
+.guide.left{left:0;top:50%;transform:translateY(-50%);width:156px;height:min(650px,86vh);background:linear-gradient(135deg,var(--red),var(--redDeep));border-radius:0 28px 28px 0;box-shadow:var(--soft)}
+.guide.right{right:0;top:50%;transform:translateY(-50%);width:156px;height:min(650px,86vh);background:linear-gradient(135deg,var(--yellow2),var(--yellow));color:var(--yellowDeep);text-shadow:0 1px 0 rgba(255,255,255,.7);border-radius:28px 0 0 28px;box-shadow:var(--soft)}
 body.playing .guide-example{display:none!important}
 body.playing .guide.left,body.playing .guide.right{height:min(520px,70vh);width:122px}
-.screen{width:min(820px,78vw);height:min(650px,72vh);background:var(--panel);border-radius:36px;box-shadow:var(--shadow);padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:6px solid rgba(255,255,255,.72);position:relative;z-index:2;overflow:hidden}
-.title{font-size:clamp(28px,4.6vw,56px);margin:0 0 12px;font-weight:1000;color:#1f5c3b;line-height:1.08;white-space:nowrap}
-.subtitle{font-size:clamp(15px,2vw,24px);font-weight:900;margin:0 0 14px;color:#52636b}
-.rule-box{width:min(690px,100%);background:#fff8dc;border:4px solid #ffe08a;border-radius:24px;padding:14px 18px;margin:4px 0 10px;text-align:left;font-size:clamp(14px,1.75vw,21px);font-weight:900;line-height:1.55;box-shadow:0 8px 18px rgba(0,0,0,.08)}
-.assist-status{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:clamp(9px,.9vw,12px);font-weight:700;opacity:.24;margin:0;letter-spacing:.02em;pointer-events:none}
-.mode-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;max-width:520px;margin-top:10px}.mode-grid button{border:1.5px solid rgba(38,50,56,.22)}
-.today-ranking{width:min(460px,100%);margin:8px auto 0;text-align:left;background:#f7fbff;border:3px solid #dbefff;border-radius:18px;padding:10px 14px;font-size:clamp(13px,1.5vw,18px);font-weight:900;line-height:1.45}.today-ranking-title{text-align:center;font-weight:1000;margin-bottom:4px;color:#2f5b78}.today-ranking ol{margin:4px 0 0 1.4em;padding:0}.endless-confirm{display:grid;gap:14px;place-items:center;width:100%;max-width:620px}.endless-confirm .big-score{font-size:clamp(32px,5vw,64px);font-weight:1000;color:#1f5c3b}
-button{border:0;border-radius:22px;padding:16px 13px;font-size:clamp(15px,2vw,23px);font-weight:1000;cursor:pointer;background:#fff;color:var(--dark);box-shadow:0 8px 0 rgba(0,0,0,.11),0 12px 22px rgba(0,0,0,.12);transition:transform .05s,box-shadow .05s}
-button:active{transform:translateY(5px);box-shadow:0 3px 0 rgba(0,0,0,.11),0 8px 16px rgba(0,0,0,.1)}
-.hud{position:absolute;left:22px;top:18px;right:22px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:1000;font-size:clamp(14px,1.75vw,23px)}
-.timer{width:104px;height:104px;border-radius:50%;background:conic-gradient(#ff5c5c var(--timerAngle),#eee 0deg);display:grid;place-items:center;box-shadow:inset 0 0 0 8px white,0 8px 18px rgba(0,0,0,.15)}
-.timer span{width:74px;height:74px;border-radius:50%;background:white;display:grid;place-items:center;font-size:31px;color:#e43d3d}
-.question-card{margin-top:86px;width:100%;display:grid;place-items:center;gap:12px}
-.garbage-img{width:min(245px,35vw);height:min(245px,35vw);object-fit:contain;border-radius:30px;background:#fffdf3;border:5px dashed #f0d988;padding:16px;display:grid;place-items:center;font-size:clamp(68px,15vw,145px);line-height:1}
-.garbage-name{font-size:clamp(32px,4.8vw,66px);font-weight:1000;line-height:1.12}
-.hint{font-size:clamp(14px,1.7vw,20px);font-weight:900;color:#607177}
-.flash{position:absolute;inset:0;display:none;place-items:center;z-index:10;font-size:clamp(50px,10vw,130px);font-weight:1000;color:white;text-shadow:0 5px 0 rgba(0,0,0,.18);border-radius:28px}
-.flash.show{display:grid}.flash.correct{background:rgba(47,191,113,.9)}.flash.wrong{background:rgba(235,87,87,.9)}
-.result-wrap{display:grid;grid-template-columns:230px 1fr;gap:18px;align-items:center;width:100%;max-width:720px}
-.rate-circle{width:210px;height:210px;border-radius:50%;background:conic-gradient(#2fbf71 var(--rateAngle),#eee 0deg);display:grid;place-items:center;box-shadow:inset 0 0 0 14px white,0 10px 24px rgba(0,0,0,.16)}
-.rate-circle span{width:138px;height:138px;border-radius:50%;background:white;display:grid;place-items:center;font-size:38px;font-weight:1000;color:#1f5c3b}
-.badge{display:inline-block;background:#fff1a6;border:4px solid #f2c94c;border-radius:999px;padding:8px 16px;font-size:clamp(19px,2.4vw,30px);font-weight:1000;margin:8px 0}
-.result-list{width:100%;max-height:220px;overflow:auto;text-align:left;padding-right:6px}
-.miss-item{background:#fff7e8;border:3px solid #ffe0a6;border-radius:18px;padding:10px 13px;margin:8px 0;font-size:clamp(13px,1.45vw,18px);font-weight:850}
-.settings{position:fixed;inset:0;background:rgba(0,0,0,.46);z-index:20;display:none;align-items:center;justify-content:center;padding:20px}
-.settings.show{display:flex}
-.settings-panel{width:min(610px,92vw);max-height:92vh;overflow:auto;background:white;border-radius:30px;padding:26px;box-shadow:var(--shadow);border:6px solid #f4f4f4}
-.settings-panel h2{margin:0 0 18px;font-size:32px}.setting-row{margin:16px 0;font-weight:900;font-size:18px;display:grid;gap:8px}
-input[type=range]{width:100%}input[type=number]{font-size:22px;padding:8px 12px;border-radius:12px;border:2px solid #ccc}label.inline{display:flex;align-items:center;gap:10px}
-input[type=checkbox]{width:24px;height:24px}
-.footer-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px}.tiny{font-size:14px;opacity:.72;margin-top:12px;line-height:1.5;font-weight:800}
-.practice-note{background:#eef9ff;border:4px solid #bde8ff;border-radius:24px;padding:14px 18px;font-size:clamp(16px,2vw,24px);font-weight:900;line-height:1.55;margin-top:6px}
-.guide.assist{animation:pulseGuide .75s infinite alternate;filter:brightness(1.18) saturate(1.25)}
-@keyframes pulseGuide{from{box-shadow:0 0 0 0 rgba(255,255,255,.8),var(--shadow)}to{box-shadow:0 0 0 16px rgba(255,255,255,.45),var(--shadow)}}
+body.kids.playing .guide.up,body.kids.playing .guide.down{opacity:0;pointer-events:none}
+body.kids.playing .app{padding-top:36px;padding-bottom:36px}
+body.result .guide{opacity:0;pointer-events:none}
+body.result .app{padding:24px}
+.screen{width:min(850px,78vw);height:min(655px,74vh);background:linear-gradient(180deg,rgba(255,255,255,.93),rgba(255,255,255,.78));backdrop-filter:blur(14px);border-radius:38px;box-shadow:var(--shadow);padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;z-index:2;overflow:hidden}
+.screen::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 18% 15%,rgba(255,255,255,.95),transparent 30%),radial-gradient(circle at 88% 85%,rgba(255,246,177,.38),transparent 34%);pointer-events:none}
+.screen>*{position:relative;z-index:1}
+body.result .screen{width:min(1120px,94vw);height:min(720px,92vh);padding:26px 30px}
+.kicker{margin:0 0 8px;font-size:clamp(13px,1.3vw,17px);font-weight:1000;color:#2d8962;letter-spacing:.14em}
+.title{font-size:clamp(30px,4.6vw,58px);margin:0 0 8px;font-weight:1000;color:#1f6848;line-height:1.05;letter-spacing:-.03em;white-space:nowrap;text-shadow:0 4px 0 rgba(255,255,255,.78)}
+.subtitle{font-size:clamp(15px,1.85vw,23px);font-weight:900;margin:0 0 12px;color:#52656b;line-height:1.3}
+.status-line{height:18px;margin:0 0 8px;font-size:clamp(10px,.95vw,13px);font-weight:900;color:rgba(24,50,59,.34);letter-spacing:.05em}
+.rule-flow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:min(640px,100%);margin:7px 0 15px}
+.step{background:rgba(255,255,255,.75);border-radius:24px;padding:12px 8px;box-shadow:0 10px 20px rgba(15,55,65,.08)}
+.step .icon{font-size:clamp(28px,4vw,42px);line-height:1}
+.step .text{font-size:clamp(13px,1.5vw,18px);font-weight:1000;margin-top:5px}
+.mode-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:min(590px,100%);margin:3px auto 0}
+button{border:0;border-radius:24px;padding:15px 14px;font-size:clamp(16px,1.9vw,24px);font-weight:1000;cursor:pointer;background:linear-gradient(180deg,#fff,#f7fbff);color:var(--ink);box-shadow:0 9px 0 rgba(15,55,65,.12),0 16px 30px rgba(15,55,65,.12);transition:transform .06s,box-shadow .06s,filter .12s;min-height:58px;font-family:var(--font)}
+button .sub{display:block;font-size:clamp(10px,1vw,13px);font-weight:900;color:rgba(24,50,59,.55);margin-top:3px}
+button:active{transform:translateY(5px);box-shadow:0 4px 0 rgba(15,55,65,.12),0 10px 18px rgba(15,55,65,.12)}
+button.menu-selected{filter:saturate(1.08);box-shadow:0 0 0 5px rgba(47,125,242,.28),0 10px 0 rgba(15,55,65,.12),0 16px 30px rgba(15,55,65,.16)}
+.btn-green{background:linear-gradient(180deg,#e8fff1,#ffffff)}.btn-blue{background:linear-gradient(180deg,#e9f5ff,#ffffff)}.btn-yellow{background:linear-gradient(180deg,#fff7c7,#ffffff)}.btn-red{background:linear-gradient(180deg,#fff0ee,#ffffff)}
+.hud{position:absolute;left:24px;top:18px;right:24px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;font-weight:1000;font-size:clamp(14px,1.55vw,22px);z-index:4;color:#31515a}
+.hud-left{text-align:left}.hud-right{text-align:right}
+.timer{width:92px;height:92px;border-radius:50%;background:conic-gradient(#ff5f5b var(--timerAngle),#edf0f0 0deg);display:grid;place-items:center;box-shadow:inset 0 0 0 8px white,0 10px 20px rgba(15,55,65,.14)}
+.timer span{width:62px;height:62px;border-radius:50%;background:white;display:grid;place-items:center;font-size:28px;color:#de4140;font-weight:1000}
+.dots{display:flex;gap:5px;justify-content:center;margin-top:6px}.dot{width:8px;height:8px;border-radius:50%;background:#dce5e8}.dot.done{background:#2fbd7b}.dot.now{background:#ffb84e;transform:scale(1.25)}
+.question-card{margin-top:78px;width:100%;display:grid;place-items:center;gap:10px}
+.garbage-img{width:min(235px,31vw);height:min(235px,31vw);border-radius:34px;background:linear-gradient(180deg,#fffef8,#fff6df);display:grid;place-items:center;font-size:clamp(74px,13vw,142px);line-height:1;box-shadow:inset 0 0 0 4px rgba(255,211,98,.24),0 16px 32px rgba(15,55,65,.12)}
+.garbage-name{font-size:clamp(34px,4.7vw,66px);font-weight:1000;line-height:1.08;letter-spacing:-.035em;color:#203d45;text-shadow:0 4px 0 rgba(255,255,255,.8)}
+.hint{font-size:clamp(14px,1.55vw,20px);font-weight:1000;color:#66777c;min-height:24px}
+.feedback{position:absolute;inset:0;display:none;place-items:center;z-index:10;border-radius:38px;color:white;text-align:center;padding:24px}
+.feedback.show{display:grid;animation:pop .2s ease-out}
+.feedback.correct{background:rgba(40,185,121,.92)}.feedback.wrong{background:rgba(239,97,92,.92)}
+.feedback .main{font-size:clamp(52px,9vw,116px);font-weight:1000;text-shadow:0 5px 0 rgba(0,0,0,.16);line-height:1}
+.feedback .note{font-size:clamp(16px,2vw,25px);font-weight:1000;margin-top:12px;max-width:760px}
+@keyframes pop{from{transform:scale(.98);opacity:.4}to{transform:scale(1);opacity:1}}
+.guide.assist{animation:pulseGuide .68s infinite alternate;filter:brightness(1.18) saturate(1.22)}
+@keyframes pulseGuide{from{box-shadow:0 0 0 0 rgba(255,255,255,.9),var(--soft)}to{box-shadow:0 0 0 18px rgba(255,255,255,.45),var(--soft)}}
+.practice-answer{background:#eef9ff;border-radius:24px;padding:12px 16px;font-size:clamp(16px,1.8vw,23px);font-weight:1000;line-height:1.35;box-shadow:0 10px 22px rgba(15,55,65,.08)}
+.answer-chip{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:5px 12px;font-weight:1000;color:white;line-height:1;min-width:80px;font-size:.95em}
+.answer-chip.up{background:linear-gradient(135deg,var(--blue),var(--blueDeep))}.answer-chip.down{background:linear-gradient(135deg,var(--green),var(--greenDeep))}.answer-chip.left{background:linear-gradient(135deg,var(--red),var(--redDeep))}.answer-chip.right{background:linear-gradient(135deg,var(--yellow2),var(--yellow));color:var(--yellowDeep)}
+.result-top{display:grid;grid-template-columns:205px minmax(280px,430px);gap:18px;align-items:center;justify-content:center;width:100%;max-width:900px;margin:0 auto 8px;text-align:center}
+.rate-circle{width:190px;height:190px;border-radius:50%;background:conic-gradient(#2fbd7b var(--rateAngle),#e8eeee 0deg);display:grid;place-items:center;box-shadow:inset 0 0 0 12px white,0 18px 36px rgba(15,55,65,.16);margin:auto}
+.rate-circle span{width:120px;height:120px;border-radius:50%;background:white;display:grid;place-items:center;font-size:35px;font-weight:1000;color:#1f6848}
+.result-title{font-size:clamp(32px,4.2vw,58px);font-weight:1000;margin:0;color:#1f6848;text-shadow:0 4px 0 rgba(255,255,255,.76)}
+.result-score{font-size:clamp(18px,2.2vw,28px);font-weight:1000;margin:8px 0;color:#405b62}
+.badge{display:inline-block;background:linear-gradient(180deg,#fff6b8,#ffe67a);border-radius:999px;padding:8px 16px;font-size:clamp(18px,2.1vw,28px);font-weight:1000;color:#795600;box-shadow:0 8px 18px rgba(130,92,0,.13)}
+.review-box{width:100%;max-width:1040px;margin:4px auto 0}
+.review-box.endless-last{max-width:640px;text-align:center;margin:6px auto 0}
+.review-box.endless-last .review-list{display:flex;justify-content:center}
+.review-box.endless-last .review-card{width:min(560px,100%);grid-template-columns:54px 1fr;text-align:center;padding:10px 14px}
+.review-box.endless-last .review-card>div:last-child{text-align:center}
+.review-box h2{margin:0 0 8px;font-size:clamp(17px,1.7vw,24px);color:#405b62}
+.review-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.review-card{display:grid;grid-template-columns:44px 1fr;gap:8px;align-items:center;text-align:left;background:rgba(255,255,255,.76);border-radius:17px;padding:6px 9px;box-shadow:0 8px 18px rgba(15,55,65,.07)}
+.review-icon{width:42px;height:42px;border-radius:13px;background:#fff6df;display:grid;place-items:center;font-size:26px}
+.review-name{font-size:clamp(14px,1.25vw,18px);font-weight:1000;line-height:1.15;margin-bottom:3px}
+.review-note{font-size:clamp(11px,1vw,14px);font-weight:900;color:#60747b;line-height:1.25;margin-top:3px}
+.review-empty{font-size:clamp(22px,2.8vw,36px);font-weight:1000;color:#1f6848;background:rgba(255,255,255,.72);border-radius:28px;padding:22px;margin:10px auto;max-width:720px}
+.result-actions,.footer-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.result-actions button,.footer-buttons button{min-width:180px;min-height:52px}
+.endless-card{display:grid;gap:14px;place-items:center;width:100%;max-width:800px;margin:auto}
+.endless-score{font-size:clamp(50px,8vw,110px);font-weight:1000;color:#1f6848;line-height:1;text-shadow:0 5px 0 rgba(255,255,255,.8)}
+.today-ranking{width:min(520px,100%);background:rgba(255,255,255,.76);border-radius:22px;padding:12px 18px;text-align:left;box-shadow:0 10px 22px rgba(15,55,65,.08);font-weight:1000}
+.today-ranking-title{text-align:center;color:#2a687b;margin-bottom:4px}.today-ranking ol{margin:4px 0 0 1.3em;padding:0}
+.demo-tag{position:absolute;top:18px;left:24px;font-weight:1000;color:#2d8962;background:rgba(255,255,255,.72);border-radius:999px;padding:8px 14px;z-index:4}
+.modal{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(15,40,50,.48);padding:18px}
+.modal.show{display:flex}
+.modal-panel{width:min(760px,94vw);max-height:92dvh;overflow:auto;background:linear-gradient(180deg,#ffffff,#f7fbff);border-radius:32px;padding:24px;box-shadow:var(--shadow);text-align:left}
+.modal-panel.wide{width:min(1120px,96vw)}
+.modal h2{margin:0 0 14px;font-size:clamp(24px,3vw,36px)}
+.setting-row{display:grid;gap:8px;margin:14px 0;font-weight:1000;font-size:18px}
+.setting-row input[type=number]{font-size:22px;padding:9px 12px;border-radius:14px;border:2px solid #d6e1e5;font-family:var(--font)}
+input[type=range]{width:100%}input[type=checkbox]{width:24px;height:24px}label.inline{display:flex;align-items:center;gap:10px}
+.admin-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:18px}
+.editor-toolbar{display:grid;grid-template-columns:1fr 160px auto auto;gap:10px;align-items:center;margin-bottom:12px}
+.editor-toolbar input,.editor-toolbar select,.problem-table input,.problem-table select{font-family:var(--font);font-weight:900;border:2px solid #dce7ea;border-radius:12px;padding:8px;background:white;color:var(--ink)}
+.problem-table{display:grid;gap:8px}
+.problem-row{display:grid;grid-template-columns:34px 48px minmax(116px,1fr) minmax(116px,1fr) minmax(92px,.75fr) 104px 128px minmax(138px,1.2fr) minmax(138px,1.2fr) minmax(120px,1fr) 48px;gap:8px;align-items:center;background:rgba(255,255,255,.74);border-radius:16px;padding:8px;box-shadow:0 5px 12px rgba(15,55,65,.06)}
+.problem-row.header{position:sticky;top:-24px;z-index:2;background:#eef8ff;font-size:12px;font-weight:1000;color:#60747b}
+.problem-row input[type=checkbox]{width:22px;height:22px;margin:auto}.problem-row .pid{font-size:12px;font-weight:1000;color:#7b8d93;text-align:center}.problem-row.header{font-size:11px}.problem-row input[data-field="schoolName"],.problem-row input[data-field="schoolNote"]{background:#f0fbff}.problem-row input[data-field="kana"],.problem-row input[data-field="kidNote"]{background:#fffdf0}
+.tiny{font-size:13px;opacity:.7;font-weight:900;line-height:1.5}
 .confetti{position:fixed;top:-30px;z-index:50;font-size:26px;animation:fall 1.8s linear forwards;pointer-events:none}
 @keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.2}}
-@media(max-width:820px){.app{padding:88px 82px}.guide.up,.guide.down{width:70vw;height:78px}.guide.left,.guide.right{width:82px;height:min(640px,86vh)}body.playing .guide.left,body.playing .guide.right{width:74px;height:min(480px,68vh)}.mode-grid{grid-template-columns:1fr 1fr;max-width:500px}.screen{width:88vw;height:72vh;padding:18px}.title{font-size:clamp(26px,7vw,42px)}.timer{width:78px;height:78px}.timer span{width:56px;height:56px;font-size:24px}.question-card{margin-top:72px}.result-wrap{grid-template-columns:1fr}.rate-circle{width:170px;height:170px;margin:auto}}
-@media(max-width:480px){.app{padding:78px 60px}.guide.up,.guide.down{width:72vw;height:68px}.guide .big{font-size:clamp(13px,3.7vw,18px)}.guide .small{font-size:9px;line-height:1.15}.guide.left,.guide.right{width:60px;height:min(600px,84vh)}body.playing .guide.left,body.playing .guide.right{width:54px;height:min(420px,64vh)}.screen{width:90vw;height:74vh;border-radius:28px;padding:14px 12px 26px}.title{font-size:clamp(24px,7.2vw,34px);margin-bottom:8px}.subtitle{font-size:clamp(13px,4vw,17px);margin-bottom:8px}.rule-box{padding:10px 12px;font-size:clamp(12px,3.5vw,15px);line-height:1.45}.mode-grid{gap:9px}.mode-grid button{font-size:clamp(13px,4vw,16px);padding:13px 8px;border-radius:16px}.garbage-name{font-size:clamp(26px,8vw,40px)}.garbage-img{width:min(190px,43vw);height:min(190px,43vw)}}
+@media(max-width:860px){.app{padding:86px 78px}.guide.up,.guide.down{height:72px;width:70vw}.guide.left,.guide.right{width:76px;height:min(640px,86vh);writing-mode:vertical-rl;text-orientation:upright}.guide.left>div,.guide.right>div,.guide.left .big,.guide.right .big,.guide.left .small,.guide.right .small{writing-mode:vertical-rl;text-orientation:upright}body.playing .guide.left,body.playing .guide.right{width:68px;height:min(480px,68vh)}.screen{width:88vw;height:74vh;padding:20px}.title{font-size:clamp(26px,7vw,42px)}.timer{width:74px;height:74px}.timer span{width:52px;height:52px;font-size:22px}.question-card{margin-top:70px}.result-top{grid-template-columns:1fr;text-align:center}.rate-circle{width:170px;height:170px}.review-list{grid-template-columns:1fr}.problem-row{grid-template-columns:30px 46px 1fr 98px;grid-auto-rows:auto}.problem-row .note-cell,.problem-row .school-note-cell,.problem-row .kid-note-cell{grid-column:3/5}.editor-toolbar{grid-template-columns:1fr 130px}}
+@media(max-width:520px){.app{padding:70px 54px}.guide.up,.guide.down{height:56px}.guide.left,.guide.right{width:54px}body.playing .guide.left,body.playing .guide.right{width:50px}.guide .big{font-size:clamp(11px,3.2vw,16px)}.guide .small{font-size:8px}.screen{width:91vw;height:75vh;border-radius:28px;padding:14px}.mode-grid{gap:9px}button{border-radius:18px;padding:12px 8px;min-height:50px}.rule-flow{gap:7px}.step{border-radius:18px;padding:9px 5px}.garbage-img{width:min(180px,43vw);height:min(180px,43vw)}.garbage-name{font-size:clamp(28px,8vw,42px)}body.result .screen{width:96vw;height:93dvh;padding:16px}.review-card{grid-template-columns:42px 1fr;padding:6px 8px}.review-icon{width:40px;height:40px;font-size:24px}}
 
-/* スマホ表示時のみ、左右の分別ガイドを縦書きにする */
-@media(max-width:820px){
-  .guide.left, .guide.right{writing-mode:vertical-rl;text-orientation:upright;}
-  .guide.left > div, .guide.right > div{writing-mode:vertical-rl;text-orientation:upright;display:flex;align-items:center;justify-content:center;}
-  .guide.left .big, .guide.right .big{writing-mode:vertical-rl;text-orientation:upright;line-height:1.25;letter-spacing:.08em;}
-  .guide.left .small, .guide.right .small{writing-mode:vertical-rl;text-orientation:upright;line-height:1.2;letter-spacing:.04em;margin-top:0;margin-right:6px;}
+
+/* v12: 丸文字寄りフォント + ガラス風4分類ガイド */
+:root{
+  --font-ui:"BIZ UDPGothic","Hiragino Sans","Yu Gothic UI","Yu Gothic","Noto Sans JP",system-ui,-apple-system,sans-serif;
+  --font-round:"M PLUS Rounded 1c","Zen Maru Gothic","Hiragino Maru Gothic ProN","TsukuARdGothic-Regular","UD Digi Kyokasho N-R","BIZ UDPGothic","Yu Gothic UI",system-ui,sans-serif;
+  --font-display:"M PLUS Rounded 1c","Zen Maru Gothic","Hiragino Maru Gothic ProN","TsukuARdGothic-Regular","HG丸ｺﾞｼｯｸM-PRO","HGMaruGothicMPRO","UD Digi Kyokasho NK-R","Arial Rounded MT Bold",var(--font-round);
+  --font:var(--font-round);
+}
+body{font-family:var(--font-ui);letter-spacing:.005em}
+.title,.result-title,.garbage-name,.endless-score,.feedback .main,.mode-grid button,.badge,.guide .big,.kicker{font-family:var(--font-display);font-weight:900;font-variation-settings:"wght" 900}
+.title,.result-title,.endless-score{letter-spacing:-.015em;color:#177955;text-shadow:0 3px 0 rgba(255,255,255,.96),0 12px 28px rgba(14,98,77,.16)}
+.garbage-name{letter-spacing:-.018em;color:#1d4450;text-shadow:0 3px 0 rgba(255,255,255,.94),0 12px 24px rgba(15,55,65,.12)}
+.feedback .main{text-shadow:0 5px 0 rgba(0,0,0,.14),0 14px 30px rgba(0,0,0,.16)}
+button{font-family:var(--font-round)}
+.screen.title-screen{padding-bottom:48px}
+.status-line{display:none!important}
+.assist-status{position:absolute;left:0;right:0;bottom:14px;margin:0;text-align:center;font-size:clamp(10px,.95vw,13px);font-weight:900;color:rgba(23,50,59,.42);letter-spacing:.05em;pointer-events:none}
+
+.guide{backdrop-filter:blur(18px) saturate(1.35);-webkit-backdrop-filter:blur(18px) saturate(1.35);box-shadow:0 20px 48px rgba(15,55,65,.18),inset 0 1px 0 rgba(255,255,255,.58),inset 0 -12px 28px rgba(0,0,0,.08);text-shadow:0 2px 0 rgba(0,0,0,.12)}
+.guide::before{background:linear-gradient(145deg,rgba(255,255,255,.58),rgba(255,255,255,.18) 35%,rgba(255,255,255,0) 56%,rgba(0,0,0,.07));opacity:.9}
+.guide::after{content:"";position:absolute;left:9px;right:9px;top:8px;height:36%;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0));pointer-events:none;opacity:.62;mix-blend-mode:screen}
+.guide.up{background:linear-gradient(135deg,rgba(78,155,255,.76),rgba(21,84,183,.66)),radial-gradient(circle at 25% 15%,rgba(255,255,255,.55),transparent 42%)}
+.guide.down{background:linear-gradient(135deg,rgba(76,211,145,.76),rgba(22,123,80,.66)),radial-gradient(circle at 25% 15%,rgba(255,255,255,.50),transparent 42%)}
+.guide.left{background:linear-gradient(135deg,rgba(255,116,112,.76),rgba(189,52,50,.66)),radial-gradient(circle at 25% 15%,rgba(255,255,255,.50),transparent 42%)}
+.guide.right{background:linear-gradient(135deg,rgba(255,243,158,.82),rgba(244,202,79,.70)),radial-gradient(circle at 25% 15%,rgba(255,255,255,.62),transparent 42%);color:#755100;text-shadow:0 1px 0 rgba(255,255,255,.78)}
+.guide.assist{filter:brightness(1.12) saturate(1.28)}
+@supports (-webkit-background-clip:text){
+  .title,.result-title{background:linear-gradient(180deg,#2eac7b 0%,#167652 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .endless-score{background:linear-gradient(180deg,#33b57e 0%,#126d4d 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+}
+@media(max-width:520px){.screen.title-screen{padding-bottom:38px}.assist-status{bottom:10px}}
+
+
+
+/* v13: コントローラー確認・ハット登録画面 */
+.pad-screen{gap:10px;justify-content:center;padding:22px 26px 24px}
+.pad-title{font-family:var(--font-display);font-size:clamp(25px,3.4vw,44px);font-weight:900;margin:0;color:#177955;letter-spacing:-.02em}
+.pad-note{font-size:clamp(12px,1.25vw,16px);font-weight:850;line-height:1.45;color:#54717a;margin:0;max-width:720px}
+.pad-live{width:100%;max-width:720px;display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left}
+.pad-card{background:rgba(255,255,255,.78);border-radius:20px;padding:12px 14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 10px 24px rgba(18,70,75,.09);font-weight:850;min-height:86px;overflow:hidden}
+.pad-card h3{margin:0 0 6px;font-size:clamp(13px,1.4vw,18px);color:#1c6d56;font-weight:950}
+.pad-dir{font-family:var(--font-display);font-size:clamp(28px,4.2vw,54px);line-height:1;font-weight:950;text-align:center;color:#1d4450;margin:8px 0 4px}
+.pad-dir small{display:block;font-family:var(--font-round);font-size:clamp(11px,1.1vw,15px);color:#697e85;margin-top:6px}
+.pad-raw{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:clamp(10px,.95vw,12px);line-height:1.45;word-break:break-all;color:#344b52;max-height:118px;overflow:hidden}
+.pad-flow{width:100%;max-width:720px;background:rgba(255,248,216,.78);border-radius:20px;padding:12px 14px;text-align:center;font-weight:900;color:#57491f;box-shadow:inset 0 1px 0 rgba(255,255,255,.88)}
+.pad-step{font-family:var(--font-display);font-size:clamp(18px,2.3vw,30px);font-weight:950;color:#167652;margin:3px 0}
+.pad-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px}.pad-actions button{padding:10px 14px;border-radius:16px;font-size:clamp(12px,1.2vw,16px)}
+@media(max-width:820px){.pad-live{grid-template-columns:1fr}.pad-screen{padding:16px 14px 20px}.pad-card{min-height:auto}.pad-raw{max-height:78px}}
+
+
+
+/* v14: 読みやすさ優先の丸文字・リザルト・分類ガイド調整 */
+@property --rateAngle{syntax:'<angle>';initial-value:0deg;inherits:false;}
+.title,.result-title,.endless-score,.garbage-name,.pad-title{
+  color:#1f6848!important;
+  -webkit-text-fill-color:#1f6848!important;
+  background:none!important;
+  text-shadow:none!important;
+  letter-spacing:-.012em;
+}
+.garbage-name{color:#203d45!important;-webkit-text-fill-color:#203d45!important;}
+.result-title{font-size:clamp(30px,4.2vw,58px);margin:0 0 8px;}
+button{letter-spacing:.01em;}
+.mode-grid button{line-height:1.12;padding-top:17px;padding-bottom:17px;}
+.mode-grid button .sub{margin-top:8px;line-height:1.25;}
+.subtitle{margin-bottom:14px;}
+.rule-flow{margin-top:10px;margin-bottom:17px;}
+.assist-status{bottom:12px;color:rgba(23,50,59,.44);}
+
+/* ガラス感を弱めて、会場モニターで読みやすいはっきり色へ戻す */
+.guide{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  box-shadow:var(--soft)!important;
+  text-shadow:0 2px 0 rgba(0,0,0,.14)!important;
+}
+.guide::before{background:linear-gradient(140deg,rgba(255,255,255,.28),rgba(255,255,255,0) 48%,rgba(0,0,0,.06))!important;opacity:1!important;}
+.guide::after{display:none!important;}
+.guide.up{background:linear-gradient(135deg,var(--blue),var(--blueDeep))!important;}
+.guide.down{background:linear-gradient(135deg,var(--green),var(--greenDeep))!important;}
+.guide.left{background:linear-gradient(135deg,var(--red),var(--redDeep))!important;}
+.guide.right{background:linear-gradient(135deg,var(--yellow2),var(--yellow))!important;color:var(--yellowDeep)!important;text-shadow:0 1px 0 rgba(255,255,255,.75)!important;}
+
+.result-top{grid-template-columns:205px minmax(280px,430px);align-items:center;justify-content:center;text-align:center;margin-bottom:10px;}
+.result-summary{display:grid;place-items:center;gap:4px;}
+.rate-circle{--rateAngle:0deg;transition:background .08s linear;}
+.review-box.endless-last{text-align:center;}
+.review-box.endless-last .review-list{display:flex;justify-content:center;}
+.review-box.endless-last .review-card{width:min(560px,100%);grid-template-columns:54px minmax(0,1fr);text-align:center;justify-items:center;}
+.review-box.endless-last .review-card>div:last-child{text-align:center;}
+.result-actions button,.footer-buttons button{min-width:190px;}
+@media(max-width:860px){.result-top{grid-template-columns:1fr;}.mode-grid button .sub{margin-top:7px;}}
+@media(max-width:520px){.assist-status{bottom:8px}.rule-flow{margin-bottom:14px}.mode-grid button .sub{margin-top:6px}}
+
+
+/* v15: スマホ縦画面レスポンシブ + タッチ操作強化 */
+@media (max-width: 720px) and (orientation: portrait){
+  html,body{height:100%;min-height:100dvh;overflow:hidden;}
+  body{overscroll-behavior:none;}
+
+  /* タイトル・結果画面は中央パネルを広く使う */
+  body:not(.playing) .app{padding:10px!important;align-items:center;justify-content:center;}
+  body:not(.playing) .guide{opacity:0!important;pointer-events:none!important;}
+  body:not(.playing) .screen{width:min(96vw,460px)!important;height:min(96dvh,760px)!important;max-height:96dvh!important;padding:14px!important;border-radius:24px;overflow:auto;-webkit-overflow-scrolling:touch;}
+  body.result .screen{height:min(96dvh,780px)!important;padding:14px!important;}
+
+  /* プレイ中は4方向の分別エリアを画面端に固定して、中央に問題を収める */
+  body.playing .app{padding:60px 54px 60px!important;display:flex;align-items:center;justify-content:center;}
+  body.playing .screen{width:calc(100vw - 116px)!important;height:calc(100dvh - 132px)!important;min-height:0!important;padding:10px!important;border-radius:22px;overflow:hidden;}
+
+  body.playing .guide{z-index:8;pointer-events:auto;touch-action:none;}
+  body.playing .guide.up{top:0;left:54px;right:54px;transform:none;width:auto!important;height:58px!important;border-radius:0 0 18px 18px;}
+  body.playing .guide.down{bottom:0;left:54px;right:54px;transform:none;width:auto!important;height:58px!important;border-radius:18px 18px 0 0;}
+  body.playing .guide.left{left:0;top:58px;bottom:58px;transform:none;width:52px!important;height:auto!important;border-radius:0 18px 18px 0;}
+  body.playing .guide.right{right:0;top:58px;bottom:58px;transform:none;width:52px!important;height:auto!important;border-radius:18px 0 0 18px;}
+
+  body.kids.playing .app{padding:18px 56px!important;}
+  body.kids.playing .screen{width:calc(100vw - 122px)!important;height:calc(100dvh - 44px)!important;}
+  body.kids.playing .guide.left,
+  body.kids.playing .guide.right{top:0;bottom:0;width:54px!important;border-radius:0 18px 18px 0;}
+  body.kids.playing .guide.right{border-radius:18px 0 0 18px;}
+  body.kids.playing .guide.up,
+  body.kids.playing .guide.down{display:none!important;}
+
+  .guide .big{font-size:clamp(12px,3.7vw,17px)!important;line-height:1.12;}
+  .guide .small{display:none!important;}
+  .guide>div{padding:4px!important;}
+  .guide.left,.guide.right{writing-mode:vertical-rl;text-orientation:upright;}
+  .guide.left>div,.guide.right>div,.guide.left .big,.guide.right .big{writing-mode:vertical-rl;text-orientation:upright;}
+
+  .hud{left:9px;right:9px;top:8px;grid-template-columns:1fr 58px 1fr;gap:5px;font-size:clamp(10px,3.1vw,13px);}
+  .timer{width:56px!important;height:56px!important;box-shadow:inset 0 0 0 5px white,0 6px 12px rgba(15,55,65,.13);}
+  .timer span{width:40px!important;height:40px!important;font-size:18px!important;}
+  .dots{gap:3px;margin-top:3px}.dot{width:5px;height:5px;}
+
+  .question-card{margin-top:60px!important;gap:7px;}
+  .garbage-img{width:min(44vw,152px)!important;height:min(44vw,152px)!important;border-radius:24px;font-size:clamp(60px,19vw,104px)!important;}
+  .garbage-name{font-size:clamp(24px,8.4vw,39px)!important;line-height:1.08;word-break:keep-all;overflow-wrap:anywhere;}
+  .hint{font-size:clamp(11px,3.4vw,15px)!important;min-height:18px;}
+  .feedback{border-radius:22px;padding:12px;}
+  .feedback .main{font-size:clamp(42px,14vw,72px)!important;}
+  .feedback .note{font-size:clamp(13px,4vw,18px)!important;}
+
+  .title{white-space:normal!important;font-size:clamp(26px,8.4vw,38px)!important;line-height:1.08;margin-bottom:8px;}
+  .subtitle{font-size:clamp(13px,4vw,17px)!important;margin-bottom:10px;}
+  .kicker{font-size:12px;margin-bottom:5px;}
+  .rule-flow{grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 10px;}
+  .step{border-radius:16px;padding:8px 3px;}
+  .step .icon{font-size:26px}.step .text{font-size:12px;line-height:1.15;}
+  .mode-grid{grid-template-columns:1fr 1fr;gap:8px;width:100%;}
+  .mode-grid button{font-size:clamp(14px,4.3vw,18px)!important;min-height:54px;padding:10px 6px;border-radius:17px;}
+  button .sub{font-size:10px!important;line-height:1.15;}
+  .assist-status{bottom:8px;font-size:10px;}
+
+  .result-top{grid-template-columns:1fr!important;gap:8px;margin-bottom:8px;}
+  .rate-circle{width:136px!important;height:136px!important;box-shadow:inset 0 0 0 8px white,0 12px 24px rgba(15,55,65,.14);}
+  .rate-circle span{width:88px!important;height:88px!important;font-size:26px!important;}
+  .result-title{font-size:clamp(28px,8vw,42px)!important;}
+  .result-score,.badge{font-size:clamp(16px,4.4vw,22px)!important;}
+  .review-list{grid-template-columns:1fr!important;gap:6px;}
+  .review-card{border-radius:15px;grid-template-columns:38px 1fr;padding:6px 8px;}
+  .review-icon{width:36px;height:36px;font-size:22px;border-radius:12px;}
+  .review-name{font-size:14px!important;}.review-note{font-size:11px!important;}
+  .result-actions,.footer-buttons{gap:8px;margin-top:8px;}
+  .result-actions button,.footer-buttons button{min-width:128px;min-height:48px;font-size:14px!important;}
+
+  .pad-live{grid-template-columns:1fr!important;}
+  .modal{padding:8px}.modal-panel{border-radius:22px;padding:14px;width:96vw;max-height:92dvh;}
 }
 
-/* fixed5: Safari safe-area and compact bottom guide */
-html,body{width:100%;height:100%;min-height:100dvh;}
-.app{height:100dvh;min-height:100dvh;padding-bottom:calc(94px + env(safe-area-inset-bottom,0px));}
-.guide.down{bottom:env(safe-area-inset-bottom,0px);}
-@media(max-width:820px){.app{height:100dvh;min-height:100dvh;padding-bottom:calc(82px + env(safe-area-inset-bottom,0px));}.guide.down{height:66px;bottom:env(safe-area-inset-bottom,0px)}.guide.down .big{font-size:clamp(13px,3.4vw,20px)}}
-@media(max-width:480px){.app{padding-bottom:calc(66px + env(safe-area-inset-bottom,0px));}.guide.down{height:54px}.guide.down .big{font-size:clamp(11px,3vw,15px)}.guide.down .small{font-size:8px}.screen{height:72dvh;max-height:calc(100dvh - 132px - env(safe-area-inset-bottom,0px));}}
+@media (max-width: 380px) and (orientation: portrait){
+  body.playing .app{padding-left:48px!important;padding-right:48px!important;}
+  body.playing .screen{width:calc(100vw - 102px)!important;}
+  body.playing .guide.left,body.playing .guide.right{width:46px!important;}
+  body.playing .guide.up{left:48px;right:48px;}
+  body.playing .guide.down{left:48px;right:48px;}
+  .garbage-img{width:min(42vw,132px)!important;height:min(42vw,132px)!important;}
+  .garbage-name{font-size:clamp(22px,8vw,34px)!important;}
+  .mode-grid{gap:6px}.mode-grid button{min-height:50px;}
+}
+
 </style>
 </head>
 <body>
 <div class="app" id="app">
-  <div class="guide up" data-dir="up"><div><span class="big">↑ 資源（リサイクル）</span><span class="small guide-example">しげん：ペットボトル・缶・瓶・プラ</span></div></div>
-  <div class="guide down" data-dir="down"><div><span class="big">↓ 連絡ごみ（大きなごみ）</span><span class="small guide-example">連絡ごみ：家具・自転車など</span></div></div>
+  <div class="guide up" data-dir="up"><div><span class="big">↑ 資源</span><span class="small guide-example">ペットボトル・缶・びん・紙など</span></div></div>
+  <div class="guide down" data-dir="down"><div><span class="big">↓ 連絡ごみ</span><span class="small guide-example">家具・自転車など</span></div></div>
   <div class="guide left" data-dir="left"><div><span class="big">←<br>もえるごみ</span><span class="small guide-example">生ごみ・紙くず・木や布など</span></div></div>
-  <div class="guide right" data-dir="right"><div><span class="big">→<br>もえないごみ</span><span class="small guide-example">ガラス・せともの・金属・小型家電など</span></div></div>
+  <div class="guide right" data-dir="right"><div><span class="big">→<br>もえないごみ</span><span class="small guide-example">ガラス・せともの・金属など</span></div></div>
   <main class="screen" id="screen"></main>
 </div>
-<div class="settings" id="settings"><div class="settings-panel">
+
+<div class="modal" id="settingsModal"><div class="modal-panel">
   <h2>運営設定</h2>
-  <div class="setting-row"><label>制限時間（秒）</label><input id="timeLimit" type="number" min="3" max="30" step="1" value="10"></div>
-  <div class="setting-row"><label>出題数</label><input id="questionCount" type="number" min="3" max="30" step="1" value="10"></div>
-  <div class="setting-row"><label>クリアに必要な正解数</label><input id="clearCount" type="number" min="1" max="30" step="1" value="8"></div>
-  <div class="setting-row"><label>エンドレス突入に必要な正解数（ふつう）</label><input id="endlessNeed" type="number" min="1" max="30" step="1" value="10"></div>
-  <div class="setting-row"><label class="inline"><input id="assistMode" type="checkbox">幼児向け：正解方向を光らせる</label></div>
-  <div class="setting-row"><label>音量</label><input id="volume" type="range" min="0" max="1" step="0.05" value="0.7"></div>
-  <div class="setting-row"><div>ハイスコア：<span id="highScoreLabel">0</span></div></div>
-  <div class="footer-buttons"><button onclick="resetHighScore()">ハイスコアリセット</button><button onclick="closeSettings()">閉じる</button></div>
-  <p class="tiny">Sキー、または画面長押しで表示。イベント中はスタッフのみ操作してください。</p>
+  <div class="setting-row"><label>1問の時間（秒）</label><input id="cfgTime" type="number" min="3" max="20" step="1"></div>
+  <div class="setting-row"><label>クリア正解数</label><input id="cfgClear" type="number" min="1" max="10" step="1"></div>
+  <div class="setting-row"><label class="inline"><input id="cfgAssist" type="checkbox"> 補助あり（正解方向を光らせる）</label></div>
+  <div class="setting-row"><label>音量</label><input id="cfgVolume" type="range" min="0" max="1" step="0.05"></div>
+  <div class="setting-row"><div>総合ハイスコア：<span id="bestScoreLabel">0</span>問</div></div>
+  <div class="admin-actions"><button onclick="resetScores()">スコアリセット</button><button onclick="closeSettings()">閉じる</button></div>
 </div></div>
+
+<div class="modal" id="editorModal"><div class="modal-panel wide">
+  <h2>問題リスト編集</h2>
+  <div class="editor-toolbar">
+    <input id="editorSearch" placeholder="検索">
+    <select id="editorGroup"><option value="all">すべて</option><option value="kids">キッズ</option><option value="school">小学生</option><option value="normal">チャレンジふつう</option><option value="hard">チャレンジむずかしい</option><option value="enabled">ONのみ</option><option value="disabled">OFFのみ</option></select>
+    <button onclick="resetProblemsToDefault()">標準に戻す</button>
+    <button onclick="closeEditor()">閉じる</button>
+  </div>
+  <p class="tiny" id="editorCount"></p>
+  <div class="problem-table" id="problemTable"></div>
+</div></div>
+
 <script>
-const DIRECTIONS={up:{label:"資源（リサイクル）",color:"#2f80ed"},down:{label:"連絡ごみ（大きなごみ）",color:"#2fbf71"},left:{label:"もえるごみ",color:"#eb5757"},right:{label:"もえないごみ",color:"#f2c94c"}};
-const QUESTION_BANK={veryEasy:[{"id": "ve001", "name": "りんごのしん", "emoji": "🍎", "ans": "left", "note": "食べもののごみは、もえるごみだよ。"}, {"id": "ve002", "name": "バナナのかわ", "emoji": "🍌", "ans": "left", "note": "生ごみは水を切って、もえるごみに出そう。"}, {"id": "ve003", "name": "ティッシュ", "emoji": "🧻", "ans": "left", "note": "使った紙は、もえるごみだよ。"}, {"id": "ve004", "name": "えんぴつ", "emoji": "✏️", "ans": "left", "note": "小さな木のものは、もえるごみだよ。"}, {"id": "ve005", "name": "おむつ", "emoji": "👶", "ans": "left", "note": "汚物は取り除いて、もえるごみだよ。"}, {"id": "ve006", "name": "おちば", "emoji": "🍂", "ans": "left", "note": "少しの落ち葉は、もえるごみだよ。"}, {"id": "ve007", "name": "くつ", "emoji": "👟", "ans": "left", "note": "運動靴は、もえるごみだよ。"}, {"id": "ve008", "name": "ぬいぐるみ", "emoji": "🧸", "ans": "left", "note": "小さいぬいぐるみは、もえるごみだよ。"}, {"id": "ve009", "name": "わりばし", "emoji": "🥢", "ans": "left", "note": "木のはしは、もえるごみだよ。"}, {"id": "ve010", "name": "かみコップ", "emoji": "🥤", "ans": "left", "note": "汚れた紙は、もえるごみにしよう。"}, {"id": "ve011", "name": "ペットボトル", "emoji": "🧴", "ans": "up", "note": "中をすすいで、ラベルとキャップを外そう。"}, {"id": "ve012", "name": "あきかん", "emoji": "🥫", "ans": "up", "note": "飲みものの缶は、資源にできるよ。"}, {"id": "ve013", "name": "びん", "emoji": "🍾", "ans": "up", "note": "飲みものや食べもののびんは、資源だよ。"}, {"id": "ve014", "name": "しんぶんし", "emoji": "📰", "ans": "up", "note": "新聞紙は、紙の資源だよ。"}, {"id": "ve015", "name": "ダンボール", "emoji": "📦", "ans": "up", "note": "たたんでまとめるとリサイクルしやすいよ。"}, {"id": "ve016", "name": "ぎゅうにゅうパック", "emoji": "🥛", "ans": "up", "note": "洗って開いて乾かそう。"}, {"id": "ve017", "name": "プラマークのふくろ", "emoji": "🍬", "ans": "up", "note": "プラマークがあり、きれいなら資源だよ。"}, {"id": "ve018", "name": "プラマークのトレー", "emoji": "🥩", "ans": "up", "note": "きれいに洗えるものは資源だよ。"}, {"id": "ve019", "name": "かみばこ", "emoji": "🎁", "ans": "up", "note": "きれいな紙箱は紙の資源だよ。"}, {"id": "ve020", "name": "ざっし", "emoji": "📚", "ans": "up", "note": "雑誌は紙の資源だよ。"}, {"id": "ve021", "name": "われたコップ", "emoji": "🥛", "ans": "right", "note": "ガラスは、もえないごみだよ。"}, {"id": "ve022", "name": "おちゃわん", "emoji": "🍚", "ans": "right", "note": "せとものは、もえないごみだよ。"}, {"id": "ve023", "name": "フライパン", "emoji": "🍳", "ans": "right", "note": "小さい金属のものは、もえないごみだよ。"}, {"id": "ve024", "name": "スプーン", "emoji": "🥄", "ans": "right", "note": "金属のスプーンは、もえないごみだよ。"}, {"id": "ve025", "name": "でんきゅう", "emoji": "💡", "ans": "right", "note": "電球は、もえないごみだよ。"}, {"id": "ve026", "name": "いす", "emoji": "🪑", "ans": "down", "note": "大きな家具は、大きなごみだよ。"}, {"id": "ve027", "name": "じてんしゃ", "emoji": "🚲", "ans": "down", "note": "自転車は、大きなごみだよ。"}, {"id": "ve028", "name": "つくえ", "emoji": "🧑‍💻", "ans": "down", "note": "大きな机は、大きなごみだよ。"}, {"id": "ve029", "name": "ふとん", "emoji": "🛏️", "ans": "down", "note": "ふとんは、大きなごみだよ。"}, {"id": "ve030", "name": "ソファ", "emoji": "🛋️", "ans": "down", "note": "ソファは、大きなごみだよ。"}],easy:[{"id": "e001", "name": "生ごみ", "emoji": "🍌", "ans": "left", "note": "水をよく切って、もえるごみに出そう。"}, {"id": "e002", "name": "紙くず", "emoji": "🧻", "ans": "left", "note": "汚れた紙は、もえるごみだよ。"}, {"id": "e003", "name": "鉛筆", "emoji": "✏️", "ans": "left", "note": "鉛筆は、もえるごみだよ。"}, {"id": "e004", "name": "アルバム", "emoji": "📔", "ans": "left", "note": "金属類はできるだけ外して出そう。"}, {"id": "e005", "name": "うちわ", "emoji": "🎐", "ans": "left", "note": "うちわは、もえるごみだよ。"}, {"id": "e006", "name": "浮き輪", "emoji": "🛟", "ans": "left", "note": "小さく切れるものは、もえるごみだよ。"}, {"id": "e007", "name": "運動靴", "emoji": "👟", "ans": "left", "note": "運動靴は、もえるごみだよ。"}, {"id": "e008", "name": "おしゃぶり", "emoji": "👶", "ans": "left", "note": "小さなゴム・プラ製品は、もえるごみだよ。"}, {"id": "e009", "name": "おむつ", "emoji": "👶", "ans": "left", "note": "汚物は取り除いて出そう。"}, {"id": "e010", "name": "プラスチックの植木鉢", "emoji": "🪴", "ans": "left", "note": "容器包装ではないプラスチック製品は、もえるごみになるよ。"}, {"id": "e011", "name": "ペットボトル", "emoji": "🧴", "ans": "up", "note": "キャップとラベルを外し、中をすすごう。"}, {"id": "e012", "name": "アルミ缶", "emoji": "🥫", "ans": "up", "note": "飲料缶は資源だよ。"}, {"id": "e013", "name": "スチール缶", "emoji": "🥫", "ans": "up", "note": "飲料缶は資源だよ。"}, {"id": "e014", "name": "ガラスびん", "emoji": "🍾", "ans": "up", "note": "食品や飲料のびんは資源だよ。"}, {"id": "e015", "name": "新聞紙", "emoji": "📰", "ans": "up", "note": "紙の資源としてまとめよう。"}, {"id": "e016", "name": "雑誌", "emoji": "📚", "ans": "up", "note": "紙の資源として出そう。"}, {"id": "e017", "name": "段ボール", "emoji": "📦", "ans": "up", "note": "たたんでまとめよう。"}, {"id": "e018", "name": "牛乳パック", "emoji": "🥛", "ans": "up", "note": "洗って開いて乾かそう。"}, {"id": "e019", "name": "プラマークつき容器", "emoji": "🍱", "ans": "up", "note": "きれいにして資源に出そう。"}, {"id": "e020", "name": "プラマークつきお菓子袋", "emoji": "🍬", "ans": "up", "note": "汚れが少なくプラマークがあるものは資源だよ。"}, {"id": "e021", "name": "陶器の皿", "emoji": "🍽️", "ans": "right", "note": "陶器・せとものは、もえないごみだよ。"}, {"id": "e022", "name": "割れた鏡", "emoji": "🪞", "ans": "right", "note": "ガラス類は危なくないように包もう。"}, {"id": "e023", "name": "金属スプーン", "emoji": "🥄", "ans": "right", "note": "金属製品は、もえないごみだよ。"}, {"id": "e024", "name": "小型家電", "emoji": "📻", "ans": "right", "note": "電池は取り外して出そう。"}, {"id": "e025", "name": "LED電球", "emoji": "💡", "ans": "right", "note": "電球は、もえないごみだよ。"}, {"id": "e026", "name": "タンス", "emoji": "🗄️", "ans": "down", "note": "大きな家具は大きなごみだよ。"}, {"id": "e027", "name": "机", "emoji": "🧑‍💻", "ans": "down", "note": "大きな机は大きなごみだよ。"}, {"id": "e028", "name": "自転車", "emoji": "🚲", "ans": "down", "note": "自転車は大きなごみだよ。"}, {"id": "e029", "name": "ふとん", "emoji": "🛏️", "ans": "down", "note": "ふとんは大きなごみだよ。"}, {"id": "e030", "name": "ベビーカー", "emoji": "👶", "ans": "down", "note": "大きいものは大きなごみとして扱うよ。"}],normalCommon:[{"id": "n001", "name": "ペットボトル", "emoji": "🧴", "ans": "up", "note": "中をすすぎ、キャップとラベルは外そう。"}, {"id": "n002", "name": "アルミ缶", "emoji": "🥫", "ans": "up", "note": "飲料缶は資源として出そう。"}, {"id": "n003", "name": "スチール缶", "emoji": "🥫", "ans": "up", "note": "飲料缶は資源として出そう。"}, {"id": "n004", "name": "ガラスびん", "emoji": "🍾", "ans": "up", "note": "飲料・食品のびんは資源だよ。"}, {"id": "n005", "name": "新聞紙", "emoji": "📰", "ans": "up", "note": "紙資源としてまとめよう。"}, {"id": "n006", "name": "雑誌", "emoji": "📚", "ans": "up", "note": "紙資源として出そう。"}, {"id": "n007", "name": "段ボール", "emoji": "📦", "ans": "up", "note": "たたんでまとめるとリサイクルしやすいよ。"}, {"id": "n008", "name": "牛乳パック", "emoji": "🥛", "ans": "up", "note": "洗って開いて乾かして出そう。"}, {"id": "n009", "name": "プラマークつき容器包装", "emoji": "🍱", "ans": "up", "note": "プラマークを確認して、汚れを落として出そう。"}, {"id": "n010", "name": "きれいな食品トレー", "emoji": "🥩", "ans": "up", "note": "洗えるトレーは資源になるよ。"}, {"id": "n011", "name": "生ごみ", "emoji": "🍌", "ans": "left", "note": "水を切って、もえるごみへ。"}, {"id": "n012", "name": "紙くず", "emoji": "🧻", "ans": "left", "note": "汚れた紙は、もえるごみへ。"}, {"id": "n013", "name": "鉛筆", "emoji": "✏️", "ans": "left", "note": "鉛筆はもえるごみだよ。"}, {"id": "n014", "name": "落ち葉", "emoji": "🍂", "ans": "left", "note": "少量の落ち葉はもえるごみだよ。"}, {"id": "n015", "name": "運動靴", "emoji": "👟", "ans": "left", "note": "運動靴はもえるごみだよ。"}, {"id": "n016", "name": "ぬいぐるみ", "emoji": "🧸", "ans": "left", "note": "小さいぬいぐるみはもえるごみだよ。"}, {"id": "n017", "name": "汚れた食品トレー", "emoji": "🍖", "ans": "left", "note": "汚れが落ちないものは、もえるごみになるよ。"}, {"id": "n018", "name": "プラスチックの植木鉢", "emoji": "🪴", "ans": "left", "note": "容器包装ではないプラスチック製品は、もえるごみ扱いだよ。"}, {"id": "n019", "name": "陶器の皿", "emoji": "🍽️", "ans": "right", "note": "陶器・せとものはもえないごみだよ。"}, {"id": "n020", "name": "割れたコップ", "emoji": "🥛", "ans": "right", "note": "ガラス類は危なくないように包もう。"}, {"id": "n021", "name": "金属スプーン", "emoji": "🥄", "ans": "right", "note": "金属製品はもえないごみだよ。"}, {"id": "n022", "name": "フライパン", "emoji": "🍳", "ans": "right", "note": "小さな金属調理器具はもえないごみだよ。"}, {"id": "n023", "name": "LED電球", "emoji": "💡", "ans": "right", "note": "LED電球はもえないごみだよ。"}, {"id": "n024", "name": "小型ラジオ", "emoji": "📻", "ans": "right", "note": "電池類は取り外そう。"}, {"id": "n025", "name": "延長コード", "emoji": "🔌", "ans": "right", "note": "短くまとめて、もえないごみに出そう。"}, {"id": "n026", "name": "自転車", "emoji": "🚲", "ans": "down", "note": "大きなごみとして出そう。"}, {"id": "n027", "name": "タンス", "emoji": "🗄️", "ans": "down", "note": "大きな家具は大きなごみだよ。"}, {"id": "n028", "name": "ふとん", "emoji": "🛏️", "ans": "down", "note": "ふとんは大きなごみだよ。"}, {"id": "n029", "name": "ソファ", "emoji": "🛋️", "ans": "down", "note": "ソファは大きなごみだよ。"}, {"id": "n030", "name": "電子レンジ", "emoji": "📺", "ans": "down", "note": "大きめの家電は大きなごみになるよ。"}],normalEndless:[{"id": "x001", "name": "IHクッキングヒーター 60cm未満", "emoji": "🍳", "ans": "right", "note": "一口型で60cm未満は、もえないごみ。"}, {"id": "x002", "name": "IHクッキングヒーター 60cm以上", "emoji": "🍳", "ans": "down", "note": "60cm以上は連絡ごみ。ゲームでは大きなごみだよ。"}, {"id": "x003", "name": "ICレコーダー", "emoji": "🎙️", "ans": "right", "note": "電池類は取り外して出そう。"}, {"id": "x004", "name": "アイロン（金属のかけ面）", "emoji": "🧺", "ans": "down", "note": "金属のかけ面があるアイロンは連絡ごみ扱い。"}, {"id": "x005", "name": "アイロン台 金属あり 60cm未満", "emoji": "🧺", "ans": "right", "note": "金属がある小さいものは、もえないごみ。"}, {"id": "x006", "name": "アイロン台 金属なし 60cm未満", "emoji": "🧺", "ans": "left", "note": "金属なしの小さいものは、もえるごみ。"}, {"id": "x007", "name": "アクセサリー 金属製", "emoji": "💍", "ans": "right", "note": "金属製はもえないごみ。"}, {"id": "x008", "name": "アクリル板 60cm未満", "emoji": "⬜", "ans": "left", "note": "小さいアクリル板はもえるごみ。"}, {"id": "x009", "name": "アクリル板 60cm以上", "emoji": "⬜", "ans": "down", "note": "60cm以上は連絡ごみ。ゲームでは大きなごみ。"}, {"id": "x010", "name": "アタッシュケース 60cm未満", "emoji": "💼", "ans": "right", "note": "小さいアタッシュケースはもえないごみ。"}, {"id": "x011", "name": "アダプター", "emoji": "🔌", "ans": "right", "note": "家電用アダプターはもえないごみ。"}, {"id": "x012", "name": "アルバム", "emoji": "📔", "ans": "left", "note": "金属類はできるだけ外そう。"}, {"id": "x013", "name": "アルミはく 薄いもの", "emoji": "🥡", "ans": "left", "note": "薄いアルミはくはもえるごみ。"}, {"id": "x014", "name": "アルミはく 厚いもの", "emoji": "🥡", "ans": "right", "note": "鍋焼き容器など厚いものはもえないごみ。"}, {"id": "x015", "name": "あんか", "emoji": "♨️", "ans": "right", "note": "あんかはもえないごみ。"}, {"id": "x016", "name": "安全靴", "emoji": "🥾", "ans": "right", "note": "金属等があるため、もえないごみ。"}, {"id": "x017", "name": "安全ピン", "emoji": "🧷", "ans": "right", "note": "安全ピンはもえないごみ。"}, {"id": "x018", "name": "アンテナ 60cm未満", "emoji": "📡", "ans": "right", "note": "小さいアンテナはもえないごみ。"}, {"id": "x019", "name": "アンテナ 60cm以上", "emoji": "📡", "ans": "down", "note": "60cm以上は連絡ごみ。ゲームでは大きなごみ。"}, {"id": "x020", "name": "ETC車載ユニット", "emoji": "🚗", "ans": "right", "note": "小型家電としてもえないごみ。"}, {"id": "x021", "name": "衣装ケース 金属製 60cm未満", "emoji": "🧰", "ans": "right", "note": "金属製の小さいケースはもえないごみ。"}, {"id": "x022", "name": "衣装ケース 金属製以外 60cm未満", "emoji": "🧰", "ans": "left", "note": "金属製以外の小さいケースはもえるごみ。"}, {"id": "x023", "name": "回転いす", "emoji": "🪑", "ans": "down", "note": "回転いすは連絡ごみ。ゲームでは大きなごみ。"}, {"id": "x024", "name": "金属製いす 60cm未満", "emoji": "🪑", "ans": "right", "note": "金属製で小さいものはもえないごみ。"}, {"id": "x025", "name": "金属なしのいす 60cm未満", "emoji": "🪑", "ans": "left", "note": "金属なしで小さいものはもえるごみ。"}, {"id": "x026", "name": "板 60cm未満", "emoji": "🪵", "ans": "left", "note": "小さい板はもえるごみ。"}, {"id": "x027", "name": "板 60cm以上", "emoji": "🪵", "ans": "down", "note": "60cm以上は連絡ごみ。ゲームでは大きなごみ。"}, {"id": "x028", "name": "一斗缶", "emoji": "🥫", "ans": "right", "note": "一斗缶はもえないごみ。"}, {"id": "x029", "name": "イヤホン", "emoji": "🎧", "ans": "right", "note": "電池類は取り外して出そう。"}, {"id": "x030", "name": "衣類 再利用できないもの", "emoji": "👕", "ans": "left", "note": "長さ60cm未満に切ってもえるごみ。"}, {"id": "x031", "name": "入れ歯", "emoji": "🦷", "ans": "right", "note": "入れ歯はもえないごみ。"}, {"id": "x032", "name": "印鑑 石製・金属製", "emoji": "🔖", "ans": "right", "note": "石・金属製はもえないごみ。"}, {"id": "x033", "name": "印鑑 プラスチック・木製", "emoji": "🔖", "ans": "left", "note": "プラスチック・木製はもえるごみ。"}, {"id": "x034", "name": "印鑑ケース 金属製", "emoji": "🔖", "ans": "right", "note": "金属製ケースはもえないごみ。"}, {"id": "x035", "name": "印鑑ケース 布・プラスチック製", "emoji": "🔖", "ans": "left", "note": "布・プラ製はもえるごみ。"}, {"id": "x036", "name": "インクカートリッジ", "emoji": "🖨️", "ans": "right", "note": "回収もあるが、分類はもえないごみ。"}, {"id": "x037", "name": "インスタントカメラ", "emoji": "📷", "ans": "right", "note": "インスタントカメラはもえないごみ。"}, {"id": "x038", "name": "インターホン", "emoji": "🔔", "ans": "right", "note": "インターホンはもえないごみ。"}, {"id": "x039", "name": "植木鉢 陶器製", "emoji": "🪴", "ans": "right", "note": "陶器製はもえないごみ。"}, {"id": "x040", "name": "植木鉢 プラスチック製", "emoji": "🪴", "ans": "left", "note": "プラスチック製の製品はもえるごみ。"}, {"id": "x041", "name": "ウェットスーツ", "emoji": "🤿", "ans": "left", "note": "長さ60cm未満に切ってもえるごみ。"}, {"id": "x042", "name": "浮き輪", "emoji": "🛟", "ans": "left", "note": "長さ60cm未満に切ってもえるごみ。"}, {"id": "x043", "name": "うちわ", "emoji": "🎐", "ans": "left", "note": "うちわはもえるごみ。"}, {"id": "x044", "name": "ウッドカーペット 60cm未満", "emoji": "🟫", "ans": "left", "note": "小さいものはもえるごみ。"}, {"id": "x045", "name": "ウッドカーペット 60cm以上", "emoji": "🟫", "ans": "down", "note": "60cm以上は連絡ごみ。ゲームでは大きなごみ。"}, {"id": "x046", "name": "腕時計", "emoji": "⌚", "ans": "right", "note": "電池類は取り外して出そう。"}, {"id": "x047", "name": "ウレタン", "emoji": "🧽", "ans": "left", "note": "長さ60cm未満に切ってもえるごみ。"}, {"id": "x048", "name": "エアゾール缶", "emoji": "🧴", "ans": "right", "note": "特定品目だが、4方向ではもえない系として扱うよ。"}, {"id": "x049", "name": "HDDレコーダー", "emoji": "📼", "ans": "right", "note": "小型家電としてもえないごみ。"}, {"id": "x050", "name": "AED", "emoji": "🩺", "ans": "right", "note": "電池類は取り外して出そう。"}, {"id": "x051", "name": "ACアダプタ", "emoji": "🔌", "ans": "right", "note": "家電用アダプタはもえないごみ。"}, {"id": "x052", "name": "エキスパンダー", "emoji": "💪", "ans": "right", "note": "エキスパンダーはもえないごみ。"}, {"id": "x053", "name": "枝切りばさみ 60cm未満", "emoji": "✂️", "ans": "right", "note": "刃は紙などで包もう。"}, {"id": "x054", "name": "枝切りばさみ 60cm以上", "emoji": "✂️", "ans": "down", "note": "60cm以上は連絡ごみ。ゲームでは大きなごみ。"}, {"id": "x055", "name": "枝類 60cm未満", "emoji": "🌿", "ans": "left", "note": "太さなどの条件に注意してもえるごみ。"}, {"id": "x056", "name": "絵の具 少量", "emoji": "🎨", "ans": "left", "note": "紙や布に染み込ませてもえるごみ。"}, {"id": "x057", "name": "絵の具の容器 プラスチック製", "emoji": "🎨", "ans": "left", "note": "中身を取り除いてもえるごみ。"}, {"id": "x058", "name": "絵の具の容器 金属製", "emoji": "🎨", "ans": "right", "note": "中身を取り除いてもえないごみ。"}, {"id": "x059", "name": "MD ケース込み", "emoji": "💽", "ans": "left", "note": "MDはケースを含めてもえるごみ。"}, {"id": "x060", "name": "MDプレーヤー", "emoji": "🎧", "ans": "right", "note": "電池類は取り外して出そう。"}, {"id": "x061", "name": "LED電球", "emoji": "💡", "ans": "right", "note": "LED電球はもえないごみ。"}, {"id": "x062", "name": "園芸支柱 金属製 60cm未満", "emoji": "🪴", "ans": "right", "note": "金属製で小さいものはもえないごみ。"}, {"id": "x063", "name": "園芸支柱 金属製以外 60cm未満", "emoji": "🪴", "ans": "left", "note": "金属製以外で小さいものはもえるごみ。"}, {"id": "x064", "name": "園芸支柱 60cm以上", "emoji": "🪴", "ans": "down", "note": "60cm以上は連絡ごみ。ゲームでは大きなごみ。"}, {"id": "x065", "name": "延長コード 60cm未満", "emoji": "🔌", "ans": "right", "note": "短く切れるものはもえないごみ。"}, {"id": "x066", "name": "延長コード 60cm以上", "emoji": "🔌", "ans": "down", "note": "60cm以上は連絡ごみ。ゲームでは大きなごみ。"}, {"id": "x067", "name": "鉛筆削り器", "emoji": "✏️", "ans": "right", "note": "電池類は取り外して出そう。"}, {"id": "x068", "name": "オアシス", "emoji": "🌷", "ans": "left", "note": "生け花用オアシスはもえるごみ。"}, {"id": "x069", "name": "オーブントースター", "emoji": "🍞", "ans": "right", "note": "オーブントースターはもえないごみ。"}, {"id": "x070", "name": "おけ 金属製", "emoji": "🪣", "ans": "right", "note": "金属製のおけはもえないごみ。"}, {"id": "x071", "name": "おけ 金属製以外", "emoji": "🪣", "ans": "left", "note": "金属製以外のおけはもえるごみ。"}, {"id": "x072", "name": "おしゃぶり", "emoji": "👶", "ans": "left", "note": "おしゃぶりはもえるごみ。"}, {"id": "x073", "name": "おたま 金属製", "emoji": "🥄", "ans": "right", "note": "金属製のおたまはもえないごみ。"}, {"id": "x074", "name": "おたま 金属製以外", "emoji": "🥄", "ans": "left", "note": "金属製以外のおたまはもえるごみ。"}, {"id": "x075", "name": "お盆 金属製", "emoji": "🍱", "ans": "right", "note": "金属製のお盆はもえないごみ。"}, {"id": "x076", "name": "お盆 金属製以外", "emoji": "🍱", "ans": "left", "note": "金属製以外のお盆はもえるごみ。"}, {"id": "x077", "name": "おまる 60cm未満", "emoji": "🚽", "ans": "left", "note": "小さいおまるはもえるごみ。"}, {"id": "x078", "name": "おまる 60cm以上", "emoji": "🚽", "ans": "down", "note": "60cm以上は連絡ごみ。ゲームでは大きなごみ。"}, {"id": "x079", "name": "おむつカバー", "emoji": "👶", "ans": "left", "note": "おむつカバーはもえるごみ。"}, {"id": "x080", "name": "おもちゃ 金属・ガラスあり 60cm未満", "emoji": "🧸", "ans": "right", "note": "電池類は取り外して出そう。"}, {"id": "x081", "name": "おもちゃ 金属・ガラスなし 60cm未満", "emoji": "🧸", "ans": "left", "note": "金属・ガラスなしはもえるごみ。"}, {"id": "x082", "name": "折りたたみベッド", "emoji": "🛏️", "ans": "down", "note": "折りたたみベッドは連絡ごみ。ゲームでは大きなごみ。"}, {"id": "x083", "name": "オルゴール", "emoji": "🎵", "ans": "right", "note": "オルゴールはもえないごみ。"}, {"id": "x084", "name": "おろし金 金属製", "emoji": "🥕", "ans": "right", "note": "金属製のおろし金はもえないごみ。"}, {"id": "x085", "name": "おろし金 金属製以外", "emoji": "🥕", "ans": "left", "note": "金属製以外はもえるごみ。"}]};
-QUESTION_BANK.veryEasy = [
-  {id:"ve_y001",name:"りんごのしん",emoji:"🍎",ans:"left",note:"食べもののごみは、もえるごみだよ。"},
-  {id:"ve_y002",name:"バナナのかわ",emoji:"🍌",ans:"left",note:"生ごみは、もえるごみだよ。"},
-  {id:"ve_y003",name:"ティッシュ",emoji:"🧻",ans:"left",note:"使ったティッシュは、もえるごみだよ。"},
-  {id:"ve_y004",name:"かみくず",emoji:"📄",ans:"left",note:"よごれた紙は、もえるごみだよ。"},
-  {id:"ve_y005",name:"わりばし",emoji:"🥢",ans:"left",note:"木のはしは、もえるごみだよ。"},
-  {id:"ve_y006",name:"えんぴつ",emoji:"✏️",ans:"left",note:"えんぴつは、もえるごみだよ。"},
-  {id:"ve_y007",name:"おちば",emoji:"🍂",ans:"left",note:"少しの落ち葉は、もえるごみだよ。"},
-  {id:"ve_y008",name:"ぬいぐるみ",emoji:"🧸",ans:"left",note:"小さいぬいぐるみは、もえるごみだよ。"},
-  {id:"ve_y009",name:"くつ",emoji:"👟",ans:"left",note:"くつは、もえるごみだよ。"},
-  {id:"ve_y010",name:"おむつ",emoji:"👶",ans:"left",note:"汚れを取って、もえるごみだよ。"},
-  {id:"ve_y011",name:"うちわ",emoji:"🎐",ans:"left",note:"うちわは、もえるごみだよ。"},
-  {id:"ve_y012",name:"スポンジ",emoji:"🧽",ans:"left",note:"スポンジは、もえるごみだよ。"},
-  {id:"ve_y013",name:"プラスチックのおもちゃ",emoji:"🧸",ans:"left",note:"金属やガラスがない小さいおもちゃは、もえるごみだよ。"},
-  {id:"ve_y014",name:"プラスチックのスプーン",emoji:"🥄",ans:"left",note:"容器包装ではないプラ製品は、もえるごみだよ。"},
-  {id:"ve_y015",name:"木の小物",emoji:"🪵",ans:"left",note:"小さい木のものは、もえるごみだよ。"},
-  {id:"ve_y016",name:"われたコップ",emoji:"🥛",ans:"right",note:"ガラスは、もえないごみだよ。"},
-  {id:"ve_y017",name:"おちゃわん",emoji:"🍚",ans:"right",note:"せとものは、もえないごみだよ。"},
-  {id:"ve_y018",name:"おさら",emoji:"🍽️",ans:"right",note:"陶器のお皿は、もえないごみだよ。"},
-  {id:"ve_y019",name:"フライパン",emoji:"🍳",ans:"right",note:"金属のものは、もえないごみだよ。"},
-  {id:"ve_y020",name:"スプーン",emoji:"🥄",ans:"right",note:"金属のスプーンは、もえないごみだよ。"},
-  {id:"ve_y021",name:"フォーク",emoji:"🍴",ans:"right",note:"金属のフォークは、もえないごみだよ。"},
-  {id:"ve_y022",name:"でんきゅう",emoji:"💡",ans:"right",note:"電球は、もえないごみだよ。"},
-  {id:"ve_y023",name:"かがみ",emoji:"🪞",ans:"right",note:"鏡は、もえないごみだよ。"},
-  {id:"ve_y024",name:"はさみ",emoji:"✂️",ans:"right",note:"金属のはさみは、もえないごみだよ。"},
-  {id:"ve_y025",name:"かぎ",emoji:"🔑",ans:"right",note:"金属のかぎは、もえないごみだよ。"},
-  {id:"ve_y026",name:"なべ",emoji:"🍲",ans:"right",note:"金属のなべは、もえないごみだよ。"},
-  {id:"ve_y027",name:"かんでんち",emoji:"🔋",ans:"right",note:"電池は、スタッフに確認して安全に出そう。"},
-  {id:"ve_y028",name:"小さいラジオ",emoji:"📻",ans:"right",note:"電池を外して、もえないごみだよ。"},
-  {id:"ve_y029",name:"コード",emoji:"🔌",ans:"right",note:"コードは、もえないごみだよ。"},
-  {id:"ve_y030",name:"金属のおたま",emoji:"🥄",ans:"right",note:"金属のおたまは、もえないごみだよ。"}
-];
+const DEFAULT_PROBLEMS=[{"id":"q001","name":"りんごの芯","emoji":"🍎","ans":"left","note":"食べ物のごみは、もえるごみ。","group":"kids","enabled":true,"kana":"りんごのしん","kidNote":"たべものは、もえるごみ。","schoolName":"りんごのしん","schoolNote":"たべものは、もえるごみ。","kidName":"りんごのしん"},{"id":"q002","name":"バナナの皮","emoji":"🍌","ans":"left","note":"生ごみは水を切って、もえるごみ。","group":"kids","enabled":true,"kana":"ばななのかわ","kidNote":"たべものは、もえるごみ。","schoolName":"バナナのかわ","schoolNote":"たべものは、もえるごみ。","kidName":"ばななのかわ"},{"id":"q003","name":"使用済みティッシュ","emoji":"🧻","ans":"left","note":"汚れた紙は、もえるごみ。","group":"kids","enabled":true,"kana":"つかったてぃっしゅ","kidNote":"よごれたかみは、もえるごみ。","schoolName":"つかったティッシュ","schoolNote":"よごれたかみは、もえるごみ。","kidName":"つかったてぃっしゅ"},{"id":"q004","name":"紙くず","emoji":"📄","ans":"left","note":"汚れた紙は、もえるごみ。","group":"kids","enabled":true,"kana":"かみくず","kidNote":"よごれたかみは、もえるごみ。","schoolName":"かみくず","schoolNote":"よごれたかみは、もえるごみ。","kidName":"かみくず"},{"id":"q005","name":"割り箸","emoji":"🥢","ans":"left","note":"木製のものは、もえるごみ。","group":"kids","enabled":true,"kana":"わりばし","kidNote":"きのものは、もえるごみ。","schoolName":"わりばし","schoolNote":"木のものは、もえるごみ。","kidName":"わりばし"},{"id":"q006","name":"鉛筆","emoji":"✏️","ans":"left","note":"鉛筆は、もえるごみ。","group":"kids","enabled":true,"kana":"えんぴつ","kidNote":"えんぴつは、もえるごみ。","schoolName":"えんぴつ","schoolNote":"えんぴつは、もえるごみ。","kidName":"えんぴつ"},{"id":"q007","name":"落ち葉","emoji":"🍂","ans":"left","note":"少量の落ち葉は、もえるごみ。","group":"kids","enabled":true,"kana":"おちば","kidNote":"はっぱは、もえるごみ。","schoolName":"おちば","schoolNote":"はっぱは、もえるごみ。","kidName":"おちば"},{"id":"q008","name":"ぬいぐるみ","emoji":"🧸","ans":"left","note":"小さいぬいぐるみは、もえるごみ。","group":"kids","enabled":true,"kana":"ぬいぐるみ","kidNote":"ちいさいものは、もえるごみ。","schoolName":"ぬいぐるみ","schoolNote":"小さいものは、もえるごみ。","kidName":"ぬいぐるみ"},{"id":"q009","name":"靴","emoji":"👟","ans":"left","note":"靴は、もえるごみ。","group":"kids","enabled":true,"kana":"くつ","kidNote":"くつは、もえるごみ。","schoolName":"くつ","schoolNote":"くつは、もえるごみ。","kidName":"くつ"},{"id":"q010","name":"紙おむつ","emoji":"👶","ans":"left","note":"汚物を取り除いて、もえるごみ。","group":"kids","enabled":true,"kana":"おむつ","kidNote":"よごれをとって、もえるごみ。","schoolName":"おむつ","schoolNote":"よごれをとって、もえるごみ。","kidName":"おむつ"},{"id":"q011","name":"スポンジ","emoji":"🧽","ans":"left","note":"スポンジは、もえるごみ。","group":"kids","enabled":true,"kana":"すぽんじ","kidNote":"やわらかいぷらは、もえるごみ。","schoolName":"スポンジ","schoolNote":"スポンジは、もえるごみ。","kidName":"すぽんじ"},{"id":"q012","name":"石けん","emoji":"🧼","ans":"left","note":"石けんは、もえるごみ。","group":"kids","enabled":true,"kana":"せっけん","kidNote":"せっけんは、もえるごみ。","schoolName":"せっけん","schoolNote":"せっけんは、もえるごみ。","kidName":"せっけん"},{"id":"q013","name":"毛糸","emoji":"🧶","ans":"left","note":"毛糸は、もえるごみ。","group":"kids","enabled":true,"kana":"けいと","kidNote":"けいとは、もえるごみ。","schoolName":"けいと","schoolNote":"けいとは、もえるごみ。","kidName":"けいと"},{"id":"q014","name":"クレヨン","emoji":"🖍️","ans":"left","note":"クレヨンは、もえるごみ。","group":"kids","enabled":true,"kana":"くれよん","kidNote":"くれよんは、もえるごみ。","schoolName":"クレヨン","schoolNote":"クレヨンは、もえるごみ。","kidName":"くれよん"},{"id":"q015","name":"ストロー","emoji":"🥤","ans":"left","note":"ストローは、もえるごみ。","group":"kids","enabled":true,"kana":"すとろー","kidNote":"すとろーは、もえるごみ。","schoolName":"ストロー","schoolNote":"ストローは、もえるごみ。","kidName":"すとろー"},{"id":"q016","name":"輪ゴム","emoji":"⭕","ans":"left","note":"ゴム製品は、もえるごみ。","group":"kids","enabled":true,"kana":"わごむ","kidNote":"ごむは、もえるごみ。","schoolName":"わゴム","schoolNote":"ゴムは、もえるごみ。","kidName":"わごむ"},{"id":"q017","name":"草履","emoji":"🩴","ans":"left","note":"草履は、もえるごみ。","group":"kids","enabled":true,"kana":"ぞうり","kidNote":"ぞうりは、もえるごみ。","schoolName":"ぞうり","schoolNote":"ぞうりは、もえるごみ。","kidName":"ぞうり"},{"id":"q018","name":"テニスボール","emoji":"🎾","ans":"left","note":"ボールは、もえるごみ。","group":"kids","enabled":true,"kana":"てにすぼーる","kidNote":"ぼーるは、もえるごみ。","schoolName":"テニスボール","schoolNote":"ボールは、もえるごみ。","kidName":"てにすぼーる"},{"id":"q019","name":"歯ブラシ","emoji":"🪥","ans":"left","note":"歯ブラシは、もえるごみ。","group":"kids","enabled":true,"kana":"はぶらし","kidNote":"はぶらしは、もえるごみ。","schoolName":"はブラシ","schoolNote":"はブラシは、もえるごみ。","kidName":"はぶらし"},{"id":"q020","name":"積み木","emoji":"🧱","ans":"left","note":"小さい木製品は、もえるごみ。","group":"kids","enabled":true,"kana":"つみき","kidNote":"きのものは、もえるごみ。","schoolName":"つみ木","schoolNote":"木のものは、もえるごみ。","kidName":"つみき"},{"id":"q021","name":"割れたコップ","emoji":"🥛","ans":"right","note":"ガラスは、もえないごみ。","group":"kids","enabled":true,"kana":"われたこっぷ","kidNote":"がらすは、もえないごみ。","schoolName":"われたコップ","schoolNote":"ガラスは、もえないごみ。","kidName":"われたこっぷ"},{"id":"q022","name":"茶わん","emoji":"🍚","ans":"right","note":"陶器は、もえないごみ。","group":"kids","enabled":true,"kana":"おちゃわん","kidNote":"せとものは、もえないごみ。","schoolName":"おちゃわん","schoolNote":"せとものは、もえないごみ。","kidName":"おちゃわん"},{"id":"q023","name":"皿","emoji":"🍽️","ans":"right","note":"陶器は、もえないごみ。","group":"kids","enabled":true,"kana":"おさら","kidNote":"せとものは、もえないごみ。","schoolName":"おさら","schoolNote":"せとものは、もえないごみ。","kidName":"おさら"},{"id":"q024","name":"鍋","emoji":"🍲","ans":"right","note":"金属製品は、もえないごみ。","group":"kids","enabled":true,"kana":"なべ","kidNote":"きんぞくは、もえないごみ。","schoolName":"なべ","schoolNote":"金ぞくは、もえないごみ。","kidName":"なべ"},{"id":"q025","name":"フライパン","emoji":"🍳","ans":"right","note":"金属製品は、もえないごみ。","group":"kids","enabled":true,"kana":"ふらいぱん","kidNote":"きんぞくは、もえないごみ。","schoolName":"フライパン","schoolNote":"金ぞくは、もえないごみ。","kidName":"ふらいぱん"},{"id":"q026","name":"金属スプーン","emoji":"🥄","ans":"right","note":"金属製品は、もえないごみ。","group":"kids","enabled":true,"kana":"すぷーん","kidNote":"きんぞくは、もえないごみ。","schoolName":"金ぞくスプーン","schoolNote":"金ぞくは、もえないごみ。","kidName":"すぷーん"},{"id":"q027","name":"はさみ","emoji":"✂️","ans":"right","note":"刃物は包んで、もえないごみ。","group":"kids","enabled":true,"kana":"はさみ","kidNote":"きんぞくは、もえないごみ。","schoolName":"はさみ","schoolNote":"あぶなくないように、つつもう。","kidName":"はさみ"},{"id":"q028","name":"鍵","emoji":"🔑","ans":"right","note":"金属製品は、もえないごみ。","group":"kids","enabled":true,"kana":"かぎ","kidNote":"きんぞくは、もえないごみ。","schoolName":"かぎ","schoolNote":"金ぞくは、もえないごみ。","kidName":"かぎ"},{"id":"q029","name":"鏡","emoji":"🪞","ans":"right","note":"鏡は、もえないごみ。","group":"kids","enabled":true,"kana":"かがみ","kidNote":"がらすは、もえないごみ。","schoolName":"かがみ","schoolNote":"ガラスは、もえないごみ。","kidName":"かがみ"},{"id":"q030","name":"電球","emoji":"💡","ans":"right","note":"電球は、もえないごみ。","group":"kids","enabled":true,"kana":"でんきゅう","kidNote":"でんきゅうは、もえないごみ。","schoolName":"でんきゅう","schoolNote":"でんきゅうは、もえないごみ。","kidName":"でんきゅう"},{"id":"q031","name":"ペットボトル","emoji":"🧴","ans":"up","note":"キャップとラベルを外して資源。","group":"school","enabled":true,"schoolName":"ペットボトル","schoolNote":"キャップとラベルをはずして、しげん。"},{"id":"q032","name":"ペットボトルのキャップ","emoji":"🔵","ans":"up","note":"外してプラの資源へ。","group":"school","enabled":true,"schoolName":"ペットボトルのキャップ","schoolNote":"ボトルからはずして、しげん。"},{"id":"q033","name":"ペットボトルのラベル","emoji":"🏷️","ans":"up","note":"本体から外して資源。","group":"school","enabled":true,"schoolName":"ペットボトルのラベル","schoolNote":"ボトルからはずして、しげん。"},{"id":"q034","name":"飲みもののアルミ缶","emoji":"🥫","ans":"up","note":"中をすすいで資源。","group":"school","enabled":true,"schoolName":"のみもののアルミかん","schoolNote":"中をすすいで、しげん。"},{"id":"q035","name":"飲みもののスチール缶","emoji":"🥫","ans":"up","note":"中をすすいで資源。","group":"school","enabled":true,"schoolName":"のみもののスチールかん","schoolNote":"中をすすいで、しげん。"},{"id":"q036","name":"飲みもののびん","emoji":"🍾","ans":"up","note":"キャップを外して資源。","group":"school","enabled":true,"schoolName":"のみもののびん","schoolNote":"キャップをはずして、しげん。"},{"id":"q037","name":"新聞紙","emoji":"📰","ans":"up","note":"紙の資源にまとめよう。","group":"school","enabled":true,"schoolName":"しんぶんし","schoolNote":"かみのしげん。まとめて出そう。"},{"id":"q038","name":"雑誌","emoji":"📚","ans":"up","note":"紙の資源にまとめよう。","group":"school","enabled":true,"schoolName":"ざっし","schoolNote":"かみのしげん。まとめて出そう。"},{"id":"q039","name":"段ボール","emoji":"📦","ans":"up","note":"たたんで資源。","group":"school","enabled":true,"schoolName":"ダンボール","schoolNote":"たたんで、しげん。"},{"id":"q040","name":"牛乳パック","emoji":"🥛","ans":"up","note":"洗って開いて乾かそう。","group":"school","enabled":true,"schoolName":"ぎゅうにゅうパック","schoolNote":"あらって、ひらいて、かわかそう。"},{"id":"q041","name":"きれいな食品トレー","emoji":"🥩","ans":"up","note":"洗えるトレーは資源。","group":"school","enabled":true,"schoolName":"きれいなトレー","schoolNote":"あらえるものは、しげん。"},{"id":"q042","name":"プラマークの菓子袋","emoji":"🍬","ans":"up","note":"きれいなら資源。","group":"school","enabled":true,"schoolName":"おかしのふくろ（プラマーク）","schoolNote":"きれいなら、しげん。"},{"id":"q043","name":"プラマークのレジ袋","emoji":"🛍️","ans":"up","note":"汚れがなければ資源。","group":"school","enabled":true,"schoolName":"レジぶくろ（プラマーク）","schoolNote":"よごれがなければ、しげん。"},{"id":"q044","name":"プラマークのカップ麺容器","emoji":"🍜","ans":"up","note":"汚れを落として資源。","group":"school","enabled":true,"schoolName":"カップめんのようき（プラ）","schoolNote":"よごれをおとして、しげん。"},{"id":"q045","name":"雑がみ","emoji":"📄","ans":"up","note":"きれいな紙は資源。","group":"school","enabled":true,"schoolName":"ざつがみ","schoolNote":"きれいなかみは、しげん。"},{"id":"q046","name":"カタログ","emoji":"📖","ans":"up","note":"紙の資源にまとめよう。","group":"school","enabled":true,"schoolName":"カタログ","schoolNote":"かみのしげん。"},{"id":"q047","name":"ジャムのびん","emoji":"🫙","ans":"up","note":"食べもののびんは資源。","group":"school","enabled":true,"schoolName":"ジャムのびん","schoolNote":"たべもののびんは、しげん。"},{"id":"q048","name":"プラマークの緩衝材","emoji":"📦","ans":"up","note":"きれいなら資源。","group":"school","enabled":true,"schoolName":"プラマークのクッションざい","schoolNote":"きれいなら、しげん。"},{"id":"q049","name":"食品用ラップ","emoji":"🧻","ans":"left","note":"ラップはもえるごみ。","group":"school","enabled":true,"schoolName":"ラップ","schoolNote":"ラップは、もえるごみ。"},{"id":"q050","name":"紙製カップ麺容器","emoji":"🍜","ans":"left","note":"紙製はもえるごみ。","group":"school","enabled":true,"schoolName":"カップめんのようき（かみ）","schoolNote":"かみのようきは、もえるごみ。"},{"id":"q051","name":"汚れた食品トレー","emoji":"🥩","ans":"left","note":"洗えないものはもえる。","group":"school","enabled":true,"schoolName":"よごれたトレー","schoolNote":"あらえないものは、もえるごみ。"},{"id":"q052","name":"汚れた菓子袋","emoji":"🍬","ans":"left","note":"汚れが落ちないプラはもえる。","group":"school","enabled":true,"schoolName":"よごれたおかしぶくろ","schoolNote":"よごれがおちないプラは、もえる。"},{"id":"q053","name":"プラマークなし緩衝材","emoji":"📦","ans":"left","note":"マークなしはもえる。","group":"school","enabled":true,"schoolName":"プラマークなしのクッションざい","schoolNote":"マークなしは、もえる。"},{"id":"q054","name":"プラスチックの植木鉢","emoji":"🪴","ans":"left","note":"容器包装でないプラはもえる。","group":"school","enabled":true,"schoolName":"プラスチックのうえきばち","schoolNote":"プラのものは、もえる。"},{"id":"q055","name":"プラスチックのおもちゃ","emoji":"🧸","ans":"left","note":"金属・ガラスなしはもえる。","group":"school","enabled":true,"schoolName":"プラスチックのおもちゃ","schoolNote":"金ぞくやガラスがなければ、もえる。"},{"id":"q056","name":"CD","emoji":"💿","ans":"left","note":"ケースごともえるごみ。","group":"school","enabled":true,"schoolName":"CD","schoolNote":"ケースごと、もえる。"},{"id":"q057","name":"DVD","emoji":"📀","ans":"left","note":"ケースごともえるごみ。","group":"school","enabled":true,"schoolName":"DVD","schoolNote":"ケースごと、もえる。"},{"id":"q058","name":"ビデオテープ","emoji":"📼","ans":"left","note":"ケースごともえるごみ。","group":"school","enabled":true,"schoolName":"ビデオテープ","schoolNote":"ケースごと、もえる。"},{"id":"q059","name":"磁気カード","emoji":"💳","ans":"left","note":"カードはもえるごみ。","group":"school","enabled":true,"schoolName":"カード","schoolNote":"カードは、もえる。"},{"id":"q060","name":"ストッキング","emoji":"🧦","ans":"left","note":"衣類小物はもえる。","group":"school","enabled":true,"schoolName":"ストッキング","schoolNote":"小さいぬのものは、もえる。"},{"id":"q061","name":"セロハン紙","emoji":"🌈","ans":"left","note":"セロハン紙はもえる。","group":"school","enabled":true,"schoolName":"セロハンし","schoolNote":"セロハンしは、もえる。"},{"id":"q062","name":"扇子","emoji":"🪭","ans":"left","note":"扇子はもえるごみ。","group":"school","enabled":true,"schoolName":"せんす","schoolNote":"せんすは、もえる。"},{"id":"q063","name":"洗面器","emoji":"🪣","ans":"left","note":"プラ製の器はもえる。","group":"school","enabled":true,"schoolName":"せんめんき","schoolNote":"プラのうつわは、もえる。"},{"id":"q064","name":"金属のおたま","emoji":"🥄","ans":"right","note":"金属製はもえない。","group":"school","enabled":true,"schoolName":"金ぞくのおたま","schoolNote":"金ぞくは、もえない。"},{"id":"q065","name":"陶器の皿","emoji":"🍽️","ans":"right","note":"陶器・ガラスはもえない。","group":"school","enabled":true,"schoolName":"とうきのおさら","schoolNote":"とうきやガラスは、もえない。"},{"id":"q066","name":"金属のバケツ","emoji":"🪣","ans":"right","note":"金属製はもえない。","group":"school","enabled":true,"schoolName":"金ぞくのバケツ","schoolNote":"金ぞくは、もえない。"},{"id":"q067","name":"虫めがね","emoji":"🔍","ans":"right","note":"レンズはもえない。","group":"school","enabled":true,"schoolName":"むしめがね","schoolNote":"レンズは、もえない。"},{"id":"q068","name":"めがね","emoji":"👓","ans":"right","note":"めがねはもえない。","group":"school","enabled":true,"schoolName":"めがね","schoolNote":"めがねは、もえない。"},{"id":"q069","name":"小さいラジオ","emoji":"📻","ans":"right","note":"電池は外して出そう。","group":"school","enabled":true,"schoolName":"小さいラジオ","schoolNote":"でんちは、はずそう。"},{"id":"q070","name":"LED電球","emoji":"💡","ans":"right","note":"LED電球はもえない。","group":"school","enabled":true,"schoolName":"LEDでんきゅう","schoolNote":"LEDは、もえない。"},{"id":"q071","name":"延長コード","emoji":"🔌","ans":"right","note":"短くしてもえないごみ。","group":"school","enabled":true,"schoolName":"えんちょうコード","schoolNote":"コードは、もえない。"},{"id":"q072","name":"オーブントースター","emoji":"🍞","ans":"right","note":"トースターはもえない。","group":"school","enabled":true,"schoolName":"オーブントースター","schoolNote":"トースターは、もえない。"},{"id":"q073","name":"傘","emoji":"☂️","ans":"right","note":"傘はもえないごみ。","group":"school","enabled":true,"schoolName":"かさ","schoolNote":"かさは、もえない。"},{"id":"q074","name":"カッター","emoji":"🔪","ans":"right","note":"刃は紙で包もう。","group":"school","enabled":true,"schoolName":"カッター","schoolNote":"あぶなくないように、つつもう。"},{"id":"q075","name":"かなづち","emoji":"🔨","ans":"right","note":"金属の工具はもえない。","group":"school","enabled":true,"schoolName":"かなづち","schoolNote":"金ぞくのどうぐは、もえない。"},{"id":"q076","name":"画びょう","emoji":"📌","ans":"right","note":"危なくないよう包もう。","group":"school","enabled":true,"schoolName":"がびょう","schoolNote":"あぶなくないように、つつもう。"},{"id":"q077","name":"パソコン用キーボード","emoji":"⌨️","ans":"right","note":"小型家電の扱い。","group":"school","enabled":true,"schoolName":"パソコンのキーボード","schoolNote":"小さいかでんは、もえない。"},{"id":"q078","name":"ゲーム機","emoji":"🎮","ans":"right","note":"電池は外して出そう。","group":"school","enabled":true,"schoolName":"ゲームき","schoolNote":"でんちは、はずそう。"},{"id":"q079","name":"ゲーム用ソフト","emoji":"💿","ans":"right","note":"ゲームソフトはもえない。","group":"school","enabled":true,"schoolName":"ゲームソフト","schoolNote":"ゲームソフトは、もえない。"},{"id":"q080","name":"自転車","emoji":"🚲","ans":"down","note":"自転車は連絡ごみ。","group":"school","enabled":true,"schoolName":"じてんしゃ","schoolNote":"じてんしゃは、れんらくごみ。"},{"id":"q081","name":"学習机","emoji":"🧑‍💻","ans":"down","note":"机は連絡ごみ。","group":"school","enabled":true,"schoolName":"べんきょうづくえ","schoolNote":"つくえは、れんらくごみ。"},{"id":"q082","name":"ソファー","emoji":"🛋️","ans":"down","note":"ソファーは連絡ごみ。","group":"school","enabled":true,"schoolName":"ソファー","schoolNote":"ソファーは、れんらくごみ。"},{"id":"q083","name":"ベビーカー","emoji":"👶","ans":"down","note":"ベビーカーは連絡ごみ。","group":"school","enabled":true,"schoolName":"ベビーカー","schoolNote":"ベビーカーは、れんらくごみ。"},{"id":"q084","name":"ふとん（切らずに出す）","emoji":"🛏️","ans":"down","note":"切らずに出すと連絡ごみ。","group":"school","enabled":true,"schoolName":"ふとん（きらずに出す）","schoolNote":"きらずに出すと、れんらくごみ。"},{"id":"q085","name":"三輪車","emoji":"🚲","ans":"down","note":"三輪車は連絡ごみ。","group":"school","enabled":true,"schoolName":"さんりんしゃ","schoolNote":"さんりんしゃは、れんらくごみ。"},{"id":"q086","name":"座いす","emoji":"🪑","ans":"down","note":"座いすは連絡ごみ。","group":"school","enabled":true,"schoolName":"ざいす","schoolNote":"ざいすは、れんらくごみ。"},{"id":"q087","name":"電気毛布","emoji":"🛏️","ans":"down","note":"電気毛布は連絡ごみ。","group":"school","enabled":true,"schoolName":"でんきもうふ","schoolNote":"でんきもうふは、れんらくごみ。"},{"id":"q088","name":"物干し竿","emoji":"👕","ans":"down","note":"物干し竿は連絡ごみ。","group":"school","enabled":true,"schoolName":"ものほしざお","schoolNote":"ものほしざおは、れんらくごみ。"},{"id":"q089","name":"ロッカー","emoji":"🗄️","ans":"down","note":"大きな収納は連絡ごみ。","group":"school","enabled":true,"schoolName":"ロッカー","schoolNote":"大きいものは、れんらくごみ。"},{"id":"q090","name":"大きいテーブル","emoji":"🪑","ans":"down","note":"60cm以上は連絡ごみ。","group":"school","enabled":true,"schoolName":"大きいテーブル","schoolNote":"大きいものは、れんらくごみ。"},{"id":"q091","name":"金属のアクセサリー","emoji":"💍","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q092","name":"家電用アダプター","emoji":"🔌","ans":"right","note":"小型家電系はもえない。","group":"normal","enabled":true},{"id":"q093","name":"安全靴","emoji":"🥾","ans":"right","note":"金属入りはもえない。","group":"normal","enabled":true},{"id":"q094","name":"イヤホン","emoji":"🎧","ans":"right","note":"電池は外して出そう。","group":"normal","enabled":true},{"id":"q095","name":"インスタントカメラ","emoji":"📷","ans":"right","note":"カメラ類はもえない。","group":"normal","enabled":true},{"id":"q096","name":"陶器の植木鉢","emoji":"🪴","ans":"right","note":"陶器はもえない。","group":"normal","enabled":true},{"id":"q097","name":"金属のおけ","emoji":"🪣","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q098","name":"金属のお盆","emoji":"🍱","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q099","name":"オルゴール","emoji":"🎵","ans":"right","note":"オルゴールはもえない。","group":"normal","enabled":true},{"id":"q100","name":"金属のおろし金","emoji":"🥕","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q101","name":"小さい加湿器","emoji":"💧","ans":"right","note":"電池は外して出そう。","group":"normal","enabled":true},{"id":"q102","name":"カセットコンロ","emoji":"🍲","ans":"right","note":"ボンベを外して出そう。","group":"normal","enabled":true},{"id":"q103","name":"金だわし","emoji":"🧽","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q104","name":"ガラスの花びん","emoji":"🏺","ans":"right","note":"ガラス・陶器はもえない。","group":"normal","enabled":true},{"id":"q105","name":"カメラ","emoji":"📷","ans":"right","note":"電池は外して出そう。","group":"normal","enabled":true},{"id":"q106","name":"小さいガラス","emoji":"🪟","ans":"right","note":"割れ物は紙で包もう。","group":"normal","enabled":true},{"id":"q107","name":"釘","emoji":"📌","ans":"right","note":"紙で包んで出そう。","group":"normal","enabled":true},{"id":"q108","name":"金属のくし","emoji":"💇","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q109","name":"電飾コード","emoji":"✨","ans":"right","note":"コードはもえない。","group":"normal","enabled":true},{"id":"q110","name":"電気ケーブル","emoji":"🔌","ans":"right","note":"短くしてもえないごみ。","group":"normal","enabled":true},{"id":"q111","name":"コンセント","emoji":"🔌","ans":"right","note":"コードは短く切る。","group":"normal","enabled":true},{"id":"q112","name":"金属の皿","emoji":"🍽️","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q113","name":"CDプレーヤー","emoji":"💿","ans":"right","note":"電池は外して出そう。","group":"normal","enabled":true},{"id":"q114","name":"磁石","emoji":"🧲","ans":"right","note":"磁石はもえない。","group":"normal","enabled":true},{"id":"q115","name":"シャワーヘッド","emoji":"🚿","ans":"right","note":"ヘッドはもえない。","group":"normal","enabled":true},{"id":"q116","name":"充電器","emoji":"🔌","ans":"right","note":"充電器はもえない。","group":"normal","enabled":true},{"id":"q117","name":"ガラスの水槽","emoji":"🐟","ans":"right","note":"ガラス製はもえない。","group":"normal","enabled":true},{"id":"q118","name":"金属の水筒","emoji":"🍶","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q119","name":"ステープラー","emoji":"📎","ans":"right","note":"金属を含むので、もえない。","group":"normal","enabled":true},{"id":"q120","name":"金属のトング","emoji":"🥢","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q121","name":"ナイフ","emoji":"🔪","ans":"right","note":"刃は紙で包もう。","group":"normal","enabled":true},{"id":"q122","name":"外付けハードディスク","emoji":"💽","ans":"right","note":"小型家電はもえない。","group":"normal","enabled":true},{"id":"q123","name":"刃物","emoji":"🔪","ans":"right","note":"刃は紙で包もう。","group":"normal","enabled":true},{"id":"q124","name":"裁縫の針","emoji":"🪡","ans":"right","note":"紙で包んで出そう。","group":"normal","enabled":true},{"id":"q125","name":"金属のハンガー","emoji":"🧥","ans":"right","note":"金属ありはもえない。","group":"normal","enabled":true},{"id":"q126","name":"乾燥剤","emoji":"📦","ans":"left","note":"表示に従ってもえるごみ。","group":"normal","enabled":true},{"id":"q127","name":"カーボン紙","emoji":"🧾","ans":"left","note":"カーボン紙はもえる。","group":"normal","enabled":true},{"id":"q128","name":"カイロ（使い捨て）","emoji":"♨️","ans":"left","note":"冷ましてもえるごみ。","group":"normal","enabled":true},{"id":"q129","name":"貝殻","emoji":"🐚","ans":"left","note":"貝殻はもえるごみ。","group":"normal","enabled":true},{"id":"q130","name":"カッパ（雨具）","emoji":"☔","ans":"left","note":"小さくしてもえる。","group":"normal","enabled":true},{"id":"q131","name":"かつら","emoji":"💇","ans":"left","note":"かつらはもえるごみ。","group":"normal","enabled":true},{"id":"q132","name":"金属なしのカメラケース","emoji":"📷","ans":"left","note":"金属なしはもえる。","group":"normal","enabled":true},{"id":"q133","name":"プラスチックの空気入れ","emoji":"💨","ans":"left","note":"プラ製で小さいものはもえる。","group":"normal","enabled":true},{"id":"q134","name":"小さいクッション","emoji":"🛋️","ans":"left","note":"60cm未満はもえる。","group":"normal","enabled":true},{"id":"q135","name":"金属なしのクリスマス飾り","emoji":"🎄","ans":"left","note":"プラスチック類はもえる。","group":"normal","enabled":true},{"id":"q136","name":"ゲートボール用ボール","emoji":"⚪","ans":"left","note":"ボールはもえるごみ。","group":"normal","enabled":true},{"id":"q137","name":"プラマークの洗剤容器","emoji":"🧴","ans":"up","note":"中を空にして資源。","group":"normal","enabled":true},{"id":"q138","name":"プラマークのシャンプー容器","emoji":"🧴","ans":"up","note":"中を空にして資源。","group":"normal","enabled":true},{"id":"q139","name":"プラマークのプリン容器","emoji":"🍮","ans":"up","note":"すすげるなら資源。","group":"normal","enabled":true},{"id":"q140","name":"プラマークの肥料袋","emoji":"🪴","ans":"up","note":"汚れを落として資源。","group":"normal","enabled":true},{"id":"q141","name":"プラマークの苗ポット","emoji":"🌱","ans":"up","note":"きれいなら資源。","group":"normal","enabled":true},{"id":"q142","name":"プラマークの化粧品容器","emoji":"💄","ans":"up","note":"中を空にして資源。","group":"normal","enabled":true},{"id":"q143","name":"ビールびん","emoji":"🍺","ans":"up","note":"くり返し使える資源。","group":"normal","enabled":true},{"id":"q144","name":"一升びん","emoji":"🍶","ans":"up","note":"集団回収などの資源。","group":"normal","enabled":true},{"id":"q145","name":"再利用できる服","emoji":"👕","ans":"up","note":"使える衣類は資源回収へ。","group":"normal","enabled":true},{"id":"q146","name":"回転いす","emoji":"🪑","ans":"down","note":"回転いすは連絡ごみ。","group":"normal","enabled":true},{"id":"q147","name":"オーブン","emoji":"🍞","ans":"down","note":"オーブンは連絡ごみ。","group":"normal","enabled":true},{"id":"q148","name":"オーブンレンジ","emoji":"📦","ans":"down","note":"レンジ一体型は連絡ごみ。","group":"normal","enabled":true},{"id":"q149","name":"折りたたみベッド","emoji":"🛏️","ans":"down","note":"ベッドは連絡ごみ。","group":"normal","enabled":true},{"id":"q150","name":"ガスコンロ","emoji":"🔥","ans":"down","note":"ガスコンロは連絡ごみ。","group":"normal","enabled":true},{"id":"q151","name":"ガスストーブ","emoji":"🔥","ans":"down","note":"ストーブは連絡ごみ。","group":"normal","enabled":true},{"id":"q152","name":"ガステーブル","emoji":"🔥","ans":"down","note":"電池は外して連絡ごみ。","group":"normal","enabled":true},{"id":"q153","name":"ホットカーペット","emoji":"♨️","ans":"down","note":"電気カーペットは連絡ごみ。","group":"normal","enabled":true},{"id":"q154","name":"ジューサーミキサー","emoji":"🥤","ans":"down","note":"ミキサーは連絡ごみ。","group":"normal","enabled":true},{"id":"q155","name":"食器洗い乾燥機","emoji":"🍽️","ans":"down","note":"大きさ問わず連絡ごみ。","group":"normal","enabled":true},{"id":"q156","name":"食器乾燥機","emoji":"🍽️","ans":"down","note":"乾燥機は連絡ごみ。","group":"normal","enabled":true},{"id":"q157","name":"炊飯器","emoji":"🍚","ans":"down","note":"炊飯器は連絡ごみ。","group":"normal","enabled":true},{"id":"q158","name":"石油ファンヒーター","emoji":"🔥","ans":"down","note":"燃料を抜いて連絡ごみ。","group":"normal","enabled":true},{"id":"q159","name":"普通の掃除機","emoji":"🧹","ans":"down","note":"ハンド式以外は連絡ごみ。","group":"normal","enabled":true},{"id":"q160","name":"スノーボード","emoji":"🏂","ans":"down","note":"スノーボードは連絡ごみ。","group":"normal","enabled":true},{"id":"q161","name":"アルミはく（薄い）","emoji":"🥡","ans":"left","note":"薄いアルミはくはもえる。","group":"hard","enabled":true},{"id":"q162","name":"アルミはく（厚い）","emoji":"🥡","ans":"right","note":"厚い容器はもえない。","group":"hard","enabled":true},{"id":"q163","name":"アイロン（金属のかけ面）","emoji":"🧺","ans":"down","note":"金属のかけ面は連絡ごみ。","group":"hard","enabled":true},{"id":"q164","name":"アイロン（金属でないかけ面）","emoji":"🧺","ans":"right","note":"金属でないかけ面はもえない。","group":"hard","enabled":true},{"id":"q165","name":"アイロン台（金属なし・小さい）","emoji":"🧺","ans":"left","note":"金属なしで小さいものはもえる。","group":"hard","enabled":true},{"id":"q166","name":"アイロン台（金属あり・小さい）","emoji":"🧺","ans":"right","note":"金属ありで小さいものはもえない。","group":"hard","enabled":true},{"id":"q167","name":"アクリル板（小さい）","emoji":"⬜","ans":"left","note":"60cm未満はもえる。","group":"hard","enabled":true},{"id":"q168","name":"アタッシュケース（小さい）","emoji":"💼","ans":"right","note":"小さいものはもえない。","group":"hard","enabled":true},{"id":"q169","name":"衣装ケース（金属なし・小さい）","emoji":"🧰","ans":"left","note":"金属なしで小さいものはもえる。","group":"hard","enabled":true},{"id":"q170","name":"衣装ケース（金属製・小さい）","emoji":"🧰","ans":"right","note":"金属製で小さいものはもえない。","group":"hard","enabled":true},{"id":"q171","name":"金属なしのいす（小さい）","emoji":"🪑","ans":"left","note":"金属なしで小さいものはもえる。","group":"hard","enabled":true},{"id":"q172","name":"金属製のいす（小さい）","emoji":"🪑","ans":"right","note":"金属製で小さいものはもえない。","group":"hard","enabled":true},{"id":"q173","name":"板（小さい）","emoji":"🪵","ans":"left","note":"60cm未満はもえる。","group":"hard","enabled":true},{"id":"q174","name":"一斗缶","emoji":"🥫","ans":"right","note":"一斗缶はもえない。","group":"hard","enabled":true},{"id":"q175","name":"印鑑（木・プラスチック）","emoji":"🔖","ans":"left","note":"木・プラ製はもえる。","group":"hard","enabled":true},{"id":"q176","name":"印鑑（金属・石）","emoji":"🔖","ans":"right","note":"金属・石製はもえない。","group":"hard","enabled":true},{"id":"q177","name":"印鑑ケース（布・プラ）","emoji":"🔖","ans":"left","note":"布・プラ製はもえる。","group":"hard","enabled":true},{"id":"q178","name":"印鑑ケース（金属）","emoji":"🔖","ans":"right","note":"金属製ケースはもえない。","group":"hard","enabled":true},{"id":"q179","name":"植木鉢（プラスチック）","emoji":"🪴","ans":"left","note":"プラ製はもえる。","group":"hard","enabled":true},{"id":"q180","name":"植木鉢（陶器）","emoji":"🪴","ans":"right","note":"陶器製はもえない。","group":"hard","enabled":true},{"id":"q181","name":"おけ（金属以外）","emoji":"🪣","ans":"left","note":"金属以外はもえる。","group":"hard","enabled":true},{"id":"q182","name":"おけ（金属製）","emoji":"🪣","ans":"right","note":"金属製はもえない。","group":"hard","enabled":true},{"id":"q183","name":"おたま（金属以外）","emoji":"🥄","ans":"left","note":"金属以外はもえる。","group":"hard","enabled":true},{"id":"q184","name":"おたま（金属製）","emoji":"🥄","ans":"right","note":"金属製はもえない。","group":"hard","enabled":true},{"id":"q185","name":"お盆（金属以外）","emoji":"🍱","ans":"left","note":"金属以外はもえる。","group":"hard","enabled":true},{"id":"q186","name":"お盆（金属製）","emoji":"🍱","ans":"right","note":"金属製はもえない。","group":"hard","enabled":true},{"id":"q187","name":"おもちゃ（金属・ガラスなし）","emoji":"🧸","ans":"left","note":"金属・ガラスなしはもえる。","group":"hard","enabled":true},{"id":"q188","name":"おもちゃ（金属・ガラスあり）","emoji":"🧸","ans":"right","note":"金属・ガラスありはもえない。","group":"hard","enabled":true},{"id":"q189","name":"カーテンレール（金属なし・小さい）","emoji":"🪟","ans":"left","note":"金属なしで小さいものはもえる。","group":"hard","enabled":true},{"id":"q190","name":"カーテンレール（金属製・小さい）","emoji":"🪟","ans":"right","note":"金属製で小さいものはもえない。","group":"hard","enabled":true},{"id":"q191","name":"カップ麺容器（紙製）","emoji":"🍜","ans":"left","note":"紙製はもえる。","group":"hard","enabled":true},{"id":"q192","name":"カップ麺容器（プラマーク）","emoji":"🍜","ans":"up","note":"汚れを落として資源。","group":"hard","enabled":true},{"id":"q193","name":"缶切り後の缶のふた","emoji":"🥫","ans":"right","note":"缶切り後のふたはもえない。","group":"hard","enabled":true},{"id":"q194","name":"飲食用でないびん","emoji":"🧴","ans":"right","note":"化粧品などのびんはもえない。","group":"hard","enabled":true},{"id":"q195","name":"割れた飲食用びん","emoji":"🍾","ans":"right","note":"割れたびんはもえない。","group":"hard","enabled":true},{"id":"q196","name":"汚れが落ちないペットボトル","emoji":"🧴","ans":"left","note":"汚れが落ちないものはもえる。","group":"hard","enabled":true},{"id":"q197","name":"汚れが落ちない飲食用缶","emoji":"🥫","ans":"right","note":"汚れの落ちない缶はもえない。","group":"hard","enabled":true},{"id":"q198","name":"食用油のガラス容器","emoji":"🫙","ans":"up","note":"きれいなら資源。","group":"hard","enabled":true},{"id":"q199","name":"食用油のプラマーク容器","emoji":"🧴","ans":"up","note":"きれいならプラ資源。","group":"hard","enabled":true},{"id":"q200","name":"汚れたプラマーク容器","emoji":"🍱","ans":"left","note":"汚れが落ちないプラはもえる。","group":"hard","enabled":true}];
+const QUESTION_COUNT=10;
+const PROBLEM_KEY="gomizeroProblems_v9_200_multilabel";
+const CONFIG_KEY="gomizeroConfig_v8";
+const BEST_KEY="gomizeroBest_v8";
+const DIRECTION={
+  up:{label:"資源",long:"資源",color:"#2f7df2"},
+  down:{label:"連絡ごみ",long:"連絡ごみ",color:"#28b979"},
+  left:{label:"もえる",long:"もえるごみ",color:"#ef615c"},
+  right:{label:"もえない",long:"もえないごみ",color:"#f4ca4f"}
+};
+const GROUP_LABEL={kids:"キッズ",school:"小学生",normal:"チャレンジふつう",hard:"チャレンジむずかしい"};
+const screen=document.getElementById("screen");
+const settingsModal=document.getElementById("settingsModal");
+const editorModal=document.getElementById("editorModal");
+let config=loadConfig();
+let problems=loadProblems();
+let state={phase:"title",mode:null,questions:[],index:0,score:0,misses:[],current:null,accepting:false,timerId:null,endless:false,endlessCount:0,endlessQueue:[],practiceQueue:[],practiceIndex:0,demoQueue:[],demoIndex:0,demoTimer:null,menu:[],menuIndex:0,gamepadPrev:{},gamepadId:null,gamepadNeutralAxes:null,holdTimers:{},lastDir:null,padCheck:null,padCheckLast:0};
 
-const state={mode:null,phase:"title",questions:[],currentIndex:0,score:0,misses:[],accepting:true,waitingRelease:false,timeLimit:10,questionCount:10,clearCount:8,endlessNeed:10,assistMode:false,timeLeft:10,timerId:null,endless:false,endlessCount:0,volume:.7,touchStart:null,longPressTimer:null,gamepadPrevPressed:false,practiceList:[],practiceIndex:0,hHoldTimer:null,hHoldTriggered:false};
-const screen=document.getElementById("screen"),settings=document.getElementById("settings"),highScoreLabel=document.getElementById("highScoreLabel");
-const timeLimitInput=document.getElementById("timeLimit"),questionCountInput=document.getElementById("questionCount"),clearCountInput=document.getElementById("clearCount"),endlessNeedInput=document.getElementById("endlessNeed"),assistModeInput=document.getElementById("assistMode"),volumeInput=document.getElementById("volume");
-function normalizeSettings(){state.timeLimit=+timeLimitInput.value||10;state.questionCount=Math.max(3,+questionCountInput.value||10);state.clearCount=Math.max(1,Math.min(+clearCountInput.value||8,state.questionCount));state.endlessNeed=Math.max(1,Math.min(+endlessNeedInput.value||state.questionCount,state.questionCount));state.assistMode=assistModeInput.checked;state.volume=+volumeInput.value;clearCountInput.value=state.clearCount;endlessNeedInput.value=state.endlessNeed;}
-function shuffle(a){const c=[...a];for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]]}return c}
-function pickQuestions(mode,count){let pool=mode==="normal"?QUESTION_BANK.normalCommon:QUESTION_BANK[mode];let p=[];while(p.length<count)p.push(...shuffle(pool));return p.slice(0,count)}
-function setPlaying(v){document.body.classList.toggle("playing",v);clearAssist()}
-function clearAssist(){document.querySelectorAll(".guide").forEach(g=>g.classList.remove("assist"))}
-function showAssist(dir){clearAssist();if(state.assistMode)document.querySelector(`.guide[data-dir="${dir}"]`)?.classList.add("assist")}
-function playTone(type){if(state.volume<=0)return;try{const ctx=new (window.AudioContext||window.webkitAudioContext)(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.value=type==="correct"?880:type==="wrong"?180:520;gain.gain.value=state.volume*.12;osc.start();gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.18);osc.stop(ctx.currentTime+.2)}catch(e){}}
-function renderTitle(){normalizeSettings();setPlaying(false);state.phase="title";clearInterval(state.timerId);screen.innerHTML=`<h1 class="title">ごみゼロ分別マスター</h1><p class="subtitle">制限時間内に、ごみを上下左右へ振り分けよう！</p><div class="rule-box"><div>⏱️ 1問${state.timeLimit}秒以内に答えよう</div><div>✅ ${state.clearCount}問正解でクリア</div><div>🔥 10問ノーミス正解するとエンドレスモードに突入</div></div><div class="mode-grid"><button onclick="startPractice()">練習モード</button><button onclick="startGame('veryEasy')">やさしい</button><button onclick="startGame('easy')">かんたん</button><button onclick="startGame('normal')">ふつう</button></div><div class="assist-status">補助モード：${state.assistMode?"ON":"OFF"}</div>`}
-function startPractice(){normalizeSettings();setPlaying(true);state.phase="practice";state.practiceList=shuffle([...QUESTION_BANK.veryEasy,...QUESTION_BANK.easy,...QUESTION_BANK.normalCommon]).slice(0,20);state.practiceIndex=0;renderPractice()}
-function renderPractice(){const q=state.practiceList[state.practiceIndex%state.practiceList.length];showAssist(q.ans);screen.innerHTML=`<div class="hud"><div>練習 ${state.practiceIndex+1}/${state.practiceList.length}</div><div>時間制限なし</div></div><div class="question-card"><div class="garbage-img">${q.emoji}</div><div class="garbage-name">${q.name}</div><div class="practice-note">正解：${DIRECTIONS[q.ans].label}<br>${q.note}</div><div class="footer-buttons"><button onclick="nextPractice()">次へ</button><button onclick="renderTitle()">タイトルへ</button></div></div>`}
-function nextPractice(){state.practiceIndex=(state.practiceIndex+1)%state.practiceList.length;renderPractice()}
-function startGame(mode){normalizeSettings();setPlaying(true);state.mode=mode;state.phase="game";state.questions=pickQuestions(mode,state.questionCount);state.currentIndex=0;state.score=0;state.misses=[];state.endless=false;state.endlessCount=0;state.waitingRelease=false;state.accepting=true;showQuestion()}
-function getCurrentQuestion(){if(state.endless){const pool=QUESTION_BANK.normalEndless;return pool[Math.floor(Math.random()*pool.length)]}return state.questions[state.currentIndex]}
-let currentQ=null;
-function showQuestion(){clearInterval(state.timerId);state.accepting=!state.waitingRelease;state.timeLeft=Math.max(1,state.timeLimit-(state.endless?state.endlessCount*.1:0));currentQ=getCurrentQuestion();showAssist(currentQ.ans);const num=state.endless?state.endlessCount+1:state.currentIndex+1,total=state.endless?"∞":state.questions.length;screen.style.setProperty("--timerAngle","360deg");screen.innerHTML=`<div class="hud"><div>${state.endless?"エンドレス":"問題"} ${num}/${total}</div><div>正解 ${state.score}</div><div class="timer"><span id="timerText">${state.timeLeft.toFixed(1)}</span></div></div><div class="question-card"><div class="garbage-img">${currentQ.image?`<img src="${currentQ.image}" alt="${currentQ.name}" style="max-width:100%;max-height:100%;object-fit:contain">`:currentQ.emoji}</div><div class="garbage-name">${currentQ.name}</div><div class="hint">${state.assistMode?"光っている方向をえらんでみよう！":"上下左右で、正しい分別をえらぼう！"}</div></div><div class="flash" id="flash"></div>`;showAssist(currentQ.ans);startTimer()}
-function startTimer(){const start=performance.now(),limitMs=state.timeLeft*1000;state.timerId=setInterval(()=>{const remain=Math.max(0,(limitMs-(performance.now()-start))/1000);state.timeLeft=remain;const t=document.getElementById("timerText");if(t)t.textContent=remain.toFixed(1);screen.style.setProperty("--timerAngle",`${Math.max(0,remain/(limitMs/1000))*360}deg`);if(remain<=0){clearInterval(state.timerId);timeUp()}},50)}
-function answer(direction){if(state.phase!=="game"||!state.accepting||state.waitingRelease)return;state.accepting=false;state.waitingRelease=true;clearInterval(state.timerId);clearAssist();const q=currentQ,correct=q.ans===direction,flash=document.getElementById("flash");if(correct){state.score++;if(flash){flash.className="flash show correct";flash.textContent="正解！"}playTone("correct");setTimeout(nextQuestion,420)}else{state.misses.push({...q,selected:direction});if(flash){flash.className="flash show wrong";flash.textContent="ざんねん！"}playTone("wrong");setTimeout(()=>state.endless?finishEndless():nextQuestion(),560)}}
-function timeUp(){playTone("wrong");clearAssist();if(state.endless){finishEndless();return}state.misses.push({...currentQ,selected:"timeup"});renderGameOver("タイムアップ！")}
-function nextQuestion(){if(state.endless){state.endlessCount++;if(state.endlessCount>=100){finishEndless(true);return}showQuestion();return}state.currentIndex++;if(state.currentIndex>=state.questions.length){if(state.mode==="normal"&&state.score>=state.endlessNeed)showEndlessConfirm();else renderResult()}else showQuestion()}
-function showEndlessConfirm(){state.phase="endlessReady";clearAssist();celebrate();screen.innerHTML=`<div class="endless-confirm"><h1 class="title">クリア！</h1><p class="subtitle">正解数 ${state.score}問</p><div class="big-score">エンドレスモードに挑戦！</div><p class="tiny">ここからは少し悩む浜松市基準の問題が出るよ。正解数はここまでの${state.score}問にプラスされます。</p><button onclick="beginEndless()">OK</button></div>`}
-function beginEndless(){state.endless=true;state.endlessCount=0;state.phase="game";setPlaying(true);showQuestion()}
-function badge(score,total,clear){const r=score/total;if(r===1)return"ごみ分別マスター";if(r>=.9)return"リサイクル博士";if(clear)return"ごみ分別名人";if(r>=.5)return"分別チャレンジャー";return"もう一回チャレンジ"}
-function renderResult(){state.phase="result";clearAssist();const clear=state.score>=state.clearCount;if(clear)celebrate();const rate=Math.round(state.score/state.questionCount*100);screen.style.setProperty("--rateAngle",`${rate*3.6}deg`);screen.innerHTML=`<h1 class="title">${clear?"クリア！":"もう少し！"}</h1><div class="result-wrap"><div class="rate-circle"><span>${rate}%</span></div><div><p class="subtitle">正解数：${state.score}/${state.questionCount}問</p><div class="badge">${badge(state.score,state.questionCount,clear)}</div><p class="subtitle">クリアライン：${state.clearCount}問</p></div></div>${missListHtml()}<div class="footer-buttons"><button onclick="renderTitle()">タイトルへ</button><button onclick="startGame('${state.mode}')">もう一回</button></div>`}
-function renderGameOver(message){state.phase="result";clearAssist();const clear=state.score>=state.clearCount,rate=Math.round(state.score/state.questionCount*100);if(clear)celebrate();screen.style.setProperty("--rateAngle",`${rate*3.6}deg`);screen.innerHTML=`<h1 class="title">${message}</h1><div class="result-wrap"><div class="rate-circle"><span>${rate}%</span></div><div><p class="subtitle">正解数：${state.score}/${state.questionCount}問</p><div class="badge">${badge(state.score,state.questionCount,clear)}</div><p class="subtitle">${clear?"クリアラインには届いていたよ！":`クリアには${state.clearCount}問正解が必要だよ`}</p></div></div>${missListHtml()}<div class="footer-buttons"><button onclick="renderTitle()">タイトルへ</button><button onclick="startGame('${state.mode}')">もう一回</button></div>`}
-function todayScoreKey(){const d=new Date();const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");return `gomiTodayScores_${y}${m}${day}`}
-function saveTodayScore(score){const key=todayScoreKey();let list=[];try{list=JSON.parse(localStorage.getItem(key)||"[]")}catch(e){list=[]}list.push({score,time:Date.now()});list=list.sort((a,b)=>b.score-a.score||a.time-b.time).slice(0,5);localStorage.setItem(key,JSON.stringify(list));return list}
-function todayRankingHtml(list){if(!list.length)return"";return `<div class="today-ranking"><div class="today-ranking-title">今日のハイスコア TOP5</div><ol>${list.map(x=>`<li>${x.score}問</li>`).join("")}</ol></div>`}
-function finishEndless(perfect=false){clearInterval(state.timerId);clearAssist();const totalScore=state.score,prev=+localStorage.getItem("gomiHighScore")||0;if(totalScore>prev)localStorage.setItem("gomiHighScore",String(totalScore));const todayList=saveTodayScore(totalScore);updateHighScoreLabel();screen.innerHTML=`<h1 class="title">エンドレス終了！</h1><p class="subtitle">最終スコア：${totalScore}問</p><p class="tiny">通常問題 ${state.questionCount}問 + エンドレス ${Math.max(0,totalScore-state.questionCount)}問</p><div class="badge">${totalScore>=60?"伝説の分別王":totalScore>=30?"リサイクル博士":"ごみ分別名人"}</div>${todayRankingHtml(todayList)}<div class="footer-buttons"><button onclick="renderTitle()">タイトルへ</button><button onclick="startGame('normal')">もう一回</button></div>`;state.phase="result"}
-function missListHtml(){if(!state.misses.length)return`<p class="subtitle">まちがいなし！すごい！</p>`;return`<div class="result-list">${state.misses.map(m=>`<div class="miss-item"><div>問題：${m.name}</div><div>正解：${DIRECTIONS[m.ans].label}</div><div>豆知識：${m.note}</div></div>`).join("")}</div>`}
-function celebrate(){const marks=["🎉","✨","♻️","🌟","👏"];for(let i=0;i<70;i++){const s=document.createElement("div");s.className="confetti";s.textContent=marks[Math.floor(Math.random()*marks.length)];s.style.left=Math.random()*100+"vw";s.style.animationDelay=Math.random()*.45+"s";s.style.fontSize=(18+Math.random()*22)+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),2400)}playTone("correct");setTimeout(()=>playTone("correct"),180)}
-function toggleAssistMode(){state.assistMode=!state.assistMode;assistModeInput.checked=state.assistMode;if(state.phase==="title")renderTitle();else if(state.phase==="game"){const q=getCurrentQuestion();showAssist(q.ans)}else if(state.phase==="practice"){const q=state.practiceList[state.practiceIndex%state.practiceList.length];showAssist(q.ans)}}
-// 分別ガイド部分をタッチ・クリックしても回答できるようにする
-document.querySelectorAll(".guide[data-dir]").forEach(g=>{
-  g.addEventListener("pointerup",e=>{
-    if(state.phase!=="game")return;
-    e.preventDefault();
-    answer(g.dataset.dir);
-    releaseCheck();
-  });
+function clone(v){return JSON.parse(JSON.stringify(v));}
+function esc(v){return String(v??"").replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s]||s));}
+function loadConfig(){try{return Object.assign({timeLimit:8,clearCount:8,volume:.75,assistMode:false,padCalib:null},JSON.parse(localStorage.getItem(CONFIG_KEY)||"{}"));}catch(e){return {timeLimit:8,clearCount:8,volume:.75,assistMode:false,padCalib:null}}}
+function saveConfig(){localStorage.setItem(CONFIG_KEY,JSON.stringify(config));}
+function loadProblems(){
+  let base=clone(DEFAULT_PROBLEMS);
+  try{
+    const saved=JSON.parse(localStorage.getItem(PROBLEM_KEY)||"null");
+    if(Array.isArray(saved)){
+      const byId=new Map(saved.map(p=>[p.id,p]));
+      base=base.map(def=>{
+        const savedItem=byId.get(def.id)||{};
+        const merged=Object.assign({},def,savedItem);
+        // 旧版では幼児問題の「通常名」もひらがなだったため、未編集なら新しい通常名へ戻す。
+        if(def.group==="kids"){
+          if(savedItem.name&&savedItem.kana&&savedItem.name===savedItem.kana)merged.name=def.name;
+          if(savedItem.note&&savedItem.kidNote&&savedItem.note===savedItem.kidNote)merged.note=def.note;
+          if(!merged.kana)merged.kana=def.kana;
+          if(!merged.kidNote)merged.kidNote=def.kidNote;
+        }
+        return merged;
+      });
+    }
+  }catch(e){}
+  return base;
+}
+function saveProblems(){localStorage.setItem(PROBLEM_KEY,JSON.stringify(problems));}
+function enabledProblems(){return problems.filter(p=>p.enabled!==false);}
+function pool(fn){return enabledProblems().filter(fn);}
+function kidsPool(){return pool(p=>p.group==="kids"&&(p.ans==="left"||p.ans==="right"));}
+function schoolPool(){return pool(p=>p.group==="kids"||p.group==="school");}
+function adultNormalPool(){return pool(p=>p.group!=="hard");}
+function hardPool(){return pool(p=>p.group==="hard");}
+function practicePool(){return pool(p=>p.group!=="hard");}
+function shuffle(a){const c=[...a];for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]]}return c;}
+function draw(poolArr,count){let out=[];let src=shuffle(poolArr);while(out.length<count){if(!src.length)src=shuffle(poolArr);out.push(src.shift());if(!poolArr.length)break;}return out.slice(0,count);}
+function bodyMode(...names){document.body.classList.remove("playing","kids","result","demo");names.forEach(n=>n&&document.body.classList.add(n));}
+function clearTimers(){if(state.timerId)clearInterval(state.timerId);state.timerId=null;if(state.demoTimer)clearTimeout(state.demoTimer);state.demoTimer=null;}
+function clearAssist(){document.querySelectorAll(".guide").forEach(g=>g.classList.remove("assist"));}
+function flashGuide(dir){clearAssist();if(!dir)return;document.querySelector(`.guide[data-dir="${dir}"]`)?.classList.add("assist");}
+function setGuideLabels(mode=false){
+  const isKids=mode===true||mode==="kids",isSchool=mode==="school"||mode==="practice";
+  const labels=isKids?{left:["←\nもえるごみ",""],right:["→\nもえないごみ",""]}:isSchool?{up:["↑ しげん","ペットボトル・かん・びん・かみ"],down:["↓ れんらくごみ","大きいごみ"],left:["←\nもえるごみ","たべもの・かみくずなど"],right:["→\nもえないごみ","ガラス・きんぞくなど"]}:{up:["↑ 資源","ペットボトル・缶・びん・紙など"],down:["↓ 連絡ごみ","家具・自転車など"],left:["←\nもえるごみ","生ごみ・紙くず・木や布など"],right:["→\nもえないごみ","ガラス・せともの・金属など"]};
+  ["up","down","left","right"].forEach(dir=>{const g=document.querySelector(`.guide[data-dir="${dir}"]`);if(!g)return;const big=g.querySelector(".big"),small=g.querySelector(".small");if(isKids&&(dir==="up"||dir==="down")){big.textContent="";small.textContent="";return;}const l=labels[dir];big.innerHTML=esc(l[0]).replace(/\n/g,"<br>");small.textContent=l[1];});
+}
+function displayName(q){
+  if(state.mode==="kids")return q.kana||q.kidName||q.name||"";
+  if(state.mode==="school"||state.mode==="practice")return q.schoolName||q.name||q.kana||"";
+  return q.name||q.schoolName||q.kana||"";
+}
+function displayNote(q){
+  if(state.mode==="kids")return q.kidNote||q.schoolNote||q.note||"";
+  if(state.mode==="school"||state.mode==="practice")return q.schoolNote||q.note||"";
+  return q.note||q.schoolNote||q.kidNote||"";
+}
+function directionText(dir){
+  if(state.mode==="school"||state.mode==="practice")return {up:"しげん",down:"れんらくごみ",left:"もえる",right:"もえない"}[dir]||DIRECTION[dir]?.label||"?";
+  return DIRECTION[dir]?.label||"?";
+}
+function chip(dir){return `<span class="answer-chip ${dir}">${directionText(dir)}</span>`;}
+function dots(n){return `<div class="dots">${Array.from({length:QUESTION_COUNT},(_,i)=>`<span class="dot ${i<n?"done":i===n?"now":""}"></span>`).join("")}</div>`;}
+function modeTitle(mode){return {kids:"キッズ",school:"小学生",adult:"チャレンジ",practice:"練習"}[mode]||mode;}
+function titleStatus(){return config.assistMode?"補助あり":"補助なし";}
+function renderTitle(){
+  clearTimers();clearAssist();state.phase="title";state.mode=null;state.accepting=false;bodyMode();setGuideLabels(false);screen.className="screen title-screen";
+  screen.innerHTML=`<p class="kicker">浜松市版</p><h1 class="title">ごみゼロ分別チャレンジ</h1><p class="subtitle">ごみを見て、分別方向を選んでね。</p><div class="rule-flow"><div class="step"><div class="icon">🗑️</div><div class="text">ごみを見る</div></div><div class="step"><div class="icon">🎮</div><div class="text">分別を選ぶ</div></div><div class="step"><div class="icon">✅</div><div class="text">10問で結果</div></div></div><div class="mode-grid"><button class="btn-green" data-menu onclick="startPractice()">練習<span class="sub">まちがえても続く</span></button><button class="btn-yellow" data-menu onclick="startGame('kids')">キッズ<span class="sub">もえる・もえない</span></button><button class="btn-blue" data-menu data-default onclick="startGame('school')">小学生<span class="sub">4つに分ける</span></button><button class="btn-red" data-menu onclick="startGame('adult')">チャレンジ<span class="sub">ノーミスでエンドレス</span></button></div><p class="assist-status">${titleStatus()}</p>`;setMenu();
+}
+function setMenu(defaultIndex=0){state.menu=[...screen.querySelectorAll("[data-menu]")];const def=state.menu.findIndex(b=>b.hasAttribute("data-default"));state.menuIndex=def>=0?def:Math.min(defaultIndex,state.menu.length-1);updateMenu();}
+function updateMenu(){state.menu.forEach((b,i)=>b.classList.toggle("menu-selected",i===state.menuIndex));}
+function menuColumns(){const b=state.menu[state.menuIndex];if(!b)return 1;const p=b.parentElement;if(p?.classList.contains("mode-grid"))return 2;if(p?.classList.contains("result-actions")||p?.classList.contains("footer-buttons"))return state.menu.length;return 1;}
+function moveMenu(dir){if(!state.menu.length)return;let cols=menuColumns(),i=state.menuIndex;if(dir==="left")i--;if(dir==="right")i++;if(dir==="up")i-=cols;if(dir==="down")i+=cols;if(i<0)i=state.menu.length-1;if(i>=state.menu.length)i=0;state.menuIndex=i;updateMenu();}
+function activateMenu(){const b=state.menu[state.menuIndex];if(b)b.click();}
+function startGame(mode){
+  clearTimers();clearAssist();state.mode=mode;state.phase="game";state.index=0;state.score=0;state.misses=[];state.endless=false;state.endlessCount=0;state.endlessQueue=[];state.accepting=true;state.lastDir=null;
+  const p=mode==="kids"?kidsPool():mode==="school"?schoolPool():adultNormalPool();
+  state.questions=draw(p,QUESTION_COUNT);
+  bodyMode("playing",mode==="kids"?"kids":"");setGuideLabels(mode);showQuestion();
+}
+function showQuestion(){
+  clearTimers();state.phase="game";state.accepting=true;clearAssist();
+  const q=state.endless?nextEndlessQuestion():state.questions[state.index];state.current=q;
+  const num=state.endless?state.endlessCount+1:state.index+1,total=state.endless?"∞":QUESTION_COUNT;
+  const t=state.endless?Math.max(3.2,config.timeLimit-state.endlessCount*.12):config.timeLimit;
+  screen.style.setProperty("--timerAngle","360deg");
+  const hint=state.mode==="kids"?"ひだりか みぎを えらぼう":"上下左右でえらぼう";
+  screen.innerHTML=`<div class="hud"><div class="hud-left">${state.endless?"エンドレス":modeTitle(state.mode)} ${num}/${total}</div><div><div class="timer"><span id="timerText">${Math.ceil(t)}</span></div>${state.endless?"":dots(state.index)} </div><div class="hud-right">正解 ${state.score}</div></div><div class="question-card"><div class="garbage-img">${q.emoji||"❔"}</div><div class="garbage-name">${esc(displayName(q))}</div><div class="hint">${config.assistMode?"光ったところがヒント":hint}</div></div><div class="feedback" id="feedback"></div>`;
+  if(config.assistMode)flashGuide(q.ans);startTimer(t);
+}
+function startTimer(limit){const start=performance.now(),ms=limit*1000;state.timerId=setInterval(()=>{const remain=Math.max(0,(ms-(performance.now()-start))/1000);const el=document.getElementById("timerText");if(el)el.textContent=Math.ceil(remain);screen.style.setProperty("--timerAngle",`${Math.max(0,remain/limit)*360}deg`);if(remain<=0){clearInterval(state.timerId);state.timerId=null;timeUp();}},70);}
+function answer(dir){
+  if(state.phase==="practice"){practiceAnswer(dir);return;}
+  if(state.phase!=="game"||!state.accepting)return;
+  if(state.mode==="kids"&&!(dir==="left"||dir==="right"))return;
+  state.accepting=false;clearTimers();clearAssist();
+  const q=state.current,ok=q.ans===dir;state.lastDir=dir;
+  if(ok){state.score++;showFeedback(true,q);playSound("correct");setTimeout(nextQuestion,430);}
+  else{state.misses.push({...q,selected:dir,answerDir:q.ans,gameNote:displayNote(q),displayName:displayName(q)});showFeedback(false,q);playSound("wrong");setTimeout(()=>state.endless?finishEndless(q,dir):nextQuestion(),620);}
+}
+function timeUp(){if(state.phase!=="game")return;state.accepting=false;clearAssist();const q=state.current;state.misses.push({...q,selected:"time",answerDir:q.ans,gameNote:displayNote(q),displayName:displayName(q)});showFeedback(false,q,"じかんぎれ");playSound("wrong");setTimeout(()=>state.endless?finishEndless(q,"time"):nextQuestion(),720);}
+function showFeedback(ok,q,label){const fb=document.getElementById("feedback");if(!fb)return;fb.className=`feedback show ${ok?"correct":"wrong"}`;fb.innerHTML=`<div><div class="main">${ok?"正解！":(label||"ざんねん")}</div><div class="note">${chip(q.ans)}　${esc(displayNote(q))}</div></div>`;}
+function nextQuestion(){
+  if(state.endless){state.endlessCount++;showQuestion();return;}
+  state.index++;
+  if(state.index>=QUESTION_COUNT){if(state.mode==="adult"&&state.misses.length===0)showEndlessReady();else renderResult();}
+  else showQuestion();
+}
+function showEndlessReady(){
+  clearTimers();clearAssist();state.phase="endlessReady";bodyMode("result");celebrate();
+  screen.innerHTML=`<div class="endless-card"><h1 class="title">ノーミス！</h1><p class="subtitle">ここから、むずかしい問題も出ます。</p><div class="badge">エンドレスに挑戦</div><div class="result-actions"><button data-menu data-default onclick="beginEndless()">つづける</button><button data-menu onclick="renderResult()">結果を見る</button></div></div>`;setMenu();
+}
+function beginEndless(){state.endless=true;state.phase="game";state.endlessCount=0;state.endlessQueue=[];bodyMode("playing");setGuideLabels(false);showQuestion();}
+function nextEndlessQuestion(){if(!state.endlessQueue.length){const hard=hardPool(),norm=shuffle(adultNormalPool()).slice(0,28);state.endlessQueue=shuffle([...hard,...norm]);}return state.endlessQueue.shift()||shuffle(enabledProblems())[0];}
+function badge(score,total,clear){const r=score/total;if(r===1)return"ごみ分別マスター";if(r>=.9)return"リサイクル博士";if(clear)return"分別名人";if(r>=.5)return"分別チャレンジャー";return"ナイスチャレンジ";}
+function animateRateCircle(rate){
+  const circle=document.querySelector(".rate-circle"),label=circle?.querySelector("span");
+  if(!circle||!label)return;
+  const start=performance.now(),duration=760,target=Math.max(0,Math.min(100,rate));
+  function frame(now){
+    const t=Math.min(1,(now-start)/duration),e=1-Math.pow(1-t,3),v=Math.round(target*e);
+    circle.style.setProperty("--rateAngle",`${target*3.6*e}deg`);
+    label.textContent=`${v}%`;
+    if(t<1)requestAnimationFrame(frame);else{circle.style.setProperty("--rateAngle",`${target*3.6}deg`);label.textContent=`${target}%`;}
+  }
+  requestAnimationFrame(frame);
+}
+function renderResult(){
+  clearTimers();clearAssist();state.phase="result";bodyMode("result");setGuideLabels(false);const total=QUESTION_COUNT,score=state.score,rate=Math.round(score/total*100),clear=score>=config.clearCount;if(clear)celebrate();screen.style.setProperty("--rateAngle","0deg");
+  screen.innerHTML=`<div class="result-top"><div class="rate-circle"><span>0%</span></div><div class="result-summary"><h1 class="result-title">${clear?"クリア！":"あと少し！"}</h1><div class="result-score">正解 ${score}/${total}問</div><div class="badge">${badge(score,total,clear)}</div></div></div>${reviewHtml()}<div class="result-actions"><button data-menu data-default onclick="renderTitle()">モードを選ぶ</button><button data-menu onclick="startGame('${state.mode||"school"}')">つぎの人スタート</button></div>`;setMenu();animateRateCircle(rate);
+}
+function selectedText(sel){return sel==="time"?"時間切れ":(DIRECTION[sel]?.long||"-");}
+function reviewHtml(){
+  if(!state.misses.length)return `<div class="review-empty">まちがいなし！すごい！</div>`;
+  const title=state.mode==="kids"?"まちがえたところ":"まちがえたところ";
+  const items=state.misses.slice(0,10).map(m=>`<div class="review-card"><div class="review-icon">${m.emoji||"❔"}</div><div><div class="review-name">${esc(m.displayName||m.name)}</div><div>${chip(m.answerDir||m.ans)} <span class="review-note">${esc(m.gameNote||m.note)}</span></div></div></div>`).join("");
+  return `<section class="review-box"><h2>${title}</h2><div class="review-list">${items}</div></section>`;
+}
+function todayKey(){const d=new Date();return `gomizeroToday_v8_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;}
+function saveTodayScore(score){let list=[];try{list=JSON.parse(localStorage.getItem(todayKey())||"[]");}catch(e){}list.push({score,time:Date.now()});list=list.sort((a,b)=>b.score-a.score||a.time-b.time).slice(0,5);localStorage.setItem(todayKey(),JSON.stringify(list));return list;}
+function rankingHtml(list){return `<div class="today-ranking"><div class="today-ranking-title">今日のハイスコア TOP5</div><ol>${list.map(x=>`<li>${x.score}問</li>`).join("")}</ol></div>`;}
+function finishEndless(q,sel){
+  clearTimers();clearAssist();state.phase="result";bodyMode("result");const total=state.score,prev=+localStorage.getItem(BEST_KEY)||0;if(total>prev)localStorage.setItem(BEST_KEY,String(total));const list=saveTodayScore(total);const last=q?`<div class="review-box endless-last"><h2>最後にまちがえた問題</h2><div class="review-list"><div class="review-card"><div class="review-icon">${q.emoji||"❔"}</div><div><div class="review-name">${esc(displayName(q))}</div><div class="review-note">選んだ：${esc(selectedText(sel))}</div><div>${chip(q.ans)} <span class="review-note">${esc(displayNote(q))}</span></div></div></div></div></div>`:"";
+  screen.innerHTML=`<div class="endless-card"><h1 class="result-title">エンドレス終了</h1><div class="endless-score">${total}問</div><div class="badge">${total>=60?"伝説の分別王":total>=30?"リサイクル博士":"分別名人"}</div><p class="subtitle">通常10問 + エンドレス${Math.max(0,total-QUESTION_COUNT)}問</p>${last}${rankingHtml(list)}<div class="result-actions"><button data-menu data-default onclick="renderTitle()">モードを選ぶ</button><button data-menu onclick="startGame('adult')">つぎの人スタート</button></div></div>`;setMenu();
+}
+function startPractice(){
+  clearTimers();clearAssist();state.phase="practice";state.mode="practice";state.score=0;state.misses=[];state.practiceQueue=shuffle(practicePool());state.practiceIndex=0;bodyMode("playing");setGuideLabels("practice");renderPracticeQuestion();
+}
+function nextPracticeProblem(){if(!state.practiceQueue.length)state.practiceQueue=shuffle(practicePool());state.current=state.practiceQueue.shift();state.practiceIndex++;}
+function renderPracticeQuestion(message=""){nextPracticeProblem();const q=state.current;state.accepting=true;clearAssist();if(config.assistMode)flashGuide(q.ans);screen.innerHTML=`<div class="hud"><div class="hud-left">練習 ${state.practiceIndex}</div><div></div><div class="hud-right">1ボタンでやめる</div></div><div class="question-card"><div class="garbage-img">${q.emoji||"❔"}</div><div class="garbage-name">${esc(displayName(q))}</div><div class="hint">時間なし。まちがえても続く。</div>${message}</div><div class="feedback" id="feedback"></div>`;}
+function practiceAnswer(dir){if(state.phase!=="practice"||!state.accepting)return;state.accepting=false;clearAssist();const q=state.current,ok=q.ans===dir;if(ok){state.score++;playSound("correct");showFeedback(true,q);}else{state.misses.push({...q,selected:dir,answerDir:q.ans,gameNote:displayNote(q),displayName:displayName(q)});playSound("wrong");showFeedback(false,q);}setTimeout(()=>renderPracticeQuestion(),750);}
+function stopPractice(){clearTimers();clearAssist();renderTitle();}
+function startDemo(){
+  if(state.phase==="game"||state.phase==="practice")return;clearTimers();clearAssist();state.phase="demo";state.mode="demo";state.demoQueue=draw(adultNormalPool(),12);state.demoIndex=0;bodyMode("playing","demo");setGuideLabels(false);renderDemoStep();
+}
+function renderDemoStep(){clearTimers();clearAssist();const q=state.demoQueue[state.demoIndex%state.demoQueue.length];state.current=q;screen.innerHTML=`<div class="demo-tag">デモ</div><div class="hud"><div class="hud-left">見るだけ</div><div></div><div class="hud-right">1ボタンで戻る</div></div><div class="question-card"><div class="garbage-img">${q.emoji||"❔"}</div><div class="garbage-name">${esc(displayName(q))}</div><div class="hint">正しい方向が光ります</div><div id="demoAnswer" class="practice-answer" style="opacity:0">${chip(q.ans)}　${esc(displayNote(q))}</div></div>`;state.demoTimer=setTimeout(()=>{flashGuide(q.ans);const a=document.getElementById("demoAnswer");if(a)a.style.opacity=1;playSound("correct");state.demoTimer=setTimeout(()=>{state.demoIndex++;renderDemoStep();},1900);},900);}
+function stopDemo(){clearTimers();clearAssist();renderTitle();}
+function celebrate(){const marks=["🎉","✨","♻️","🌟","👏"];for(let i=0;i<54;i++){const s=document.createElement("div");s.className="confetti";s.textContent=marks[Math.floor(Math.random()*marks.length)];s.style.left=Math.random()*100+"vw";s.style.animationDelay=Math.random()*.35+"s";s.style.fontSize=(17+Math.random()*20)+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),2300);}}
+function playTone(kind){if(config.volume<=0)return;try{const ctx=new (window.AudioContext||window.webkitAudioContext)(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.value=kind==="correct"?880:180;gain.gain.value=config.volume*.10;osc.start();gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.18);osc.stop(ctx.currentTime+.2);}catch(e){}}
+function playSound(kind){
+  if(config.volume<=0)return;
+  const srcs=kind==="correct"?["quiz01.mp3","https://xxxo9xxx.github.io/o9/gomizero/quiz01.mp3"]:["quiz02.mp3","https://xxxo9xxx.github.io/o9/gomizero/quiz02.mp3"];
+  let idx=0;const a=new Audio(srcs[0]);a.volume=config.volume;
+  a.onerror=()=>{if(idx===0){idx=1;a.src=srcs[1];a.load();a.play().catch(()=>playTone(kind));}else playTone(kind);};
+  a.play().catch(()=>{idx=1;a.src=srcs[1];a.load();a.play().catch(()=>playTone(kind));});
+}
+function toggleAssist(){config.assistMode=!config.assistMode;saveConfig();if(state.phase==="title")renderTitle();else if((state.phase==="game"||state.phase==="practice")&&state.current){config.assistMode?flashGuide(state.current.ans):clearAssist();}}
+function openSettings(){if(state.phase==="game"||state.phase==="practice")return;document.getElementById("cfgTime").value=config.timeLimit;document.getElementById("cfgClear").value=config.clearCount;document.getElementById("cfgVolume").value=config.volume;document.getElementById("cfgAssist").checked=config.assistMode;document.getElementById("bestScoreLabel").textContent=localStorage.getItem(BEST_KEY)||"0";settingsModal.classList.add("show");}
+function closeSettings(){config.timeLimit=Math.max(3,Math.min(20,+document.getElementById("cfgTime").value||8));config.clearCount=Math.max(1,Math.min(10,+document.getElementById("cfgClear").value||8));config.volume=+document.getElementById("cfgVolume").value;config.assistMode=document.getElementById("cfgAssist").checked;saveConfig();settingsModal.classList.remove("show");if(state.phase==="title")renderTitle();}
+function resetScores(){localStorage.removeItem(BEST_KEY);localStorage.removeItem(todayKey());document.getElementById("bestScoreLabel").textContent="0";}
+function openEditor(){if(state.phase==="game"||state.phase==="practice")return;editorModal.classList.add("show");renderEditor();}
+function closeEditor(){editorModal.classList.remove("show");if(state.phase==="title")renderTitle();}
+function renderEditor(){const term=document.getElementById("editorSearch").value.trim(),filter=document.getElementById("editorGroup").value;let list=problems.filter(p=>{if(filter!=="all"){if(filter==="enabled"&&p.enabled===false)return false;else if(filter==="disabled"&&p.enabled!==false)return false;else if(!["enabled","disabled"].includes(filter)&&p.group!==filter)return false;}if(term&&!(`${p.name} ${p.schoolName||""} ${p.kana||""} ${p.note} ${p.schoolNote||""} ${p.kidNote||""} ${p.id}`.includes(term)))return false;return true;});document.getElementById("editorCount").textContent=`表示 ${list.length}件 / 標準200問`;
+  const rows=list.map(p=>`<div class="problem-row" data-id="${p.id}"><div class="pid">${p.id.replace("q","")}</div><input data-field="emoji" value="${esc(p.emoji)}"><input data-field="name" value="${esc(p.name)}" placeholder="通常"><input data-field="schoolName" value="${esc(p.schoolName||"")}" placeholder="小学生"><input data-field="kana" value="${esc(p.kana||p.kidName||"")}" placeholder="キッズ"><select data-field="ans">${Object.entries(DIRECTION).map(([k,v])=>`<option value="${k}" ${p.ans===k?"selected":""}>${v.long}</option>`).join("")}</select><select data-field="group">${Object.entries(GROUP_LABEL).map(([k,v])=>`<option value="${k}" ${p.group===k?"selected":""}>${v}</option>`).join("")}</select><input class="note-cell" data-field="note" value="${esc(p.note)}" placeholder="通常一言"><input class="school-note-cell" data-field="schoolNote" value="${esc(p.schoolNote||"")}" placeholder="小学生一言"><input class="kid-note-cell" data-field="kidNote" value="${esc(p.kidNote||"")}" placeholder="キッズ一言"><input type="checkbox" data-field="enabled" ${p.enabled!==false?"checked":""}></div>`).join("");
+  document.getElementById("problemTable").innerHTML=`<div class="problem-row header"><div>ID</div><div>絵</div><div>通常名</div><div>小学生名</div><div>キッズ名</div><div>答え</div><div>分類</div><div>通常一言</div><div>小学生一言</div><div>キッズ一言</div><div>ON</div></div>${rows}`;
+}
+function updateProblem(id,field,value){const p=problems.find(x=>x.id===id);if(!p)return;if(field==="enabled")p.enabled=value;else p[field]=value;saveProblems();}
+function resetProblemsToDefault(){if(!confirm("問題を標準の200問に戻しますか？"))return;problems=clone(DEFAULT_PROBLEMS);saveProblems();renderEditor();}
+document.getElementById("problemTable").addEventListener("input",e=>{const row=e.target.closest(".problem-row[data-id]");if(!row)return;const field=e.target.dataset.field;if(!field)return;updateProblem(row.dataset.id,field,e.target.type==="checkbox"?e.target.checked:e.target.value);});
+document.getElementById("problemTable").addEventListener("change",e=>{const row=e.target.closest(".problem-row[data-id]");if(!row)return;const field=e.target.dataset.field;if(!field)return;updateProblem(row.dataset.id,field,e.target.type==="checkbox"?e.target.checked:e.target.value);});
+document.getElementById("editorSearch").addEventListener("input",renderEditor);document.getElementById("editorGroup").addEventListener("change",renderEditor);
+settingsModal.addEventListener("click",e=>{if(e.target===settingsModal)closeSettings();});editorModal.addEventListener("click",e=>{if(e.target===editorModal)closeEditor();});
+
+
+
+// v15: スマホのスワイプ操作。中央の問題カード上でも上下左右スワイプで分別できます。
+(function setupMobileSwipe(){
+  const root=document.getElementById("app");
+  if(!root)return;
+  let startX=0,startY=0,startT=0,tracking=false;
+  root.addEventListener("pointerdown",e=>{
+    if(e.pointerType!=="touch"&&e.pointerType!=="pen")return;
+    if(e.target.closest(".guide,button,input,select,textarea,.modal"))return;
+    if(state.phase!=="game"&&state.phase!=="practice")return;
+    tracking=true;startX=e.clientX;startY=e.clientY;startT=performance.now();
+  },{passive:true});
+  root.addEventListener("pointerup",e=>{
+    if(!tracking)return;tracking=false;
+    if(state.phase!=="game"&&state.phase!=="practice")return;
+    const dx=e.clientX-startX,dy=e.clientY-startY;
+    const dist=Math.hypot(dx,dy);
+    const elapsed=performance.now()-startT;
+    const minDist=Math.min(70,Math.max(42,window.innerWidth*.12));
+    if(dist<minDist||elapsed>900)return;
+    const dir=Math.abs(dx)>Math.abs(dy)?(dx>0?"right":"left"):(dy>0?"down":"up");
+    answer(dir);
+  },{passive:true});
+  root.addEventListener("pointercancel",()=>{tracking=false;},{passive:true});
+})();
+
+document.querySelectorAll(".guide[data-dir]").forEach(g=>g.addEventListener("pointerup",e=>{if(state.phase!=="game"&&state.phase!=="practice")return;e.preventDefault();answer(g.dataset.dir);}));
+const keyDir={ArrowUp:"up",ArrowDown:"down",ArrowLeft:"left",ArrowRight:"right"};
+function startHold(code,fn){if(state.holdTimers[code])return;state.holdTimers[code]=setTimeout(()=>{state.holdTimers[code]=null;fn();},760);}
+function cancelHold(code){if(state.holdTimers[code]){clearTimeout(state.holdTimers[code]);state.holdTimers[code]=null;}}
+window.addEventListener("keydown",e=>{
+  if(["KeyH","KeyS","KeyM","KeyD","KeyC"].includes(e.code)){e.preventDefault();if(e.code==="KeyH")startHold(e.code,()=>{toggleAssist();playSound("correct");});if(e.code==="KeyS")startHold(e.code,openSettings);if(e.code==="KeyM")startHold(e.code,openEditor);if(e.code==="KeyD")startHold(e.code,startDemo);if(e.code==="KeyC")startHold(e.code,openPadCheck);return;}
+  if(state.phase==="padCheck"&&e.code==="KeyR"){e.preventDefault();resetPadCalibration();return;}
+  const dir=keyDir[e.code];
+  if(dir){e.preventDefault();if(state.phase==="game"||state.phase==="practice")answer(dir);else moveMenu(dir);return;}
+  if(e.code==="Enter"||e.code==="Space"){e.preventDefault();if(state.phase==="padCheck")return; if(state.phase==="practice")stopPractice();else if(state.phase==="demo")stopDemo();else activateMenu();}
+  if(e.code==="Escape"){e.preventDefault();cancelAction();}
 });
+window.addEventListener("keyup",e=>{cancelHold(e.code);});
+function cancelAction(){
+  if(settingsModal.classList.contains("show")){closeSettings();return;}
+  if(editorModal.classList.contains("show")){closeEditor();return;}
+  if(state.phase==="practice"){stopPractice();return;}
+  if(state.phase==="demo"){stopDemo();return;}
+  if(state.phase==="padCheck"){closePadCheck();return;}
+  if(state.phase==="endlessReady"){renderResult();return;}
+  if(state.phase==="result"){renderTitle();return;}
+}
+function blankPadState(){return {up:false,down:false,left:false,right:false,confirm:false,cancel:false};}
+function mergePadDirs(base,dirs){for(const d of ["up","down","left","right"]){if(dirs[d])base[d]=true;}return base;}
 
-const keyMap={ArrowUp:"up",KeyW:"up",ArrowDown:"down",KeyS:"down",ArrowLeft:"left",KeyA:"left",ArrowRight:"right",KeyD:"right"};
-window.addEventListener("keydown",e=>{if(e.code==="KeyH"&&!state.hHoldTimer){state.hHoldTriggered=false;state.hHoldTimer=setTimeout(()=>{state.hHoldTriggered=true;toggleAssistMode();playTone("correct")},650);return}if(e.code==="KeyS"&&e.shiftKey){openSettings();return}if(e.key==="s"&&state.phase!=="game"){openSettings();return}if(state.phase==="endlessReady"&&(e.code==="Space"||e.code==="Enter")){beginEndless();return}if(state.phase==="practice"&&(e.code==="Space"||e.code==="Enter")){nextPractice();return}const dir=keyMap[e.code];if(dir)answer(dir)});
-window.addEventListener("keyup",e=>{if(e.code==="KeyH"){clearTimeout(state.hHoldTimer);state.hHoldTimer=null;state.hHoldTriggered=false;return}releaseCheck()});
-function releaseCheck(){state.waitingRelease=false;if(state.phase==="game")state.accepting=true}
-document.addEventListener("touchstart",e=>{const t=e.touches[0];state.touchStart={x:t.clientX,y:t.clientY,time:Date.now()};state.longPressTimer=setTimeout(openSettings,900)},{passive:false});
-document.addEventListener("touchmove",()=>clearTimeout(state.longPressTimer),{passive:false});
-document.addEventListener("touchend",e=>{clearTimeout(state.longPressTimer);if(!state.touchStart||!e.changedTouches.length)return;const t=e.changedTouches[0],dx=t.clientX-state.touchStart.x,dy=t.clientY-state.touchStart.y,absX=Math.abs(dx),absY=Math.abs(dy);if(Math.max(absX,absY)<45)return;if(state.phase==="endlessReady"){beginEndless();return}if(state.phase==="practice"){nextPractice();return}answer(absX>absY?(dx>0?"right":"left"):(dy>0?"down":"up"));releaseCheck()},{passive:false});
-function pollGamepad(){const pads=navigator.getGamepads?navigator.getGamepads():[],pad=[...pads].find(Boolean);let dir=null,pressed=false;if(pad){const b=pad.buttons,axes=pad.axes||[],dead=.55;if(b[12]?.pressed||axes[1]<-dead||b[3]?.pressed)dir="up";if(b[13]?.pressed||axes[1]>dead||b[1]?.pressed)dir="down";if(b[14]?.pressed||axes[0]<-dead||b[2]?.pressed)dir="left";if(b[15]?.pressed||axes[0]>dead||b[0]?.pressed)dir="right";pressed=!!dir;if(pressed&&!state.gamepadPrevPressed){if(state.phase==="endlessReady")beginEndless();else if(state.phase==="practice")nextPractice();else answer(dir)}if(!pressed&&state.gamepadPrevPressed)releaseCheck();state.gamepadPrevPressed=pressed}requestAnimationFrame(pollGamepad)}
-function openSettings(){settings.classList.add("show");updateHighScoreLabel()}
-function closeSettings(){normalizeSettings();settings.classList.remove("show");if(state.phase==="title")renderTitle()}
-function resetHighScore(){localStorage.removeItem("gomiHighScore");localStorage.removeItem(todayScoreKey());updateHighScoreLabel()}
-function updateHighScoreLabel(){highScoreLabel.textContent=localStorage.getItem("gomiHighScore")||"0"}
-volumeInput.addEventListener("input",()=>state.volume=+volumeInput.value);
-[timeLimitInput,questionCountInput,clearCountInput,endlessNeedInput,assistModeInput].forEach(i=>i.addEventListener("change",normalizeSettings));
-settings.addEventListener("click",e=>{if(e.target===settings)closeSettings()});
+const PAD_DIR_LABEL={up:"↑ 上",right:"→ 右",down:"↓ 下",left:"← 左"};
+const PAD_CALIB_ORDER=["up","right","down","left"];
+function dirListText(now){
+  const dirs=["up","right","down","left"].filter(d=>now&&now[d]);
+  return dirs.length?dirs.map(d=>PAD_DIR_LABEL[d]).join(" ＋ "):"なし";
+}
+function activeButtonList(pad){return [...(pad?.buttons||[])].map((b,i)=>b?.pressed?i:null).filter(i=>i!==null);}
+function axisLine(pad){
+  const axes=[...(pad?.axes||[])],neutral=state.gamepadNeutralAxes||[];
+  if(!axes.length)return "axes: なし";
+  return axes.map((v,i)=>{
+    const n=typeof neutral[i]==="number"?neutral[i]:0,d=v-n,mark=Math.abs(d)>.08?"*":"";
+    return `${i}:${Number(v).toFixed(3)}${mark}`;
+  }).join(" / ");
+}
+function calibrationSummary(){
+  const items=config.padCalib?.items;
+  if(!items?.length)return "登録なし";
+  return items.map(x=>`${PAD_DIR_LABEL[x.dir]}=${x.type==="axis"?`axis${x.axis}:${Number(x.value).toFixed(3)}`:`button${x.index}`}`).join("　");
+}
+function applyPadCalibration(now,pad){
+  const cal=config.padCalib,items=cal?.items,axes=pad.axes||[],buttons=pad.buttons||[];
+  if(!Array.isArray(items)||!items.length)return false;
+  let matched=false;
+  items.forEach(item=>{
+    if(item.type==="axis"&&typeof axes[item.axis]==="number"){
+      const v=axes[item.axis],tol=Math.max(.085,Math.min(.18,Math.abs(item.value)*.04+.085));
+      if(Math.abs(v-item.value)<=tol){now[item.dir]=true;matched=true;}
+    }else if(item.type==="button"&&buttons[item.index]?.pressed){now[item.dir]=true;matched=true;}
+  });
+  return matched;
+}
+function findPadSample(pad){
+  if(!pad)return null;
+  const buttons=pad.buttons||[],axes=pad.axes||[],neutral=state.gamepadNeutralAxes||[];
+  for(let i=0;i<buttons.length;i++){
+    if(i===0||i===1)continue;
+    if(buttons[i]?.pressed)return {type:"button",index:i};
+  }
+  let best=null;
+  for(let i=0;i<axes.length;i++){
+    const n=typeof neutral[i]==="number"?neutral[i]:0,d=Math.abs(axes[i]-n);
+    if(d>.075&&(!best||d>best.delta))best={type:"axis",axis:i,value:+Number(axes[i]).toFixed(6),delta:d};
+  }
+  return best;
+}
+function openPadCheck(){
+  if(state.phase==="game"||state.phase==="practice")return;
+  clearTimers();clearAssist();bodyMode();state.phase="padCheck";state.menu=[];state.padCheck={recording:false,step:0,items:[],message:"左・下などを押して、表示と実際の向きを見比べてください。"};state.padCheckLast=0;
+  screen.className="screen pad-screen";
+  screen.innerHTML=`<h1 class="pad-title">コントローラー確認</h1><p class="pad-note">ハットスイッチを押すと、ゲームが受け取った方向とRAW値を表示します。<br>向きが違う場合は「方向登録」を使うと、このPC用に補正できます。</p><div class="pad-live"><div class="pad-card"><h3>ゲーム側の判定</h3><div id="padDir" class="pad-dir">なし<small>押した方向と同じか確認</small></div></div><div class="pad-card"><h3>コントローラー情報</h3><div id="padInfo" class="pad-raw">接続待ち</div></div><div class="pad-card"><h3>ボタン</h3><div id="padButtons" class="pad-raw">-</div></div><div class="pad-card"><h3>axes値</h3><div id="padAxes" class="pad-raw">-</div></div></div><div class="pad-flow"><div id="padStep" class="pad-step">2ボタン：方向登録　/　1ボタン：戻る</div><div id="padMsg">${esc(state.padCheck.message)}</div><div class="pad-actions"><button onclick="startPadCalibration()">方向登録を開始</button><button onclick="resetPadCalibration()">登録を消す</button><button onclick="closePadCheck()">タイトルへ</button></div></div>`;
+}
+function closePadCheck(){state.padCheck=null;renderTitle();}
+function startPadCalibration(){
+  state.padCheck={recording:true,step:0,items:[],message:"まず ↑ 上 を押したまま、2ボタンを押してください。"};
+  updatePadCheckText();
+}
+function resetPadCalibration(){config.padCalib=null;saveConfig();if(state.padCheck){state.padCheck.message="方向登録を消しました。もう一度、左・下などを試してください。";state.padCheck.recording=false;state.padCheck.step=0;state.padCheck.items=[];updatePadCheckText();}}
+function handlePadCheckConfirm(pad){
+  if(!state.padCheck?.recording){startPadCalibration();return;}
+  const dir=PAD_CALIB_ORDER[state.padCheck.step],sample=findPadSample(pad);
+  if(!sample){state.padCheck.message=`${PAD_DIR_LABEL[dir]} を押したまま、2ボタンを押してください。方向入力が見つかりません。`;updatePadCheckText();return;}
+  state.padCheck.items.push(Object.assign({dir},sample));
+  state.padCheck.step++;
+  if(state.padCheck.step>=PAD_CALIB_ORDER.length){
+    config.padCalib={padId:pad?.id||"",items:state.padCheck.items,createdAt:Date.now()};saveConfig();
+    state.padCheck.recording=false;state.padCheck.message="登録しました。左・下などを押して、表示が合っているか確認してください。";
+  }else{
+    const next=PAD_CALIB_ORDER[state.padCheck.step];state.padCheck.message=`次は ${PAD_DIR_LABEL[next]} を押したまま、2ボタンを押してください。`;
+  }
+  updatePadCheckText();
+}
+function updatePadCheckText(){
+  const st=state.padCheck;if(!st)return;
+  const stepEl=document.getElementById("padStep"),msgEl=document.getElementById("padMsg");
+  if(stepEl)stepEl.textContent=st.recording?`登録中 ${st.step+1}/4：${PAD_DIR_LABEL[PAD_CALIB_ORDER[st.step]]}`:"2ボタン：方向登録　/　1ボタン：戻る";
+  if(msgEl)msgEl.innerHTML=`${esc(st.message)}<br><span style="font-size:.82em;opacity:.72">現在の登録：${esc(calibrationSummary())}</span>`;
+}
+function updatePadCheckUI(pad,now){
+  const t=performance.now();if(t-state.padCheckLast<90)return;state.padCheckLast=t;
+  const dirEl=document.getElementById("padDir"),infoEl=document.getElementById("padInfo"),btnEl=document.getElementById("padButtons"),axesEl=document.getElementById("padAxes");
+  if(dirEl)dirEl.innerHTML=`${esc(dirListText(now))}<small>押した方向と同じか確認</small>`;
+  if(infoEl)infoEl.innerHTML=pad?`id: ${esc(pad.id||"不明")}<br>mapping: ${esc(pad.mapping||"なし")}<br>登録: ${esc(config.padCalib?.items?.length?"あり":"なし")}`:"接続待ち：何かボタンを押してください";
+  if(btnEl)btnEl.textContent=pad?`pressed: ${activeButtonList(pad).join(", ")||"なし"}`:"-";
+  if(axesEl)axesEl.textContent=pad?axisLine(pad):"-";
+  updatePadCheckText();
+}
+
+function decodeHatAxis(value){
+  const v=Number(value),out=blankPadState();
+  if(!Number.isFinite(v))return out;
+  const tables=[
+    {vals:[0,1/7,2/7,3/7,4/7,5/7,6/7,1],dirs:[["up"],["up","right"],["right"],["down","right"],["down"],["down","left"],["left"],["up","left"]]},
+    {vals:[0,1/8,2/8,3/8,4/8,5/8,6/8,7/8],dirs:[["up"],["up","right"],["right"],["down","right"],["down"],["down","left"],["left"],["up","left"]]},
+    {vals:[-1,-5/7,-3/7,-1/7,1/7,3/7,5/7,1],dirs:[["up"],["up","right"],["right"],["down","right"],["down"],["down","left"],["left"],["up","left"]]},
+    {vals:[-1,-.75,-.5,-.25,.25,.5,.75,1],dirs:[["up"],["up","right"],["right"],["down","right"],["down"],["down","left"],["left"],["up","left"]]}
+  ];
+  let best=null;
+  for(const table of tables){
+    table.vals.forEach((val,i)=>{const diff=Math.abs(v-val);if(!best||diff<best.diff)best={diff,dirs:table.dirs[i]};});
+  }
+  if(best&&best.diff<=.09)best.dirs.forEach(d=>out[d]=true);
+  return out;
+}
+function readGamepad(pad){
+  const b=pad.buttons||[],axes=pad.axes||[],dead=.55,now=blankPadState();
+  now.up=!!(b[12]?.pressed||axes[1]<-dead);
+  now.down=!!(b[13]?.pressed||axes[1]>dead);
+  now.left=!!(b[14]?.pressed||axes[0]<-dead);
+  now.right=!!(b[15]?.pressed||axes[0]>dead);
+  // 会場用コントローラー設定：2ボタン＝決定、1ボタン＝キャンセル。
+  now.confirm=!!(b[1]?.pressed);
+  now.cancel=!!(b[0]?.pressed);
+  // ハットスイッチ対応。登録済みなら登録値を優先し、機種ごとの左/下ズレを避ける。
+  const calibrated=applyPadCalibration(now,pad);
+  if(!config.padCalib?.items?.length){
+    const neutral=state.gamepadNeutralAxes||[];
+    for(let i=2;i<axes.length;i++){
+      const n=neutral[i];
+      if(typeof n==="number"&&Math.abs(axes[i]-n)<.08)continue;
+      mergePadDirs(now,decodeHatAxis(axes[i]));
+    }
+    // ハットがX/Y軸のペアとして出るコントローラー向け。標準マッピングでは右スティック誤爆を避けるため使わない。
+    if(pad.mapping!=="standard"){
+      [[2,3],[4,5],[6,7]].forEach(([x,y])=>{
+        if(x<axes.length&&y<axes.length){
+          const nx=neutral[x]??0,ny=neutral[y]??0,dx=axes[x]-nx,dy=axes[y]-ny;
+          if(dx<-dead)now.left=true;if(dx>dead)now.right=true;if(dy<-dead)now.up=true;if(dy>dead)now.down=true;
+        }
+      });
+    }
+  }
+  return now;
+}
+function pollGamepad(){
+  const pads=navigator.getGamepads?navigator.getGamepads():[],pad=[...pads].find(Boolean);
+  if(pad){
+    const axes=pad.axes||[];
+    if(state.gamepadId!==pad.id){state.gamepadId=pad.id;state.gamepadNeutralAxes=[...axes];state.gamepadPrev=blankPadState();}
+    const now=readGamepad(pad),prev=state.gamepadPrev||blankPadState();
+    if(state.phase==="padCheck"){
+      updatePadCheckUI(pad,now);
+      if(now.confirm&&!prev.confirm)handlePadCheckConfirm(pad);
+      if(now.cancel&&!prev.cancel)closePadCheck();
+      state.gamepadPrev=now;requestAnimationFrame(pollGamepad);return;
+    }
+    for(const dir of ["up","down","left","right"]){
+      if(now[dir]&&!prev[dir]){if(state.phase==="game"||state.phase==="practice")answer(dir);else moveMenu(dir);}
+    }
+    if(now.confirm&&!prev.confirm){if(state.phase!=="game"&&state.phase!=="practice"&&state.phase!=="demo")activateMenu();}
+    if(now.cancel&&!prev.cancel)cancelAction();
+    state.gamepadPrev=now;
+  }else if(state.phase==="padCheck"){
+    updatePadCheckUI(null,blankPadState());
+  }
+  requestAnimationFrame(pollGamepad);
+}
 renderTitle();pollGamepad();
 </script>
 </body>
