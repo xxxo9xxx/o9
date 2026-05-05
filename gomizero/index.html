@@ -510,14 +510,81 @@ function startDemo(){
 function renderDemoStep(){clearTimers();clearAssist();const q=state.demoQueue[state.demoIndex%state.demoQueue.length];state.current=q;screen.innerHTML=`<div class="demo-tag">デモ</div><div class="hud"><div class="hud-left">見るだけ</div><div></div><div class="hud-right">1ボタンで戻る</div></div><div class="question-card"><div class="garbage-img">${q.emoji||"❔"}</div><div class="garbage-name">${esc(displayName(q))}</div><div class="hint">正しい方向が光ります</div><div id="demoAnswer" class="practice-answer" style="opacity:0">${chip(q.ans)}　${esc(displayNote(q))}</div></div>`;state.demoTimer=setTimeout(()=>{flashGuide(q.ans);const a=document.getElementById("demoAnswer");if(a)a.style.opacity=1;playSound("correct");state.demoTimer=setTimeout(()=>{state.demoIndex++;renderDemoStep();},1900);},900);}
 function stopDemo(){clearTimers();clearAssist();renderTitle();}
 function celebrate(){const marks=["🎉","✨","♻️","🌟","👏"];for(let i=0;i<54;i++){const s=document.createElement("div");s.className="confetti";s.textContent=marks[Math.floor(Math.random()*marks.length)];s.style.left=Math.random()*100+"vw";s.style.animationDelay=Math.random()*.35+"s";s.style.fontSize=(17+Math.random()*20)+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),2300);}}
-function playTone(kind){if(config.volume<=0)return;try{const ctx=new (window.AudioContext||window.webkitAudioContext)(),osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.value=kind==="correct"?880:180;gain.gain.value=config.volume*.10;osc.start();gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.18);osc.stop(ctx.currentTime+.2);}catch(e){}}
+// v16: スマホで途中から音が鳴らなくなる対策。
+// 毎回 new Audio() せず、最初のタッチで音を解放し、Audio要素をプールして使い回します。
+let soundReady=false;
+let soundCtx=null;
+let soundPoolIndex={correct:0,wrong:0};
+const SOUND_URLS={
+  correct:["quiz01.mp3","https://xxxo9xxx.github.io/o9/gomizero/quiz01.mp3"],
+  wrong:["quiz02.mp3","https://xxxo9xxx.github.io/o9/gomizero/quiz02.mp3"]
+};
+const soundPools={correct:[],wrong:[]};
+function getSoundCtx(){
+  if(soundCtx)return soundCtx;
+  try{soundCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){soundCtx=null;}
+  return soundCtx;
+}
+function makeSoundAudio(kind,srcIndex=0){
+  const a=new Audio(SOUND_URLS[kind][srcIndex]);
+  a.preload="auto";
+  a.playsInline=true;
+  a.volume=config.volume;
+  a.dataset.srcIndex=String(srcIndex);
+  a.addEventListener("error",()=>{
+    if(a.dataset.srcIndex==="0"){
+      a.dataset.srcIndex="1";
+      a.src=SOUND_URLS[kind][1];
+      try{a.load();}catch(e){}
+    }
+  });
+  return a;
+}
+function initSound(){
+  if(soundReady)return;
+  soundReady=true;
+  const ctx=getSoundCtx();
+  if(ctx&&ctx.state==="suspended")ctx.resume().catch(()=>{});
+  ["correct","wrong"].forEach(kind=>{
+    if(!soundPools[kind].length){
+      for(let i=0;i<5;i++)soundPools[kind].push(makeSoundAudio(kind,0));
+    }
+    soundPools[kind].forEach(a=>{try{a.load();}catch(e){}});
+  });
+}
+function playTone(kind){
+  if(config.volume<=0)return;
+  try{
+    const ctx=getSoundCtx();
+    if(!ctx)return;
+    if(ctx.state==="suspended")ctx.resume().catch(()=>{});
+    const osc=ctx.createOscillator(),gain=ctx.createGain();
+    osc.type="sine";
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.frequency.value=kind==="correct"?880:180;
+    gain.gain.setValueAtTime(Math.max(.0001,config.volume*.10),ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.18);
+    osc.start();osc.stop(ctx.currentTime+.2);
+  }catch(e){}
+}
 function playSound(kind){
   if(config.volume<=0)return;
-  const srcs=kind==="correct"?["quiz01.mp3","https://xxxo9xxx.github.io/o9/gomizero/quiz01.mp3"]:["quiz02.mp3","https://xxxo9xxx.github.io/o9/gomizero/quiz02.mp3"];
-  let idx=0;const a=new Audio(srcs[0]);a.volume=config.volume;
-  a.onerror=()=>{if(idx===0){idx=1;a.src=srcs[1];a.load();a.play().catch(()=>playTone(kind));}else playTone(kind);};
-  a.play().catch(()=>{idx=1;a.src=srcs[1];a.load();a.play().catch(()=>playTone(kind));});
+  initSound();
+  const pool=soundPools[kind];
+  if(!pool||!pool.length){playTone(kind);return;}
+  const idx=soundPoolIndex[kind]++%pool.length;
+  const a=pool[idx];
+  try{
+    a.pause();
+    a.currentTime=0;
+    a.volume=config.volume;
+    const p=a.play();
+    if(p&&p.catch)p.catch(()=>playTone(kind));
+  }catch(e){playTone(kind);}
 }
+["pointerdown","touchstart","click","keydown"].forEach(ev=>{
+  window.addEventListener(ev,initSound,{once:true,passive:true});
+});
 function toggleAssist(){config.assistMode=!config.assistMode;saveConfig();if(state.phase==="title")renderTitle();else if((state.phase==="game"||state.phase==="practice")&&state.current){config.assistMode?flashGuide(state.current.ans):clearAssist();}}
 function openSettings(){if(state.phase==="game"||state.phase==="practice")return;document.getElementById("cfgTime").value=config.timeLimit;document.getElementById("cfgClear").value=config.clearCount;document.getElementById("cfgVolume").value=config.volume;document.getElementById("cfgAssist").checked=config.assistMode;document.getElementById("bestScoreLabel").textContent=localStorage.getItem(BEST_KEY)||"0";settingsModal.classList.add("show");}
 function closeSettings(){config.timeLimit=Math.max(3,Math.min(20,+document.getElementById("cfgTime").value||8));config.clearCount=Math.max(1,Math.min(10,+document.getElementById("cfgClear").value||8));config.volume=+document.getElementById("cfgVolume").value;config.assistMode=document.getElementById("cfgAssist").checked;saveConfig();settingsModal.classList.remove("show");if(state.phase==="title")renderTitle();}
