@@ -934,6 +934,108 @@
       .code-submit-box .btn { width: 100%; }
       .code-note { text-align: center; }
     }
+  
+    /* --- v4 layout/operation refinements --- */
+    .game-header { align-items: flex-start; }
+    .game-head-main {
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .game-head-tools {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-left: auto;
+      flex-wrap: nowrap;
+    }
+    .game-head-tools .inline-rules { min-width: 190px; max-width: 380px; }
+    .hidden-status { display: none !important; }
+    .status-grid { grid-template-columns: repeat(4, minmax(96px, 1fr)); }
+    #copyIdBtn, #newGameBtn { display: none !important; }
+
+    .dial-wide {
+      width: 100% !important;
+      height: 40px !important;
+      min-height: 40px;
+      font-size: 22px;
+      border-radius: 10px;
+    }
+    .digit-slot { margin: 7px 0 !important; }
+    .dial-unit { padding: 8px !important; }
+
+    .hint-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 10px !important;
+    }
+    .hint-card {
+      min-height: 118px !important;
+      padding: 11px !important;
+    }
+    .hint-card .card-top { margin-bottom: 8px; gap: 6px; }
+    .hint-card .category-pill { font-size: 11px; padding: 5px 7px; }
+    .hint-card .score-badge { min-width: 46px; height: 26px; padding: 0 8px; font-size: 12px; }
+    .hint-card .card-title { font-size: 13px; margin-bottom: 5px; }
+    .hint-card .card-text { font-size: 11px; }
+    .hint-card .choose-card { margin-top: 8px; min-height: 32px; padding: 7px 8px; font-size: 12px; }
+
+    .memo-pos-head { color: #06111a !important; }
+    .memo-pos-head.p1 { background: rgba(153,246,255,.88) !important; }
+    .memo-pos-head.p2 { background: rgba(255,224,143,.92) !important; }
+    .memo-pos-head.p3 { background: rgba(233,196,255,.90) !important; }
+
+    .memo-btn {
+      width: 100% !important;
+      min-width: 44px;
+      max-width: 58px;
+      height: 38px !important;
+      font-size: 15px;
+    }
+    .memo-grid th, .memo-grid td { padding: 7px; }
+
+    .hint-marker {
+      display: inline-block;
+      padding: 0 4px;
+      margin: 0 1px;
+      border-radius: 5px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .hint-marker.p1 { background: rgba(153,246,255,.55); color: #083344; }
+    .hint-marker.p2 { background: rgba(255,224,143,.62); color: #422006; }
+    .hint-marker.p3 { background: rgba(233,196,255,.62); color: #3b0764; }
+
+    @media (max-width: 720px) {
+      .game-header { flex-direction: row !important; align-items: flex-start !important; }
+      .game-head-main { flex-direction: column; }
+      .game-head-tools { width: 100%; justify-content: space-between; margin-left: 0; }
+      .game-head-tools .inline-rules { flex: 1 1 auto; min-width: 0; max-width: none; }
+      .game-head-tools #backToStartBtn { flex: 0 0 auto; }
+      .status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hint-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+      .hint-card { min-height: 112px !important; }
+    }
+    @media (max-width: 500px) {
+      .hint-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+      .hint-card { min-height: 108px !important; }
+      .hint-card .card-title { font-size: 12px; }
+      .hint-card .card-text { display: none; }
+      .target-row { margin-bottom: 6px; }
+      .swatch-chip, .order-chip, .mini-tag { min-width: 22px; height: 22px; padding: 0 6px; font-size: 11px; }
+      .dial-wide { height: 42px !important; }
+      .memo-btn { min-width: 46px; height: 40px !important; }
+    }
+    @media (max-width: 380px) {
+      .hint-grid { gap: 8px !important; }
+      .hint-card { padding: 9px !important; }
+      .hint-card .category-pill { font-size: 10px; padding: 4px 6px; }
+      .hint-card .score-badge { min-width: 42px; height: 24px; font-size: 11px; }
+    }
+
   </style>
 </head>
 <body>
@@ -1006,23 +1108,25 @@
               <p>SIMULATED DEVICE を直接操作して解除せよ</p>
             </div>
           </div>
-          <details class="inline-rules">
-            <summary>ルール説明</summary>
-            <div class="inline-rules-body">
-              <ol>
-                <li>同じ問題IDなら、同じ爆弾・同じ難易度・同じヒント山札です。</li>
-                <li>ROUND 1 はワイヤーを正しい順番で直接カットします。</li>
-                <li>ROUND 2 は 1〜5 の数字ダイヤルを合わせて「コード入力 OK」を押します。</li>
-                <li>ヒントカードは常に4枚から1枚選択。使うと同ラウンドの山札から補充されます。</li>
-                <li>ヒント点の合計が低いほど強い記録です。</li>
-              </ol>
-            </div>
-          </details>
+          <div class="game-head-tools">
+            <details class="inline-rules">
+              <summary>ルール説明</summary>
+              <div class="inline-rules-body">
+                <ol>
+                  <li>同じ問題IDなら、同じ爆弾・同じ難易度・同じヒント山札です。</li>
+                  <li>ROUND 1 はワイヤーを正しい順番で直接カットします。</li>
+                  <li>ROUND 2 は 1〜5 の数字ダイヤルを合わせて「コード入力 OK」を押します。</li>
+                  <li>ヒントカードは常に4枚から1枚選択。使うと同ラウンドの山札から補充されます。</li>
+                  <li>ヒント点の合計が低いほどよい記録です。</li>
+                </ol>
+              </div>
+            </details>
+            <button id="backToStartBtn" class="btn btn-small btn-ghost" type="button">開始画面</button>
+          </div>
         </div>
-        <div class="start-actions">
+        <div class="hidden">
           <button id="copyIdBtn" class="btn btn-small btn-ghost" type="button">IDコピー</button>
           <button id="newGameBtn" class="btn btn-small btn-ghost" type="button">新しいID</button>
-          <button id="backToStartBtn" class="btn btn-small btn-ghost" type="button">開始画面</button>
         </div>
       </header>
 
@@ -1031,8 +1135,8 @@
         <div class="status"><span class="status-label">ROUND</span><span id="statusPhase" class="status-value phase-value">WIRE</span></div>
         <div class="status"><span class="status-label">ヒント点</span><span id="statusScore" class="status-value score-value">0</span></div>
         <div class="status"><span class="status-label">時間</span><span id="statusTime" class="status-value">00:00</span></div>
-        <div class="status"><span class="status-label">カード</span><span id="statusCards" class="status-value">0</span></div>
-        <div class="status"><span class="status-label">自己ベスト</span><span id="statusBest" class="status-value">-</span></div>
+        <div class="status status-extra hidden-status"><span class="status-label">カード</span><span id="statusCards" class="status-value">0</span></div>
+        <div class="status status-extra hidden-status"><span class="status-label">自己ベスト</span><span id="statusBest" class="status-value">-</span></div>
       </div>
 
       <div class="game-layout">
@@ -1058,9 +1162,9 @@
 
               <div class="code-control-row">
                 <div class="code-display" aria-label="解除コード操作" id="codeDisplay">
-                  <div class="dial-unit pos-1"><div class="dial-label pos-1">1番目</div><div class="dial-controls-inline"><button class="dial-btn" data-dial="0" data-delta="-1" type="button">－</button><button class="dial-btn" data-dial="0" data-delta="1" type="button">＋</button></div><div id="digitSlot0" class="digit-slot pos-1">?</div></div>
-                  <div class="dial-unit pos-2"><div class="dial-label pos-2">2番目</div><div class="dial-controls-inline"><button class="dial-btn" data-dial="1" data-delta="-1" type="button">－</button><button class="dial-btn" data-dial="1" data-delta="1" type="button">＋</button></div><div id="digitSlot1" class="digit-slot pos-2">?</div></div>
-                  <div class="dial-unit pos-3"><div class="dial-label pos-3">3番目</div><div class="dial-controls-inline"><button class="dial-btn" data-dial="2" data-delta="-1" type="button">－</button><button class="dial-btn" data-dial="2" data-delta="1" type="button">＋</button></div><div id="digitSlot2" class="digit-slot pos-3">?</div></div>
+                  <div class="dial-unit pos-1"><div class="dial-label pos-1">1番目</div><button class="dial-btn dial-wide" data-dial="0" data-delta="1" type="button">＋</button><div id="digitSlot0" class="digit-slot pos-1">?</div><button class="dial-btn dial-wide" data-dial="0" data-delta="-1" type="button">－</button></div>
+                  <div class="dial-unit pos-2"><div class="dial-label pos-2">2番目</div><button class="dial-btn dial-wide" data-dial="1" data-delta="1" type="button">＋</button><div id="digitSlot1" class="digit-slot pos-2">?</div><button class="dial-btn dial-wide" data-dial="1" data-delta="-1" type="button">－</button></div>
+                  <div class="dial-unit pos-3"><div class="dial-label pos-3">3番目</div><button class="dial-btn dial-wide" data-dial="2" data-delta="1" type="button">＋</button><div id="digitSlot2" class="digit-slot pos-3">?</div><button class="dial-btn dial-wide" data-dial="2" data-delta="-1" type="button">－</button></div>
                 </div>
                 <div class="code-submit-box">
                   <button id="submitCodeBtn" class="btn btn-danger btn-small" type="button">コード入力 OK</button>
@@ -1097,7 +1201,7 @@
         </div>
       </div>
 
-      <p class="footer-note">ヒント点が低いほど強い記録です。問題IDを友達に送ると、同じ爆弾・同じ山札で競えます。</p>
+      <p class="footer-note">ヒント点が低いほどよい記録です。問題IDを友達に送ると、同じ爆弾・同じ山札で競えます。</p>
     </section>
   </div>
 
@@ -1832,7 +1936,7 @@
       }
       els.revealedList.innerHTML = State.revealed.slice().reverse().map(h => `
         <article class="revealed-row">
-          <div class="hint-body">${escapeHtml(h.text)}</div>
+          <div class="hint-body">${formatHintText(h.text)}</div>
           <div class="hint-score">${h.score}点</div>
         </article>`).join("");
     }
@@ -1841,7 +1945,7 @@
       if (!State.logs.length) {
         els.missionLog.innerHTML = `<p>取得したヒント内容がここに表示されます。</p>`;
       } else {
-        els.missionLog.innerHTML = State.logs.slice(-6).map(line => `<p>${escapeHtml(line)}</p>`).join("");
+        els.missionLog.innerHTML = State.logs.slice(-6).map(line => `<p>${formatHintText(line)}</p>`).join("");
       }
       els.missionLog.scrollTop = els.missionLog.scrollHeight;
     }
@@ -1874,7 +1978,7 @@
     }
     function renderCodeMemo() {
       let html = `<table class="memo-grid"><thead><tr><th>数字</th>`;
-      for (let p = 1; p <= CODE_LEN; p++) html += `<th>${p}桁目</th>`;
+      for (let p = 1; p <= CODE_LEN; p++) html += `<th class="memo-pos-head p${p}">${p}番目</th>`;
       html += `</tr></thead><tbody>`;
       for (const d of DIGITS) {
         html += `<tr><td>${d}</td>`;
@@ -1924,7 +2028,7 @@
       els.resultModal.classList.remove("hidden");
       els.resultIcon.textContent = success ? "✅" : "💥";
       els.resultTitle.textContent = success ? "解除成功" : "訓練失敗";
-      els.resultMessage.textContent = success ? "低いヒント点で解除できるほど強い記録です。" : failMessage;
+      els.resultMessage.textContent = success ? "低いヒント点で解除できるほどよい記録です。" : failMessage;
       els.copyResultBtn.classList.toggle("hidden", !success);
       els.resultStats.innerHTML = [
         ["問題ID", State.id],
@@ -1952,6 +2056,13 @@
     }
     function escapeHtml(value) {
       return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function formatHintText(value) {
+      return escapeHtml(value)
+        .replace(/1(桁目|番目)/g, '<span class="hint-marker p1">1番目</span>')
+        .replace(/2(桁目|番目)/g, '<span class="hint-marker p2">2番目</span>')
+        .replace(/3(桁目|番目)/g, '<span class="hint-marker p3">3番目</span>');
     }
     function copyText(text) {
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
