@@ -770,6 +770,65 @@
       text-align: center;
     }
 
+
+
+    .share-box {
+      border: 1px solid rgba(102, 227, 255, 0.22);
+      background: rgba(102, 227, 255, 0.06);
+      border-radius: 18px;
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+    .share-box .field-label { margin-bottom: 0; }
+    .qr-wrap {
+      display: grid;
+      grid-template-columns: 118px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+    .qr-frame {
+      width: 118px;
+      height: 118px;
+      display: grid;
+      place-items: center;
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 8px;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.12), 0 14px 28px rgba(0,0,0,0.20);
+    }
+    .qr-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      border-radius: 8px;
+    }
+    .qr-meta {
+      min-width: 0;
+      color: #d8e3f2;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .qr-meta b {
+      display: block;
+      color: #f8fafc;
+      font-family: var(--mono);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+      margin-bottom: 4px;
+    }
+    .share-url {
+      margin-top: 6px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.4;
+      max-height: 3.1em;
+      overflow: hidden;
+      overflow-wrap: anywhere;
+    }
+
     @media (max-width: 980px) {
       .hero, .game-layout { grid-template-columns: 1fr; }
       .status-grid { grid-template-columns: repeat(3, 1fr); }
@@ -799,6 +858,8 @@
       .code-submit-box { flex-direction: row; align-items: center; justify-content: space-between; }
       .code-submit-box .btn { width: auto; min-width: 150px; }
       .code-note { text-align: left; }
+      .qr-wrap { grid-template-columns: 1fr; }
+      .qr-frame { width: min(180px, 100%); height: auto; aspect-ratio: 1; justify-self: center; }
       .brand h2 { font-size: 18px; }
       .brand p { font-size: 12px; }
       .status-grid { gap: 8px; }
@@ -852,6 +913,23 @@
           <button id="startBtn" class="btn btn-primary" type="button">解除任務を開始</button>
           <button id="demoBtn" class="btn btn-ghost" type="button">デモIDを入れる</button>
         </div>
+
+        <div class="share-box">
+          <div class="field-label">友達に同じ問題を共有</div>
+          <div class="qr-wrap">
+            <div class="qr-frame"><img id="qrImage" alt="同じ問題IDのQRコード" /></div>
+            <div class="qr-meta">
+              <b id="qrTitle">QR生成中</b>
+              <span id="qrDescription">同じ問題IDと難易度を共有できます。</span>
+              <div id="shareValue" class="share-url"></div>
+            </div>
+          </div>
+          <div class="start-actions">
+            <button id="copyShareBtn" class="btn btn-small btn-ghost" type="button">共有テキストをコピー</button>
+            <button id="refreshQrBtn" class="btn btn-small btn-ghost" type="button">QR更新</button>
+          </div>
+        </div>
+
         <div class="logbox" aria-live="polite">
           <p><b>スコア式：</b>使ったヒントカードの合計点。低いほど上位。</p>
           <p><b>メモ：</b>? → × → △ → ○ で切り替え。△は「ありそう・仮置き」に使えます。</p>
@@ -995,6 +1073,12 @@
       randomIdBtn: $("#randomIdBtn"),
       demoBtn: $("#demoBtn"),
       difficultySelect: $("#difficultySelect"),
+      qrImage: $("#qrImage"),
+      qrTitle: $("#qrTitle"),
+      qrDescription: $("#qrDescription"),
+      shareValue: $("#shareValue"),
+      copyShareBtn: $("#copyShareBtn"),
+      refreshQrBtn: $("#refreshQrBtn"),
       startBtn: $("#startBtn"),
       statusId: $("#statusId"),
       statusPhase: $("#statusPhase"),
@@ -1073,6 +1157,61 @@
       if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(bytes);
       else for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
       return "CW-" + Array.from(bytes, b => alphabet[b % alphabet.length]).join("");
+    }
+
+    function difficultyLabel(value = els.difficultySelect.value) {
+      return value === "hard" ? "むずかしい" : "ふつう";
+    }
+
+    function currentStartId() {
+      let id = normalizeId(els.problemIdInput.value);
+      if (!id) {
+        id = generateProblemId();
+        els.problemIdInput.value = id;
+      }
+      if (!id.startsWith("CW-")) id = "CW-" + id;
+      return id;
+    }
+
+    function buildSharePayload() {
+      const id = currentStartId();
+      const difficulty = els.difficultySelect.value;
+      const isHosted = location.protocol === "http:" || location.protocol === "https:";
+      if (isHosted) {
+        const url = new URL(location.href);
+        url.searchParams.set("id", id);
+        url.searchParams.set("difficulty", difficulty);
+        url.searchParams.delete("start");
+        return { id, difficulty, isHosted, value: url.toString() };
+      }
+      return { id, difficulty, isHosted, value: `CODEWIRE ID:${id} / 難易度:${difficultyLabel(difficulty)}` };
+    }
+
+    function updateShareQr() {
+      if (!els.qrImage) return;
+      const payload = buildSharePayload();
+      const encoded = encodeURIComponent(payload.value);
+      els.qrImage.dataset.fallback = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encoded}`;
+      els.qrImage.src = `https://quickchart.io/qr?text=${encoded}&size=240&margin=2&ecLevel=M`;
+      els.qrTitle.textContent = `${payload.id} / ${difficultyLabel(payload.difficulty)}`;
+      els.qrDescription.textContent = payload.isHosted
+        ? "このQRを読むと、同じ問題IDと難易度が入った状態で開けます。"
+        : "ローカルファイルではURL共有できないため、QRには問題IDと難易度を入れています。";
+      els.shareValue.textContent = payload.value;
+    }
+
+    function copySharePayload() {
+      const payload = buildSharePayload();
+      copyText(payload.value);
+      toast("共有用テキストをコピーしました。");
+    }
+
+    function applyShareParams() {
+      const params = new URLSearchParams(location.search);
+      const id = normalizeId(params.get("id") || "");
+      const difficulty = params.get("difficulty");
+      if (id) els.problemIdInput.value = id.startsWith("CW-") ? id : `CW-${id}`;
+      if (difficulty === "normal" || difficulty === "hard") els.difficultySelect.value = difficulty;
     }
 
     function permutations(arr, len = arr.length) {
@@ -1688,8 +1827,15 @@
     }
 
     function bindEvents() {
-      els.randomIdBtn.addEventListener("click", () => { els.problemIdInput.value = generateProblemId(); });
-      els.demoBtn.addEventListener("click", () => { els.problemIdInput.value = "CW-DEMO42"; });
+      els.randomIdBtn.addEventListener("click", () => { els.problemIdInput.value = generateProblemId(); updateShareQr(); });
+      els.demoBtn.addEventListener("click", () => { els.problemIdInput.value = "CW-DEMO42"; updateShareQr(); });
+      els.problemIdInput.addEventListener("input", updateShareQr);
+      els.difficultySelect.addEventListener("change", updateShareQr);
+      els.copyShareBtn.addEventListener("click", copySharePayload);
+      els.refreshQrBtn.addEventListener("click", updateShareQr);
+      els.qrImage.addEventListener("error", () => {
+        if (els.qrImage.src !== els.qrImage.dataset.fallback) els.qrImage.src = els.qrImage.dataset.fallback;
+      });
       els.startBtn.addEventListener("click", () => startGame());
       els.problemIdInput.addEventListener("keydown", e => { if (e.key === "Enter") startGame(); });
       els.copyIdBtn.addEventListener("click", copyId);
@@ -1706,8 +1852,10 @@
       els.closeResultBtn.addEventListener("click", () => els.resultModal.classList.add("hidden"));
     }
 
+    applyShareParams();
     bindEvents();
-    els.problemIdInput.value = generateProblemId();
+    if (!normalizeId(els.problemIdInput.value)) els.problemIdInput.value = generateProblemId();
+    updateShareQr();
   </script>
 </body>
 </html>
