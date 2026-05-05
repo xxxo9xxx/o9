@@ -1036,6 +1036,10 @@
       .hint-card .score-badge { min-width: 42px; height: 24px; font-size: 11px; }
     }
 
+      .revealed-row .hint-body br,
+    .logbox p br { display:block; content:""; margin-top:3px; }
+    .revealed-row .hint-body { word-break: break-word; }
+
   </style>
 </head>
 <body>
@@ -1066,7 +1070,7 @@
           <label class="field-label" for="difficultySelect">難易度</label>
           <select id="difficultySelect">
             <option value="normal">ふつう：素直なヒント中心</option>
-            <option value="hard">むずかしい：どちらかだけ / どちらも ヒント入り</option>
+            <option value="hard">むずかしい：AかB / 正しいのは1つだけ ヒント入り</option>
           </select>
         </div>
         <div class="start-actions">
@@ -1571,38 +1575,54 @@
       if (difficulty === "hard") {
         const truePreds = preds.filter(p => p.test(answerCode));
         const falsePreds = [];
-        // false statements are made by taking simple altered predicates that fail for the actual answer.
+        // 実際の答えでは正しくない条件。複合ヒント用にだけ使います。
         for (let i = 0; i < CODE_LEN; i++) {
           const wrongParityOdd = answerCode[i] % 2 === 0;
-          falsePreds.push({ label:`${i+1}桁目は${wrongParityOdd ? "奇数" : "偶数"}`, target:`${i+1}桁目`, test: code => (code[i] % 2 === 1) === wrongParityOdd });
+          falsePreds.push({
+            label:`${i+1}桁目は${wrongParityOdd ? "奇数" : "偶数"}`,
+            target:`${i+1}桁目`,
+            test: code => (code[i] % 2 === 1) === wrongParityOdd
+          });
           const wrongRangeLow = answerCode[i] > 3;
-          falsePreds.push({ label:`${i+1}桁目は${wrongRangeLow ? "3以下" : "4以上"}`, target:`${i+1}桁目`, test: code => wrongRangeLow ? code[i] <= 3 : code[i] >= 4 });
+          falsePreds.push({
+            label:`${i+1}桁目は${wrongRangeLow ? "3以下" : "4以上"}`,
+            target:`${i+1}桁目`,
+            test: code => wrongRangeLow ? code[i] <= 3 : code[i] >= 4
+          });
         }
-        for (let i = 0; i < Math.min(16, truePreds.length); i++) {
-          const a = truePreds[i];
-          const b = truePreds[(i * 7 + 5) % truePreds.length];
-          if (a.label !== b.label) {
-            add({
-              key:`and:${a.label}|${b.label}`,
-              round:"code",
-              category:"複合",
-              target:`${a.target} + ${b.target}`,
-              title:"どちらも正しいカード",
-              text:`次の2つは、どちらも正しいです。 A：${a.label}。 B：${b.label}。`,
-              test: code => a.test(code) && b.test(code)
-            });
-          }
+
+        // OR型：AかB、または両方が正しい。
+        // Aは実際に正しい条件。Bは正しい条件と正しくない条件を混ぜて、読み解きに幅を出します。
+        for (let i = 0; i < Math.min(24, truePreds.length); i++) {
+          const a = truePreds[(i * 3 + 1) % truePreds.length];
+          const useTrueB = i % 3 === 0;
+          const bPool = useTrueB ? truePreds : falsePreds;
+          const b = bPool[(i * 5 + 2) % bPool.length];
+          if (!b || a.label === b.label) continue;
+          add({
+            key:`or:${a.label}|${b.label}`,
+            round:"code",
+            category:"複合",
+            target:`${a.target} / ${b.target}`,
+            title:"AかBカード",
+            text:`AかB、または両方が正しい。\nA：${a.label}。\nB：${b.label}。`,
+            test: code => a.test(code) || b.test(code)
+          });
         }
-        for (let i = 0; i < Math.min(20, truePreds.length); i++) {
+
+        // XOR型：AとBのうち、正しいのは1つだけ。
+        // 実際の答えではAが正しく、Bが正しくない形にしてカードを成立させます。
+        for (let i = 0; i < Math.min(24, truePreds.length); i++) {
           const a = truePreds[(i * 3 + 2) % truePreds.length];
           const b = falsePreds[(i * 5 + 1) % falsePreds.length];
+          if (!b || a.label === b.label) continue;
           add({
             key:`xor:${a.label}|${b.label}`,
             round:"code",
             category:"複合",
             target:`${a.target} / ${b.target}`,
-            title:"どちらかだけ正しいカード",
-            text:`次の2つのうち、正しいのはちょうど1つだけです。もう1つは正しくありません。 A：${a.label}。 B：${b.label}。`,
+            title:"1つだけ正しいカード",
+            text:`AとBのうち、正しいのは1つだけ。\nA：${a.label}。\nB：${b.label}。`,
             test: code => (a.test(code) ? 1 : 0) + (b.test(code) ? 1 : 0) === 1
           });
         }
@@ -1612,30 +1632,87 @@
 
     function addCompoundWireHints(list, seen, answerOrder) {
       const total = WIRE_CANDIDATES.length;
-      const p = posMap(answerOrder);
-      const pairs = [];
+      const answerPos = posMap(answerOrder);
+      const trueStatements = [];
+      const falseStatements = [];
+
       for (let i = 0; i < COLORS.length; i++) {
         for (let j = i + 1; j < COLORS.length; j++) {
-          const a = COLORS[i].id, b = COLORS[j].id;
-          pairs.push({
+          const a = COLORS[i].id;
+          const b = COLORS[j].id;
+          const aBeforeB = answerPos[a] < answerPos[b];
+
+          const statementAB = {
             label:`${colorName(a)}線は${colorName(b)}線より前`,
             target:`${simpleColorName(a)}・${simpleColorName(b)}線`,
-            test: order => posMap(order)[a] < posMap(order)[b],
-            actual: p[a] < p[b]
-          });
+            test: order => posMap(order)[a] < posMap(order)[b]
+          };
+          const statementBA = {
+            label:`${colorName(b)}線は${colorName(a)}線より前`,
+            target:`${simpleColorName(b)}・${simpleColorName(a)}線`,
+            test: order => posMap(order)[b] < posMap(order)[a]
+          };
+
+          if (aBeforeB) {
+            trueStatements.push(statementAB);
+            falseStatements.push(statementBA);
+          } else {
+            trueStatements.push(statementBA);
+            falseStatements.push(statementAB);
+          }
+
+          const adj = Math.abs(answerPos[a] - answerPos[b]) === 1;
+          const adjStatement = {
+            label:`${colorName(a)}線と${colorName(b)}線は隣り合って切る`,
+            target:`${simpleColorName(a)}・${simpleColorName(b)}線`,
+            test: order => Math.abs(posMap(order)[a] - posMap(order)[b]) === 1
+          };
+          const notAdjStatement = {
+            label:`${colorName(a)}線と${colorName(b)}線は隣り合っていない`,
+            target:`${simpleColorName(a)}・${simpleColorName(b)}線`,
+            test: order => Math.abs(posMap(order)[a] - posMap(order)[b]) !== 1
+          };
+
+          if (adj) {
+            trueStatements.push(adjStatement);
+            falseStatements.push(notAdjStatement);
+          } else {
+            trueStatements.push(notAdjStatement);
+            falseStatements.push(adjStatement);
+          }
         }
       }
-      const truePairs = pairs.filter(x => x.actual);
-      const falsePairs = pairs.filter(x => !x.actual);
-      for (let i = 0; i < Math.min(6, truePairs.length); i++) {
-        const a = truePairs[i], b = falsePairs[(i + 2) % falsePairs.length];
+
+      // OR型：AかB、または両方が正しい。
+      for (let i = 0; i < Math.min(14, trueStatements.length); i++) {
+        const a = trueStatements[(i * 2 + 1) % trueStatements.length];
+        const useTrueB = i % 3 === 0;
+        const bPool = useTrueB ? trueStatements : falseStatements;
+        const b = bPool[(i * 3 + 2) % bPool.length];
+        if (!b || a.label === b.label) continue;
+        addHint(list, seen, total, answerOrder, WIRE_CANDIDATES, {
+          key:`wor:${a.label}|${b.label}`,
+          round:"wire",
+          category:"複合",
+          target:`${a.target} / ${b.target}`,
+          title:"AかBカード",
+          text:`AかB、または両方が正しい。\nA：${a.label}。\nB：${b.label}。`,
+          test: order => a.test(order) || b.test(order)
+        });
+      }
+
+      // XOR型：AとBのうち、正しいのは1つだけ。
+      for (let i = 0; i < Math.min(14, trueStatements.length); i++) {
+        const a = trueStatements[(i * 2 + 2) % trueStatements.length];
+        const b = falseStatements[(i * 3 + 1) % falseStatements.length];
+        if (!b || a.label === b.label) continue;
         addHint(list, seen, total, answerOrder, WIRE_CANDIDATES, {
           key:`wxor:${a.label}|${b.label}`,
           round:"wire",
           category:"複合",
           target:`${a.target} / ${b.target}`,
-          title:"どちらかだけ正しいカード",
-          text:`次の2つのうち、正しいのはちょうど1つだけです。もう1つは正しくありません。 A：${a.label}。 B：${b.label}。`,
+          title:"1つだけ正しいカード",
+          text:`AとBのうち、正しいのは1つだけ。\nA：${a.label}。\nB：${b.label}。`,
           test: order => (a.test(order) ? 1 : 0) + (b.test(order) ? 1 : 0) === 1
         });
       }
@@ -1744,7 +1821,7 @@
 
       State.revealed.push(card);
       State.score += card.score;
-      State.logs.push(card.text);
+      State.logs.push({ text: card.text, round: card.round });
 
       if (State.difficulty === "hard") {
         if (isSingleHint(card)) State.singleStreak[card.round] += 1;
@@ -1936,7 +2013,7 @@
       }
       els.revealedList.innerHTML = State.revealed.slice().reverse().map(h => `
         <article class="revealed-row">
-          <div class="hint-body">${formatHintText(h.text)}</div>
+          <div class="hint-body">${formatHintText(h.text, h.round === "code")}</div>
           <div class="hint-score">${h.score}点</div>
         </article>`).join("");
     }
@@ -1945,7 +2022,10 @@
       if (!State.logs.length) {
         els.missionLog.innerHTML = `<p>取得したヒント内容がここに表示されます。</p>`;
       } else {
-        els.missionLog.innerHTML = State.logs.slice(-6).map(line => `<p>${formatHintText(line)}</p>`).join("");
+        els.missionLog.innerHTML = State.logs.slice(-6).map(line => {
+          const item = typeof line === "string" ? { text: line, round: "" } : line;
+          return `<p>${formatHintText(item.text, item.round === "code")}</p>`;
+        }).join("");
       }
       els.missionLog.scrollTop = els.missionLog.scrollHeight;
     }
@@ -2058,8 +2138,10 @@
       return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    function formatHintText(value) {
-      return escapeHtml(value)
+    function formatHintText(value, markNumberPositions = false) {
+      const escaped = escapeHtml(value).replace(/\n/g, "<br>");
+      if (!markNumberPositions) return escaped;
+      return escaped
         .replace(/1(桁目|番目)/g, '<span class="hint-marker p1">1番目</span>')
         .replace(/2(桁目|番目)/g, '<span class="hint-marker p2">2番目</span>')
         .replace(/3(桁目|番目)/g, '<span class="hint-marker p3">3番目</span>');
