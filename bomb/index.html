@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CODEWIRE: ドキドキ解除ロジック</title>
   <style>
+    @import url("https://fonts.googleapis.com/css2?family=DotGothic16&display=swap");
     :root {
       --bg0: #070914;
       --bg1: #101526;
@@ -109,10 +110,13 @@
     h1 {
       margin: 20px 0 12px;
       line-height: 1.02;
-      font-size: clamp(38px, 6vw, 76px);
-      letter-spacing: -0.06em;
+      font-size: clamp(40px, 6vw, 78px);
+      letter-spacing: 0.02em;
+      font-family: "DotGothic16", var(--sans);
+      text-shadow: 0 0 18px rgba(102, 227, 255, 0.18), 0 0 34px rgba(177, 140, 255, 0.10);
     }
     .subtitle {
+      display: none;
       max-width: 720px;
       color: #dbe5f6;
       font-size: clamp(16px, 2.1vw, 22px);
@@ -1048,8 +1052,7 @@
       <div class="hero-card">
         <div class="kicker">CODEWIRE // SOLO LOGIC GAME</div>
         <h1>ドキドキ<br>解除ロジック</h1>
-        <p class="subtitle">問題IDで同じ訓練爆弾を再現。ヒントカードをめくるたび点数が増え、低い点数で解除できるほどすごい。</p>
-        <p class="notice">これは論理パズル用の架空の訓練装置です。現実の爆発物・配線作業とは無関係です。ROUND 1は色ワイヤー、ROUND 2は1〜5の数字ダイヤルを推理します。</p>
+                <p class="notice">これは論理パズル用の架空の訓練装置です。現実の爆発物・配線作業とは無関係です。ROUND 1は色ワイヤー、ROUND 2は1〜5の数字ダイヤルを推理します。</p>
         <div style="height: 24px"></div>
         <ul class="rules">
           <li><span class="rule-num">1</span><span><b>問題ID</b>を入力または生成します。同じIDなら、答え・山札・カード順まで同じです。</span></li>
@@ -1069,8 +1072,8 @@
         <div>
           <label class="field-label" for="difficultySelect">難易度</label>
           <select id="difficultySelect">
-            <option value="normal">ふつう：素直なヒント中心</option>
-            <option value="hard">むずかしい：AかB / 正しいのは1つだけ ヒント入り</option>
+            <option value="normal">ふつう</option>
+            <option value="hard">むずかしい</option>
           </select>
         </div>
         <div class="start-actions">
