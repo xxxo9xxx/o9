@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="_レイヤー_1" data-name="レイヤー_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 595.28 841.89">
+<svg id="_レイヤー_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 76.54 76.54">
   <!-- Generator: Adobe Illustrator 29.0.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 186)  -->
   <defs>
     <style>
       .st0 {
-        fill: none;
-      }
-
-      .st0, .st1 {
-        stroke-width: 2px;
+        fill: #e5ae00;
+        stroke-width: 3px;
       }
 
       .st0, .st1, .st2 {
@@ -17,24 +14,27 @@
         stroke-linejoin: round;
       }
 
-      .st3 {
-        fill: #fff9b7;
-      }
-
       .st1 {
         fill: #e4b5cf;
       }
 
+      .st1, .st2 {
+        stroke-width: 2px;
+      }
+
+      .st3 {
+        fill: #fff9b7;
+      }
+
       .st2 {
-        fill: #e5ae00;
-        stroke-width: 3px;
+        fill: none;
       }
     </style>
   </defs>
-  <circle class="st2" cx="297.64" cy="420.94" r="20.17"/>
-  <path class="st0" d="M292.79,416.15c-1.14-1.02-2.38-1.82-4.44-1.27-2.06.54-3.39,1.93-3.59,3.69"/>
-  <path class="st1" d="M304.15,423.72c0,2.73-2.61,6.04-6.52,6.04-3.91,0-6.52-3.31-6.52-6.04h13.03Z"/>
-  <path class="st0" d="M302.49,416.15c1.14-1.02,2.38-1.82,4.44-1.27,2.06.54,3.39,1.93,3.59,3.69"/>
-  <ellipse class="st3" cx="282.52" cy="422.95" rx="1.56" ry="1.25" transform="translate(-72.96 59.16) rotate(-10.6)"/>
-  <ellipse class="st3" cx="312.76" cy="422.95" rx="1.25" ry="1.56" transform="translate(-160.49 652.6) rotate(-79.4)"/>
+  <circle class="st0" cx="38.27" cy="38.26" r="20.17"/>
+  <path class="st2" d="M33.42,33.47c-1.14-1.02-2.38-1.82-4.44-1.27-2.06.54-3.39,1.93-3.59,3.69"/>
+  <path class="st1" d="M44.78,41.04c0,2.73-2.61,6.04-6.52,6.04s-6.52-3.31-6.52-6.04h13.04Z"/>
+  <path class="st2" d="M43.12,33.47c1.14-1.02,2.38-1.82,4.44-1.27,2.06.54,3.39,1.93,3.59,3.69"/>
+  <ellipse class="st3" cx="23.17" cy="40.25" rx="1.56" ry="1.25" transform="translate(-7.01 4.95) rotate(-10.6)"/>
+  <ellipse class="st3" cx="53.4" cy="40.3" rx="1.25" ry="1.56" transform="translate(3.97 85.38) rotate(-79.4)"/>
 </svg>
