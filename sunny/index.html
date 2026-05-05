@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>サニーさんのモヤモヤサバイバー DPS再設計版</title>
+<title>サニーさんサバイバー</title>
 <style>
 
 :root{--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);--game-height:100dvh;--glass:rgba(255,255,255,.12);--line:rgba(255,255,255,.24);--gold:#ffdf6b;--cyan:#66d9ff;--bg:#10182f;}
@@ -15,6 +15,7 @@ button{font:inherit;font-weight:900;border:0;border-radius:16px;padding:14px 20p
 button:active{transform:translateY(2px);box-shadow:0 4px 0 rgba(0,0,0,.28)}
 #menu{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 25%,rgba(255,223,107,.16),rgba(0,0,0,.68));z-index:10;padding:20px;}
 #panel{width:min(580px,94vw);padding:24px;border-radius:22px;text-align:center;background:var(--glass);border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.35);backdrop-filter:blur(10px);}
+.menuHero{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:10px}.titleSprite{position:relative;width:108px;height:108px;display:grid;place-items:center;filter:drop-shadow(0 8px 24px rgba(0,0,0,.25));}.titleSprite img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;}.titleSprite .face{z-index:2}.titleSprite .ring{z-index:1}.menuQrWrap{margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:8px}.menuQrWrap img{width:132px;height:132px;border-radius:14px;background:#fff;padding:8px;box-shadow:0 10px 28px rgba(0,0,0,.25);}.menuQrHint{font-size:12px;color:#dce5ff;line-height:1.5}
 h1{font-size:clamp(30px,8vw,42px);line-height:1.12;margin:8px 0 12px;}p{line-height:1.6;color:#e3e9ff;margin:8px 0;}
 #hud{position:absolute;left:8px;right:8px;top:calc(8px + var(--safe-top));z-index:5;display:none;pointer-events:none;font-weight:900;flex-wrap:wrap;gap:4px 6px;align-items:flex-start;max-width:calc(100vw - 16px);}
 .pill{display:inline-block;background:rgba(0,0,0,.58);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:7px 10px;margin:0;text-shadow:0 1px 2px rgba(0,0,0,.8);}
@@ -60,7 +61,7 @@ h1{font-size:clamp(30px,8vw,42px);line-height:1.12;margin:8px 0 12px;}p{line-hei
 <div id="levelScreen" class="modal"><div id="levelPanel" class="panelGlass"><h2>LEVEL UP!</h2><p>ビルドを選んでね。完成後は自動でスコア化、エンドレスでは限界突破。</p><div id="choices"></div><button id="rerollBtn" type="button">デバッグ：3択ひきなおし</button></div></div>
 <div id="clearScreen" class="modal"><div class="resultPanel"><h2 class="clearGlow">GAME CLEAR!</h2><p>5分間生存成功！結果を見るか、エンドレスへ挑戦できます。</p><div id="clearStats" class="statsGrid"></div><div id="clearBuild" class="buildLine"></div><button id="endlessBtn" type="button">エンドレスへ挑戦</button><button id="finishBtn" type="button">結果を見る</button></div></div>
 <div id="resultScreen" class="modal"><div class="resultPanel"><h2 id="resultTitle">RESULT</h2><p id="resultComment"></p><div id="resultStats" class="statsGrid"></div><div id="resultBuild" class="buildLine"></div><button id="againBtn" type="button">もう一度</button><button id="titleBtn" type="button">タイトルへ</button></div></div>
-<div id="menu"><div id="panel"><div style="font-size:64px">☀️</div><h1>サニーさんの<br>モヤモヤサバイバー</h1><p>DPS・ボス耐性・処理上限を再設計した版です。<br>通常武器は雑魚処理、合成武器は突破口。止まると押し負けます。</p><button id="startBtn" type="button">ゲームスタート</button></div></div>
+<div id="menu"><div id="panel"><div class="menuHero"><div class="titleSprite" aria-hidden="true"><img id="menuRingImg" class="ring" alt=""><img id="menuFaceImg" class="face" alt=""></div><h1>サニーさんサバイバー</h1></div><button id="startBtn" type="button">ゲームスタート</button><div class="menuQrWrap" id="menuQrWrap"><img id="menuQrImg" alt="このゲームのQRコード"><div class="menuQrHint">このゲームのURLを開くQRコード</div></div></div></div>
 </div>
 <script>
 
@@ -93,6 +94,28 @@ function makeSprite(local,fallback){var img=new Image();img.onerror=function(){i
 var playerFaceImg=makeSprite('image1.png',PLAYER_FACE_FALLBACK);
 var playerRingImg=makeSprite('image2.png',PLAYER_RING_FALLBACK);
 var playerHitImg=makeSprite('image3.png',PLAYER_HIT_FALLBACK);
+function setupMenuVisuals(){
+  var face=document.getElementById('menuFaceImg');
+  var ring=document.getElementById('menuRingImg');
+  if(face)face.src=(playerFaceImg&&playerFaceImg.src)||PLAYER_FACE_FALLBACK;
+  if(ring)ring.src=(playerRingImg&&playerRingImg.src)||PLAYER_RING_FALLBACK;
+  var qr=document.getElementById('menuQrImg');
+  if(qr){
+    var href=location.href||'';
+    if(/^https?:/i.test(href)){
+      qr.src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(href);
+      qr.style.display='block';
+    }else{
+      qr.style.display='none';
+      var wrap=document.getElementById('menuQrWrap');
+      if(wrap){
+        var hint=wrap.querySelector('.menuQrHint');
+        if(hint)hint.textContent='公開URLで開くとQRコードが表示されます';
+      }
+    }
+  }
+}
+setupMenuVisuals();
 
 window.onerror=function(message,source,line,column){var box=document.getElementById('error');box.style.display='block';box.textContent=['JavaScript Error:',String(message),'line:'+line+' col:'+column].join('\n');};
 
