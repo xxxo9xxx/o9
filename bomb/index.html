@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CODEWIRE: ドキドキ解除ロジック</title>
+  <title>LOGIC CODE: 爆弾解除ロジックコード</title>
   <style>
     @import url("https://fonts.googleapis.com/css2?family=DotGothic16&display=swap");
     :root {
@@ -109,14 +109,16 @@
     }
     h1 {
       margin: 20px 0 12px;
-      line-height: 1.02;
-      font-size: clamp(40px, 6vw, 78px);
-      letter-spacing: 0.02em;
+      line-height: 1;
+      font-size: clamp(42px, 7vw, 86px);
+      letter-spacing: 0.04em;
       font-family: "DotGothic16", var(--sans);
-      text-shadow: 0 0 18px rgba(102, 227, 255, 0.18), 0 0 34px rgba(177, 140, 255, 0.10);
+      white-space: nowrap;
+      text-shadow:
+        0 0 18px rgba(102, 227, 255, 0.22),
+        0 0 34px rgba(177, 140, 255, 0.12);
     }
     .subtitle {
-      display: none;
       max-width: 720px;
       color: #dbe5f6;
       font-size: clamp(16px, 2.1vw, 22px);
@@ -1044,15 +1046,20 @@
     .logbox p br { display:block; content:""; margin-top:3px; }
     .revealed-row .hint-body { word-break: break-word; }
 
+  
+    @media (max-width: 520px) {
+      h1 { font-size: clamp(38px, 12vw, 58px); letter-spacing: 0.02em; }
+    }
+
   </style>
 </head>
 <body>
   <div class="app">
     <section id="startScreen" class="hero">
       <div class="hero-card">
-        <div class="kicker">CODEWIRE // SOLO LOGIC GAME</div>
-        <h1>ドキドキ<br>解除ロジック</h1>
-                <p class="notice">これは論理パズル用の架空の訓練装置です。現実の爆発物・配線作業とは無関係です。ROUND 1は色ワイヤー、ROUND 2は1〜5の数字ダイヤルを推理します。</p>
+        <div class="kicker">LOGIC CODE // BOMB DEFUSE LOGIC</div>
+        <h1>LOGIC CODE</h1>
+                <p class="notice">爆弾解除ロジックコード。これは論理パズル用の架空の訓練装置です。現実の爆発物・配線作業とは無関係です。ROUND 1は色ワイヤー、ROUND 2は1〜5の数字ダイヤルを推理します。</p>
         <div style="height: 24px"></div>
         <ul class="rules">
           <li><span class="rule-num">1</span><span><b>問題ID</b>を入力または生成します。同じIDなら、答え・山札・カード順まで同じです。</span></li>
@@ -1111,7 +1118,7 @@
           <div class="brand">
             <div class="brand-mark">⏱️</div>
             <div>
-              <h2>CODEWIRE 解除任務</h2>
+              <h2>LOGIC CODE 解除任務</h2>
               <p>SIMULATED DEVICE を直接操作して解除せよ</p>
             </div>
           </div>
@@ -1898,7 +1905,7 @@
       const result = { score: State.score, cards: State.revealed.length, time: elapsedSeconds(), id: State.id };
       const best = getBest(State.id);
       if (isBetter(result, best)) setBest(State.id, result);
-      State.resultText = `CODEWIRE 解除成功｜ID:${State.id}｜${State.score}点｜${State.revealed.length}枚｜${fmtTime(result.time)}`;
+      State.resultText = `LOGIC CODE 解除成功｜ID:${State.id}｜${State.score}点｜${State.revealed.length}枚｜${fmtTime(result.time)}`;
       showFx("success", "DISARMED", "SIMULATED DEVICE SAFE");
       renderAll();
       showResult(true);
@@ -1913,7 +1920,7 @@
       els.bombCore.classList.remove("shake");
       void els.bombCore.offsetWidth;
       els.bombCore.classList.add("shake");
-      State.resultText = `CODEWIRE 訓練失敗｜ID:${State.id}｜${State.score}点｜${State.revealed.length}枚｜${fmtTime(elapsedSeconds())}`;
+      State.resultText = `LOGIC CODE 訓練失敗｜ID:${State.id}｜${State.score}点｜${State.revealed.length}枚｜${fmtTime(elapsedSeconds())}`;
       showFx("fail", "DETONATION", "MISSION FAILED");
       renderAll();
       showResult(false, msg);
@@ -2164,7 +2171,7 @@
       ta.remove();
     }
     function copyId() { copyText(State ? State.id : normalizeId(els.problemIdInput.value)); toast("問題IDをコピーしました。"); }
-    function copyResult() { copyText(State.resultText || `CODEWIRE｜ID:${State.id}｜${State.score}点`); toast("結果をコピーしました。"); }
+    function copyResult() { copyText(State.resultText || `LOGIC CODE｜ID:${State.id}｜${State.score}点`); toast("結果をコピーしました。"); }
     function backToStart() {
       stopTimer();
       els.gameScreen.classList.add("hidden");
