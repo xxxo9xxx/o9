@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 76.54 76.54">
+  <!-- Generator: Adobe Illustrator 29.0.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 186)  -->
+  <defs>
+    <style>
+      .st0, .st1 {
+        fill: #ccddea;
+      }
+
+      .st0, .st1, .st2 {
+        stroke: #73584a;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .st0, .st2 {
+        stroke-width: 2px;
+      }
+
+      .st1 {
+        stroke-width: 3px;
+      }
+
+      .st3 {
+        display: none;
+      }
+
+      .st2 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <g id="_レイヤー_7" data-name="レイヤー_7" class="st3">
+    <circle class="st1" cx="38.98" cy="40.31" r="21.81"/>
+    <circle class="st0" cx="13.17" cy="27.6" r="3.43"/>
+    <circle class="st0" cx="60.8" cy="57.83" r="2.88"/>
+    <circle class="st0" cx="23.58" cy="58.17" r="4.15"/>
+    <circle class="st0" cx="61.72" cy="20.24" r="4.9"/>
+    <g>
+      <ellipse class="st2" cx="29.86" cy="38.55" rx="2.61" ry="4.32"/>
+      <ellipse class="st2" cx="48.11" cy="38.55" rx="2.61" ry="4.32"/>
+      <line class="st0" x1="36.1" y1="49.79" x2="41.86" y2="49.79"/>
+    </g>
+  </g>
+</svg>
