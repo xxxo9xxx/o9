@@ -301,6 +301,68 @@ button{letter-spacing:.01em;}
   .mode-grid{gap:6px}.mode-grid button{min-height:50px;}
 }
 
+
+/* v17: 学習用スタート説明画面 + 選択方向の見える化 + デモゆっくり表示 */
+.ready-screen{gap:14px;justify-content:center;padding:26px 30px 30px;}
+.ready-title{font-family:var(--font-display);font-size:clamp(30px,4.2vw,58px);font-weight:1000;margin:0;color:#1f6848;line-height:1.05;letter-spacing:-.02em;}
+.ready-lead{font-size:clamp(15px,1.8vw,22px);font-weight:1000;line-height:1.45;color:#4f6970;margin:0;max-width:760px;}
+.ready-directions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:min(700px,100%);margin:4px auto;}
+.ready-dir-card{display:grid;grid-template-columns:54px 1fr;align-items:center;gap:10px;text-align:left;background:rgba(255,255,255,.80);border-radius:22px;padding:10px 12px;box-shadow:0 10px 22px rgba(15,55,65,.08);font-weight:1000;}
+.ready-dir-card .arrow{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;color:white;font-family:var(--font-display);font-size:30px;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 8px 16px rgba(15,55,65,.10);}
+.ready-dir-card.up .arrow{background:linear-gradient(135deg,var(--blue),var(--blueDeep));}
+.ready-dir-card.down .arrow{background:linear-gradient(135deg,var(--green),var(--greenDeep));}
+.ready-dir-card.left .arrow{background:linear-gradient(135deg,var(--red),var(--redDeep));}
+.ready-dir-card.right .arrow{background:linear-gradient(135deg,var(--yellow2),var(--yellow));color:var(--yellowDeep);}
+.ready-dir-card .name{font-size:clamp(16px,1.8vw,24px);line-height:1.1;color:#213f47;}
+.ready-dir-card .ex{font-size:clamp(11px,1.05vw,14px);line-height:1.25;color:#60747b;margin-top:4px;font-weight:900;}
+.ready-start{margin-top:4px;min-width:min(520px,92vw);font-size:clamp(24px,3.2vw,42px)!important;border-radius:28px!important;padding:18px 20px!important;background:linear-gradient(180deg,#fff7bc,#ffffff)!important;box-shadow:0 12px 0 rgba(126,90,0,.16),0 18px 36px rgba(15,55,65,.14)!important;}
+.ready-start .sub{font-size:clamp(12px,1.2vw,16px)!important;color:rgba(24,50,59,.62)!important;}
+.ready-tip{font-size:clamp(11px,1.05vw,14px);font-weight:900;color:rgba(24,50,59,.48);margin:0;}
+.guide.choice-picked{outline:8px solid rgba(255,255,255,.95);box-shadow:0 0 0 15px rgba(255,255,255,.38),0 0 36px rgba(255,255,255,.95),var(--soft)!important;animation:choicePulse .76s ease-in-out 1;filter:brightness(1.14) saturate(1.25);}
+.guide.choice-miss{outline-color:rgba(255,255,255,.98);box-shadow:0 0 0 12px rgba(255,255,255,.42),0 0 0 22px rgba(239,97,92,.40),0 0 38px rgba(239,97,92,.65),var(--soft)!important;}
+.guide.choice-answer{outline:8px solid rgba(255,255,255,.98);box-shadow:0 0 0 15px rgba(255,230,122,.70),0 0 46px rgba(255,255,255,.95),var(--soft)!important;animation:choiceAnswerPulse .9s ease-in-out infinite alternate;filter:brightness(1.18) saturate(1.28);}
+@keyframes choicePulse{0%{filter:brightness(1) saturate(1)}45%{filter:brightness(1.24) saturate(1.36)}100%{filter:brightness(1.14) saturate(1.25)}}
+@keyframes choiceAnswerPulse{from{filter:brightness(1.08) saturate(1.16)}to{filter:brightness(1.25) saturate(1.34)}}
+.feedback.learning{padding:18px;color:white;}
+.feedback.learning.correct{background:rgba(40,185,121,.94);}
+.feedback.learning.wrong{background:rgba(239,97,92,.94);}
+.feedback.learning.demo-feedback{background:rgba(47,125,242,.94);}
+.feedback.learning .main{font-size:clamp(34px,6.6vw,78px);line-height:1.05;margin-bottom:12px;}
+.choice-board{width:min(760px,94%);margin:auto;background:rgba(255,255,255,.18);border-radius:30px;padding:16px 18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.34),0 18px 42px rgba(0,0,0,.12);}
+.choice-picked-row{display:grid;grid-template-columns:110px 1fr;gap:16px;align-items:center;text-align:left;margin:0 auto 8px;}
+.choice-arrow{width:100px;height:100px;border-radius:30px;display:grid;place-items:center;background:rgba(255,255,255,.94);font-family:var(--font-display);font-size:72px;font-weight:1000;line-height:1;color:#1f6848;text-shadow:none;box-shadow:0 12px 26px rgba(0,0,0,.18);}
+.choice-arrow.up{color:var(--blueDeep)}.choice-arrow.down{color:var(--greenDeep)}.choice-arrow.left{color:var(--redDeep)}.choice-arrow.right{color:var(--yellowDeep)}
+.choice-picked-text{font-size:clamp(22px,3.2vw,42px);font-weight:1000;line-height:1.18;text-shadow:0 2px 0 rgba(0,0,0,.12);}
+.choice-picked-text small{display:block;font-size:clamp(13px,1.5vw,18px);font-weight:900;opacity:.86;margin-bottom:4px;}
+.choice-answer-line,.choice-note-line{font-size:clamp(16px,2vw,26px);font-weight:1000;line-height:1.35;margin-top:8px;}
+.choice-answer-line{background:rgba(255,255,255,.20);border-radius:18px;padding:9px 12px;display:inline-block;}
+.choice-note-line{opacity:.94;}
+.choice-time{font-size:clamp(24px,4vw,50px);font-weight:1000;margin:8px 0;}
+.demo-answer-card{opacity:0;transform:translateY(8px);transition:opacity .32s ease,transform .32s ease;background:#eef9ff;border-radius:24px;padding:13px 16px;font-size:clamp(16px,1.8vw,24px);font-weight:1000;line-height:1.38;box-shadow:0 10px 22px rgba(15,55,65,.08);}
+.demo-answer-card.show{opacity:1;transform:translateY(0);}
+.demo-slow-hint{font-size:clamp(13px,1.4vw,18px);font-weight:1000;color:#66777c;}
+@media(max-width:720px) and (orientation:portrait){
+  body.playing .ready-screen{padding:12px!important;gap:10px;overflow:auto;justify-content:center;}
+  .ready-title{font-size:clamp(24px,8.2vw,38px);}
+  .ready-lead{font-size:clamp(13px,4vw,17px);line-height:1.36;}
+  .ready-directions{grid-template-columns:1fr;gap:7px;margin:2px auto;}
+  .ready-dir-card{grid-template-columns:42px 1fr;border-radius:17px;padding:8px 9px;}
+  .ready-dir-card .arrow{width:38px;height:38px;border-radius:13px;font-size:24px;}
+  .ready-dir-card .name{font-size:clamp(15px,4.8vw,20px);}
+  .ready-dir-card .ex{font-size:clamp(10px,3.1vw,12px);margin-top:2px;}
+  .ready-start{min-width:100%;font-size:clamp(21px,7vw,31px)!important;padding:14px 10px!important;border-radius:22px!important;}
+  .ready-tip{font-size:11px;}
+  .feedback.learning{border-radius:22px;padding:12px;}
+  .feedback.learning .main{font-size:clamp(29px,9.4vw,46px);margin-bottom:8px;}
+  .choice-board{border-radius:22px;padding:12px;width:96%;}
+  .choice-picked-row{grid-template-columns:72px 1fr;gap:11px;margin-bottom:6px;}
+  .choice-arrow{width:70px;height:70px;border-radius:21px;font-size:52px;}
+  .choice-picked-text{font-size:clamp(20px,6.5vw,30px);}
+  .choice-picked-text small{font-size:clamp(12px,3.5vw,15px);}
+  .choice-answer-line,.choice-note-line{font-size:clamp(14px,4.2vw,18px);}
+  body.kids.playing .ready-directions{grid-template-columns:1fr;}
+}
+
 </style>
 </head>
 <body>
@@ -392,7 +454,7 @@ function shuffle(a){const c=[...a];for(let i=c.length-1;i>0;i--){const j=Math.fl
 function draw(poolArr,count){let out=[];let src=shuffle(poolArr);while(out.length<count){if(!src.length)src=shuffle(poolArr);out.push(src.shift());if(!poolArr.length)break;}return out.slice(0,count);}
 function bodyMode(...names){document.body.classList.remove("playing","kids","result","demo");names.forEach(n=>n&&document.body.classList.add(n));}
 function clearTimers(){if(state.timerId)clearInterval(state.timerId);state.timerId=null;if(state.demoTimer)clearTimeout(state.demoTimer);state.demoTimer=null;}
-function clearAssist(){document.querySelectorAll(".guide").forEach(g=>g.classList.remove("assist"));}
+function clearAssist(){document.querySelectorAll(".guide").forEach(g=>g.classList.remove("assist","choice-picked","choice-miss","choice-answer"));}
 function flashGuide(dir){clearAssist();if(!dir)return;document.querySelector(`.guide[data-dir="${dir}"]`)?.classList.add("assist");}
 function setGuideLabels(mode=false){
   const isKids=mode===true||mode==="kids",isSchool=mode==="school"||mode==="practice";
@@ -417,6 +479,36 @@ function chip(dir){return `<span class="answer-chip ${dir}">${directionText(dir)
 function dots(n){return `<div class="dots">${Array.from({length:QUESTION_COUNT},(_,i)=>`<span class="dot ${i<n?"done":i===n?"now":""}"></span>`).join("")}</div>`;}
 function modeTitle(mode){return {kids:"キッズ",school:"小学生",adult:"チャレンジ",practice:"練習"}[mode]||mode;}
 function titleStatus(){return config.assistMode?"補助あり":"補助なし";}
+
+function directionArrow(dir){return {up:"↑",down:"↓",left:"←",right:"→"}[dir]||"？";}
+function directionLongText(dir){return DIRECTION[dir]?.long||directionText(dir)||"?";}
+function modeIntro(mode){
+  if(mode==="kids")return {title:"キッズ",lead:"左右だけで分別します。見ている人にも、どちらを選んだか大きく表示します。",dirs:["left","right"],tips:{left:"食べもの・紙くず・木や布など",right:"ガラス・せともの・金属など"}};
+  if(mode==="practice")return {title:"練習",lead:"時間なしで、4つの分別を練習します。まちがえても答えを見て続けられます。",dirs:["up","down","left","right"],tips:{up:"ペットボトル・缶・びん・紙など",down:"家具・自転車など",left:"生ごみ・紙くず・木や布など",right:"ガラス・せともの・金属など"}};
+  if(mode==="school")return {title:"小学生",lead:"4つの分別に挑戦します。上下左右、またはスマホのスワイプで選べます。",dirs:["up","down","left","right"],tips:{up:"ペットボトル・かん・びん・かみ",down:"大きいごみ",left:"たべもの・かみくずなど",right:"ガラス・きんぞくなど"}};
+  return {title:"チャレンジ",lead:"4つの分別に挑戦します。ノーミスなら、むずかしい問題のエンドレスへ進めます。",dirs:["up","down","left","right"],tips:{up:"資源として出すもの",down:"連絡ごみとして申し込むもの",left:"もえるごみ",right:"もえないごみ"}};
+}
+function readyDirCard(dir,tips={}){return `<div class="ready-dir-card ${dir}"><div class="arrow">${directionArrow(dir)}</div><div><div class="name">${esc(directionLongText(dir))}</div><div class="ex">${esc(tips[dir]||"")}</div></div></div>`;}
+function showModeGuide(mode){
+  clearTimers();clearAssist();state.phase="ready";state.pendingMode=mode;state.mode=mode;state.accepting=false;state.lastDir=null;
+  const info=modeIntro(mode);bodyMode("playing",mode==="kids"?"kids":"");setGuideLabels(mode);screen.className="screen ready-screen";
+  screen.innerHTML=`<p class="kicker">${esc(info.title)}モード</p><h1 class="ready-title">始める前に確認</h1><p class="ready-lead">${esc(info.lead)}</p><div class="ready-directions">${info.dirs.map(d=>readyDirCard(d,info.tips)).join("")}</div><button class="ready-start" data-menu data-default onclick="beginSelectedMode()">Aボタンでスタート<span class="sub">スマホはここをタップ / Enterでも開始</span></button><p class="ready-tip">プレイ中は、選んだ方向が大きく表示されます。</p>`;
+  setMenu();
+}
+function beginSelectedMode(){const mode=state.pendingMode||state.mode||"school";if(mode==="practice")beginPractice();else beginGame(mode);}
+function markChoice(selected,answer,ok){
+  clearAssist();
+  document.querySelectorAll(".guide").forEach(g=>g.classList.remove("choice-picked","choice-miss","choice-answer"));
+  if(selected&&selected!=="time"){const picked=document.querySelector(`.guide[data-dir="${selected}"]`);picked?.classList.add("choice-picked");if(!ok)picked?.classList.add("choice-miss");}
+  if(answer&&(!ok||selected==="demo")){document.querySelector(`.guide[data-dir="${answer}"]`)?.classList.add("choice-answer");}
+}
+function selectedChoiceHtml(selectedDir,q,ok,opts={}){
+  if(selectedDir==="time")return `<div class="choice-time">時間切れ</div><div class="choice-answer-line">正解：${chip(q.ans)}</div><div class="choice-note-line">${esc(displayNote(q))}</div>`;
+  const label=opts.demo?"選ぶ方向":"選んだ方向";
+  const selectedLine=selectedDir?`<div class="choice-picked-row"><div class="choice-arrow ${selectedDir}">${directionArrow(selectedDir)}</div><div class="choice-picked-text"><small>${label}</small>${chip(selectedDir)}<br>${esc(directionLongText(selectedDir))}</div></div>`:"";
+  const answerLine=(!ok||opts.demo)?`<div class="choice-answer-line">正解：${chip(q.ans)}　${esc(directionLongText(q.ans))}</div>`:"";
+  return `${selectedLine}${answerLine}<div class="choice-note-line">${esc(displayNote(q))}</div>`;
+}
 function renderTitle(){
   clearTimers();clearAssist();state.phase="title";state.mode=null;state.accepting=false;bodyMode();setGuideLabels(false);screen.className="screen title-screen";
   screen.innerHTML=`<p class="kicker">浜松市版</p><h1 class="title">ごみゼロ分別チャレンジ</h1><p class="subtitle">ごみを見て、分別方向を選んでね。</p><div class="rule-flow"><div class="step"><div class="icon">🗑️</div><div class="text">ごみを見る</div></div><div class="step"><div class="icon">🎮</div><div class="text">分別を選ぶ</div></div><div class="step"><div class="icon">✅</div><div class="text">10問で結果</div></div></div><div class="mode-grid"><button class="btn-green" data-menu onclick="startPractice()">練習<span class="sub">まちがえても続く</span></button><button class="btn-yellow" data-menu onclick="startGame('kids')">キッズ<span class="sub">もえる・もえない</span></button><button class="btn-blue" data-menu data-default onclick="startGame('school')">小学生<span class="sub">4つに分ける</span></button><button class="btn-red" data-menu onclick="startGame('adult')">チャレンジ<span class="sub">ノーミスでエンドレス</span></button></div><p class="assist-status">${titleStatus()}</p>`;setMenu();
@@ -426,8 +518,9 @@ function updateMenu(){state.menu.forEach((b,i)=>b.classList.toggle("menu-selecte
 function menuColumns(){const b=state.menu[state.menuIndex];if(!b)return 1;const p=b.parentElement;if(p?.classList.contains("mode-grid"))return 2;if(p?.classList.contains("result-actions")||p?.classList.contains("footer-buttons"))return state.menu.length;return 1;}
 function moveMenu(dir){if(!state.menu.length)return;let cols=menuColumns(),i=state.menuIndex;if(dir==="left")i--;if(dir==="right")i++;if(dir==="up")i-=cols;if(dir==="down")i+=cols;if(i<0)i=state.menu.length-1;if(i>=state.menu.length)i=0;state.menuIndex=i;updateMenu();}
 function activateMenu(){const b=state.menu[state.menuIndex];if(b)b.click();}
-function startGame(mode){
-  clearTimers();clearAssist();state.mode=mode;state.phase="game";state.index=0;state.score=0;state.misses=[];state.endless=false;state.endlessCount=0;state.endlessQueue=[];state.accepting=true;state.lastDir=null;
+function startGame(mode){showModeGuide(mode);}
+function beginGame(mode){
+  clearTimers();clearAssist();state.mode=mode;state.pendingMode=null;state.phase="game";state.index=0;state.score=0;state.misses=[];state.endless=false;state.endlessCount=0;state.endlessQueue=[];state.accepting=true;state.lastDir=null;
   const p=mode==="kids"?kidsPool():mode==="school"?schoolPool():adultNormalPool();
   state.questions=draw(p,QUESTION_COUNT);
   bodyMode("playing",mode==="kids"?"kids":"");setGuideLabels(mode);showQuestion();
@@ -447,13 +540,13 @@ function answer(dir){
   if(state.phase==="practice"){practiceAnswer(dir);return;}
   if(state.phase!=="game"||!state.accepting)return;
   if(state.mode==="kids"&&!(dir==="left"||dir==="right"))return;
-  state.accepting=false;clearTimers();clearAssist();
-  const q=state.current,ok=q.ans===dir;state.lastDir=dir;
-  if(ok){state.score++;showFeedback(true,q);playSound("correct");setTimeout(nextQuestion,430);}
-  else{state.misses.push({...q,selected:dir,answerDir:q.ans,gameNote:displayNote(q),displayName:displayName(q)});showFeedback(false,q);playSound("wrong");setTimeout(()=>state.endless?finishEndless(q,dir):nextQuestion(),620);}
+  state.accepting=false;clearTimers();
+  const q=state.current,ok=q.ans===dir;state.lastDir=dir;markChoice(dir,q.ans,ok);
+  if(ok){state.score++;showFeedback(true,q,null,dir);playSound("correct");setTimeout(nextQuestion,900);}
+  else{state.misses.push({...q,selected:dir,answerDir:q.ans,gameNote:displayNote(q),displayName:displayName(q)});showFeedback(false,q,null,dir);playSound("wrong");setTimeout(()=>state.endless?finishEndless(q,dir):nextQuestion(),1400);}
 }
-function timeUp(){if(state.phase!=="game")return;state.accepting=false;clearAssist();const q=state.current;state.misses.push({...q,selected:"time",answerDir:q.ans,gameNote:displayNote(q),displayName:displayName(q)});showFeedback(false,q,"じかんぎれ");playSound("wrong");setTimeout(()=>state.endless?finishEndless(q,"time"):nextQuestion(),720);}
-function showFeedback(ok,q,label){const fb=document.getElementById("feedback");if(!fb)return;fb.className=`feedback show ${ok?"correct":"wrong"}`;fb.innerHTML=`<div><div class="main">${ok?"正解！":(label||"ざんねん")}</div><div class="note">${chip(q.ans)}　${esc(displayNote(q))}</div></div>`;}
+function timeUp(){if(state.phase!=="game")return;state.accepting=false;const q=state.current;markChoice("time",q.ans,false);state.misses.push({...q,selected:"time",answerDir:q.ans,gameNote:displayNote(q),displayName:displayName(q)});showFeedback(false,q,"じかんぎれ","time");playSound("wrong");setTimeout(()=>state.endless?finishEndless(q,"time"):nextQuestion(),1500);}
+function showFeedback(ok,q,label,selectedDir,opts={}){const fb=document.getElementById("feedback");if(!fb)return;const main=label||(ok?"正解！":"ざんねん");fb.className=`feedback show learning ${ok?"correct":"wrong"} ${opts.demo?"demo-feedback":""}`;fb.innerHTML=`<div class="choice-board"><div class="main">${esc(main)}</div>${selectedChoiceHtml(selectedDir,q,ok,opts)}</div>`;}
 function nextQuestion(){
   if(state.endless){state.endlessCount++;showQuestion();return;}
   state.index++;
@@ -497,17 +590,27 @@ function finishEndless(q,sel){
   clearTimers();clearAssist();state.phase="result";bodyMode("result");const total=state.score,prev=+localStorage.getItem(BEST_KEY)||0;if(total>prev)localStorage.setItem(BEST_KEY,String(total));const list=saveTodayScore(total);const last=q?`<div class="review-box endless-last"><h2>最後にまちがえた問題</h2><div class="review-list"><div class="review-card"><div class="review-icon">${q.emoji||"❔"}</div><div><div class="review-name">${esc(displayName(q))}</div><div class="review-note">選んだ：${esc(selectedText(sel))}</div><div>${chip(q.ans)} <span class="review-note">${esc(displayNote(q))}</span></div></div></div></div></div>`:"";
   screen.innerHTML=`<div class="endless-card"><h1 class="result-title">エンドレス終了</h1><div class="endless-score">${total}問</div><div class="badge">${total>=60?"伝説の分別王":total>=30?"リサイクル博士":"分別名人"}</div><p class="subtitle">通常10問 + エンドレス${Math.max(0,total-QUESTION_COUNT)}問</p>${last}${rankingHtml(list)}<div class="result-actions"><button data-menu data-default onclick="renderTitle()">モードを選ぶ</button><button data-menu onclick="startGame('adult')">つぎの人スタート</button></div></div>`;setMenu();
 }
-function startPractice(){
-  clearTimers();clearAssist();state.phase="practice";state.mode="practice";state.score=0;state.misses=[];state.practiceQueue=shuffle(practicePool());state.practiceIndex=0;bodyMode("playing");setGuideLabels("practice");renderPracticeQuestion();
+function startPractice(){showModeGuide("practice");}
+function beginPractice(){
+  clearTimers();clearAssist();state.phase="practice";state.pendingMode=null;state.mode="practice";state.score=0;state.misses=[];state.practiceQueue=shuffle(practicePool());state.practiceIndex=0;bodyMode("playing");setGuideLabels("practice");renderPracticeQuestion();
 }
 function nextPracticeProblem(){if(!state.practiceQueue.length)state.practiceQueue=shuffle(practicePool());state.current=state.practiceQueue.shift();state.practiceIndex++;}
 function renderPracticeQuestion(message=""){nextPracticeProblem();const q=state.current;state.accepting=true;clearAssist();if(config.assistMode)flashGuide(q.ans);screen.innerHTML=`<div class="hud"><div class="hud-left">練習 ${state.practiceIndex}</div><div></div><div class="hud-right">1ボタンでやめる</div></div><div class="question-card"><div class="garbage-img">${q.emoji||"❔"}</div><div class="garbage-name">${esc(displayName(q))}</div><div class="hint">時間なし。まちがえても続く。</div>${message}</div><div class="feedback" id="feedback"></div>`;}
-function practiceAnswer(dir){if(state.phase!=="practice"||!state.accepting)return;state.accepting=false;clearAssist();const q=state.current,ok=q.ans===dir;if(ok){state.score++;playSound("correct");showFeedback(true,q);}else{state.misses.push({...q,selected:dir,answerDir:q.ans,gameNote:displayNote(q),displayName:displayName(q)});playSound("wrong");showFeedback(false,q);}setTimeout(()=>renderPracticeQuestion(),750);}
+function practiceAnswer(dir){if(state.phase!=="practice"||!state.accepting)return;state.accepting=false;const q=state.current,ok=q.ans===dir;markChoice(dir,q.ans,ok);if(ok){state.score++;playSound("correct");showFeedback(true,q,null,dir);}else{state.misses.push({...q,selected:dir,answerDir:q.ans,gameNote:displayNote(q),displayName:displayName(q)});playSound("wrong");showFeedback(false,q,null,dir);}setTimeout(()=>renderPracticeQuestion(),ok?950:1450);}
 function stopPractice(){clearTimers();clearAssist();renderTitle();}
 function startDemo(){
   if(state.phase==="game"||state.phase==="practice")return;clearTimers();clearAssist();state.phase="demo";state.mode="demo";state.demoQueue=draw(adultNormalPool(),12);state.demoIndex=0;bodyMode("playing","demo");setGuideLabels(false);renderDemoStep();
 }
-function renderDemoStep(){clearTimers();clearAssist();const q=state.demoQueue[state.demoIndex%state.demoQueue.length];state.current=q;screen.innerHTML=`<div class="demo-tag">デモ</div><div class="hud"><div class="hud-left">見るだけ</div><div></div><div class="hud-right">1ボタンで戻る</div></div><div class="question-card"><div class="garbage-img">${q.emoji||"❔"}</div><div class="garbage-name">${esc(displayName(q))}</div><div class="hint">正しい方向が光ります</div><div id="demoAnswer" class="practice-answer" style="opacity:0">${chip(q.ans)}　${esc(displayNote(q))}</div></div>`;state.demoTimer=setTimeout(()=>{flashGuide(q.ans);const a=document.getElementById("demoAnswer");if(a)a.style.opacity=1;playSound("correct");state.demoTimer=setTimeout(()=>{state.demoIndex++;renderDemoStep();},1900);},900);}
+function renderDemoStep(){
+  clearTimers();clearAssist();const q=state.demoQueue[state.demoIndex%state.demoQueue.length];state.current=q;state.accepting=false;
+  screen.innerHTML=`<div class="demo-tag">デモ</div><div class="hud"><div class="hud-left">見るだけ ${state.demoIndex+1}</div><div></div><div class="hud-right">1ボタンで戻る</div></div><div class="question-card"><div class="garbage-img">${q.emoji||"❔"}</div><div class="garbage-name">${esc(displayName(q))}</div><div class="demo-slow-hint">まず問題を見る → 方向が光る → 答えを確認</div><div id="demoAnswer" class="demo-answer-card">このごみはどこかな？</div></div><div class="feedback" id="feedback"></div>`;
+  state.demoTimer=setTimeout(()=>{
+    flashGuide(q.ans);
+    const a=document.getElementById("demoAnswer");if(a){a.classList.add("show");a.innerHTML=`選ばれる方向：${chip(q.ans)}　${esc(directionLongText(q.ans))}`;}
+    playSound("correct");
+    state.demoTimer=setTimeout(()=>{markChoice(q.ans,q.ans,true);showFeedback(true,q,"こう分ける！",q.ans,{demo:true});state.demoTimer=setTimeout(()=>{state.demoIndex++;renderDemoStep();},2600);},1550);
+  },1700);
+}
 function stopDemo(){clearTimers();clearAssist();renderTitle();}
 function celebrate(){const marks=["🎉","✨","♻️","🌟","👏"];for(let i=0;i<54;i++){const s=document.createElement("div");s.className="confetti";s.textContent=marks[Math.floor(Math.random()*marks.length)];s.style.left=Math.random()*100+"vw";s.style.animationDelay=Math.random()*.35+"s";s.style.fontSize=(17+Math.random()*20)+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),2300);}}
 // v16: スマホで途中から音が鳴らなくなる対策。
@@ -648,6 +751,7 @@ function cancelAction(){
   if(state.phase==="practice"){stopPractice();return;}
   if(state.phase==="demo"){stopDemo();return;}
   if(state.phase==="padCheck"){closePadCheck();return;}
+  if(state.phase==="ready"){renderTitle();return;}
   if(state.phase==="endlessReady"){renderResult();return;}
   if(state.phase==="result"){renderTitle();return;}
 }
@@ -804,7 +908,7 @@ function pollGamepad(){
       if(now[dir]&&!prev[dir]){if(state.phase==="game"||state.phase==="practice")answer(dir);else moveMenu(dir);}
     }
     if(now.confirm&&!prev.confirm){if(state.phase!=="game"&&state.phase!=="practice"&&state.phase!=="demo")activateMenu();}
-    if(now.cancel&&!prev.cancel)cancelAction();
+    if(now.cancel&&!prev.cancel){if(state.phase==="ready")beginSelectedMode();else cancelAction();}
     state.gamepadPrev=now;
   }else if(state.phase==="padCheck"){
     updatePadCheckUI(null,blankPadState());
