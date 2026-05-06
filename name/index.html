@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>BATTLE OF NAMES - EVENT LEGENDS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Zen+Kaku+Gothic+New:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --font-main:'Press Start 2P', cursive;
+      --font-sub:'Zen Kaku Gothic New', sans-serif;
+      --bg:#050510;
+      --panel:rgba(13,18,30,.96);
+      --panel2:rgba(0,0,0,.55);
+      --line:#3a4256;
+      --line2:#6f7a95;
+      --gold:#f1c40f;
+      --red:#e74c3c;
+      --blue:#3498db;
+      --green:#2ecc71;
+      --purple:#9b59b6;
+      --cyan:#00d5ff;
+      --text:#fff;
+    }
+
+    *{box-sizing:border-box;user-select:none}
+    html,body{height:100%;margin:0;overflow:hidden;background:#000}
+    body{
+      display:flex;align-items:center;justify-content:center;
+      background:
+        radial-gradient(circle at center, #1a1c29 0%, #070812 48%, #000 100%);
+      color:var(--text);
+      font-family:var(--font-sub);
+    }
+
+    .game-container{
+      width:min(96vw, 1600px);
+      max-height:96vh;
+      aspect-ratio:16/9;
+      background:#111;
+      border:4px solid #333;
+      border-radius:12px;
+      box-shadow:0 0 60px rgba(0,200,255,.12);
+      display:grid;
+      grid-template-columns:1fr 1.35fr 1fr;
+      grid-template-rows:9% 91%;
+      position:relative;
+      overflow:hidden;
+    }
+    .game-container::before{
+      content:"";
+      position:absolute;inset:0;
+      background:
+        radial-gradient(circle at 50% 14%, rgba(52,152,219,.18), transparent 28%),
+        linear-gradient(120deg, rgba(231,76,60,.07), transparent 35%, rgba(0,213,255,.06));
+      pointer-events:none;z-index:0;
+    }
+    .game-container::after{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,.13) 50%);
+      background-size:100% 4px;
+      pointer-events:none;z-index:50;
+      opacity:.8;
+    }
+
+    .header{
+      grid-column:1/4;
+      background:rgba(0,0,0,.84);
+      border-bottom:2px solid #444;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 2rem;
+      z-index:3;
+    }
+    h1{
+      font-family:var(--font-main);
+      font-size:clamp(16px, 1.15vw, 24px);
+      color:#fff;
+      text-shadow:2px 2px 0 var(--red),0 0 18px rgba(231,76,60,.25);
+      margin:0;
+      letter-spacing:.04em;
+    }
+    .header-actions{display:flex;align-items:center;gap:.75rem}
+    .mini-btn{
+      font-family:var(--font-main);
+      font-size:clamp(9px,.65vw,13px);
+      color:#aaa;
+      text-decoration:none;
+      border:1px solid #555;
+      background:#111;
+      padding:7px 10px;
+      border-radius:4px;
+      cursor:pointer;
+      transition:.15s;
+    }
+    .mini-btn:hover{color:#fff;border-color:#fff}
+
+    .panel{
+      padding:1rem;
+      background:var(--panel);
+      display:flex;flex-direction:column;align-items:center;gap:.55rem;
+      border-right:1px solid #333;
+      position:relative;z-index:2;
+      min-width:0;
+    }
+    .panel.p1{border-left:4px solid var(--blue); box-shadow:inset 3px 0 0 rgba(52,152,219,.35)}
+    .panel.p2{border-right:4px solid var(--red); border-left:1px solid #333; box-shadow:inset -3px 0 0 rgba(231,76,60,.35)}
+    .player-chip{
+      width:100%;
+      font-family:var(--font-main);
+      font-size:clamp(18px,1.35vw,30px);
+      line-height:1;
+      padding:8px 10px;
+      border:2px solid #555;
+      background:#0d0f18;
+      text-align:center;
+      text-shadow:2px 2px 0 #000;
+      letter-spacing:.08em;
+    }
+    .panel.p1 .player-chip{color:#90d7ff;border-color:var(--blue);box-shadow:0 0 14px rgba(52,152,219,.25)}
+    .panel.p2 .player-chip{color:#ff9eaa;border-color:var(--red);box-shadow:0 0 14px rgba(231,76,60,.25)}
+
+    .input-group{width:100%;display:flex;flex-direction:column;gap:6px}
+    input[type="text"]{
+      width:100%;padding:10px;
+      background:#000;border:2px solid #555;
+      color:#fff;text-align:center;
+      font-family:var(--font-sub);font-weight:900;
+      font-size:clamp(16px,1vw,22px);
+    }
+    input:focus{outline:none;border-color:#fff}
+    .panel.p1 input[type="text"]{border-color:rgba(52,152,219,.75)}
+    .panel.p2 input[type="text"]{border-color:rgba(231,76,60,.75)}
+    .gender-row{display:none;width:100%}
+    .gender-btn{
+      flex:1;padding:8px;
+      background:#222;border:1px solid #555;color:#777;
+      cursor:pointer;font-family:var(--font-main);
+      font-size:clamp(9px,.62vw,12px);
+      transition:.1s;
+    }
+    .gender-btn.active{
+      background:var(--gold);color:#000;border-color:#fff;font-weight:bold;
+      box-shadow:inset 0 0 5px rgba(0,0,0,.5);
+    }
+    .summon-btn{
+      width:100%;padding:11px;
+      background:linear-gradient(to bottom,#3498db,#2980b9);
+      border:none;color:#fff;font-family:var(--font-main);
+      font-size:clamp(11px,.78vw,16px);
+      cursor:pointer;box-shadow:0 4px 0 #1a5276;
+      margin-top:4px;position:relative;overflow:hidden;
+    }
+    .panel.p1 .summon-btn{background:linear-gradient(to bottom,#3aa7ff,#176eb4);box-shadow:0 4px 0 #0b3e6d}
+    .panel.p2 .summon-btn{background:linear-gradient(to bottom,#ff596a,#b92632);box-shadow:0 4px 0 #6e1119}
+    .summon-btn:active{transform:translateY(4px);box-shadow:none}
+    .summon-btn:disabled{filter:grayscale(1);cursor:not-allowed}
+
+    .char-area{
+      width:100%;flex-grow:1;position:relative;
+      display:flex;flex-direction:column;align-items:center;gap:7px;
+      opacity:.23;filter:grayscale(100%) blur(5px);
+      transition:all .45s ease-out;pointer-events:none;min-height:0;
+    }
+    .char-area.summoned{opacity:1;filter:none;pointer-events:auto}
+    .identity{
+      width:100%;text-align:center;line-height:1.15;
+      min-height:2.35vw;display:flex;flex-direction:column;justify-content:center;
+      padding:4px 0;
+    }
+    .name-title{
+      font-family:var(--font-main);
+      font-size:clamp(15px,1.02vw,21px);
+      line-height:1.45;
+      color:#fff0aa;text-shadow:2px 2px 0 #000,0 0 12px rgba(241,196,15,.25);
+      white-space:normal;overflow:hidden;text-overflow:ellipsis;
+      min-height:2.8em;
+      display:flex;align-items:center;justify-content:center;
+      text-align:center;
+    }
+    .subtitle{
+      color:#f7d56a;
+      font-size:clamp(13px,.86vw,18px);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+
+    .tactics-ring{
+      width:min(20vw, 318px);
+      height:min(20vw, 318px);
+      min-width:230px;
+      min-height:230px;
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:0 auto;
+    }
+    .canvas-wrapper{
+      position:relative;border:2px solid #555;border-radius:8px;
+      background:
+        radial-gradient(circle at 50% 35%, rgba(255,255,255,.08), transparent 45%),
+        linear-gradient(180deg,#222 0%,#000 100%);
+      width:min(13.2vw, 208px);
+      height:min(13.2vw, 208px);
+      display:flex;justify-content:center;align-items:center;
+      transition:transform .1s, filter .15s, border-color .18s, box-shadow .18s;
+      overflow:hidden;
+      cursor:pointer;
+      z-index:2;
+    }
+    .char-area.keyboard-target .canvas-wrapper{
+      border-color:#fff;
+      box-shadow:0 0 0 3px rgba(255,255,255,.14), 0 0 22px rgba(255,255,255,.20);
+    }
+    canvas{width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+    .tactic-option{
+      position:absolute;
+      min-width:78px;
+      height:40px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+      border:2px solid #555;
+      background:rgba(10,12,20,.92);
+      color:#fff;
+      font-family:var(--font-main);
+      font-size:clamp(9px,.66vw,13px);
+      cursor:pointer;
+      z-index:4;
+      box-shadow:0 3px 0 rgba(0,0,0,.55);
+      border-radius:5px;
+      transition:transform .1s, opacity .16s, filter .16s, box-shadow .16s;
+    }
+    .tactic-option:hover{transform:translateY(-2px);filter:brightness(1.2)}
+    .tactic-option:active{transform:translateY(2px);box-shadow:none}
+    .tactic-option.top{top:0;left:50%;transform:translateX(-50%)}
+    .tactic-option.right{right:0;top:50%;transform:translateY(-50%)}
+    .tactic-option.bottom{bottom:0;left:50%;transform:translateX(-50%)}
+    .tactic-option.left{left:0;top:50%;transform:translateY(-50%)}
+    .tactic-option.top:hover{transform:translateX(-50%) translateY(-2px)}
+    .tactic-option.right:hover{transform:translateY(-50%) translateY(-2px)}
+    .tactic-option.bottom:hover{transform:translateX(-50%) translateY(-2px)}
+    .tactic-option.left:hover{transform:translateY(-50%) translateY(-2px)}
+    .tactic-option.speed{border-color:#00d5ff;color:#8eefff}
+    .tactic-option.attack{border-color:#e74c3c;color:#ffb0bd}
+    .tactic-option.guard{border-color:#f1c40f;color:#ffe98b}
+    .tactic-option.awaken{border-color:#9b59b6;color:#ebb7ff}
+    .tactic-option.locked{
+      opacity:.24;
+      pointer-events:none;
+      filter:grayscale(.4);
+    }
+    .tactic-option.revealed{
+      opacity:1;
+      filter:none;
+      box-shadow:0 0 16px currentColor, 0 3px 0 rgba(0,0,0,.55);
+    }
+    .dir-arrow{
+      width:0;height:0;display:inline-block;
+      border-left:7px solid transparent;
+      border-right:7px solid transparent;
+      border-bottom:12px solid currentColor;
+      filter:drop-shadow(0 0 4px currentColor);
+    }
+    .dir-arrow.right{transform:rotate(90deg)}
+    .dir-arrow.down{transform:rotate(180deg)}
+    .dir-arrow.left{transform:rotate(-90deg)}
+    .strategy-badge{
+      width:100%;height:2.1vw;min-height:28px;
+      display:flex;align-items:center;justify-content:center;
+      font-family:var(--font-main);
+      font-size:clamp(10px,.72vw,15px);
+      border:1px solid #555;background:#111;color:#aaa;
+      letter-spacing:.04em;
+    }
+    .strategy-badge.revealed.speed{color:#7df6ff;border-color:#00d5ff;box-shadow:0 0 12px rgba(0,213,255,.25)}
+    .strategy-badge.revealed.attack{color:#ffb0bd;border-color:#e74c3c;box-shadow:0 0 12px rgba(231,76,60,.25)}
+    .strategy-badge.revealed.guard{color:#ffe98b;border-color:#f1c40f;box-shadow:0 0 12px rgba(241,196,15,.25)}
+    .strategy-badge.revealed.awaken{color:#ebb7ff;border-color:#9b59b6;box-shadow:0 0 12px rgba(155,89,182,.28)}
+
+    .hp-container{
+      width:100%;height:1.35vw;min-height:22px;
+      background:#111;border:2px solid #555;position:relative;border-radius:4px;overflow:hidden;
+    }
+    .hp-bar{width:100%;height:100%;background:#2ecc71;transition:width .3s, background .3s}
+    .hp-text{
+      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+      font-size:clamp(15px,1.02vw,22px);
+      text-shadow:1px 1px 0 #000;z-index:2;font-family:var(--font-sub);font-weight:900;
+    }
+    .stats-box{
+      width:100%;background:rgba(0,0,0,.68);
+      padding:9px;border:1px solid #555;border-radius:4px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:7px;
+      font-size:clamp(17px,1.14vw,25px);
+    }
+    .attr-badge{
+      grid-column:1 / -1;
+      text-align:center;padding:4px;border-radius:2px;color:#000;font-weight:900;margin-bottom:2px;
+      font-size:clamp(13px,.82vw,18px);
+      display:none;
+    }
+    .stat-row{
+      display:flex;justify-content:space-between;align-items:center;
+      border:1px solid #333;background:rgba(255,255,255,.04);
+      padding:6px 8px;margin:0;border-radius:3px;font-weight:900;
+    }
+    .stat-row span:first-child{color:#aeb8c8;font-size:.78em}
+    .stat-row span:last-child{font-size:1.28em;color:#fff}
+    .skill-box{
+      width:100%;margin-top:4px;background:#222;border:1px solid #555;border-radius:4px;
+      padding:6px;text-align:center;
+      font-size:clamp(13px,.82vw,18px);
+      color:var(--gold);transition:.3s;
+      min-height:2.5vw;display:flex;align-items:center;justify-content:center;
+    }
+
+    .center-panel{
+      padding:1rem;background:rgba(0,0,0,.42);
+      display:flex;flex-direction:column;align-items:center;z-index:2;min-width:0;
+    }
+    .vs-sign{
+      font-family:var(--font-main);
+      font-size:clamp(36px,3vw,60px);
+      color:var(--red);font-style:italic;
+      text-shadow:3px 3px 0 #fff,0 0 18px rgba(231,76,60,.35);
+      margin:.2rem 0 .7rem;
+    }
+    .round-line{
+      width:100%;display:flex;justify-content:space-between;align-items:center;
+      font-family:var(--font-main);
+      font-size:clamp(10px,.72vw,14px);
+      color:#ccc;margin-bottom:8px;
+    }
+    .round-line strong{color:var(--gold)}
+    .event-box{
+      width:100%; min-height:96px; margin-bottom:8px;
+      border:2px solid #444; border-radius:8px;
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.25)), rgba(15,17,27,.96);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:10px 12px; text-align:center; box-shadow:inset 0 0 12px rgba(0,0,0,.45);
+      transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
+    }
+    .event-box.pop{transform:scale(1.03)}
+    .event-head{
+      font-family:var(--font-main); font-size:clamp(16px,1.2vw,25px); line-height:1.45;
+      color:#fff; text-shadow:2px 2px 0 #000;
+    }
+    .event-sub{
+      margin-top:6px; font-size:clamp(14px,1.0vw,20px); font-weight:900; color:#d2d9e6;
+      min-height:1.35em;
+    }
+    .event-box.theme-neutral{border-color:#5f6b88}
+    .event-box.theme-p1{border-color:#3498db; box-shadow:0 0 20px rgba(52,152,219,.18), inset 0 0 12px rgba(0,0,0,.45)}
+    .event-box.theme-p2{border-color:#e74c3c; box-shadow:0 0 20px rgba(231,76,60,.18), inset 0 0 12px rgba(0,0,0,.45)}
+    .event-box.theme-special{border-color:#f1c40f; box-shadow:0 0 24px rgba(241,196,15,.22), inset 0 0 12px rgba(0,0,0,.45)}
+    .event-box.theme-awaken{border-color:#9b59b6; box-shadow:0 0 24px rgba(155,89,182,.22), inset 0 0 12px rgba(0,0,0,.45)}
+    .event-box.theme-win{border-color:#2ecc71; box-shadow:0 0 24px rgba(46,204,113,.24), inset 0 0 12px rgba(0,0,0,.45)}
+    .battle-log{
+      flex-grow:1;width:100%;
+      background:rgba(0,0,0,.85);border:2px solid #444;border-radius:6px;
+      padding:10px;overflow-y:auto;
+      font-size:clamp(13px,.88vw,18px);line-height:1.45;
+      display:block;
+      box-shadow:inset 0 0 10px #000;
+      text-align:left;
+    }
+    .log-entry{border-bottom:1px solid #222;padding:5px 0;animation:fadeIn .25s}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .log-turn{color:#61baff;margin-top:10px;border-bottom:1px dashed #3498db!important;font-family:var(--font-main);font-size:clamp(10px,.68vw,14px)}
+    .log-dmg{color:#fff;font-weight:900}
+    .log-short{color:#d4dae7}
+    .log-entry.marker-p1{background:rgba(52,152,219,.16);border-left:5px solid rgba(52,152,219,.65);padding-left:8px}
+    .log-entry.marker-p2{background:rgba(231,76,60,.15);border-left:5px solid rgba(231,76,60,.62);padding-left:8px}
+    .log-skill{color:var(--gold);font-weight:900;text-shadow:0 0 5px #e67e22}
+    .log-win{color:#65ff9a;text-shadow:0 0 10px #2ecc71;font-weight:900}
+    .log-eff{color:#ff9c9c;font-size:clamp(13px,.85vw,18px)}
+    .log-strategy{color:#8eefff;font-weight:900}
+    .p1text{color:#7fcaff;font-weight:900;text-shadow:0 0 8px rgba(52,152,219,.45)}
+    .p2text{color:#ff9eaa;font-weight:900;text-shadow:0 0 8px rgba(231,76,60,.45)}
+
+    .center-buttons{width:100%;display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
+    #strategyBtn{display:none}
+    .wide{grid-column:auto}
+    .main-btn{
+      width:100%;padding:1rem .5rem;
+      border:none;border-radius:8px;
+      color:#000;font-family:var(--font-main);
+      font-size:clamp(11px,.82vw,16px);
+      cursor:pointer;
+      box-shadow:0 5px 0 rgba(0,0,0,.45);
+    }
+    .main-btn:active{transform:translateY(5px);box-shadow:none}
+    .main-btn:disabled{background:#333!important;color:#666!important;box-shadow:none;cursor:default}
+    #strategyBtn{background:linear-gradient(to bottom,#9b59b6,#663399);color:#fff}
+    #battleBtn{background:linear-gradient(to bottom,#f1c40f,#e67e22)}
+    #resetBtn{background:linear-gradient(to bottom,#777,#444);color:#fff}
+
+    .float-text{
+      position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);
+      font-family:var(--font-main);font-weight:bold;pointer-events:none;z-index:100;
+      text-shadow:2px 2px 0 #000;
+      animation:floatUp 1.05s forwards;
+    }
+    .float-dmg{color:#fff;font-size:clamp(28px,2.6vw,50px)}
+    .float-heal{color:#2ecc71;font-size:clamp(28px,2.6vw,50px)}
+    .float-miss{color:#aaa;font-size:clamp(20px,1.6vw,34px)}
+    .float-skill{color:var(--gold);font-size:clamp(34px,3vw,60px);text-shadow:3px 3px 0 #e67e22;z-index:101}
+    @keyframes floatUp{
+      0%{opacity:1;transform:translate(-50%,-50%) scale(.5)}
+      50%{transform:translate(-50%,-105%) scale(1.2)}
+      100%{opacity:0;transform:translate(-50%,-155%) scale(1)}
+    }
+
+    #cutin-overlay{
+      position:absolute;inset:0;background:rgba(0,0,0,.82);
+      z-index:999;display:none;overflow:hidden;
+    }
+    .cutin-bar{
+      position:absolute;top:34%;width:150%;height:31%;
+      background:var(--red);border-top:5px solid #fff;border-bottom:5px solid #fff;
+      display:flex;flex-direction:column;justify-content:center;align-items:center;
+      color:#fff;text-shadow:4px 4px 0 #000;box-shadow:0 0 50px var(--red);
+    }
+    .cutin-bar.p1-cutin{background:#1f8cff;box-shadow:0 0 50px #1f8cff}
+    .cutin-bar.p2-cutin{background:#e74c3c;box-shadow:0 0 50px #e74c3c}
+    .cutin-char{font-size:clamp(22px,2vw,40px);opacity:.9;margin-bottom:.4rem}
+    .cutin-skill{font-size:clamp(38px,4vw,78px);font-weight:900;font-family:var(--font-main);line-height:1.2;text-align:center}
+    .cutin-p1{left:-150%;transform:rotate(-3deg);animation:slideRight 1.8s cubic-bezier(.1,1,.2,1) forwards}
+    .cutin-p2{right:-150%;transform:rotate(3deg);animation:slideLeft 1.8s cubic-bezier(.1,1,.2,1) forwards}
+    @keyframes slideRight{0%{left:-150%}15%{left:-10%}85%{left:-10%}100%{left:100%}}
+    @keyframes slideLeft{0%{right:-150%}15%{right:-10%}85%{right:-10%}100%{right:100%}}
+
+
+    .strategy-effect{
+      position:absolute;
+      left:50%;top:45%;
+      width:100%;height:100%;
+      transform:translate(-50%,-50%);
+      pointer-events:none;
+      z-index:80;
+      opacity:0;
+    }
+    .strategy-effect.speed{animation:knifeRush .55s ease-out forwards}
+    .strategy-effect.speed::before,
+    .strategy-effect.speed::after{
+      content:"";position:absolute;width:52px;height:6px;background:#7df6ff;
+      border-radius:5px;box-shadow:0 0 10px #00d5ff, 0 0 18px rgba(0,213,255,.7);
+      transform:rotate(-18deg);
+    }
+    .strategy-effect.speed::before{left:18%;top:28%}
+    .strategy-effect.speed::after{left:28%;top:48%;animation-delay:.06s}
+    @keyframes knifeRush{
+      0%{opacity:0;transform:translate(-75%,-55%) scale(.8)}
+      20%{opacity:1}
+      100%{opacity:0;transform:translate(-12%,-35%) scale(1.1)}
+    }
+    .strategy-effect.attack{animation:greatSlash .7s ease-out forwards}
+    .strategy-effect.attack::before{
+      content:"";position:absolute;left:21%;top:44%;width:130px;height:16px;
+      background:linear-gradient(90deg,#fff,#ff3245 40%,#7b060d);
+      border-radius:12px;
+      box-shadow:0 0 14px #ff3245,0 0 28px rgba(231,76,60,.7);
+      transform:rotate(-34deg);
+    }
+    @keyframes greatSlash{
+      0%{opacity:0;transform:translate(-65%,-45%) rotate(-8deg) scale(.65)}
+      18%{opacity:1}
+      100%{opacity:0;transform:translate(-25%,-60%) rotate(8deg) scale(1.25)}
+    }
+    .strategy-effect.guard{animation:shieldPop .7s ease-out forwards}
+    .strategy-effect.guard::before{
+      content:"";position:absolute;left:37%;top:24%;width:86px;height:96px;
+      background:linear-gradient(180deg,#fff2a0,#f1c40f 55%,#9b7300);
+      clip-path:polygon(50% 0, 95% 20%, 84% 75%, 50% 100%, 16% 75%, 5% 20%);
+      box-shadow:0 0 20px rgba(241,196,15,.9);
+    }
+    @keyframes shieldPop{
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.45)}
+      18%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}
+      100%{opacity:0;transform:translate(-50%,-50%) scale(1.28)}
+    }
+    .strategy-effect.awaken{animation:auraBurst .9s ease-out forwards}
+    .strategy-effect.awaken::before,
+    .strategy-effect.awaken::after{
+      content:"";position:absolute;left:25%;top:12%;width:150px;height:150px;
+      border:7px solid rgba(155,89,182,.95);
+      border-radius:50%;
+      box-shadow:0 0 25px #9b59b6, inset 0 0 22px rgba(155,89,182,.8);
+    }
+    .strategy-effect.awaken::after{left:32%;top:22%;width:100px;height:100px;border-width:5px}
+    @keyframes auraBurst{
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.45)}
+      20%{opacity:1}
+      100%{opacity:0;transform:translate(-50%,-50%) scale(1.35)}
+    }
+
+    #strategy-overlay{
+      position:absolute;inset:0;z-index:980;display:none;
+      background:rgba(0,0,0,.88);
+      align-items:center;justify-content:center;
+      text-align:center;
+    }
+    .strategy-modal{
+      width:72%;max-width:900px;
+      border:3px solid #777;background:rgba(10,12,18,.98);
+      border-radius:12px;padding:2rem;
+      box-shadow:0 0 50px rgba(0,0,0,.65);
+    }
+    .strategy-modal h2{
+      font-family:var(--font-main);font-size:clamp(18px,1.45vw,28px);
+      margin:0 0 1.3rem;color:#fff;text-shadow:2px 2px 0 var(--red);
+      line-height:1.5;
+    }
+    .strategy-map{
+      display:grid;grid-template-columns:1fr 1fr;gap:12px;
+      margin:1rem auto 1.2rem;max-width:720px;
+    }
+    .strategy-key{
+      border:2px solid #555;background:#111;padding:1rem;
+      font-family:var(--font-main);
+      font-size:clamp(14px,1.05vw,20px);
+      color:#fff;
+    }
+    .strategy-key.speed{border-color:#00d5ff;color:#8eefff}
+    .strategy-key.attack{border-color:#e74c3c;color:#ffb0bd}
+    .strategy-key.guard{border-color:#f1c40f;color:#ffe98b}
+    .strategy-key.awaken{border-color:#9b59b6;color:#ebb7ff}
+    .strategy-help{
+      font-size:clamp(16px,1.05vw,22px);
+      line-height:1.6;color:#bbb;
+    }
+    .lock-display{
+      margin-top:1rem;font-family:var(--font-main);
+      font-size:clamp(22px,2vw,40px);color:var(--gold);
+      min-height:1.5em;
+      text-shadow:2px 2px 0 #000;
+    }
+
+    .shake{animation:shakeAnim .35s}
+    @keyframes shakeAnim{0%{transform:translate(0,0)}25%{transform:translate(-6px,5px)}75%{transform:translate(6px,-5px)}100%{transform:translate(0,0)}}
+    .flash{animation:flashAnim .22s}
+    @keyframes flashAnim{0%{filter:brightness(100%)}50%{filter:brightness(300%)}100%{filter:brightness(100%)}}
+    .winner{animation:winnerHop .55s ease-in-out infinite alternate, winPulse 1s infinite alternate}
+    @keyframes winPulse{from{box-shadow:0 0 10px gold}to{box-shadow:0 0 45px gold}}
+    @keyframes winnerHop{
+      0%{transform:translateY(0) scale(1)}
+      55%{transform:translateY(-12px) scale(1.035)}
+      100%{transform:translateY(-4px) scale(1.01)}
+    }
+    .loser .canvas-wrapper{filter:grayscale(1) brightness(.34);opacity:.48;transition:filter 1s, opacity 1s}
+
+
+    @media (max-width: 760px){
+      html,body{height:auto;min-height:100%;overflow:auto}
+      body{align-items:flex-start;background:#050510}
+      .game-container{
+        width:100vw;max-width:none;max-height:none;min-height:100vh;
+        aspect-ratio:auto;border-radius:0;border-width:0;
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto auto auto;
+        overflow:visible;
+      }
+      .game-container::after{display:none}
+      .header{grid-column:1;padding:.75rem 1rem;gap:.5rem;flex-wrap:wrap}
+      h1{font-size:18px}
+      .header-actions{gap:.4rem;flex-wrap:wrap}
+      .mini-btn{font-size:10px;padding:7px 9px}
+      .panel{border-left:0!important;border-right:0!important;border-top:2px solid #333;padding:.8rem;min-height:auto}
+      .center-panel{padding:.8rem;min-height:520px}
+      .input-group{max-width:520px}
+      input[type="text"]{font-size:22px;padding:12px}
+      .summon-btn{font-size:13px;padding:13px}
+      .char-area{gap:8px}
+      .identity{min-height:auto}
+      .name-title{font-size:18px;white-space:normal;min-height:auto}
+      .subtitle{display:none}
+      .tactics-ring{
+        width:min(92vw,360px);
+        height:min(92vw,360px);
+        min-width:280px;
+        min-height:280px;
+        margin:4px auto;
+        touch-action:none;
+      }
+      .canvas-wrapper{
+        width:min(58vw,220px);
+        height:min(58vw,220px);
+      }
+      .tactic-option{min-width:82px;height:44px;font-size:11px}
+      .stats-box{font-size:20px;max-width:520px}
+      .skill-box{font-size:16px;min-height:42px;max-width:520px}
+      .hp-container{height:26px;max-width:520px}
+      .strategy-badge{font-size:12px;min-height:32px;max-width:520px}
+      .vs-sign{font-size:42px;margin:.2rem 0 .4rem}
+      .round-line{font-size:12px}
+      .event-box{min-height:92px}
+      .event-head{font-size:20px}
+      .event-sub{font-size:17px}
+      .battle-log{height:210px;flex-grow:0;font-size:15px}
+      .center-buttons{max-width:520px}
+      .main-btn{font-size:14px;padding:1rem .6rem}
+    }
+
+    @media (max-aspect-ratio: 14/9){
+      .game-container{width:100vw;height:100vh;border-radius:0}
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container" id="gameFrame">
+    <div id="cutin-overlay">
+      <div id="cutin-bar" class="cutin-bar">
+        <div class="cutin-char" id="cutinName">NAME</div>
+        <div class="cutin-skill" id="cutinSkill">SKILL</div>
+      </div>
+    </div>
+
+    <div class="header">
+      <h1>BATTLE OF NAMES</h1>
+      <div class="header-actions">
+        <button class="mini-btn" id="tempoBtn">TEMPO NORMAL</button>
+        <button class="mini-btn" id="fullscreenBtn">FULL</button>
+        <a href="rules_legends.html" target="_blank" class="mini-btn">RULES</a>
+      </div>
+    </div>
+
+    <div class="panel p1">
+      <div class="player-chip">1P</div>
+      <div class="input-group">
+        <input type="text" id="name1" placeholder="PLAYER 1" maxlength="12">
+        <div class="gender-row" id="genderRow1">
+          <button class="gender-btn active" data-gender="male" data-pid="1">♂ MALE</button>
+          <button class="gender-btn" data-gender="female" data-pid="1">♀ FEMALE</button>
+        </div>
+        <button class="summon-btn" data-summon="1">SUMMON</button>
+      </div>
+      <div class="char-area" id="charArea1">
+        <div class="identity">
+          <div class="name-title" id="title1">---</div>
+          <div class="subtitle" id="subtitle1">---</div>
+        </div>
+        <div class="tactics-ring" data-pid="1">
+          <button class="tactic-option top speed" data-pid="1" data-strategy="speed"><span class="dir-arrow up"></span><span>速攻</span></button>
+          <button class="tactic-option right attack" data-pid="1" data-strategy="attack"><span class="dir-arrow right"></span><span>攻撃</span></button>
+          <button class="tactic-option bottom guard" data-pid="1" data-strategy="guard"><span class="dir-arrow down"></span><span>防御</span></button>
+          <button class="tactic-option left awaken" data-pid="1" data-strategy="awaken"><span class="dir-arrow left"></span><span>覚醒</span></button>
+          <div class="canvas-wrapper" data-select-player="1"><canvas id="cvs1" width="128" height="128"></canvas></div>
+        </div>
+        <div class="strategy-badge" id="strategyBadge1">TACTICS ???</div>
+        <div class="hp-container"><div id="hpBar1" class="hp-bar"></div><div id="hpText1" class="hp-text"></div></div>
+        <div class="stats-box" id="stat1"></div>
+        <div class="skill-box" id="skillBox1"></div>
+      </div>
+    </div>
+
+    <div class="center-panel">
+      <div class="vs-sign">VS</div>
+      <div class="round-line"><span>ROUND <strong id="roundNum">0</strong> / 12</span><span id="battleMode">READY</span></div>
+      <div id="eventBox" class="event-box theme-neutral">
+        <div id="eventHead" class="event-head">READY</div>
+        <div id="eventSub" class="event-sub">戦士を召喚してください</div>
+      </div>
+      <div id="logWindow" class="battle-log">
+        <div class="log-entry">戦士を召喚してください...</div>
+      </div>
+      <div class="center-buttons">
+        <button id="strategyBtn" class="main-btn" disabled>TACTICS</button>
+        <button id="battleBtn" class="main-btn wide" disabled>BATTLE START</button>
+        <button id="resetBtn" class="main-btn">RESET</button>
+      </div>
+    </div>
+
+    <div class="panel p2">
+      <div class="player-chip">2P</div>
+      <div class="input-group">
+        <input type="text" id="name2" placeholder="PLAYER 2" maxlength="12">
+        <div class="gender-row" id="genderRow2">
+          <button class="gender-btn active" data-gender="male" data-pid="2">♂ MALE</button>
+          <button class="gender-btn" data-gender="female" data-pid="2">♀ FEMALE</button>
+        </div>
+        <button class="summon-btn" data-summon="2">SUMMON</button>
+      </div>
+      <div class="char-area" id="charArea2">
+        <div class="identity">
+          <div class="name-title" id="title2">---</div>
+          <div class="subtitle" id="subtitle2">---</div>
+        </div>
+        <div class="tactics-ring" data-pid="2">
+          <button class="tactic-option top speed" data-pid="2" data-strategy="speed"><span class="dir-arrow up"></span><span>速攻</span></button>
+          <button class="tactic-option right attack" data-pid="2" data-strategy="attack"><span class="dir-arrow right"></span><span>攻撃</span></button>
+          <button class="tactic-option bottom guard" data-pid="2" data-strategy="guard"><span class="dir-arrow down"></span><span>防御</span></button>
+          <button class="tactic-option left awaken" data-pid="2" data-strategy="awaken"><span class="dir-arrow left"></span><span>覚醒</span></button>
+          <div class="canvas-wrapper" data-select-player="2"><canvas id="cvs2" width="128" height="128"></canvas></div>
+        </div>
+        <div class="strategy-badge" id="strategyBadge2">TACTICS ???</div>
+        <div class="hp-container"><div id="hpBar2" class="hp-bar"></div><div id="hpText2" class="hp-text"></div></div>
+        <div class="stats-box" id="stat2"></div>
+        <div class="skill-box" id="skillBox2"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const SKILLS = [
+  ["ギガントブレイク","超火力の一撃"],["トールハンマー","雷の重打"],["メテオストライク","防御が高いほど痛い"],["インフェルノ","灼熱の爆炎"],
+  ["ブリザードストーム","ダメージ+SPD低下"],["サンダーボルト","ダメージ+DEF低下"],["ホーリーライト","大回復"],["ダークマター","残HP依存ダメージ"],
+  ["ライフスティール","吸収攻撃"],["ソウルイーター","強吸収"],["アーマーピアス","防御貫通"],["ポイズンバイト","ATK低下"],
+  ["ドラゴンブレス","DEFも火力化"],["スターダストレイン","2回攻撃"],["アースクエイク","全体攻撃"],["ヴォーテックス","HP依存全体攻撃"],
+  ["クイックステップ","SPD上昇"],["ミラージュアタック","SPD依存攻撃"],["パワーブースト","ATK上昇"],["マジックバリア","DEF上昇"],
+  ["リジェネレーション","2回回復"],["ミラクルギフト","LUCK上昇"],["ファイナルジャッジ","減少HP依存"],["ゼログラビティ","DEF低下"]
+];
+const STRATEGIES = {
+  speed:{label:"速攻",cls:"speed", strong:"awaken"},
+  attack:{label:"攻撃",cls:"attack", strong:"guard"},
+  guard:{label:"防御",cls:"guard", strong:"speed"},
+  awaken:{label:"覚醒",cls:"awaken", strong:"attack"}
+};
+const KEY_TO_STRATEGY = {
+  ArrowUp:"speed", w:"speed", W:"speed",
+  ArrowRight:"attack", d:"attack", D:"attack",
+  ArrowDown:"guard", s:"guard", S:"guard",
+  ArrowLeft:"awaken", a:"awaken", A:"awaken"
+};
+const ELEMENTS = [
+  {name:"炎",icon:"",color:"#e74c3c"},
+  {name:"雷",icon:"",color:"#f1c40f"},
+  {name:"氷",icon:"",color:"#7ed6ff"},
+  {name:"光",icon:"",color:"#fff176"},
+  {name:"闇",icon:"",color:"#9b59b6"},
+  {name:"風",icon:"",color:"#2ecc71"},
+  {name:"星",icon:"",color:"#ff9ff3"},
+  {name:"鋼",icon:"",color:"#bdc3c7"}
+];
+// 職業・属性は内部の見た目バリエーション用。画面には出さない。
+const CLASSES = ["剣士","魔導士","忍者","騎士","召喚師","機工士","聖騎士","影術師"];
+const TITLE_SERIOUS_A = ["漆黒の","閃光の","蒼炎の","終焉の","断罪の","極光の","無限の","天翔る","紅蓮の","白銀の","深淵の","黎明の","月下の","星霜の","雷鳴の","幻影の","孤高の","混沌の","祝福されし","禁断の","不滅の","流星の","黄昏の","神速の","轟天の","古の","天啓の","虚空の","烈風の","夢幻の"];
+const TITLE_SERIOUS_B = ["竜殺し","星喰い","月影","奈落","雷帝","氷牙","紅蓮","黒翼","白夜","獅子心","不死鳥","影縫い","時渡り","神喰い","魔眼","光輪","百戦","天狼","流転","羅刹","幽玄","金剛","蒼穹","銀河","無冠","終末","暁光","双星","黒曜","緋炎","風切り"];
+const TITLE_SERIOUS_C = ["覇者","剣帝","守護者","契約者","処刑人","賢者","王子","支配者","継承者","反逆者","探究者","預言者","番人","狂戦士","狩人","英雄","魔導王","観測者","放浪者","破壊神","救世主","奏者","審判者","錬金術師","旅人","軍師","夜叉","聖者","最終兵器"];
+
+const TITLE_FUN_A = ["寝起きの","給食前の","三度寝の","おかわり待ちの","忘れ物の","校庭の","全力帰宅の","消しゴム拾いの","プリンを守る","宿題を見失った","カレーの日の","靴下片方の","前髪が決まらない","自転車爆走の","牛乳じゃんけんの","休み時間だけ強い","ランドセル重すぎの","給食袋の","チャイム直前の","なぜかモテる","やたら声が通る","机の中カオスの","水筒忘れの","掃除当番の","謎テンションの","小銭を落とした","ジャンケン最弱の","虫取り網の","半袖短パンの","一口ちょうだいの"];
+const TITLE_FUN_B = ["プリン防衛隊","カレー番長","消しゴムマスター","寝ぐせ将軍","宿題ハンター","給食の守護神","帰宅部エース","牛乳ソムリエ","鉛筆削り職人","靴下忍者","忘れ物コレクター","チャイムランナー","机下の魔物","ランドセル要塞","掃除ロボ","水筒ドラゴン","ジャンケン修行僧","おにぎり賢者","校庭スプリンター","前髪の支配者","半袖勇者","虫取り勇者","プリント迷子","昼休みの王","謎テンション星人","一口ちょうだい仙人","おかわり神","目覚ましブレイカー","鉛筆の民","給食ナイト"];
+const TITLE_FUN_C = ["隊長","名人","伝説","番長","係長","親分","大臣","博士","仙人","勇者","師匠","職人","エース","キング","プリンス","クイーン","ファイター","チャレンジャー","ガーディアン","ランナー","コレクター","クラッシャー","ソルジャー","スター","マスター","マニア","守護者","支配者","革命家","最終兵器"];
+
+let audioCtx = null;
+let bgmTimer = null;
+let tempo = 1;
+let selecting = false;
+let selectTurn = 1;
+let gamepadPrev = {up:false,down:false,left:false,right:false};
+let p1 = {gender:"male", data:null};
+let p2 = {gender:"male", data:null};
+let activeTacticPlayer = null;
+let round = 0;
+let decisiveMode = false;
+let battleRunning = false;
+let lastSpecial = {pid:null,count:0};
+
+function $(id){ return document.getElementById(id); }
+function clamp(v,min,max){ return Math.max(min, Math.min(max,v)); }
+function hashString(str){ let h=0; for(let i=0;i<str.length;i++){h=(h<<5)-h+str.charCodeAt(i);h|=0;} return Math.abs(h); }
+function rng(seed){ let s = seed % 2147483647; if(s<=0)s += 2147483646; return () => (s = s*16807%2147483647)/2147483647; }
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms/tempo)); }
+function pick(arr, seed, shift){ return arr[(seed >>> shift) % arr.length]; }
+function makeTitle(seed, name){
+  const salt = hashString(name + "#title");
+  const fun = (salt % 100) < 42; // ほどよくネタ系を混ぜる
+  const A = fun ? TITLE_FUN_A : TITLE_SERIOUS_A;
+  const B = fun ? TITLE_FUN_B : TITLE_SERIOUS_B;
+  const C = fun ? TITLE_FUN_C : TITLE_SERIOUS_C;
+  const a = A[(seed + salt) % A.length];
+  const b = B[((seed >>> 3) + (salt >>> 2)) % B.length];
+  const c = C[((seed >>> 8) + (salt >>> 5)) % C.length];
+  // たまに2語構成にして読みやすさも確保
+  if((salt % 7) === 0) return `${a}${b}`;
+  if((salt % 11) === 0) return `${b}${c}`;
+  return `${a}${b}${c}`;
+}
+function autoGenderFromName(name, pid){
+  return hashString(name + ":look:" + pid) % 2 ? "female" : "male";
+}
+function log(msg, cls=""){
+  const div=$("logWindow");
+  const line=document.createElement("div");
+  line.className=`log-entry ${cls}`;
+  line.innerHTML=msg;
+  div.appendChild(line);
+  while(div.children.length>14) div.removeChild(div.firstChild);
+  div.scrollTop = div.scrollHeight;
+}
+function clearLog(){ $("logWindow").innerHTML = ""; }
+function setRoundUi(){ $("roundNum").textContent = round; $("battleMode").textContent = decisiveMode ? "DECISIVE" : (battleRunning ? "BATTLE" : "READY"); }
+async function announce(head, sub="", theme="neutral", hold=520){
+  const box=$("eventBox"), h=$("eventHead"), s=$("eventSub");
+  h.innerHTML=head; s.innerHTML=sub;
+  box.className=`event-box theme-${theme}`;
+  box.classList.remove('pop'); void box.offsetWidth; box.classList.add('pop');
+  await sleep(hold);
+}
+
+function initAudio(){ if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } }
+function tone(freq, dur=.12, type="square", vol=.05, delay=0){
+  if(!audioCtx) return;
+  const t=audioCtx.currentTime+delay, o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=type; o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.015); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t+dur);
+}
+function playSE(type){
+  initAudio(); if(!audioCtx) return;
+  if(type==="summon"){ tone(120,.45,"triangle",.08); tone(680,.45,"triangle",.05,.08); }
+  if(type==="cursor"){ tone(660,.08,"square",.035); }
+  if(type==="lock"){ tone(392,.12,"square",.04); tone(784,.16,"square",.04,.08); }
+  if(type==="start"){ [262,392,523].forEach((f,i)=>tone(f,.2,"square",.045,i*.08)); }
+  if(type==="attack"){ tone(180,.1,"sawtooth",.08); tone(100,.12,"sawtooth",.045,.05); }
+  if(type==="hit"){ tone(110,.12,"square",.08); }
+  if(type==="crit"){ tone(880,.16,"square",.07); tone(1175,.18,"square",.05,.04); }
+  if(type==="cutin"){ tone(200,1.2,"sawtooth",.12); tone(480,1.0,"sawtooth",.06,.18); }
+  if(type==="awaken"){ [294,440,587,880].forEach((f,i)=>tone(f,.28,"triangle",.045,i*.06)); }
+  if(type==="win"){ [523,659,784,1046].forEach((f,i)=>tone(f,.23,"triangle",.045,i*.12)); }
+}
+function stopBGM(){ if(bgmTimer){ clearInterval(bgmTimer); bgmTimer=null; } }
+function playBGM(mode){
+  initAudio(); stopBGM(); if(!audioCtx) return;
+  const seq = mode==="battle" ? [[196,294],[247,370],[220,330],[247,370]] :
+              mode==="decisive" ? [[220,330,440],[262,392,523],[294,440,587],[330,494,659]] :
+              [[262,392],[330,494],[392,587],[330,494]];
+  const step = mode==="decisive" ? 230 : mode==="battle" ? 300 : 420;
+  let i=0; bgmTimer=setInterval(()=>{ const chord=seq[i++%seq.length]; chord.forEach((f,j)=>tone(f,.18,mode==="decisive"?"sawtooth":"square",.018,j*.01)); }, step);
+}
+
+function generateChar(name, gender){
+  if(!name) return null;
+  const seed = hashString(name + gender);
+  const r = rng(seed);
+  const len = name.length;
+  const attrIndex = (seed >>> 2) % ELEMENTS.length;
+  const element = ELEMENTS[attrIndex];
+  const classIndex = seed % CLASSES.length;
+  const className = CLASSES[classIndex];
+  const title = makeTitle(seed, name);
+
+  // 名前ごとの総合力差。差は出すが、極端なワンサイドを避ける。
+  const rarityRoll = r();
+  let quality = 0.96 + r() * 0.10;          // 0.96〜1.06
+  if(rarityRoll > 0.965) quality += 0.075;  // まれに強名
+  else if(rarityRoll > 0.88) quality += 0.035;
+  else if(rarityRoll < 0.06) quality -= 0.045;
+
+  const styles = [
+    {hp:1.00, atk:1.00, def:1.00, spd:1.00, luck:1.00}, // バランス
+    {hp:.88, atk:1.55, def:.82, spd:.88, luck:.95},     // 火力
+    {hp:1.18, atk:.82, def:1.55, spd:.74, luck:.90},    // 盾
+    {hp:.90, atk:.95, def:.82, spd:1.62, luck:1.05},    // 速さ
+    {hp:1.02, atk:.86, def:.92, spd:.98, luck:1.70},    // 運
+    {hp:1.48, atk:1.08, def:1.05, spd:.62, luck:.82},   // 巨体
+    {hp:.74, atk:1.42, def:.64, spd:1.30, luck:1.10},   // ガラスの大砲
+    {hp:1.04, atk:1.20, def:.78, spd:.86, luck:1.38}    // 波乱
+  ];
+  const style = styles[(seed >>> 6) % styles.length];
+
+  const wobble = () => Math.pow(0.58 + r()*1.55, 1.36);
+  let raw = {
+    hp: wobble() * style.hp * (1 + Math.min(4,len)*0.015),
+    atk: wobble() * style.atk,
+    def: wobble() * style.def,
+    spd: wobble() * style.spd * (1 + Math.max(0,7-len)*0.012),
+    luck: wobble() * style.luck
+  };
+
+  Object.keys(raw).forEach(k => raw[k] = Math.max(raw[k], 0.36));
+  const total = raw.hp + raw.atk + raw.def + raw.spd + raw.luck;
+  const share = Object.fromEntries(Object.entries(raw).map(([k,v]) => [k, v/total]));
+
+  const budget = 530 + Math.floor(r()*90); // 530〜620
+  let hp   = Math.round((138 + budget * share.hp   * 1.45) * quality);
+  let atk  = Math.round((34  + budget * share.atk  * 0.88) * quality);
+  let def  = Math.round((30  + budget * share.def  * 0.82) * quality);
+  let spd  = Math.round((32  + budget * share.spd  * 0.84) * quality);
+  let luck = Math.round((22  + budget * share.luck * 0.64) * (0.98 + quality*0.03));
+
+  hp   = Math.round(clamp(hp, 168, 430));
+  atk  = Math.round(clamp(atk, 42, 178));
+  def  = Math.round(clamp(def, 34, 158));
+  spd  = Math.round(clamp(spd, 34, 172));
+  luck = Math.round(clamp(luck, 18, 116));
+
+  const skillId = seed % SKILLS.length;
+  return {
+    name, gender, seed, element, className, title,
+    hp, maxHp:hp, curHp:hp,
+    atk, def, spd, luck,
+    baseAtk:atk, baseDef:def, baseSpd:spd,
+    skillId,
+    strategy:null, revealed:false,
+    awakened:false, awakenRounds:0,
+    specialBonus:0, guardOnce:true,
+    atkBuff:0, defBuff:0, spdBuff:0, luckBuff:0,
+    roundSpd:0, incoming:1,
+    quality,
+    history:{maxHit:0, specials:0, damage:0}
+  };
+}
+
+function drawCharacter(canvasId, char){
+  const canvas=$(canvasId), ctx=canvas.getContext("2d");
+  ctx.clearRect(0,0,128,128);
+  if(!char) return;
+  const seed = char.seed, r = rng(seed);
+  const ox=18, oy=16;
+  const palette = {
+    skin: char.gender==="female" ? "#f8c9ba" : "#efc29b",
+    hair: ["#4f2b14","#1f2d60","#6e1336","#1f5b4f","#a6560a","#5c2173"][seed%6],
+    body: ["#4ec2ff","#ff6289","#66e08d","#ffd44c","#b07bff","#ff9d38"][(seed>>2)%6],
+    dark:"#202842",
+    accent:["#f6f3ff","#ffe6a8","#aaf7ff","#ffd0e1","#dbceff"][(seed>>4)%5]
+  };
+  const aura = char.revealed && char.strategy ? (
+    char.strategy==="speed" ? "rgba(0,213,255,.18)" :
+    char.strategy==="attack" ? "rgba(231,76,60,.18)" :
+    char.strategy==="guard" ? "rgba(241,196,15,.18)" :
+    "rgba(155,89,182,.22)"
+  ) : "rgba(255,255,255,.07)";
+  ctx.fillStyle=aura; ctx.fillRect(8,8,112,112);
+  for(let i=0;i<8;i++){ ctx.fillStyle=i%2?"rgba(255,255,255,.03)":"rgba(255,255,255,.015)"; ctx.fillRect(0,i*16,128,8); }
+  ctx.fillStyle="rgba(0,0,0,.35)"; ctx.fillRect(38,100,50,8);
+  ctx.fillStyle=palette.dark; ctx.fillRect(ox+28,oy+74,10,22); ctx.fillRect(ox+50,oy+74,10,22);
+  ctx.fillStyle=palette.body; ctx.fillRect(ox+20,oy+38,48,40);
+  if(char.className==="騎士" || char.className==="聖騎士"){ ctx.fillStyle="#b52242"; ctx.fillRect(ox+14,oy+40,8,36); ctx.fillRect(ox+68,oy+40,8,36); }
+  if(char.className==="魔導士" || char.className==="影術師"){ ctx.fillStyle=palette.accent; ctx.fillRect(ox+38,oy+42,12,22); }
+  ctx.fillStyle=palette.skin; ctx.fillRect(ox+10,oy+44,10,28); ctx.fillRect(ox+68,oy+44,10,28);
+  ctx.fillStyle=palette.skin; ctx.fillRect(ox+24,oy+8,40,30);
+  ctx.fillStyle=palette.hair; ctx.fillRect(ox+22,oy+6,44,12);
+  if(char.gender==="female"){ ctx.fillRect(ox+18,oy+16,8,18); ctx.fillRect(ox+62,oy+16,8,18); }
+  else { ctx.fillRect(ox+20,oy+16,6,12); ctx.fillRect(ox+62,oy+16,6,12); }
+  ctx.fillStyle="#111"; ctx.fillRect(ox+34,oy+22,4,4); ctx.fillRect(ox+50,oy+22,4,4); ctx.fillRect(ox+40,oy+30,8,2);
+  if(["剣士","騎士"].includes(char.className)){ ctx.fillStyle="#e8f2ff"; ctx.fillRect(ox+74,oy+34,6,30); ctx.fillStyle="#c78e26"; ctx.fillRect(ox+70,oy+58,14,4); }
+  if(char.className==="忍者"){ ctx.fillStyle="#ff4c6a"; ctx.fillRect(ox+24,oy+28,40,6); ctx.fillRect(ox+64,oy+30,12,4); }
+  if(char.className==="召喚師"){ ctx.fillStyle="#9ef8ff"; ctx.fillRect(ox+74,oy+44,10,10); ctx.fillStyle="#fff"; ctx.fillRect(ox+76,oy+46,4,4); }
+  if(char.className==="機工士"){ ctx.fillStyle="#9aa9c7"; ctx.fillRect(ox+70,oy+48,14,8); ctx.fillStyle="#f8d34c"; ctx.fillRect(ox+84,oy+50,4,4); }
+  if(char.className==="聖騎士"){ ctx.fillStyle="#4ac67a"; ctx.fillRect(ox+4,oy+44,14,18); ctx.fillStyle="#e6fff2"; ctx.fillRect(ox+8,oy+48,6,6); }
+  if(char.className==="影術師"){ ctx.fillStyle="rgba(210,116,255,.34)"; ctx.fillRect(ox+8,oy+8,8,72); ctx.fillRect(ox+72,oy+8,8,72); }
+
+  if(char.revealed && char.strategy==="speed"){
+    ctx.fillStyle="#7df6ff"; ctx.shadowColor="#00d5ff"; ctx.shadowBlur=10;
+    ctx.save(); ctx.translate(88, 38); ctx.rotate(-0.45); ctx.fillRect(0,0,6,28); ctx.fillRect(-4,2,14,5); ctx.restore();
+    ctx.save(); ctx.translate(98, 60); ctx.rotate(-0.45); ctx.fillRect(0,0,5,24); ctx.fillRect(-3,2,12,4); ctx.restore();
+    ctx.shadowBlur=0;
+  }
+  if(char.revealed && char.strategy==="attack"){
+    ctx.save(); ctx.translate(88, 82); ctx.rotate(-0.72);
+    ctx.fillStyle="#ff3245"; ctx.shadowColor="#e74c3c"; ctx.shadowBlur=10;
+    ctx.fillRect(-6,-56,12,68); ctx.fillStyle="#ffffff"; ctx.fillRect(-2,-56,4,54);
+    ctx.fillStyle="#7b060d"; ctx.fillRect(-14,8,28,7);
+    ctx.restore(); ctx.shadowBlur=0;
+  }
+  if(char.revealed && char.strategy==="guard"){
+    ctx.save(); ctx.translate(19, 66);
+    ctx.fillStyle="#f1c40f"; ctx.shadowColor="#f1c40f"; ctx.shadowBlur=10;
+    ctx.beginPath(); ctx.moveTo(0,-25); ctx.lineTo(22,-14); ctx.lineTo(17,20); ctx.lineTo(0,34); ctx.lineTo(-17,20); ctx.lineTo(-22,-14); ctx.closePath(); ctx.fill();
+    ctx.fillStyle="#fff2a0"; ctx.fillRect(-4,-16,8,28); ctx.fillRect(-13,-3,26,7);
+    ctx.restore(); ctx.shadowBlur=0;
+  }
+  if(char.revealed && char.strategy==="awaken" && char.awakened && char.awakenRounds>0){
+    ctx.strokeStyle="#9b59b6"; ctx.lineWidth=4; ctx.shadowColor="#9b59b6"; ctx.shadowBlur=12;
+    ctx.beginPath(); ctx.arc(64,64,54,0,Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(64,64,40,0,Math.PI*2); ctx.stroke();
+    ctx.shadowBlur=0;
+  }
+
+  if(char.awakened && char.awakenRounds>0){
+    ctx.strokeStyle="#d274ff"; ctx.lineWidth=3; ctx.strokeRect(2,2,124,124);
+    for(let i=0;i<6;i++){ ctx.fillStyle="rgba(210,116,255,.38)"; ctx.fillRect(8+i*18,0,4,6); }
+  }
+}
+
+function setGender(pid,g){
+  const row=$(`genderRow${pid}`);
+  row.querySelectorAll(".gender-btn").forEach(btn=>btn.classList.toggle("active", btn.dataset.gender===g));
+  if(pid===1) p1.gender=g; else p2.gender=g;
+}
+function updateUI(pid, char){
+  if(!char) return;
+  $(`title${pid}`).textContent = char.title;
+  $(`subtitle${pid}`).textContent = "";
+  const pct = clamp(char.curHp/char.maxHp*100,0,100);
+  const hpBar = $(`hpBar${pid}`);
+  hpBar.style.width = pct+"%";
+  hpBar.style.background = pct>50 ? "#2ecc71" : pct>20 ? "#f1c40f" : "#e74c3c";
+  $(`hpText${pid}`).textContent = `${Math.max(0,Math.floor(char.curHp))} / ${char.maxHp}`;
+  $(`stat${pid}`).innerHTML = `
+    <div class="stat-row"><span>ATK</span><span>${Math.round(eAtk(char))}</span></div>
+    <div class="stat-row"><span>DEF</span><span>${Math.round(eDef(char))}</span></div>
+    <div class="stat-row"><span>SPD</span><span>${Math.round(eSpd(char))}</span></div>
+    <div class="stat-row"><span>LUK</span><span>${Math.round(eLuck(char))}</span></div>
+  `;
+  $(`skillBox${pid}`).textContent = `必殺: ${SKILLS[char.skillId][0]}`;
+  const badge = $(`strategyBadge${pid}`);
+  if(!char.strategy){ badge.textContent="TACTICS ???"; badge.className="strategy-badge"; }
+  else if(!char.revealed){ badge.textContent="TACTICS LOCKED"; badge.className="strategy-badge"; }
+  else { badge.textContent=`TACTICS ${STRATEGIES[char.strategy].label}`; badge.className=`strategy-badge revealed ${STRATEGIES[char.strategy].cls}`; }
+  updateTacticButtons(pid, char);
+  drawCharacter(`cvs${pid}`, char);
+}
+
+function tag(pid, char){
+  const cls = pid===1 ? "p1text" : "p2text";
+  return `<span class="${cls}">${pid}P</span> ${char.name}`;
+}
+function showStrategyEffect(pid, strategy){
+  if(!strategy) return;
+  const area = $(pid===1 ? "charArea1" : "charArea2");
+  const el = document.createElement("div");
+  el.className = `strategy-effect ${strategy}`;
+  area.appendChild(el);
+  setTimeout(()=>el.remove(), 950);
+}
+function playerTheme(pid){ return pid===1 ? "p1" : "p2"; }
+
+function updateTacticButtons(pid, char){
+  document.querySelectorAll(`.tactic-option[data-pid="${pid}"]`).forEach(btn=>{
+    btn.classList.remove("locked","revealed");
+    if(!char || !char.strategy) return;
+    if(char.revealed && btn.dataset.strategy === char.strategy) btn.classList.add("revealed");
+    else if(!char.revealed) btn.classList.add("locked");
+    else btn.classList.add("locked");
+  });
+}
+function setActiveTacticPlayer(pid){
+  if(battleRunning) return;
+  const char = pid===1 ? p1.data : p2.data;
+  if(!char) return;
+  activeTacticPlayer = pid;
+  document.querySelectorAll(".char-area").forEach(el=>el.classList.remove("keyboard-target"));
+  $(`charArea${pid}`).classList.add("keyboard-target");
+  announce(`${pid}P TACTICS`, `上下左右キーで作戦をロック`, playerTheme(pid), 420);
+}
+function setPlayerStrategy(pid, strategy){
+  if(battleRunning || !STRATEGIES[strategy]) return;
+  const char = pid===1 ? p1.data : p2.data;
+  if(!char) return;
+  char.strategy = strategy;
+  char.revealed = false;
+  updateUI(pid, char);
+  playSE("lock");
+  announce(`${pid}P LOCKED`, `作戦をロックしました`, playerTheme(pid), 460);
+  log(`<span class="log-strategy">${pid}P 作戦ロック</span>`, "log-strategy");
+  updateReady();
+}
+
+function summon(pid){
+  initAudio();
+  const name=$(`name${pid}`).value.trim(); if(!name) return;
+  const gender = autoGenderFromName(name, pid);
+  if(pid===1) p1.gender=gender; else p2.gender=gender;
+  const char = generateChar(name, gender);
+  char.strategy = null; char.revealed = false;
+  if(pid===1) p1.data=char; else p2.data=char;
+  updateUI(pid,char);
+  $(`charArea${pid}`).classList.remove("summoned"); void $(`charArea${pid}`).offsetWidth; $(`charArea${pid}`).classList.add("summoned");
+  playSE("summon"); announce(`${pid}P SUMMON`, `${char.name} 召喚！`, playerTheme(pid), 560); log(`<span class="log-eff">${pid}P 召喚完了</span>`, "log-eff");
+  setActiveTacticPlayer(pid);
+  updateReady();
+}
+function updateReady(){
+  const hasBoth = !!(p1.data && p2.data);
+  $("strategyBtn").disabled = !hasBoth || battleRunning;
+  $("battleBtn").disabled = !(hasBoth && p1.data.strategy && p2.data.strategy) || battleRunning;
+}
+
+
+function startStrategySelect(){
+  const next = p1.data && !p1.data.strategy ? 1 : (p2.data && !p2.data.strategy ? 2 : (p1.data ? 1 : null));
+  if(next) setActiveTacticPlayer(next);
+}
+window.addEventListener("keydown", e=>{
+  if(battleRunning) return;
+  if(e.target && e.target.tagName === "INPUT") return;
+  const strategy = KEY_TO_STRATEGY[e.key];
+  if(strategy && activeTacticPlayer){
+    e.preventDefault();
+    setPlayerStrategy(activeTacticPlayer, strategy);
+  }
+});
+function gamepadLoop(){
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  let st=null, state={up:false,down:false,left:false,right:false};
+  for(const pad of pads){
+    if(!pad) continue;
+    const a=pad.axes||[], b=pad.buttons||[];
+    state.up = state.up || a[1]<-.5 || b[12]?.pressed;
+    state.down = state.down || a[1]>.5 || b[13]?.pressed;
+    state.left = state.left || a[0]<-.5 || b[14]?.pressed;
+    state.right = state.right || a[0]>.5 || b[15]?.pressed;
+  }
+  const targetPid = activeTacticPlayer || (p1.data && !p1.data.strategy ? 1 : (p2.data && !p2.data.strategy ? 2 : null));
+  if(targetPid && !battleRunning){
+    if(state.up && !gamepadPrev.up) st="speed";
+    if(state.right && !gamepadPrev.right) st="attack";
+    if(state.down && !gamepadPrev.down) st="guard";
+    if(state.left && !gamepadPrev.left) st="awaken";
+    if(st){ activeTacticPlayer = targetPid; setPlayerStrategy(targetPid, st); }
+  }
+  gamepadPrev=state;
+  requestAnimationFrame(gamepadLoop);
+}
+
+function resetForBattle(char){
+  const strategy = char.strategy;
+  const gender = char.gender, name = char.name;
+  const fresh = generateChar(name, gender);
+  Object.assign(char, fresh);
+  char.strategy = strategy;
+  char.revealed = true;
+}
+function eAtk(c){ return Math.max(10, c.atk + (c.atkBuff||0)); }
+function eDef(c){ return Math.max(8, c.def + (c.defBuff||0)); }
+function eSpd(c){ return Math.max(8, c.spd + (c.spdBuff||0) + (c.roundSpd||0)); }
+function eLuck(c){ return clamp(c.luck + (c.luckBuff||0),1,120); }
+function hasAdv(a,b){ return STRATEGIES[a.strategy]?.strong === b.strategy; }
+function applyRoundEffects(a,b){
+  a.roundSpd=0; a.incoming=1; a.specialDmgBonus=0; a.critBonus=0; a.extraChance=0; a.evadeBonus=0;
+  if(a.strategy==="speed"){
+    if(round<=3){ a.roundSpd += Math.round(a.spd*.20); a.extraChance=.25+(hasAdv(a,b)?.10:0); a.evadeBonus=.04; }
+    else a.incoming *= 1.12;
+  }
+  if(a.strategy==="attack" && round<=7){
+    a.atkTemp = .15; a.critBonus=.055; a.specialDmgBonus += .15+(hasAdv(a,b)?.08:0); a.roundSpd -= Math.round(a.spd*.08); a.incoming*=1.10;
+  } else a.atkTemp=0;
+  if(a.strategy==="guard" && round<=3){
+    a.incoming *= hasAdv(a,b) ? .63 : .72;
+  }
+  if(a.strategy==="awaken" && a.awakened && a.awakenRounds>0){
+    a.specialBonus = hasAdv(a,b) ? .18 : .14;
+  } else if(a.strategy!=="awaken") a.specialBonus=0;
+}
+async function maybeAwaken(c, enemy, pid){
+  if(c.strategy!=="awaken" || c.awakened || c.curHp > c.maxHp*.5) return;
+  c.awakened=true; c.awakenRounds=3; c.specialBonus = hasAdv(c,enemy) ? .18 : .14;
+  const heal = Math.floor(c.maxHp*(hasAdv(c,enemy) ? .24 : .20));
+  c.curHp = Math.min(c.maxHp, c.curHp + heal);
+  playSE("awaken"); showStrategyEffect(pid, "awaken"); showCutin(c.name, "覚醒", pid, true);
+  floatText(pid, "+"+heal, "float-heal");
+  await announce(`${pid}P AWAKENING`, `${c.name} 覚醒！ HP回復`, "awaken", 900); log(`<span class="log-skill">${pid}P 覚醒！ HP回復＋必殺率アップ</span>`, "log-skill");
+  updateUI(pid,c);
+}
+function turnCount(a,b){
+  let t=1, ratio=eSpd(a)/Math.max(1,eSpd(b));
+  if(ratio>=1.45 && Math.random()<.30) t=2;
+  if(ratio>=1.95 && Math.random()<.16) t=3;
+  if(a.strategy==="speed" && round<=3 && Math.random()<(a.extraChance||0)) t=Math.min(3,t+1);
+  return t;
+}
+function specialChance(c){
+  return clamp(.03 + eLuck(c)/1400 + (c.specialBonus||0), .03, .42);
+}
+function critChance(c){ return clamp(eAtk(c)/2200 + eLuck(c)/2400 + (c.critBonus||0), .03, .25); }
+function dodgeChance(c){ return clamp(eSpd(c)/1800 + eLuck(c)/2600 + (c.evadeBonus||0), .02, .24); }
+
+async function showCutin(name, skill, pid, quick=false){
+  const overlay=$("cutin-overlay"), bar=$("cutin-bar");
+  $("cutinName").textContent = pid ? `${pid}P ${name}` : name;
+  $("cutinSkill").textContent=skill;
+  bar.className="cutin-bar";
+  if(pid) bar.classList.add(pid===1 ? "p1-cutin" : "p2-cutin");
+  void bar.offsetWidth; bar.classList.add(pid===1?"cutin-p1":"cutin-p2");
+  overlay.style.display="block"; playSE("cutin");
+  await sleep(quick?900:1800);
+  overlay.style.display="none";
+}
+function floatText(pid,text,cls){
+  const area=$(pid===1?"charArea1":"charArea2");
+  const el=document.createElement("div"); el.className=`float-text ${cls}`; el.textContent=text; area.appendChild(el);
+  setTimeout(()=>el.remove(),1100);
+}
+function hitFlash(pid, heavy=false){
+  const wrap = document.querySelector(`#charArea${pid} .canvas-wrapper`);
+  wrap.classList.add("flash"); setTimeout(()=>wrap.classList.remove("flash"),220);
+  if(heavy){ $("gameFrame").classList.add("shake"); setTimeout(()=>$("gameFrame").classList.remove("shake"),360); }
+}
+
+function calcNormal(a,b){
+  let dmg = (eAtk(a)*(1+(a.atkTemp||0))) - eDef(b)*.62 + Math.floor(Math.random()*10);
+  if(decisiveMode) dmg *= 1.28;
+  dmg *= b.incoming || 1;
+  let crit=false;
+  if(Math.random()<critChance(a)){ dmg*=1.8; crit=true; }
+  if(b.strategy==="guard" && b.guardOnce && (crit || Math.random()<.14)){
+    dmg*=.70; b.guardOnce=false; b.guardTriggered=true; log(`<span class="log-eff">${b.name} が大ダメージを防いだ！</span>`, "log-eff");
+  }
+  return {dmg:Math.max(1,Math.floor(dmg)), crit};
+}
+function specialResult(a,b,c1,c2){
+  const id=a.skillId; let dmg=0, heal=0, msg="";
+  switch(id){
+    case 0:dmg=eAtk(a)*1.8;break; case 1:dmg=eAtk(a)*1.2+40;break; case 2:dmg=eAtk(a)+eDef(b)*.45;break; case 3:dmg=eAtk(a)*.85+50;break;
+    case 4:dmg=eAtk(a)*.8+20;b.spdBuff-=18;msg="SPD低下！";break; case 5:dmg=eAtk(a)*.72;b.defBuff-=16;msg="DEF低下！";break;
+    case 6:heal=Math.floor(a.maxHp*.30);a.curHp=Math.min(a.maxHp,a.curHp+heal);return {dmg:0,heal,msg:"聖なる光で回復！"};
+    case 7:dmg=b.curHp*.25;break; case 8:dmg=eAtk(a);heal=Math.floor(dmg*.5);break; case 9:dmg=eAtk(a)*.55;heal=Math.floor(dmg);break;
+    case 10:dmg=eAtk(a)*1.45-eDef(b)*.18;break; case 11:dmg=eAtk(a)*.6;b.atkBuff-=18;msg="ATK低下！";break;
+    case 12:dmg=eAtk(a)+eDef(a)*.45;break; case 13:dmg=eAtk(a)*.38;return {multi:2,per:Math.max(1,Math.floor(dmg*(1+(a.specialDmgBonus||0))))};
+    case 14:dmg=(eDef(c1)+eDef(c2))*.32;return {global:true,dmg:Math.max(1,Math.floor(dmg))};
+    case 15:dmg=(c1.curHp+c2.curHp)*.15;return {global:true,dmg:Math.max(1,Math.floor(dmg))};
+    case 16:a.spdBuff+=Math.floor(a.spd*.25);return {dmg:0,heal:0,msg:"SPD上昇！"};
+    case 17:dmg=eSpd(a)*1.5;break; case 18:a.atkBuff+=Math.floor(a.atk*.20);return {dmg:0,heal:0,msg:"ATK上昇！"};
+    case 19:a.defBuff+=Math.floor(a.def*.24);return {dmg:0,heal:0,msg:"DEF上昇！"};
+    case 20:heal=Math.floor(a.maxHp*.24);a.curHp=Math.min(a.maxHp,a.curHp+heal);return {dmg:0,heal,msg:"再生回復！"};
+    case 21:a.luckBuff+=20;return {dmg:0,heal:0,msg:"LUCK上昇！"};
+    case 22:dmg=(b.maxHp-b.curHp)*.85;break; case 23:dmg=eDef(a)*.5+eDef(b)*.45;b.defBuff-=12;msg="重力でDEF低下！";break;
+  }
+  dmg *= (1+(a.specialDmgBonus||0)) * (decisiveMode?1.10:1);
+  return {dmg:Math.max(1,Math.floor(dmg)),heal,msg};
+}
+async function doSpecial(a,b,aid,bid,c1,c2){
+  const skill=SKILLS[a.skillId][0];
+  a.history.specials++;
+  if(lastSpecial.pid===aid) lastSpecial.count++; else { lastSpecial.pid=aid; lastSpecial.count=1; }
+  if(lastSpecial.count>=2){ await announce(`${aid}P ${lastSpecial.count}連続必殺!`, `${a.name} が押し切る！`, "special", 760); log(`<span class="log-skill">${aid}P 必殺 ${lastSpecial.count}連続!</span>`, `log-skill marker-p${aid}`); }
+  showStrategyEffect(aid, a.strategy); await showCutin(a.name, skill, aid);
+  const res=specialResult(a,b,c1,c2);
+  await announce(`${aid}P SPECIAL`, `${skill}`, "special", 720);
+  log(`<span class="log-skill">${aid}P 必殺 ${skill}</span>`, `log-skill marker-p${aid}`);
+  if(res.global){
+    c1.curHp=Math.max(0,c1.curHp-res.dmg); c2.curHp=Math.max(0,c2.curHp-res.dmg);
+    floatText(1,res.dmg,"float-skill"); floatText(2,res.dmg,"float-skill"); hitFlash(1,true); hitFlash(2,true);
+    await announce(`ALL HIT!`, `${res.dmg} ダメージ`, "special", 820);
+    updateUI(1,c1); updateUI(2,c2); return;
+  }
+  if(res.multi){
+    for(let i=0;i<2;i++){ b.curHp=Math.max(0,b.curHp-res.per); a.history.damage+=res.per; a.history.maxHit=Math.max(a.history.maxHit,res.per); floatText(bid,res.per,"float-skill"); hitFlash(bid,true); await announce(`${aid}P HIT ${i+1}`, `${res.per} ダメージ`, "special", 320); updateUI(bid,b); await sleep(220); }
+    return;
+  }
+  if(res.dmg>0){
+    b.curHp=Math.max(0,b.curHp-res.dmg); a.history.damage+=res.dmg; a.history.maxHit=Math.max(a.history.maxHit,res.dmg);
+    floatText(bid,res.dmg,"float-skill"); hitFlash(bid,true);
+    await announce(`${aid}P SPECIAL HIT`, `${res.dmg} ダメージ`, "special", 740);
+  }
+  if(res.heal>0){ a.curHp=Math.min(a.maxHp,a.curHp+res.heal); floatText(aid,"+"+res.heal,"float-heal"); await announce(`${aid}P RECOVER`, `+${res.heal} HP`, "special", 620); }
+  if(res.msg){ await announce(`${aid}P EFFECT`, `${res.msg}`, playerTheme(aid), 500); log(`<span class="log-eff">${res.msg}</span>`, `log-eff marker-p${aid}`); }
+  updateUI(aid,a); updateUI(bid,b);
+}
+async function doAttack(a,b,aid,bid,c1,c2){
+  if(Math.random()<specialChance(a)){ await doSpecial(a,b,aid,bid,c1,c2); return; }
+  lastSpecial.pid=null; lastSpecial.count=0;
+  showStrategyEffect(aid, a.strategy);
+  const wrap=document.querySelector(`#charArea${aid} .canvas-wrapper`);
+  wrap.style.transform="scale(1.18)"; setTimeout(()=>wrap.style.transform="scale(1)",140);
+  playSE("attack");
+  if(Math.random()<dodgeChance(b)){
+    floatText(bid,"MISS","float-miss");
+    await announce(`${bid}P DODGE!`, `${b.name} がかわした！`, playerTheme(bid), 420);
+    log(`<span class="log-short">${bid}P 回避成功</span>`, "log-eff");
+    await sleep(220); return;
+  }
+  const {dmg,crit}=calcNormal(a,b);
+  if(b.guardTriggered){ showStrategyEffect(bid, "guard"); b.guardTriggered=false; await announce(`${bid}P GUARD!`, `ダメージ軽減`, playerTheme(bid), 380); }
+  b.curHp=Math.max(0,b.curHp-dmg); a.history.damage+=dmg; a.history.maxHit=Math.max(a.history.maxHit,dmg);
+  playSE(crit?"crit":"hit"); floatText(bid,dmg,crit?"float-skill":"float-dmg"); hitFlash(bid,crit||dmg>110);
+  if(crit){ await announce(`${aid}P CRITICAL!`, `${dmg} ダメージ`, "special", 620); log(`<span class="log-skill">${aid}P 会心の一撃 ${dmg} ダメージ</span>`, `log-skill marker-p${aid}`); }
+  else { await announce(`${aid}P ATTACK`, `${dmg} ダメージ`, playerTheme(aid), 300); log(`<span class="log-short">${aid}P → ${bid}P  ${dmg} ダメージ</span>`, `log-dmg marker-p${aid}`); }
+  updateUI(aid,a); updateUI(bid,b);
+  await sleep(260);
+}
+async function processFighter(a,b,aid,bid,c1,c2){
+  const cnt=turnCount(a,b);
+  if(cnt>1){ await announce(`${aid}P RUSH!`, `${cnt}回行動`, playerTheme(aid), 480); log(`<span class="log-eff">${aid}P ${cnt}回行動</span>`, "log-eff"); }
+  for(let i=0;i<cnt;i++){
+    if(a.curHp<=0 || b.curHp<=0) break;
+    await doAttack(a,b,aid,bid,c1,c2);
+    await maybeAwaken(b,a,bid); await maybeAwaken(a,b,aid);
+    if(a.curHp<=0 || b.curHp<=0) break;
+    await sleep(360);
+  }
+}
+function judgeWinner(c1,c2){
+  if(c1.curHp<=0 && c2.curHp<=0) return 0;
+  if(c1.curHp<=0) return 2;
+  if(c2.curHp<=0) return 1;
+  const r1=c1.curHp/c1.maxHp, r2=c2.curHp/c2.maxHp;
+  if(Math.abs(r1-r2)<.02) return c1.history.damage>=c2.history.damage?1:2;
+  return r1>r2?1:2;
+}
+async function battleStart(){
+  if(!p1.data || !p2.data || battleRunning) return;
+  battleRunning=true; $("battleBtn").disabled=true; $("strategyBtn").disabled=true;
+  activeTacticPlayer = null; document.querySelectorAll(".char-area").forEach(el=>el.classList.remove("keyboard-target"));
+  clearLog(); round=0; decisiveMode=false; setRoundUi();
+  resetForBattle(p1.data); resetForBattle(p2.data);
+  updateUI(1,p1.data); updateUI(2,p2.data);
+  playBGM("battle"); playSE("start");
+  await announce(`BATTLE START`, `${p1.data.name} VS ${p2.data.name}`, "neutral", 760);
+  await announce(`TACTICS OPEN`, `1P ${STRATEGIES[p1.data.strategy].label} / 2P ${STRATEGIES[p2.data.strategy].label}`, "neutral", 860);
+  log(`<span class="log-turn">BATTLE START</span>`, "log-turn");
+  log(`<span class="log-strategy">1P ${STRATEGIES[p1.data.strategy].label} / 2P ${STRATEGIES[p2.data.strategy].label}</span>`, "log-strategy");
+  await sleep(240);
+  while(round<12 && p1.data.curHp>0 && p2.data.curHp>0){
+    round++;
+    if(round===8){
+      decisiveMode=true; setRoundUi(); playBGM("decisive"); playSE("crit");
+      await showCutin("DECISIVE", "決戦モード", 1, true);
+      await announce(`DECISIVE MODE`, `ここから大ダメージ！`, "special", 900);
+      log(`<span class="log-skill">決戦モード突入</span>`, "log-skill");
+    }
+    setRoundUi();
+    await announce(`ROUND ${round}`, `バトル続行！`, "neutral", 260);
+    log(`<span class="log-turn">ROUND ${round}</span>`, "log-turn");
+    applyRoundEffects(p1.data,p2.data); applyRoundEffects(p2.data,p1.data);
+    const sp1=eSpd(p1.data), sp2=eSpd(p2.data);
+    if(sp1>=sp2){
+      await processFighter(p1.data,p2.data,1,2,p1.data,p2.data);
+      if(p2.data.curHp>0) await processFighter(p2.data,p1.data,2,1,p1.data,p2.data);
+    } else {
+      await processFighter(p2.data,p1.data,2,1,p1.data,p2.data);
+      if(p1.data.curHp>0) await processFighter(p1.data,p2.data,1,2,p1.data,p2.data);
+    }
+    if(p1.data.awakenRounds>0) p1.data.awakenRounds--;
+    if(p2.data.awakenRounds>0) p2.data.awakenRounds--;
+    if(p1.data.awakenRounds<=0) p1.data.specialBonus=0;
+    if(p2.data.awakenRounds<=0) p2.data.specialBonus=0;
+    updateUI(1,p1.data); updateUI(2,p2.data);
+    await sleep(700);
+  }
+  const winner = judgeWinner(p1.data,p2.data);
+  if(winner===0){
+    await announce(`DRAW GAME`, `ダブルKO！`, "special", 1200);
+    log(`<span class="log-win">引き分け</span>`, "log-win");
+  } else {
+    const w = winner===1 ? p1.data : p2.data;
+    const winId = winner, loseId = winner===1 ? 2 : 1;
+    log(`<span class="log-win">🏆 ${winId}P ${w.name} の勝利！</span>`, "log-win");
+    await showCutin(w.name, "WINNER", winId, true);
+    await announce(`${winId}P WINNER!`, `${w.name} の勝利！`, "win", 1300);
+    $(`charArea${winId}`).classList.add("winner");
+    $(`charArea${loseId}`).classList.add("loser");
+    playSE("win");
+  }
+  stopBGM(); playBGM("title");
+  battleRunning=false; $("battleBtn").disabled=false; $("strategyBtn").disabled=false; setRoundUi();
+}
+function fullReset(){
+  if(battleRunning) return;
+  p1.data=null; p2.data=null; round=0; decisiveMode=false; setRoundUi(); clearLog();
+  $("logWindow").innerHTML='<div class="log-entry">戦士を召喚してください...</div>';
+  $("eventHead").textContent='READY'; $("eventSub").textContent='戦士を召喚してください'; $("eventBox").className='event-box theme-neutral';
+  activeTacticPlayer = null;
+  [1,2].forEach(pid=>{
+    $(`charArea${pid}`).classList.remove("summoned","winner","loser","keyboard-target");
+    $(`strategyBadge${pid}`).textContent="TACTICS ???"; $(`strategyBadge${pid}`).className="strategy-badge";
+    document.querySelectorAll(`.tactic-option[data-pid="${pid}"]`).forEach(btn=>btn.classList.remove("locked","revealed"));
+    drawCharacter(`cvs${pid}`,null);
+  });
+  updateReady();
+}
+document.querySelectorAll(".gender-btn").forEach(btn=>btn.addEventListener("click",()=>setGender(Number(btn.dataset.pid), btn.dataset.gender)));
+document.querySelectorAll("[data-summon]").forEach(btn=>btn.addEventListener("click",()=>summon(Number(btn.dataset.summon))));
+document.querySelectorAll("[data-select-player]").forEach(el=>el.addEventListener("click",()=>setActiveTacticPlayer(Number(el.dataset.selectPlayer))));
+document.querySelectorAll(".tactic-option").forEach(btn=>btn.addEventListener("click",()=>setPlayerStrategy(Number(btn.dataset.pid), btn.dataset.strategy)));
+
+document.querySelectorAll(".tactics-ring").forEach(ring=>{
+  let sx=0, sy=0, active=false;
+  ring.addEventListener("touchstart", e=>{
+    if(!e.touches || !e.touches[0]) return;
+    const pid = Number(ring.dataset.pid);
+    setActiveTacticPlayer(pid);
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; active = true;
+  }, {passive:true});
+  ring.addEventListener("touchend", e=>{
+    if(!active || !e.changedTouches || !e.changedTouches[0]) return;
+    active=false;
+    const pid = Number(ring.dataset.pid);
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    const dist = Math.hypot(dx,dy);
+    if(dist < 28) return;
+    const strategy = Math.abs(dx) > Math.abs(dy)
+      ? (dx > 0 ? "attack" : "awaken")
+      : (dy > 0 ? "guard" : "speed");
+    setPlayerStrategy(pid, strategy);
+  }, {passive:true});
+});
+
+$("strategyBtn").addEventListener("click",startStrategySelect);
+$("battleBtn").addEventListener("click",battleStart);
+$("resetBtn").addEventListener("click",fullReset);
+$("tempoBtn").addEventListener("click",()=>{ tempo = tempo===1 ? 1.45 : 1; $("tempoBtn").textContent = tempo===1 ? "TEMPO NORMAL" : "TEMPO FAST"; });
+$("fullscreenBtn").addEventListener("click",()=>{ if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); });
+window.addEventListener("click",()=>{initAudio(); playBGM("title");},{once:true});
+window.addEventListener("keydown",()=>{initAudio(); playBGM("title");},{once:true});
+setRoundUi(); $("eventHead").textContent="READY"; $("eventSub").textContent="戦士を召喚してください"; requestAnimationFrame(gamepadLoop);
+</script>
+</body>
+</html>
