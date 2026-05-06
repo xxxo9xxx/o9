@@ -32,14 +32,14 @@
   </style>
 </head>
 <body>
-  <div class="wrap"><header class="glass card sticky top-3 z-40 mb-4"><div class="flex items-center justify-between gap-3"><div class="min-w-0"><div class="mini">ANONYMOUS REAL VOICE</div><h1 class="title text-[34px] mt-1">匿名本音メーター</h1></div><div class="flex gap-2 shrink-0"><button onclick="toggleBgm()" id="bgmBtn" class="btn btn-ghost w-12 min-h-12">♪</button><button onclick="copyUrl()" class="btn btn-ghost w-12 min-h-12">🔗</button></div></div><div id="hud" class="mt-4"></div></header><main id="app"></main><footer class="pt-5 text-center"><button onclick="resetRoom()" class="text-[10px] font-black tracking-widest text-white/35 border border-white/10 rounded-full px-4 py-2">ROOM RESET</button></footer></div>
+  <div class="wrap"><header class="glass card sticky top-3 z-40 mb-4"><div class="flex items-center justify-between gap-3"><div class="min-w-0"><div class="mini">ANONYMOUS REAL VOICE</div><h1 class="title text-[34px] mt-1">匿名本音メーター</h1></div><div class="flex gap-2 shrink-0"><button onclick="toggleBgm()" id="bgmBtn" class="btn btn-ghost w-12 min-h-12">♪</button></div></div><div id="hud" class="mt-4"></div></header><main id="app"></main><footer class="pt-5 text-center"><button onclick="resetRoom()" class="text-[10px] font-black tracking-widest text-white/35 border border-white/10 rounded-full px-4 py-2">ROOM RESET</button></footer></div>
 <script>
 const firebaseConfig={apiKey:"AIzaSyBmzPmehSaV--mn0Hd0S-fd97nf5RX4Dvg",authDomain:"membertoiro.firebaseapp.com",databaseURL:"https://membertoiro-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"membertoiro",storageBucket:"membertoiro.firebasestorage.app",messagingSenderId:"858132874746",appId:"1:858132874746:web:9d6e1156a350dd396b9043"};firebase.initializeApp(firebaseConfig);const db=firebase.database();
 const params=new URLSearchParams(location.search);const roomId=params.get("room")||makeId(5);if(!params.get("room")){const u=new URL(location.href);u.searchParams.set("room",roomId);u.searchParams.set("view","host");history.replaceState(null,"",u)}const roomRef=db.ref("rooms/"+roomId+"_hon_meter_deluxe_v2");const libraryRef=db.ref("rooms/_honneMeter_questionLibrary_v1");let questionLibrary={};
 const QUESTION_SETS={papa:{name:"パパ友セット",desc:"笑えるけど少し刺さる、大人の本音",questions:["この年になって本音で話せる友達がほぼいない","実は見栄を張って生きてる部分がある","SNSで元カノを検索したことがある","今の仕事を辞めたいと思ったことがある","正直結婚に後悔したことがある","家に帰りたくないと思うことがある","仕事を育児の逃げ場にしてる（現在進行形）","奥さん以外に気になる人ができたことがある","子育てで本気で泣いたことがある","若い頃の自分に戻りたいと思うことがある","休日なのに一人の時間がほしいと思うことがある","家族のためと言いながら自分の都合を優先したことがある","昔の友人関係が少しうらやましくなることがある","父親として正解がわからないまま動いている","正直、家では評価されていないと感じることがある","子どもの前では強がっている部分がある","飲み会を理由に少し現実逃避したことがある","家計や将来のお金のことで不安になることがある","本当はもっと自由に遊びたいと思うことがある","同世代のパパと自分を比べてしまうことがある"]},work:{name:"職場セット",desc:"会社では言いにくい本音を匿名で",questions:["今の会社を辞めたいと思ってる（現在進行形）","上司を心底尊敬できないと思ったことがある","社内に好きな人ができたことがある","仕事でミスをうまく誤魔化したことがある","同期に嫉妬したことがある","給料に不満がある","実力じゃなく要領で乗り切ったことがある","この中に苦手な人がいる","転職・独立を本気で考えてる","仕事よりプライベートを優先して後悔したことがある","会議中に別のことを考えていることがある","正直、この仕事は自分じゃなくてもいいと思ったことがある","上司の機嫌を見て動くことがある","後輩や部下に嫉妬したことがある","仕事ができる人のふりをしたことがある","職場で本音を言わずに合わせている","社内評価より私生活を優先したいと思っている","忙しいアピールをしたことがある","この会社にずっといる未来が想像できない","仕事の連絡を見て見ぬふりしたことがある"]},mix:{name:"男女混合セット",desc:"飲み会の空気が一気に変わる恋愛寄り",questions:["今夜この中で気になる人ができた","元カレ・元カノとまだ連絡とってる","今夜誰かと2人で話したいと思ってる","一目惚れしたことがある","今の恋愛・結婚状況に不満がある","今夜誰かに嘘ついてることがある","この中に自分より幸せそうで羨ましい人がいる","人生で一番やらかした恋愛はまだ誰にも話してない","今夜が数少ない息抜きになってる","実はここに来た理由が別にある","今日の服装や見た目を少し意識して来た","この中で第一印象が変わった人がいる","正直、誰かにもっと話しかけてほしい","恋愛対象として見られているか気になることがある","今夜の会話で少しドキッとした瞬間がある","昔の恋愛をまだ少し引きずっている","本当はもっと甘えたいタイプだ","好きな人には駆け引きをしてしまう","この中にモテそうだと思う人がいる","今夜、帰ったあとも誰かのことを考えそう"]},all_random:{name:"全部ランダム",desc:"全カテゴリからランダムに質問カードを出す",questions:[]},soft:{name:"ライトセット",desc:"初回・場慣らし用。重すぎず盛り上がる",questions:["今日ちょっとだけ見栄を張っている","実は最近ちょっと疲れている","この中で一番飲み会慣れしている人がいると思う","本音ではもっと褒められたい","昔の自分より今の自分の方が好き","返信をわざと遅らせたことがある","今夜、まだ帰りたくない気持ちが少しある","実は人見知りを隠している","今年中に変えたいことがある","今日のメンバーでまた集まりたい","最近ちょっとしたことで嬉しくなった","実は今日、少しだけ無理してテンションを上げている","このメンバーの中に安心する人がいる","最近、自分を褒めてあげたいことがある","本当はもっと雑談する時間がほしい","今日来てよかったと思っている","人に言っていない小さな目標がある","最近、昔より涙もろくなった気がする","この中で意外と話しやすいと思った人がいる","次に会う時はもっと本音で話せそうだ"]}};
 let state=null;let visitorId=localStorage.getItem("hon-meter-visitor")||makeId(12);localStorage.setItem("hon-meter-visitor",visitorId);let bgmOn=localStorage.getItem("hon-meter-bgm")==="on";let audioCtx=null,bgmTimer=null,rollTimer=null,lastPhase="";
 roomRef.on("value",snap=>{state=snap.val();if(state){if(!state.participants)state.participants={};if(!state.votes)state.votes={}}const phase=`${state?.phase||"none"}:${state?.qIndex??0}:${state?.revealing||false}:${state?.published||false}`;if(lastPhase&&lastPhase!==phase){if(state?.phase==="select")sfx("start");if(state?.phase==="vote")sfx("start");if(state?.phase==="closed")sfx("close");if(state?.revealing)sfx("drum");if(state?.published){sfx("reveal");burst()}}lastPhase=phase;render()});libraryRef.on("value",snap=>{questionLibrary=snap.val()||{};if(urlRole()==="admin")render()});
-function makeId(n=5){const c="abcdefghijkmnpqrstuvwxyz23456789";let s="";for(let i=0;i<n;i++)s+=c[Math.floor(Math.random()*c.length)];return s}function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}function urlRole(){return new URLSearchParams(location.search).get("view")||""}function isHost(){if(urlRole()==="guest")return false;if(urlRole()==="host")return true;return localStorage.getItem("hon-meter-host-"+roomId)==="1"}function hostUrl(){const u=new URL(location.href);u.searchParams.set("room",roomId);u.searchParams.set("view","host");return u.toString()}function guestUrl(){const u=new URL(location.href);u.searchParams.set("room",roomId);u.searchParams.set("view","guest");return u.toString()}function adminUrl(){const u=new URL(location.href);u.searchParams.set("room",roomId);u.searchParams.set("view","admin");return u.toString()}function openQuestionAdmin(){location.href=adminUrl()}function roomUrl(){return guestUrl()}function openGuestView(){location.href=guestUrl()}function openHostView(){location.href=hostUrl()}
+function makeId(n=5){const c="abcdefghijkmnpqrstuvwxyz23456789";let s="";for(let i=0;i<n;i++)s+=c[Math.floor(Math.random()*c.length)];return s}function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}function cleanQuestionText(t){return String(t??"").trim().replace(/[?？]+$/,"")}function withQuestionMark(t){const s=cleanQuestionText(t);return s?s+"？":""}function urlRole(){return new URLSearchParams(location.search).get("view")||""}function isHost(){if(urlRole()==="guest")return false;if(urlRole()==="host")return true;return localStorage.getItem("hon-meter-host-"+roomId)==="1"}function hostUrl(){const u=new URL(location.href);u.searchParams.set("room",roomId);u.searchParams.set("view","host");return u.toString()}function guestUrl(){const u=new URL(location.href);u.searchParams.set("room",roomId);u.searchParams.set("view","guest");return u.toString()}function adminUrl(){const u=new URL(location.href);u.searchParams.set("room",roomId);u.searchParams.set("view","admin");return u.toString()}function openQuestionAdmin(){location.href=adminUrl()}function roomUrl(){return guestUrl()}function openGuestView(){location.href=guestUrl()}function openHostView(){location.href=hostUrl()}
 function voteOfMe(){return state?.votes?.[visitorId]?.answer||null}function participantsCount(){return Object.keys(state?.participants||{}).length}function votes(){return Object.values(state?.votes||{}).filter(v=>v&&v.answer)}function yesCount(){return votes().filter(v=>v.answer==="yes").length}function noCount(){return votes().filter(v=>v.answer==="no").length}function answered(){return votes().length}function totalQuestions(){return Number(state?.totalQuestions||5)}function completedCount(){return Object.keys(state?.history||{}).length}function qText(){return(state?.questions||[])[state?.qIndex||0]||""}
 function backToHome(){location.href=hostUrl()}
 function libraryItems(){return Object.entries(questionLibrary||{}).map(([id,q])=>({id,...q})).sort((a,b)=>(a.category||"").localeCompare(b.category||"")||((a.sort||999)-(b.sort||999))||((b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0)))}
@@ -51,7 +51,7 @@ Object.entries(QUESTION_SETS).forEach(([cat,set])=>{
 if(cat==="all_random")return;
 (set.questions||[]).forEach((text,i)=>{
 const no=String(i+1).padStart(3,"0");
-out[`default_${cat}_${no}`]={text,category:cat,enabled:true,isDefault:true,sort:i+1,createdAt:now,updatedAt:now};
+out[`default_${cat}_${no}`]={text:cleanQuestionText(text),category:cat,enabled:true,isDefault:true,sort:i+1,createdAt:now,updatedAt:now};
 });
 });
 return out;
@@ -64,14 +64,14 @@ function addLibraryQuestion(){
 const text=(document.getElementById("libText")?.value||"").trim();
 const category=document.getElementById("libCategory")?.value||"custom";
 if(!text){const i=document.getElementById("libText");i?.classList.add("shake");setTimeout(()=>i?.classList.remove("shake"),350);return}
-libraryRef.push({text,category,enabled:true,isDefault:false,sort:999,createdAt:Date.now(),updatedAt:Date.now()}).then(()=>{document.getElementById("libText").value="";toast("質問を保存しました")}).catch(e=>{console.error(e);toast("保存できませんでした")});
+libraryRef.push({text:cleanQuestionText(text),category,enabled:true,isDefault:false,sort:999,createdAt:Date.now(),updatedAt:Date.now()}).then(()=>{document.getElementById("libText").value="";toast("質問を保存しました")}).catch(e=>{console.error(e);toast("保存できませんでした")});
 }
 function updateLibraryQuestion(id){
 const text=(document.getElementById("edit-"+id)?.value||"").trim();
 const category=document.getElementById("cat-"+id)?.value||"custom";
 const enabled=document.getElementById("enabled-"+id)?.checked!==false;
 if(!text)return toast("質問が空です");
-libraryRef.child(id).update({text,category,enabled,updatedAt:Date.now()}).then(()=>toast("更新しました")).catch(e=>{console.error(e);toast("更新できませんでした")});
+libraryRef.child(id).update({text:cleanQuestionText(text),category,enabled,updatedAt:Date.now()}).then(()=>toast("更新しました")).catch(e=>{console.error(e);toast("更新できませんでした")});
 }
 function toggleLibraryQuestion(id){
 const q=questionLibrary?.[id]||{};
@@ -104,7 +104,7 @@ const text=(document.getElementById("editText-"+id)?.value||"").trim();
 const category=document.getElementById("editCat-"+id)?.value||"custom";
 const enabled=document.getElementById("editEnabled-"+id)?.checked!==false;
 if(!text)return toast("質問が空です");
-libraryRef.child(id).update({text,category,enabled,updatedAt:Date.now()}).then(()=>{toast("更新しました");adminEditingId="";render()}).catch(e=>{console.error(e);toast("更新できませんでした")});
+libraryRef.child(id).update({text:cleanQuestionText(text),category,enabled,updatedAt:Date.now()}).then(()=>{toast("更新しました");adminEditingId="";render()}).catch(e=>{console.error(e);toast("更新できませんでした")});
 }
 function filteredLibraryItems(){
 const items=libraryItems();
@@ -156,12 +156,12 @@ if(Array.isArray(data)){
 data.forEach((q,i)=>{
 if(!q.text)return;
 const id=`import_${now}_${i}`;
-updates[id]={text:String(q.text),category:q.category||"custom",enabled:q.enabled!==false,isDefault:false,sort:q.sort||999,createdAt:now,updatedAt:now};
+updates[id]={text:cleanQuestionText(q.text),category:q.category||"custom",enabled:q.enabled!==false,isDefault:false,sort:q.sort||999,createdAt:now,updatedAt:now};
 });
 }else{
 Object.entries(data).forEach(([id,q])=>{
 if(!q||!q.text)return;
-updates[id.replace(/[.#$/\[\]]/g,"_")]={text:String(q.text),category:q.category||"custom",enabled:q.enabled!==false,isDefault:!!q.isDefault,sort:q.sort||999,createdAt:q.createdAt||now,updatedAt:now};
+updates[id.replace(/[.#$/\[\]]/g,"_")]={text:cleanQuestionText(q.text),category:q.category||"custom",enabled:q.enabled!==false,isDefault:!!q.isDefault,sort:q.sort||999,createdAt:q.createdAt||now,updatedAt:now};
 });
 }
 if(!Object.keys(updates).length)return toast("読み込める質問がありません");
@@ -180,19 +180,45 @@ return [...(QUESTION_SETS[setKey]?.questions||[])];
 }
 function initRoom(){const setKey=document.getElementById("setKey")?.value||"papa";const totalQuestions=Math.max(1,Math.min(30,parseInt(document.getElementById("totalQuestions")?.value||"5",10)));const questionMode=document.getElementById("questionMode")?.value||"select";const questionSelectVisible=document.getElementById("questionSelectVisible")?.checked!==false;const qs=buildQuestionPool(setKey);localStorage.setItem("hon-meter-host-"+roomId,"1");if(urlRole()!=="host")history.replaceState(null,"",hostUrl());roomRef.set({phase:"invite",hostCreatedAt:Date.now(),setKey,questionMode,questionSelectVisible,questions:qs,totalQuestions,qIndex:0,roundNo:0,participants:{[visitorId]:{joinedAt:Date.now(),host:true}},votes:{},published:false,revealing:false,history:{},usedIndexes:{},cardIndexes:[]});sfx("tap")}
 function joinAnon(){joinWithQuestions()}
-function joinWithQuestions(){
-const raw=(document.getElementById("preJoinQuestions")?.value||"").trim();
-const lines=raw.split(/\n/).map(s=>s.trim()).filter(Boolean).slice(0,10);
+function appendAnonymousQuestions(raw){
+const lines=String(raw||"").trim().split(/\n/).map(s=>cleanQuestionText(s)).filter(Boolean).slice(0,10);
 const updates={};
-updates["participants/"+visitorId]={joinedAt:Date.now(),ua:navigator.userAgent.slice(0,80)};
 lines.forEach((text,i)=>{
 const id=visitorId+"_"+Date.now()+"_"+i;
 updates["submittedQuestions/"+id]={text,at:Date.now()};
 });
+return updates;
+}
+function joinWithQuestions(){
+const raw=(document.getElementById("preJoinQuestions")?.value||"").trim();
+const updates={...appendAnonymousQuestions(raw)};
+updates["participants/"+visitorId]={joinedAt:Date.now(),ua:navigator.userAgent.slice(0,80),ready:false};
 roomRef.update(updates).then(()=>sfx("tap"));
 }
+function addWaitingQuestions(){
+const input=document.getElementById("waitingQuestions");
+const raw=(input?.value||"").trim();
+if(!raw){input?.classList.add("shake");setTimeout(()=>input?.classList.remove("shake"),350);return toast("質問が空です")}
+roomRef.update(appendAnonymousQuestions(raw)).then(()=>{if(input)input.value="";toast("匿名質問を追加しました");sfx("tap")});
+}
+function markReady(){
+const raw=(document.getElementById("waitingQuestions")?.value||"").trim();
+const updates={...appendAnonymousQuestions(raw)};
+updates["participants/"+visitorId+"/ready"]=true;
+updates["participants/"+visitorId+"/readyAt"]=Date.now();
+roomRef.update(updates).then(()=>{const input=document.getElementById("waitingQuestions");if(input)input.value="";sfx("tap")});
+}
+function unready(){
+roomRef.child("participants/"+visitorId).update({ready:false,readyAt:null}).then(()=>sfx("tap"));
+}
+function participantList(){
+return Object.entries(state?.participants||{}).map(([id,p])=>({id,...p})).sort((a,b)=>(a.joinedAt||0)-(b.joinedAt||0));
+}
+function guestParticipants(){return participantList().filter(p=>!p.host)}
+function readyGuestCount(){return guestParticipants().filter(p=>p.ready).length}
+function allGuestsReady(){const g=guestParticipants();return g.length>0&&g.every(p=>p.ready)}
 function submittedQuestionTexts(){
-return Object.values(state?.submittedQuestions||{}).map(q=>q&&q.text).filter(Boolean);
+return Object.values(state?.submittedQuestions||{}).map(q=>q&&cleanQuestionText(q.text)).filter(Boolean);
 }function beginSelect(){
 if(!isHost())return;
 if(!state?.submittedMerged){
@@ -312,7 +338,7 @@ const isEdit=adminEditingId===item.id;
 return isEdit?`
 <div class="rounded-[24px] bg-white/14 border border-amber-200/40 p-4">
 <div class="mini mb-2">編集中 / ${displayCategory(item.category)} ${item.isDefault?" / DEFAULT":""}</div>
-<textarea id="editText-${item.id}" class="input min-h-[96px] mb-3">${esc(item.text||"")}</textarea>
+<textarea id="editText-${item.id}" class="input min-h-[96px] mb-3">${esc(cleanQuestionText(item.text||""))}</textarea>
 <select id="editCat-${item.id}" class="select mb-3">
 ${["custom","papa","work","mix","soft"].map(c=>`<option value="${c}" ${item.category===c?"selected":""}>${displayCategory(c)}</option>`).join("")}
 </select>
@@ -330,7 +356,7 @@ ${["custom","papa","work","mix","soft"].map(c=>`<option value="${c}" ${item.cate
 <div class="flex items-start justify-between gap-3">
 <div class="flex-1 min-w-0">
 <div class="mini mb-1">${displayCategory(item.category)} ${item.isDefault?" / DEFAULT":""}</div>
-<div class="font-black leading-relaxed">${esc(item.text||"")}</div>
+<div class="font-black leading-relaxed">${esc(withQuestionMark(item.text||""))}</div>
 </div>
 <label class="shrink-0 flex flex-col items-center gap-1 text-[10px] font-black text-white/60">
 <input type="checkbox" ${item.enabled!==false?"checked":""} onchange="toggleLibraryQuestionAndStay('${item.id}')" class="scale-150 mt-2">
@@ -389,11 +415,57 @@ function hostCreateView(){return `<section class="glass card fade"><div class="m
 <span class="font-black text-sm">質問選択画面を参加者にも見せる</span>
 </label>
 <button onclick="initRoom()" class="btn btn-main w-full text-lg">ルーム起動</button><button onclick="openQuestionAdmin()" class="btn btn-ghost w-full mt-3">質問管理</button><p class="text-[11px] text-white/45 font-bold mt-3 leading-relaxed">質問管理で保存した質問を使います。未登録の場合は内蔵デフォルト質問を使います。</p></section>`}
-function guestJoinView(){return `<section class="glass card fade"><div class="text-center"><div class="text-6xl mb-4 pulse">🎭</div><div class="mini mb-3">ANONYMOUS QUESTION BOX</div><h2 class="text-3xl font-black mb-3">匿名質問BOX</h2></div><p class="text-white/68 font-bold text-sm leading-relaxed mb-4">匿名で、みんなに聞いてみたいことを書いてください。<br><br>0問でもOKです。複数ある場合は1行ずつ入力できます。<br><br>誰が書いたかは表示されませんが、匿名を守るために、質問を書かない人も15秒ほど考えたり、入力しているふりをしてください。</p><div class="rounded-[24px] bg-white/10 border border-white/10 p-4 mb-4"><div class="mini mb-2">例</div><p class="text-white/55 text-xs font-bold leading-relaxed">今日ちょっと緊張している人はいる？<br>この中でもっと話してみたい人がいる？<br>実は来る前に少し面倒だと思った？<br>今夜、帰りたくない気持ちがある？</p></div><textarea id="preJoinQuestions" class="input min-h-[120px] mb-4" placeholder="1行に1つずつ入力。空欄でも参加できます。"></textarea><button onclick="joinWithQuestions()" class="btn btn-main w-full text-lg">JOIN</button>${localStorage.getItem("hon-meter-host-"+roomId)==="1"?`<button onclick="openHostView()" class="btn btn-ghost w-full mt-3">ホスト画面に戻る</button>`:""}</section>`}
-function hostInviteView(){return `<section class="space-y-4 fade"><div class="glass card text-center"><div class="mini mb-3">INVITE</div><h2 class="text-2xl font-black mb-4">QRで参加してもらう</h2><div id="qrcode" class="qrbox inline-block bg-white p-3 rounded-[24px] mb-4"></div><p class="text-[11px] text-white/60 font-bold break-all">${esc(roomUrl())}</p><button onclick="copyUrl()" class="btn btn-ghost w-full mt-4">参加者URLコピー</button><button onclick="openGuestView()" class="btn btn-main w-full mt-3">この端末で参加者画面を開く</button></div><div class="glass card text-center"><div class="mini mb-3">MEMBERS READY</div><div class="text-6xl font-black mb-2">${participantsCount()}</div><p class="text-white/60 font-bold text-sm mb-2">人数がそろったらスタート</p><p class="text-amber-200 font-black text-sm mb-5">匿名質問 ${submittedQuestionTexts().length}件</p><div class="rounded-2xl bg-white/10 border border-white/10 p-4 mb-4 text-left"><div class="mini mb-2">SETTING</div><p class="text-sm font-black">出題方法：${state.questionMode==="random"?"自動ランダム":"ホスト選択"}</p><p class="text-sm font-black mt-1">質問選択画面：${state.questionSelectVisible===false?"ホストだけ":"参加者にも公開"}</p></div><button onclick="beginSelect()" class="btn btn-gold w-full text-lg">スタート</button></div></section>`}
+function guestJoinView(){return `<section class="glass card fade"><div class="text-center"><div class="text-6xl mb-4 pulse">🎭</div><div class="mini mb-3">ANONYMOUS QUESTION BOX</div><h2 class="text-3xl font-black mb-3">匿名質問BOX</h2></div><p class="text-white/68 font-bold text-sm leading-relaxed mb-4">匿名で、みんなに聞いてみたいことを書いてください。<br><br>0問でもOKです。複数ある場合は1行ずつ入力できます。<br><br>誰が書いたかは表示されませんが、匿名を守るために、質問を書かない人も15秒ほど考えたり、入力しているふりをしてください。</p><div class="rounded-[24px] bg-white/10 border border-white/10 p-4 mb-4"><div class="mini mb-2">例</div><p class="text-white/55 text-xs font-bold leading-relaxed">今日ちょっと緊張している人はいる？<br>この中でもっと仲良くなりたい人がいる？<br>今、気になる人がいる？<br>たまにお家に帰りたくない日がある？<br><br>など…質問には？が自動でつくので？はつけなくてOK！</p></div><textarea id="preJoinQuestions" class="input min-h-[120px] mb-4" placeholder="1行に1つずつ入力。？は自動でつきます。空欄でも参加できます。"></textarea><button onclick="joinWithQuestions()" class="btn btn-main w-full text-lg">JOIN</button>${localStorage.getItem("hon-meter-host-"+roomId)==="1"?`<button onclick="openHostView()" class="btn btn-ghost w-full mt-3">ホスト画面に戻る</button>`:""}</section>`}
+function memberReadyList(){
+const list=participantList();
+return `<div class="space-y-2">${list.map((p,i)=>{
+const label=p.host?"ホスト":`参加者${list.filter(x=>!x.host).findIndex(x=>x.id===p.id)+1}`;
+const ready=p.host||p.ready;
+return `<div class="flex items-center justify-between rounded-2xl bg-white/10 border border-white/10 px-4 py-3">
+<div class="flex items-center gap-3 font-black"><span class="inline-block w-3 h-3 rounded-full" style="background:${ready?"#22c55e":"#ef4444"};box-shadow:0 0 12px ${ready?"#22c55e":"#ef4444"}"></span>${label}</div>
+<div class="text-xs font-black ${ready?"text-emerald-200":"text-rose-200"}">${ready?"準備OK":"未準備"}</div>
+</div>`}).join("")||`<div class="text-center text-white/40 font-black py-4">まだ参加者がいません</div>`}</div>`;
+}
+function hostWaitingQuestionBox(){
+return `<div class="glass card">
+<div class="mini mb-3">HOST QUESTION ADD</div>
+<h3 class="text-xl font-black mb-2">待機中に匿名質問を追加</h3>
+<p class="text-white/55 text-xs font-bold leading-relaxed mb-4">ホストもここで質問を足せます。出題時には誰の質問か表示されません。</p>
+<textarea id="waitingQuestions" class="input min-h-[100px] mb-3" placeholder="1行に1つずつ入力。？は自動でつきます。"></textarea>
+<button onclick="addWaitingQuestions()" class="btn btn-main w-full">匿名質問を追加</button>
+</div>`;
+}
+function hostInviteView(){const ready=allGuestsReady();return `<section class="space-y-4 fade"><div class="glass card text-center"><div class="mini mb-3">INVITE</div><h2 class="text-2xl font-black mb-4">QRで参加してもらう</h2><div id="qrcode" class="qrbox inline-block bg-white p-3 rounded-[24px] mb-4"></div><p class="text-[11px] text-white/60 font-bold break-all">${esc(roomUrl())}</p><button onclick="copyUrl()" class="btn btn-ghost w-full mt-4">参加者URLコピー</button><button onclick="openGuestView()" class="btn btn-main w-full mt-3">この端末で参加者画面を開く</button></div>${hostWaitingQuestionBox()}<div class="glass card"><div class="mini mb-3">MEMBERS READY</div><div class="grid grid-cols-2 gap-3 text-center mb-4"><div class="rounded-[22px] bg-white/10 border border-white/10 p-4"><div class="mini">JOIN</div><div class="text-4xl font-black">${participantsCount()}</div></div><div class="rounded-[22px] bg-white/10 border border-white/10 p-4"><div class="mini">READY</div><div class="text-4xl font-black ${ready?"text-emerald-200":"text-amber-200"}">${readyGuestCount()}/${guestParticipants().length}</div></div></div><p class="text-amber-200 font-black text-sm mb-4">匿名質問 ${submittedQuestionTexts().length}件</p>${memberReadyList()}<div class="rounded-2xl bg-white/10 border border-white/10 p-4 my-4 text-left"><div class="mini mb-2">SETTING</div><p class="text-sm font-black">出題方法：${state.questionMode==="random"?"自動ランダム":"ホスト選択"}</p><p class="text-sm font-black mt-1">質問選択画面：${state.questionSelectVisible===false?"ホストだけ":"参加者にも公開"}</p></div><button onclick="beginSelect()" class="btn ${ready?"btn-gold":"btn-ghost"} w-full text-lg" ${ready?"":"disabled"}>${ready?"スタート":"準備OK待ち"}</button></div></section>`}
 function inviteFold(){return `<details class="glass card mt-4"><summary class="flex items-center justify-between gap-3"><span><span class="mini block">INVITE</span><span class="font-black">途中参加用QR / URL</span></span><span class="text-2xl">＋</span></summary><div class="text-center mt-5"><div id="qrcode" class="qrbox inline-block bg-white p-3 rounded-[24px] mb-4"></div><p class="text-[11px] text-white/60 font-bold break-all">${esc(roomUrl())}</p><button onclick="copyUrl()" class="btn btn-ghost w-full mt-4">参加者URLコピー</button></div></details>`}
-function guestLobbyView(msg){return `<section class="glass card text-center fade"><div class="text-6xl mb-5 pulse">✨</div><div class="mini mb-3">STAND BY</div><h2 class="text-2xl font-black mb-3">${esc(msg||"待っています")}</h2><p class="text-white/58 text-sm font-bold">スマホはこのままでOKです。</p></section>`}
-function questionSelectView(){const indexes=Array.isArray(state.cardIndexes)?state.cardIndexes:randomCardIndexes(5);const qs=Array.isArray(state.questions)?state.questions:[];const cards=indexes.map(idx=>({idx,text:qs[idx]})).filter(x=>x.text);return `<section class="space-y-4 fade"><div class="glass card"><div class="flex justify-between items-end gap-3 mb-3"><div><div class="mini">QUESTION SELECT</div><h2 class="text-2xl font-black mt-1">質問を選ぶ</h2></div><div class="text-right"><div class="text-3xl font-black">${completedCount()+1}</div><div class="mini">/${totalQuestions()}</div></div></div><p class="text-white/55 text-xs font-bold mb-4">質問カードは毎回シャッフル排出。参加者にも見えてOKです。</p><div class="space-y-3">${cards.map((q,i)=>`<div class="question-card rounded-[24px] bg-white/10 border border-white/10 p-4"><div class="mini mb-1">CARD ${i+1}</div><div class="font-black leading-relaxed text-lg">${esc(q.text)}</div>${isHost()?`<button onclick="startSelectedQuestion(${q.idx})" class="btn btn-gold w-full mt-4">この質問で出題</button>`:""}</div>`).join("")}</div>${isHost()?`<button onclick="reshuffleCards()" class="btn btn-ghost w-full mt-4">カードをシャッフル</button>`:""}</div><div class="glass card"><div class="mini mb-3">ADD QUESTION</div><h3 class="text-xl font-black mb-2">質問を追加</h3><p class="text-white/55 text-xs font-bold mb-4">参加者も追加できます。出題するかどうかはホストが決めます。</p><textarea id="addQuestionInput" class="input min-h-[90px] mb-3" placeholder="追加したい質問を入力"></textarea><div class="grid ${isHost()?"grid-cols-2":"grid-cols-1"} gap-3"><button onclick="addQuestion()" class="btn btn-ghost">リストに追加</button>${isHost()?`<button onclick="startCustomNow()" class="btn btn-main">今すぐ出題</button>`:""}</div></div>${isHost()?inviteFold():""}</section>`}
+function guestLobbyView(msg){
+if(state?.phase==="invite"){
+const me=state?.participants?.[visitorId]||{};
+return `<section class="space-y-4 fade">
+<div class="glass card text-center">
+<div class="text-6xl mb-5 pulse">✨</div>
+<div class="mini mb-3">WAITING ROOM</div>
+<h2 class="text-2xl font-black mb-3">${me.ready?"準備OKです":"待機中です"}</h2>
+<p class="text-white/58 text-sm font-bold">始まるまで匿名質問を追加できます。</p>
+</div>
+<div class="glass card">
+<div class="mini mb-3">ANONYMOUS QUESTION BOX</div>
+<h3 class="text-xl font-black mb-2">追加で聞きたいこと</h3>
+<p class="text-white/55 text-xs font-bold leading-relaxed mb-4">0問でもOK。追加する場合は1行ずつ入力してください。誰が書いたかは表示されません。</p>
+<textarea id="waitingQuestions" class="input min-h-[110px] mb-3" placeholder="1行に1つずつ入力。？は自動でつきます。"></textarea>
+<div class="grid grid-cols-1 gap-3">
+<button onclick="addWaitingQuestions()" class="btn btn-ghost">匿名質問を追加</button>
+${me.ready?`<button onclick="unready()" class="btn btn-ghost">準備OKを取り消す</button>`:`<button onclick="markReady()" class="btn btn-main">準備OK</button>`}
+</div>
+</div>
+</section>`;
+}
+return `<section class="glass card text-center fade">
+<div class="text-6xl mb-5 pulse">✨</div>
+<div class="mini mb-3">STAND BY</div>
+<h2 class="text-2xl font-black mb-3">${esc(msg||"待っています")}</h2>
+<p class="text-white/58 text-sm font-bold">スマホはこのままでOKです。</p>
+</section>`}
+function questionSelectView(){const indexes=Array.isArray(state.cardIndexes)?state.cardIndexes:randomCardIndexes(5);const qs=Array.isArray(state.questions)?state.questions:[];const cards=indexes.map(idx=>({idx,text:qs[idx]})).filter(x=>x.text);return `<section class="space-y-4 fade"><div class="glass card"><div class="flex justify-between items-end gap-3 mb-3"><div><div class="mini">QUESTION SELECT</div><h2 class="text-2xl font-black mt-1">質問を選ぶ</h2></div><div class="text-right"><div class="text-3xl font-black">${completedCount()+1}</div><div class="mini">/${totalQuestions()}</div></div></div><p class="text-white/55 text-xs font-bold mb-4">質問カードは毎回シャッフル排出。参加者にも見えてOKです。</p><div class="space-y-3">${cards.map((q,i)=>`<div class="question-card rounded-[24px] bg-white/10 border border-white/10 p-4"><div class="mini mb-1">CARD ${i+1}</div><div class="font-black leading-relaxed text-lg">${esc(withQuestionMark(q.text))}</div>${isHost()?`<button onclick="startSelectedQuestion(${q.idx})" class="btn btn-gold w-full mt-4">この質問で出題</button>`:""}</div>`).join("")}</div>${isHost()?`<button onclick="reshuffleCards()" class="btn btn-ghost w-full mt-4">カードをシャッフル</button>`:""}</div><div class="glass card"><div class="mini mb-3">ADD QUESTION</div><h3 class="text-xl font-black mb-2">質問を追加</h3><p class="text-white/55 text-xs font-bold mb-4">参加者も追加できます。出題するかどうかはホストが決めます。</p><textarea id="addQuestionInput" class="input min-h-[90px] mb-3" placeholder="追加したい質問を入力"></textarea><div class="grid ${isHost()?"grid-cols-2":"grid-cols-1"} gap-3"><button onclick="addQuestion()" class="btn btn-ghost">リストに追加</button>${isHost()?`<button onclick="startCustomNow()" class="btn btn-main">今すぐ出題</button>`:""}</div></div>${isHost()?inviteFold():""}</section>`}
 function hostProgressPanel(){
 const done=answered(), total=participantsCount(), allDone=total>0&&done>=total;
 return `<div class="glass card">
