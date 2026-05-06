@@ -1495,6 +1495,16 @@
       });
     }
 
+    function adjustScoresForDifficulty(hints, difficulty) {
+      if (difficulty !== "hard") return hints;
+      return hints.map(h => ({
+        ...h,
+        // むずかしいモードでは、読みやすい単独ヒントを少し高めにする。
+        // 複合ヒントは 1〜5 点のまま。単独ヒントだけ +1 点、上限 6 点。
+        score: h.category === "複合" ? h.score : Math.min(6, h.score + 1)
+      }));
+    }
+
     function generateWireHints(answerOrder, difficulty) {
       const list = [], seen = new Set(), total = WIRE_CANDIDATES.length, answerPos = posMap(answerOrder);
       const add = data => addHint(list, seen, total, answerOrder, WIRE_CANDIDATES, data);
@@ -1737,8 +1747,10 @@
       const rng = seededRng(`CODEWIRE|${id}|${difficulty}|v4`);
       const wire = shuffle(COLORS.map(c => c.id), rng);
       const code = shuffle(DIGITS, rng).slice(0, CODE_LEN);
-      const wireHints = shuffle(generateWireHints(wire, difficulty), seededRng(id + ":wireHints:" + difficulty));
-      const codeHints = shuffle(generateCodeHints(code, difficulty), seededRng(id + ":codeHints:" + difficulty));
+      const rawWireHints = adjustScoresForDifficulty(generateWireHints(wire, difficulty), difficulty);
+      const rawCodeHints = adjustScoresForDifficulty(generateCodeHints(code, difficulty), difficulty);
+      const wireHints = shuffle(rawWireHints, seededRng(id + ":wireHints:" + difficulty));
+      const codeHints = shuffle(rawCodeHints, seededRng(id + ":codeHints:" + difficulty));
       return { wire, code, wireDeck: wireHints, codeDeck: codeHints };
     }
 
@@ -1936,7 +1948,7 @@
       const m = Math.floor(sec / 60), s = sec % 60;
       return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
     }
-    function bestKey(id) { return `CODEWIRE_BEST_V4_${id}`; }
+    function bestKey(id) { return `LOGIC_CODE_BEST_V5_${id}`; }
     function getBest(id) { try { const raw = localStorage.getItem(bestKey(id)); return raw ? JSON.parse(raw) : null; } catch (_) { return null; } }
     function setBest(id, best) { try { localStorage.setItem(bestKey(id), JSON.stringify(best)); } catch (_) {} }
     function isBetter(a, b) {
