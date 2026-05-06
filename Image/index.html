@@ -65,36 +65,38 @@
   <script>
     const DEFAULT_QUESTION_DECKS = {
       standard: {
-        label: 'スタンダード', emoji: '✨', note: '安心して使える基本＋見せ場お題', defaultOn: true,
+        label: 'スタンダード', emoji: '✨', note: 'まずはこれ。安心して盛り上がる基本の10問', defaultOn: true,
         questions: [
-          '優しそう', '頭が良さそう', '嘘がつけなそう', '行動力がありそう', '落ち着いていそう', 'センスが良さそう', '相談にのってくれそう', '聞き上手そう', '話すほど面白そう', 'ふとした時に頼れそう',
-          '静かに支えてくれそう', '独自のこだわりがありそう', '意外な魅力を持ってそう', '場の空気をやわらかくしそう', '一緒にいると安心しそう', 'じわじわ好きになりそう', '知るほど印象が変わりそう', 'チームにいると助かりそう', '大事な時にちゃんとしてくれそう', '素直に褒めてくれそう'
+          '優しそう', '行動力がありそう', '落ち着いていそう', 'センスが良さそう', '相談にのってくれそう', '聞き上手そう', '話すほど面白そう', 'ふとした時に頼れそう', '一緒にいると安心しそう', 'チームにいると助かりそう'
         ]
       },
       black: {
-        label: 'ブラック', emoji: '😈', note: '仲良し飲み会向け。刺さりすぎない軽めの黒さ', defaultOn: false,
+        label: 'ブラック', emoji: '😈', note: '仲良し飲み会向け。刺さりすぎない軽めの黒さ10問', defaultOn: false,
         questions: [
-          '腹黒そう', '怒ると怖そう', '嘘が上手そう', '私生活が謎そう', '浪費癖がありそう', '家ではズボラそう', '毒舌そう', '執念深そう', '人を使うのが上手そう', '昔はやんちゃしてそう',
-          '酔うと性格が変わりそう', '飽きっぽそう', '実は潔癖症そう', '意外と毒を吐きそう', '無意識に人を惑わせそう', '弱みを見せなそう', '裏では繊細そう', '寝坊してもなぜか間に合いそう', 'セールに弱そう', '褒められると急に照れそう'
+          '腹黒そう', '怒ると怖そう', '嘘が上手そう', '私生活が謎そう', '家ではズボラそう', '毒舌そう', '意外と毒を吐きそう', '無意識に人を惑わせそう', '弱みを見せなそう', '寝坊してもなぜか間に合いそう'
         ]
       },
       business: {
-        label: 'ビジネス', emoji: '💼', note: '職場・研修・交流会向けの仕事系お題', defaultOn: false,
+        label: 'ビジネス', emoji: '💼', note: '職場・研修・交流会向けの仕事系10問', defaultOn: false,
         questions: [
-          '仕事ができそう', '根回しや調整が上手そう', '会議で要点をまとめてくれそう', 'レスポンスが速そう', '任せたら最後までやってくれそう', 'ピンチでも冷静そう', '説明がわかりやすそう', '資料づくりが上手そう', '後輩の面倒見が良さそう', 'チームの空気を整えてくれそう',
-          '新しいアイデアを出してくれそう', '締切を守りそう', '細かいミスに気づきそう', 'お客さんに好かれそう', '裏方でも手を抜かなそう', '改善点を見つけるのが上手そう', 'トラブル対応が頼れそう', '集中すると一気に進めそう', '場を前向きにしてくれそう', '将来リーダーになりそう'
+          '仕事ができそう', '根回しや調整が上手そう', '会議で要点をまとめてくれそう', 'レスポンスが速そう', '任せたら最後までやってくれそう', 'ピンチでも冷静そう', '説明がわかりやすそう', '後輩の面倒見が良さそう', 'トラブル対応が頼れそう', '場を前向きにしてくれそう'
         ]
       },
       custom1: {
-        label: 'カスタム1', emoji: '📝', note: '自由編集用デッキ', defaultOn: false,
-        questions: ['今日一番話してみたい人', '第一印象とギャップがありそう', '実はすごい特技がありそう']
+        label: 'カスタム1', emoji: '📝', note: '自由編集用。初期は会話が広がりやすい10問', defaultOn: false,
+        questions: [
+          '今日一番話してみたい人', '第一印象とギャップがありそう', '実はすごい特技がありそう', '初対面でも場をやわらかくしそう', 'プレゼント選びが上手そう', '急なトラブルでも笑って対応しそう', 'なぜか動物に好かれそう', 'カラオケで意外な選曲をしそう', '一緒に旅行すると楽しそう', 'じわじわ好きになりそう'
+        ]
       }
     };
     const DEFAULT_UNUSED_QUESTIONS = [
-          'モテそうなオーラ', '運動が得意そう', '話しが上手そう', 'メンタルが強そう', '困っている人を放っておけなそう', '隠れた才能を持ってそう', '決めたことは最後までやり遂げそう', 'どんな場所でも馴染めそう', '意外と涙もろそう', '知識の引き出しが多そう',
-          '丁寧に暮らしてそう', '自分の意見をしっかり持ってそう', '先回りして行動できそう', '誰にでも平等に接しそう', '感情が安定してそう', 'アドバイス上手そう', '責任感が人一倍強そう', '流されない芯がありそう', '謙虚そう', '変化を楽しめそう',
-          '字が綺麗そう', '周りの空気を読むのが上手そう', '人から信頼されてそう', '自分の世界観を大切にしてそう', '集中力がありそう', '記憶力が良さそう', '努力を人に見せなそう', 'トラブルも楽しめそう', '品格がありそう', '包容力がありそう',
-          '人を惹きつけそう', '初対面でも場をやわらかくしそう', 'お店選びのセンスが良さそう', 'プレゼント選びが上手そう', '急なトラブルでも笑って対応しそう', 'なぜか動物に好かれそう', 'カラオケで意外な選曲をしそう', 'イベントの裏方で活躍しそう', '一緒に旅行すると楽しそう', '財布の中がきれいそう'
+          '頭が良さそう', '嘘がつけなそう', '静かに支えてくれそう', '独自のこだわりがありそう', '意外な魅力を持ってそう', '場の空気をやわらかくしそう', '知るほど印象が変わりそう', '大事な時にちゃんとしてくれそう', '素直に褒めてくれそう', '浪費癖がありそう',
+          '執念深そう', '人を使うのが上手そう', '昔はやんちゃしてそう', '酔うと性格が変わりそう', '飽きっぽそう', '実は潔癖症そう', '裏では繊細そう', 'セールに弱そう', '褒められると急に照れそう', '資料づくりが上手そう',
+          'チームの空気を整えてくれそう', '新しいアイデアを出してくれそう', '締切を守りそう', '細かいミスに気づきそう', 'お客さんに好かれそう', '裏方でも手を抜かなそう', '改善点を見つけるのが上手そう', '集中すると一気に進めそう', '将来リーダーになりそう', 'モテそうなオーラ',
+          '運動が得意そう', '話しが上手そう', 'メンタルが強そう', '困っている人を放っておけなそう', '隠れた才能を持ってそう', '決めたことは最後までやり遂げそう', 'どんな場所でも馴染めそう', '意外と涙もろそう', '知識の引き出しが多そう', '丁寧に暮らしてそう',
+          '自分の意見をしっかり持ってそう', '先回りして行動できそう', '誰にでも平等に接しそう', '感情が安定してそう', 'アドバイス上手そう', '責任感が人一倍強そう', '流されない芯がありそう', '謙虚そう', '変化を楽しめそう', '字が綺麗そう',
+          '周りの空気を読むのが上手そう', '人から信頼されてそう', '自分の世界観を大切にしてそう', '集中力がありそう', '記憶力が良さそう', '努力を人に見せなそう', 'トラブルも楽しめそう', '品格がありそう', '包容力がありそう', '人を惹きつけそう',
+          'お店選びのセンスが良さそう', 'イベントの裏方で活躍しそう', '財布の中がきれいそう'
     ];
     let QUESTION_DECKS = JSON.parse(JSON.stringify(DEFAULT_QUESTION_DECKS));
     let QUESTION_BANK = [];
@@ -114,7 +116,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const GAME_KEY = 'image-profile-v3';
+    const GAME_KEY = 'image-profile-v4';
     const params = new URLSearchParams(location.search);
     let currentRoomId = params.get('room') || localStorage.getItem(GAME_KEY + '-room') || '';
     let myName = localStorage.getItem(GAME_KEY + '-name') || '';
@@ -717,9 +719,10 @@
         if (mainCounts[a.main] !== undefined) { mainCounts[a.main]++; scoreCounts[a.main] += 3; }
         a.subs.forEach(s => { if (subCounts[s] !== undefined) { subCounts[s]++; scoreCounts[s] += 1; } });
       });
-      const maxMain = Math.max(0, ...Object.values(mainCounts));
-      const winners = Object.keys(mainCounts).filter(m => mainCounts[m] === maxMain && maxMain > 0);
-      return { mainCounts, subCounts, scoreCounts, maxMain, winners, answered: Object.keys(ans).length };
+      const sorted = Object.entries(scoreCounts).sort((a,b)=>b[1]-a[1]);
+      const maxScore = Math.max(0, ...Object.values(scoreCounts));
+      const winners = Object.keys(scoreCounts).filter(m => scoreCounts[m] === maxScore && maxScore > 0);
+      return { mainCounts, subCounts, scoreCounts, sorted, maxScore, winners, answered: Object.keys(ans).length };
     }
     function calcMemberProfile(member) {
       const total = totalQuestions();
@@ -741,29 +744,39 @@
       const topIndices = detailScore.map((v,i)=>v===maxScore && v>0 ? i : -1).filter(v=>v!==-1);
       return { detailMain, detailSub, detailScore, totalMain, totalSub, totalScore, topIndices };
     }
-    function getResultComment(question, winners, votes) {
-      if (!winners.length || votes === 0) return '今回は決着つかず。ひとつに決めきれないお題でした。';
+    function getResultComment(question, winners, score) {
+      if (!winners.length || score === 0) return '今回は決着つかず。ひとつに決めきれないお題でした。';
       const name = winners.join('さん & ') + 'さん';
       const comments = [
-        `${name}にぴったり票が集まりました。本人の自己予想と合っているか注目です。`,
+        `${name}にこの印象が集まりました。本人の自己予想と合っているか注目です。`,
         `${name}のイメージが強めに出ました。周りからはそう見えているみたいです。`,
         `${name}が選ばれました。理由を聞くと話が広がりそうです。`,
         `${name}という結果に。納得か意外か、みんなで聞いてみましょう。`,
-        `${name}が最多票。主観と客観のズレが見えるかもしれません。`
+        `${name}が最多ポイント。主観と客観のズレが見えるかもしれません。`
       ];
       return comments[Math.floor(Math.random() * comments.length)];
     }
+    function topProfileItems(stat, limit=3) {
+      const questions = gameState?.questions || [];
+      return stat.detailScore
+        .map((score, i) => ({ score, text: questions[i] || '' }))
+        .filter(x => x.score > 0 && x.text)
+        .sort((a,b)=>b.score-a.score)
+        .slice(0, limit);
+    }
     function getProfileTitle(stat) {
-      if (stat.totalMain >= 4) return 'ぴったり印象の主役';
-      if (stat.totalMain >= 1 && stat.totalSub >= 3) return 'じわっと個性くっきり';
-      if (stat.totalMain >= 1) return '一点突破の印象タイプ';
-      if (stat.totalSub >= 3) return 'じわっと伝わるタイプ';
-      if (stat.totalSub >= 1) return '余白の魅力タイプ';
-      return '発見途中タイプ';
+      const items = topProfileItems(stat, 3).map(x => x.text);
+      if (!items.length) return 'まだ発見途中のプロフィール';
+      if (items.length === 1) return `あなたは「${items[0]}」って思われているみたい`;
+      if (items.length === 2) return `あなたは「${items[0]}」で「${items[1]}」って思われているみたい`;
+      return `あなたは「${items[0]}」で「${items[1]}」で「${items[2]}」って思われているみたい`;
     }
     function getProfileLead(stat) {
-      if (stat.totalMain > 0 || stat.totalSub > 0) return 'みんなの中に、あなたっぽい印象が少しずつ集まりました。強く見られたところと、じわっと伝わったところの両方がプロフィールになります。';
-      return '今回はひとつの印象に決めつけられにくい結果でした。話すほど見え方が変わる、まだ発見途中のタイプかもしれません。';
+      const items = topProfileItems(stat, 3).map(x => x.text);
+      if (items.length >= 3) return `今回みんなからは、${items.map(x=>`「${x}」`).join('、')}の印象が集まりました。強く当てはまると思われたものも、少しわかると思われたものも合わせたプロフィールです。`;
+      if (items.length === 2) return `今回みんなからは、${items.map(x=>`「${x}」`).join('、')}の印象が集まりました。まだ余白はありつつ、この2つがあなたらしさとして見えていたようです。`;
+      if (items.length === 1) return `今回みんなからは、まず「${items[0]}」の印象が見えていたようです。もっと話すほど、別の一面も出てきそうです。`;
+      return '今回はひとつの印象に決めつけられにくい結果でした。存在感がないというより、話すほど見え方が変わる発見途中のタイプかもしれません。';
     }
     function memberBadge(m) {
       const color = gameState?.memberColors?.[m] || AVATAR_COLORS[Math.abs(hashCode(m)) % AVATAR_COLORS.length];
@@ -781,6 +794,14 @@
     }
     function participantCards(names, mode) {
       return names.map(m => `<button data-name="${esc(m)}" onclick="${mode}(this.dataset.name)" class="min-h-24 rounded-[1.6rem] font-black bg-white border-b-4 border-indigo-100 text-indigo-600 shadow-sm active:translate-y-1 active:shadow-none transition-all p-3"><div class="text-2xl mb-1">👤</div>${esc(m)}<small class="text-[10px] text-slate-300">さん</small></button>`).join('');
+    }
+    function selectedMainCard(name) {
+      return `<div class="rounded-[1.8rem] p-4 bg-indigo-600 text-white shadow-lg soft-ring">
+        <div class="flex items-center justify-between gap-3">
+          <div><p class="text-[10px] font-black text-indigo-100 tracking-widest">選んだぴったり</p><p class="text-2xl font-black leading-tight">🎯 ${esc(name)}<small class="text-sm">さん</small></p></div>
+          <button onclick="backToMainSelect()" class="bg-white/18 border border-white/30 text-white text-[10px] font-black px-3 py-2 rounded-xl active:scale-95">選び直す</button>
+        </div>
+      </div>`;
     }
 
     function render() {
@@ -850,7 +871,7 @@
             </div>
             <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 mb-3 text-[10px] font-bold text-slate-500 leading-relaxed">お題の追加・デッキ割り当ては、入室前の「問題管理・ON/OFF編集」から行えます。使わないお題も消さずに残せます。</div>
             <div id="deck-preview" class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-3 mb-4"></div>
-            <div class="bg-amber-50 border border-amber-100 rounded-2xl p-3 mb-4 text-[10px] font-bold text-amber-700 leading-relaxed">投票は「ぴったり」1人が必須、「ちょっと」は0〜2人で任意。結果発表の主役はぴったり票、最終プロフィールは両方を使います。</div>
+            <div class="bg-amber-50 border border-amber-100 rounded-2xl p-3 mb-4 text-[10px] font-bold text-amber-700 leading-relaxed">投票は「ぴったり」1人が必須、「ちょっと」は0〜2人で任意。集計はぴったり3点・ちょっと1点で発表します。</div>
             <button onclick="startCustomGame()" class="w-full bg-indigo-600 text-white h-16 rounded-2xl font-black shadow-lg active:scale-95 transition-all text-lg">この設定でスタート</button>
           </div>` : `<div class="glass rounded-[2.4rem] p-8 text-center"><div class="text-4xl mb-3 pulse-soft">⌛</div><p class="text-indigo-400 font-black text-sm">ホストが開始するのを待っています...</p></div>`}
         </div>`;
@@ -876,10 +897,10 @@
             <h2 class="text-3xl font-black text-slate-800 leading-tight">${inSubStep ? 'ほかにも、<br><span class="text-indigo-600 underline decoration-indigo-200 underline-offset-8">ちょっと' + esc(q) + '</span><br>な人は？' : '一番、<br><span class="text-indigo-600 underline decoration-indigo-200 underline-offset-8">' + esc(q) + '</span><br>な人は？'}</h2>
             <p class="text-[11px] font-bold text-slate-400 mt-4">${inSubStep ? '2人まで選べます。いなければスキップOK。' : 'ぴったりだと思う人を1人選んでね。'}</p>
           </div>
-          ${answered ? `<div class="glass rounded-[2.4rem] p-10 text-center"><div class="text-5xl mb-4 pulse-soft">✅</div><p class="text-slate-400 font-black text-sm">回答完了！<br><span class="text-indigo-500 text-2xl">${done} / ${(gameState.members || []).length}</span></p></div>` : inSubStep ? `<div class="glass rounded-[2rem] p-4 mb-4 text-left"><div class="flex justify-between items-center"><div><p class="text-[10px] font-black text-slate-400">ぴったり票</p><p class="font-black text-indigo-600">${esc(answerDraft.main)}さん</p></div><button onclick="backToMainSelect()" class="bg-white border border-slate-100 text-slate-400 text-[10px] font-black px-3 py-2 rounded-xl">選び直す</button></div></div><div class="card-grid mb-4">${others.filter(m => m !== answerDraft.main).map(m => {
+          ${answered ? `<div class="glass rounded-[2.4rem] p-10 text-center"><div class="text-5xl mb-4 pulse-soft">✅</div><p class="text-slate-400 font-black text-sm">回答完了！<br><span class="text-indigo-500 text-2xl">${done} / ${(gameState.members || []).length}</span></p></div>` : inSubStep ? `<div class="mb-4">${selectedMainCard(answerDraft.main)}</div><div class="card-grid mb-4">${others.filter(m => m !== answerDraft.main).map(m => {
             const selected = answerDraft.subs.includes(m);
-            return `<button data-name="${esc(m)}" onclick="toggleSub(this.dataset.name)" class="min-h-24 rounded-[1.6rem] font-black ${selected ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white text-indigo-600 border-indigo-100'} border-b-4 shadow-sm active:translate-y-1 active:shadow-none transition-all p-3"><div class="text-2xl mb-1">${selected ? '💫' : '👤'}</div>${esc(m)}<small class="text-[10px] ${selected ? 'text-indigo-100' : 'text-slate-300'}">さん</small></button>`;
-          }).join('')}</div><button onclick="submitCurrentAnswer()" class="w-full bg-indigo-600 text-white h-16 rounded-2xl font-black shadow-lg active:scale-95 transition-all">${answerDraft.subs.length ? 'この内容で回答する' : 'スキップして回答する'} <span class="text-[10px] opacity-70">${answerDraft.subs.length}/2</span></button>` : `<div class="card-grid">${participantCards(others, 'selectMain')}</div>`}
+            return `<button data-name="${esc(m)}" onclick="toggleSub(this.dataset.name)" class="min-h-24 rounded-[1.6rem] font-black ${selected ? 'bg-fuchsia-500 text-white border-fuchsia-600 soft-ring' : 'bg-white text-indigo-600 border-indigo-100'} border-b-4 shadow-sm active:translate-y-1 active:shadow-none transition-all p-3"><div class="text-2xl mb-1">${selected ? '💫' : '👤'}</div>${esc(m)}<small class="text-[10px] ${selected ? 'text-fuchsia-100' : 'text-slate-300'}">さん</small></button>`;
+          }).join('')}</div><button onclick="submitCurrentAnswer()" class="w-full bg-indigo-600 text-white h-16 rounded-2xl font-black shadow-lg active:scale-95 transition-all">${answerDraft.subs.length ? 'この内容で回答する' : 'ちょっとは選ばず回答する'} <span class="text-[10px] opacity-70">${answerDraft.subs.length}/2</span></button>` : `<div class="card-grid">${participantCards(others, 'selectMain')}</div>`}
         </div>`;
       } else if (gameState.phase === 'self-check') {
         const questions = gameState.questions || [];
@@ -887,7 +908,7 @@
         const done = Object.keys(gameState.selfExpects || {}).length;
         if (myRole === 'host' && hasEx) forceArea.innerHTML = `<button onclick="forceNext()" class="text-[9px] bg-white border border-slate-200 text-slate-400 px-4 py-2 rounded-full font-black">FORCE RESULT ❯❯</button>`;
         container.innerHTML = `<div class="fade-in">
-          <div class="glass rounded-[2.4rem] p-6 mb-4 text-center"><div class="text-5xl mb-3 wiggle">🔮</div><h2 class="text-2xl font-black text-slate-800 mb-2">自己予想</h2><p class="text-[11px] text-slate-400 font-bold">自分が一番「ぴったり票」を集めそうな項目は？</p><p class="text-[10px] font-black text-indigo-400 mt-3">回答 ${done} / ${(gameState.members || []).length}</p></div>
+          <div class="glass rounded-[2.4rem] p-6 mb-4 text-center"><div class="text-5xl mb-3 wiggle">🔮</div><h2 class="text-2xl font-black text-slate-800 mb-2">自己予想</h2><p class="text-[11px] text-slate-400 font-bold">自分が一番ポイントを集めそうな項目は？</p><p class="text-[10px] font-black text-indigo-400 mt-3">回答 ${done} / ${(gameState.members || []).length}</p></div>
           ${hasEx ? `<div class="glass rounded-[2.4rem] p-10 text-center"><div class="text-5xl mb-4 pulse-soft">🕯️</div><p class="text-slate-400 font-black text-sm">全員の予想を待っています...</p></div>` : `<div class="grid grid-cols-2 gap-2">${questions.map((q,i)=>`<button onclick="submitSelfExpect(${i})" class="bg-white border border-indigo-100 p-4 rounded-2xl font-black text-indigo-600 text-[10px] shadow-sm active:bg-indigo-50 active:scale-95 transition-all">#${i+1}<br>${esc(q)}</button>`).join('')}</div>`}
         </div>`;
       } else if (gameState.phase === 'revealing') {
@@ -895,26 +916,22 @@
         const rIdx = gameState.revealIdx || 0;
         const q = gameState.questions[rIdx];
         const result = calcQuestionResult(rIdx);
-        const totalMainVotes = Math.max(1, Object.values(result.mainCounts).reduce((a,b)=>a+b,0));
-        const subPeople = Object.entries(result.subCounts).filter(([,c])=>c>0).sort((a,b)=>b[1]-a[1]);
+        const totalScoreVotes = Math.max(1, Object.values(result.scoreCounts).reduce((a,b)=>a+b,0));
+        const topRows = result.sorted.filter(([,c])=>c>0).slice(0, 3);
         const correctGuessers = result.winners.filter(m => Number(gameState.selfExpects?.[m]) === rIdx);
         container.innerHTML = `<div class="fade-in text-center">
           <p class="text-[10px] font-black text-slate-400 tracking-[.35em] mb-3">RESULT REVEAL ${rIdx+1} / ${total}</p>
           <div class="glass rounded-[2.4rem] p-5 mb-4"><h2 class="text-xl font-black text-slate-700 leading-relaxed">一番、<span class="text-indigo-600 underline decoration-indigo-200 underline-offset-8">${esc(q)}</span><br>な人は？</h2></div>
           <div class="bg-white rounded-[3rem] p-8 shadow-xl border-t-8 border-indigo-500 reveal-card mb-4">
-            <div class="text-[10px] font-black text-indigo-300 tracking-widest mb-3">PITARI VOTE</div>
+            <div class="text-[10px] font-black text-indigo-300 tracking-widest mb-3">TOTAL POINT</div>
             <div class="text-5xl mb-4">🏆</div>
             <div class="text-4xl font-black text-slate-800 leading-tight mb-2">${result.winners.length?esc(result.winners.join(' & ')):'該当者なし'}${result.winners.length?'<small class="text-sm">さん</small>':''}</div>
-            <div class="text-[11px] font-black text-indigo-500 tracking-widest mb-4">ぴったり ${result.maxMain}票</div>
-            <p class="text-[11px] font-bold text-slate-400 leading-relaxed">${esc(getResultComment(q, result.winners, result.maxMain))}</p>
+            <div class="text-[11px] font-black text-indigo-500 tracking-widest mb-4">${result.maxScore} POINT</div>
+            <p class="text-[11px] font-bold text-slate-400 leading-relaxed">${esc(getResultComment(q, result.winners, result.maxScore))}</p>
           </div>
-          <div class="glass rounded-[2rem] p-4 mb-4 text-left space-y-2">
-            <p class="text-[9px] font-black text-slate-300 uppercase mb-2 tracking-widest text-center">ぴったり票</p>
-            ${Object.entries(result.mainCounts).sort((a,b)=>b[1]-a[1]).map(([m,c])=>`<div><div class="flex justify-between text-[10px] font-black text-slate-500 mb-1"><span>${esc(m)}さん</span><span>${c}票</span></div><div class="h-2 rounded-full bg-slate-100 overflow-hidden"><div class="h-full bg-indigo-500" style="width:${(c/totalMainVotes)*100}%"></div></div></div>`).join('')}
-          </div>
-          <div class="glass rounded-[2rem] p-4 mb-4 text-left">
-            <p class="text-[9px] font-black text-slate-300 uppercase mb-3 tracking-widest text-center">ちょっと票</p>
-            ${subPeople.length ? `<div class="flex flex-wrap gap-2">${subPeople.map(([m,c])=>`<span class="bg-white border border-indigo-100 text-indigo-500 rounded-full px-3 py-1 text-[10px] font-black">${esc(m)}さん ${c}</span>`).join('')}</div>` : `<p class="text-[10px] text-slate-300 font-black text-center">今回はちょっと票なし</p>`}
+          <div class="glass rounded-[2rem] p-4 mb-4 text-left space-y-3">
+            <p class="text-[9px] font-black text-slate-300 uppercase mb-2 tracking-widest text-center">TOP 3</p>
+            ${topRows.length ? topRows.map(([m,c],idx)=>`<div><div class="flex justify-between text-[11px] font-black text-slate-600 mb-1"><span>${idx+1}位　${esc(m)}さん</span><span>${c}点</span></div><div class="h-3 rounded-full bg-slate-100 overflow-hidden"><div class="h-full bg-indigo-500" style="width:${(c/totalScoreVotes)*100}%"></div></div></div>`).join('') : `<p class="text-[10px] text-slate-300 font-black text-center">まだ集計がありません</p>`}
           </div>
           ${correctGuessers.length > 0 ? `<div class="god-mode p-4 rounded-2xl mb-4 shadow-lg text-white font-black text-sm pop-in">✨ ${correctGuessers.map(esc).join(', ')}さん 自己予想的中！<br>自分の見られ方をよく分かってます！ ✨</div>` : `<div class="bg-white/70 p-3 rounded-2xl mb-4 text-[10px] font-black text-slate-400">自己予想とのズレも、このゲームのおいしいところ。</div>`}
           ${myRole === 'host' ? `<button onclick="nextReveal()" class="w-full bg-indigo-600 text-white h-16 rounded-2xl font-black shadow-lg text-lg active:scale-95 transition-all">${rIdx < total - 1 ? '次の結果をめくる ❯' : '最終プロフィール発表！'}</button>` : `<p class="text-[11px] text-slate-400 font-black animate-pulse">ホストが次を公開します...</p>`}
@@ -923,16 +940,18 @@
         const total = totalQuestions();
         const stat = calcMemberProfile(myName);
         const title = getProfileTitle(stat);
+        const lead = getProfileLead(stat);
+        const topItems = topProfileItems(stat, 3);
         const totalForBar = Math.max(1, stat.totalScore);
         container.innerHTML = `<div class="fade-in px-1 text-left">
           <div class="text-center mb-5"><div class="text-6xl mb-3 pulse-soft">🎉</div><p class="text-[10px] font-black text-indigo-400 tracking-[.3em]">FINAL PROFILE</p><h2 class="text-3xl font-black text-slate-800 italic tracking-tighter">Your Profile</h2></div>
           <div class="glass p-6 rounded-[2.6rem] mb-5">
-            <div class="flex justify-between items-center mb-4"><div><p class="text-[10px] font-black text-slate-400">${esc(myName)}さんの称号</p><h3 class="text-2xl font-black text-indigo-600 leading-tight">${esc(title)}</h3></div>${stat.totalScore > 0 ? `<div class="bg-indigo-600 px-4 py-2 rounded-full text-[10px] font-black text-white">ぴったり ${stat.totalMain}<br>ちょっと ${stat.totalSub}</div>` : `<div class="bg-slate-100 px-4 py-2 rounded-full text-[10px] font-black text-slate-400">発見中</div>`}</div>
-            <p class="text-[11px] font-bold text-slate-400 leading-relaxed mb-5">${esc(getProfileLead(stat))}</p>
+            <div class="mb-4"><p class="text-[10px] font-black text-slate-400 mb-2">${esc(myName)}さんのプロフィール</p><h3 class="text-2xl font-black text-indigo-600 leading-snug">${esc(title)}</h3></div>
+            <p class="text-[12px] font-bold text-slate-500 leading-relaxed mb-5">${esc(lead)}</p>
             <div class="w-full bg-slate-50 h-10 rounded-full overflow-hidden flex mb-5 border border-slate-100">${stat.totalScore === 0 ? `<div class="w-full flex items-center justify-center text-[8px] text-slate-300 font-black uppercase tracking-widest">not fixed yet</div>` : stat.detailScore.map((count,i)=> count>0 ? `<div class="bar-segment" style="width:${(count/totalForBar)*100}%; background-color:${COLORS[i % COLORS.length]};"></div>` : '').join('')}</div>
-            <div class="flex flex-wrap gap-2">${stat.topIndices.length ? stat.topIndices.map(idx=>`<span class="px-4 py-1 rounded-full font-black text-white text-[10px] shadow-sm" style="background-color:${COLORS[idx % COLORS.length]}"># ${esc(gameState.questions[idx])}</span>`).join('') : '<span class="px-4 py-1 rounded-full font-black bg-white border border-slate-100 text-slate-400 text-[10px]">ひとつの印象に決めつけられにくいタイプ</span>'}</div>
+            <div class="flex flex-wrap gap-2">${topItems.length ? topItems.map((item,idx)=>`<span class="px-4 py-1 rounded-full font-black text-white text-[10px] shadow-sm" style="background-color:${COLORS[idx % COLORS.length]}">${esc(item.text)}</span>`).join('') : '<span class="px-4 py-1 rounded-full font-black bg-white border border-slate-100 text-slate-400 text-[10px]">ひとつの印象に決めつけられにくいタイプ</span>'}</div>
           </div>
-          <div class="glass p-5 rounded-[2rem] mb-5"><p class="text-[9px] font-black text-slate-300 uppercase mb-4 tracking-widest text-center border-b pb-2">Impression Detail</p><div class="space-y-3">${(gameState.questions || []).map((q,i)=>`<div class="flex items-center justify-between gap-3"><div class="flex items-center gap-2 min-w-0"><div class="w-3 h-3 rounded-full shrink-0 shadow-sm" style="background-color:${COLORS[i % COLORS.length]}"></div><span class="text-[10px] font-bold text-slate-500 truncate">${esc(q)}</span></div><span class="text-[9px] font-black text-slate-400 shrink-0">ぴ ${stat.detailMain[i] || 0} / ちょ ${stat.detailSub[i] || 0}</span></div>`).join('')}</div></div>
+          <div class="glass p-5 rounded-[2rem] mb-5"><p class="text-[9px] font-black text-slate-300 uppercase mb-4 tracking-widest text-center border-b pb-2">Impression Detail</p><div class="space-y-3">${(gameState.questions || []).map((q,i)=>`<div class="flex items-center justify-between gap-3"><div class="flex items-center gap-2 min-w-0"><div class="w-3 h-3 rounded-full shrink-0 shadow-sm" style="background-color:${COLORS[i % COLORS.length]}"></div><span class="text-[10px] font-bold text-slate-500 truncate">${esc(q)}</span></div><span class="text-[9px] font-black text-slate-400 shrink-0">${stat.detailScore[i] || 0}点</span></div>`).join('')}</div></div>
           ${myRole === 'host' ? `<button onclick="roomRef.update({phase:'setup', answers:{}, selfExpects:{}, revealIdx:0, currentQIdx:0})" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-black shadow-xl active:scale-95 transition-all">もう一度あそぶ</button>` : ''}
         </div>`;
       }
