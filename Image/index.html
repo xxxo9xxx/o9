@@ -29,6 +29,7 @@
     .confetti i { position:absolute; top:-18px; width:9px; height:14px; opacity:.9; animation: fall 1.9s linear forwards; }
     .bottom-dock { position: fixed; left: 50%; bottom: calc(12px + var(--safe-bottom)); transform: translateX(-50%); width: min(430px, calc(100vw - 24px)); z-index: 50; }
     .sound-on { box-shadow: 0 0 0 4px rgba(99,102,241,.14), 0 12px 30px rgba(99,102,241,.22); }
+    .soft-ring { box-shadow: 0 0 0 4px rgba(99,102,241,.10) inset; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes popIn { from { opacity:0; transform: scale(.92); } to { opacity:1; transform: scale(1); } }
     @keyframes pulseSoft { 0%,100% { transform: scale(1); opacity:1 } 50% { transform: scale(1.025); opacity:.86 } }
@@ -47,7 +48,7 @@
         <span id="room-display" class="text-[9px] font-black text-indigo-500 tracking-[.28em] uppercase">NO ROOM</span>
       </div>
       <h1 class="text-4xl font-black text-indigo-600 italic tracking-tighter leading-none">Image Profile</h1>
-      <p class="text-[11px] font-bold text-slate-400 mt-2">みんなから見た“あなたっぽさ”を、楽しく可視化。</p>
+      <p class="text-[11px] font-bold text-slate-400 mt-2">自分のイメージと、みんなから見たイメージのズレを楽しむ。</p>
     </header>
     <section id="game-content"></section>
   </main>
@@ -62,50 +63,70 @@
   </div>
 
   <script>
-    const QUESTIONS_SET = {
-            standard: ["優しそう", "頭が良さそう", "嘘がつけなそう", "行動力がありそう", "落ち着いていそう", "モテそうなオーラ", "運動が得意そう", "話しが上手そう", "メンタルが強そう", "センスが良さそう"],
-            normal_extra: [
-                "相談にのってくれそう", "困っている人を放っておけなそう", "隠れた才能を持ってそう", "決めたことは最後までやり遂げそう", "どんな場所でも馴染めそう",
-                "意外と涙もろそう", "知識の引き出しが多そう", "丁寧に暮らしてそう", "家族との仲が良そう", "自分の意見をしっかり持ってそう",
-                "先回りして行動できそう", "誰にでも平等に接しそう", "感情が安定してそう", "アドバイス上手そう", "責任感が人一倍強そう",
-                "流されない芯がありそう", "早起きしてそう", "謙虚そう", "いつも勉強していそう", "変化を楽しめそう",
-                "字が綺麗そう", "周りの空気を読むのが上手そう", "人から信頼されてそう", "健康管理を徹底してそう", "自分の世界観を大切にしてそう",
-                "集中力がありそう", "聞き上手そう", "記憶力が良さそう", "なにかを育てるのが上手そう", "目標を持って生きてそう",
-                "頼まれたら断れなそう", "冷静な判断ができそう", "意外な趣味を持ってそう", "努力を人に見せなそう", "トラブルも楽しめそう",
-                "品格がありそう", "物を長く大切に使ってそう", "精神的に自立してそう", "柔軟な発想ができそう", "誠実な恋愛をしてそう",
-                "将来のビジョンが明確そう", "包容力がありそう", "誰かの憧れの存在になってそう", "アイデアを出すのが得意そう", "トラブルを解決してくれそう",
-                "レスポンスが速そう", "人を惹きつけそう", "ピンチをチャンスに変えそう", "計算が速そう", "論理的な説明が上手そう",
-                "決断に迷いがなそう", "仕事ができそう", "周囲盛り上げるのが上手そう", "根回しや調整が完璧そう", "独自のキャリアプランを持ってそう",
-                "コミュ力が高そう", "仕事を楽しんでやってそう", "自分の独特なペースを持っていそう", "人脈を広げるのが上手そう", "メンタルが安定してそう",
-                "人のサポートが得意そう", "街中で声をかけられることが多そう", "日記を書いていそう", "楽器が弾けそう", "初見の人に好かれそう", "人をよく観察していそう", "コミュ力が高そう",
-                "旅行先で頼りになりそう", "集合写真でいつも良い位置にいそう", "LINEの返信がちょうど良さそう", "初対面でも場をやわらかくしそう", "実はかなり負けず嫌いそう", "お店選びのセンスが良さそう", "プレゼント選びが上手そう", "急なトラブルでも笑って対応しそう", "昔から先生に好かれてそう", "なぜか動物に好かれそう", "スマホの中が整理されてそう", "カラオケで意外な選曲をしそう", "イベントの裏方で活躍しそう", "財布の中がきれいそう", "一緒に旅行すると楽しそう"
-            ],
-            black: [
-                "腹黒そう", "怒ると怖そう", "嘘が上手そう", "私生活が謎そう", "浪費癖がありそう", 
-                "家ではズボラそう", "毒舌そう", "執念深そう",
-                "人を使うのが上手そう", "不倫しそう", "昔はやんちゃしてそう", "酔うと性格が変わりそう", "他人に興味なさそう",
-                "飽きっぽそう", "実は潔癖症そう", "意外と毒を吐きそう", "無意識に人を惑わせそう",
-                "弱みを見せなそう", "裏では繊細そう",
-                "お菓子を一口だけと言って半分食べそう", "寝坊してもなぜか間に合いそう", "セールに弱そう", "飲み会後に急に語り出しそう", "実は部屋に謎のこだわりがありそう", "スタンプだけで会話を終わらせそう", "旅行の荷物が多そう", "冷蔵庫に賞味期限ギリギリの物がありそう"
-            ]
-        };
-        
-    const COLORS = ["#6366f1", "#8b5cf6", "#a855f7", "#d946ef", "#ec4899", "#f43f5e", "#ef4444", "#f59e0b", "#10b981", "#06b6d4"];
-    const AVATAR_COLORS = ["#6366f1", "#ec4899", "#10b981", "#f59e0b", "#06b6d4", "#a855f7", "#ef4444", "#64748b"];
+    const QUESTION_DECKS = {
+      standard: {
+        label: 'スタンダード', emoji: '✨', note: '最初に使いやすい固定10問', defaultOn: true,
+        questions: ['優しそう', '頭が良さそう', '嘘がつけなそう', '行動力がありそう', '落ち着いていそう', 'モテそうなオーラ', '運動が得意そう', '話しが上手そう', 'メンタルが強そう', 'センスが良さそう']
+      },
+      soft: {
+        label: '見せ場', emoji: '🌱', note: '票が分散しやすいポジティブ問', defaultOn: true,
+        questions: [
+          '静かに支えてくれそう', '話すほど面白そう', 'ふとした時に頼れそう', '独自のこだわりがありそう', '意外な魅力を持ってそう',
+          '場の空気をやわらかくしそう', '人の良いところを見つけるのが上手そう', '一緒にいると安心しそう', 'じわじわ好きになりそう', '縁の下で活躍しそう',
+          '自分のペースを大切にしてそう', '周りをよく見ていそう', '小さな変化に気づきそう', '知るほど印象が変わりそう', '困った時に声をかけてくれそう',
+          'チームにいると助かりそう', '変なところでツボが合いそう', '素直に褒めてくれそう', '空気を読んで一歩引けそう', '大事な時にちゃんとしてくれそう'
+        ]
+      },
+      normal: {
+        label: 'ノーマル追加', emoji: '🎈', note: '会話が広がる追加問', defaultOn: false,
+        questions: [
+          '相談にのってくれそう', '困っている人を放っておけなそう', '隠れた才能を持ってそう', '決めたことは最後までやり遂げそう', 'どんな場所でも馴染めそう',
+          '意外と涙もろそう', '知識の引き出しが多そう', '丁寧に暮らしてそう', '家族との仲が良そう', '自分の意見をしっかり持ってそう',
+          '先回りして行動できそう', '誰にでも平等に接しそう', '感情が安定してそう', 'アドバイス上手そう', '責任感が人一倍強そう',
+          '流されない芯がありそう', '早起きしてそう', '謙虚そう', 'いつも勉強していそう', '変化を楽しめそう',
+          '字が綺麗そう', '周りの空気を読むのが上手そう', '人から信頼されてそう', '健康管理を徹底してそう', '自分の世界観を大切にしてそう',
+          '集中力がありそう', '聞き上手そう', '記憶力が良さそう', 'なにかを育てるのが上手そう', '目標を持って生きてそう',
+          '頼まれたら断れなそう', '冷静な判断ができそう', '意外な趣味を持ってそう', '努力を人に見せなそう', 'トラブルも楽しめそう',
+          '品格がありそう', '物を長く大切に使ってそう', '精神的に自立してそう', '柔軟な発想ができそう', '誠実な恋愛をしてそう',
+          '将来のビジョンが明確そう', '包容力がありそう', '誰かの憧れの存在になってそう', 'アイデアを出すのが得意そう', 'トラブルを解決してくれそう',
+          'レスポンスが速そう', '人を惹きつけそう', 'ピンチをチャンスに変えそう', '計算が速そう', '論理的な説明が上手そう',
+          '決断に迷いがなそう', '仕事ができそう', '周囲を盛り上げるのが上手そう', '根回しや調整が完璧そう', '独自のキャリアプランを持ってそう',
+          'コミュ力が高そう', '仕事を楽しんでやってそう', '自分の独特なペースを持っていそう', '人脈を広げるのが上手そう', 'メンタルが安定してそう',
+          '人のサポートが得意そう', '街中で声をかけられることが多そう', '日記を書いていそう', '楽器が弾けそう', '初見の人に好かれそう',
+          '人をよく観察していそう', '旅行先で頼りになりそう', '集合写真でいつも良い位置にいそう', 'LINEの返信がちょうど良さそう', '初対面でも場をやわらかくしそう',
+          '実はかなり負けず嫌いそう', 'お店選びのセンスが良さそう', 'プレゼント選びが上手そう', '急なトラブルでも笑って対応しそう', '昔から先生に好かれてそう',
+          'なぜか動物に好かれそう', 'スマホの中が整理されてそう', 'カラオケで意外な選曲をしそう', 'イベントの裏方で活躍しそう', '財布の中がきれいそう', '一緒に旅行すると楽しそう'
+        ]
+      },
+      black: {
+        label: 'ブラック', emoji: '😈', note: '飲み会向け。少しマイルド調整済み', defaultOn: false,
+        questions: [
+          '腹黒そう', '怒ると怖そう', '嘘が上手そう', '私生活が謎そう', '浪費癖がありそう',
+          '家ではズボラそう', '毒舌そう', '執念深そう', '人を使うのが上手そう', '昔はやんちゃしてそう',
+          '酔うと性格が変わりそう', '飽きっぽそう', '実は潔癖症そう', '意外と毒を吐きそう', '無意識に人を惑わせそう',
+          '弱みを見せなそう', '裏では繊細そう', 'お菓子を一口だけと言って半分食べそう', '寝坊してもなぜか間に合いそう', 'セールに弱そう',
+          '飲み会後に急に語り出しそう', '実は部屋に謎のこだわりがありそう', 'スタンプだけで会話を終わらせそう', '旅行の荷物が多そう', '冷蔵庫に賞味期限ギリギリの物がありそう',
+          '既読スルーの言い訳が上手そう', '財布を忘れても許されそう', '集合時間の5分前に動き出しそう', 'こっそり一番良い席を取りそう', '褒められると急に照れそう'
+        ]
+      }
+    };
+    const DECK_ORDER = ['standard', 'soft', 'normal', 'black'];
+    const COLORS = ['#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#14b8a6', '#84cc16', '#eab308', '#fb923c', '#64748b', '#0ea5e9', '#c084fc', '#f472b6', '#22c55e', '#f97316'];
+    const AVATAR_COLORS = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#06b6d4', '#a855f7', '#ef4444', '#64748b'];
 
     const firebaseConfig = {
-      apiKey: "AIzaSyBmzPmehSaV--mn0Hd0S-fd97nf5RX4Dvg",
-      authDomain: "membertoiro.firebaseapp.com",
-      databaseURL: "https://membertoiro-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "membertoiro",
-      storageBucket: "membertoiro.firebasestorage.app",
-      messagingSenderId: "858132874746",
-      appId: "1:858132874746:web:9d6e1156a350dd396b9043"
+      apiKey: 'AIzaSyBmzPmehSaV--mn0Hd0S-fd97nf5RX4Dvg',
+      authDomain: 'membertoiro.firebaseapp.com',
+      databaseURL: 'https://membertoiro-default-rtdb.asia-southeast1.firebasedatabase.app',
+      projectId: 'membertoiro',
+      storageBucket: 'membertoiro.firebasestorage.app',
+      messagingSenderId: '858132874746',
+      appId: '1:858132874746:web:9d6e1156a350dd396b9043'
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const GAME_KEY = 'image-profile-v2';
+    const GAME_KEY = 'image-profile-v3';
     const params = new URLSearchParams(location.search);
     let currentRoomId = params.get('room') || localStorage.getItem(GAME_KEY + '-room') || '';
     let myName = localStorage.getItem(GAME_KEY + '-name') || '';
@@ -119,16 +140,24 @@
     let lastPhase = '';
     let lastRevealIdx = null;
     let audioCtx = null, masterGain = null, bgmTimer = null, soundEnabled = false;
+    let answerDraft = { qIdx: null, main: '', subs: [] };
 
+    function esc(v) {
+      return String(v ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
+    }
     function normalizeRoomId(v) { return (v || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 24); }
+    function normalizeName(v) { return (v || '').trim().replace(/[.#$/\[\]]/g, '').slice(0, 18); }
     function makeRoomId() { return 'profile-' + Math.random().toString(36).slice(2, 6) + '-' + Math.random().toString(36).slice(2, 6); }
     function getInviteUrl() { const u = new URL(location.href); u.searchParams.set('room', currentRoomId); return u.toString(); }
     function setRoomLabel() { document.getElementById('room-display').innerText = currentRoomId ? 'ROOM: ' + currentRoomId : 'NO ROOM'; }
+    function totalQuestions() { return Math.max(1, (gameState?.questions || []).length || 10); }
+    function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+    function uniqueQuestions(list) { return [...new Set((list || []).map(q => String(q).trim()).filter(Boolean))]; }
 
     function connectRoom(id) {
       const clean = normalizeRoomId(id);
       if (!clean) return;
-      if (unsubscribe) roomRef.off('value', unsubscribe);
+      if (unsubscribe && roomRef) roomRef.off('value', unsubscribe);
       currentRoomId = clean;
       localStorage.setItem(GAME_KEY + '-room', clean);
       roomRef = db.ref('rooms/' + clean);
@@ -223,8 +252,8 @@
       setTimeout(()=>joinGame(role), 60);
     }
     function joinGame(role) {
-      const name = document.getElementById('name-input')?.value.trim();
-      if (!name) return alert('名前を入力してください');
+      const name = normalizeName(document.getElementById('name-input')?.value);
+      if (!name) return alert('名前を入力してください（記号 . # $ / [ ] は使えません）');
       if (!currentRoomId) connectRoom(makeRoomId());
       const color = myColor || AVATAR_COLORS[Math.floor(Math.random()*AVATAR_COLORS.length)];
       roomRef.transaction(curr => {
@@ -243,13 +272,14 @@
         localStorage.setItem(GAME_KEY + '-name', myName);
         localStorage.setItem(GAME_KEY + '-role', myRole);
         localStorage.setItem(GAME_KEY + '-color', myColor);
+        localStorage.setItem(GAME_KEY + '-name-draft', myName);
         gameState = snap.val(); playSfx('join'); render();
       });
     }
     function resetMyEntry(ask=true) {
       if (ask && !confirm('この端末の入室情報だけリセットしますか？\n部屋は解散されません。')) return;
       localStorage.removeItem(GAME_KEY + '-name'); localStorage.removeItem(GAME_KEY + '-role'); localStorage.removeItem(GAME_KEY + '-color'); localStorage.removeItem(GAME_KEY + '-room');
-      myName = ''; myRole = ''; myColor = ''; currentRoomId = params.get('room') || ''; gameState = null;
+      myName = ''; myRole = ''; myColor = ''; currentRoomId = params.get('room') || ''; gameState = null; answerDraft = { qIdx: null, main: '', subs: [] };
       if (currentRoomId) connectRoom(currentRoomId); else { if (unsubscribe && roomRef) roomRef.off('value', unsubscribe); roomRef=null; setRoomLabel(); render(); }
     }
     function allReset() { if (!currentRoomId) return resetMyEntry(false); if (confirm('ルームを解散しますか？\n参加者全員の部屋情報が削除されます。')) roomRef.remove(); }
@@ -258,7 +288,6 @@
       const data = { title:'Image Profile', text:'Image Profileに参加してね', url:getInviteUrl() };
       if (navigator.share) await navigator.share(data); else copyInvite();
     }
-
     function renderQR() {
       const el = document.getElementById('qr-code');
       if (!el || !currentRoomId) return;
@@ -269,24 +298,108 @@
       else el.innerHTML = '<div class="text-[10px] text-slate-400 p-4">QRライブラリ読込中です。URLコピーを使ってください。</div>';
     }
 
-    function startGame(mode) {
-      playSfx('start');
-      let qs = [];
-      if (mode === 'standard') qs = QUESTIONS_SET.standard;
-      else if (mode === 'black') qs = [...QUESTIONS_SET.black].sort(() => 0.5 - Math.random()).slice(0, 10);
-      else if (mode === 'normal_random') qs = [...QUESTIONS_SET.normal_extra].sort(() => 0.5 - Math.random()).slice(0, 10);
-      else if (mode === 'all_random') { const all = [...QUESTIONS_SET.normal_extra, ...QUESTIONS_SET.black]; qs = all.sort(() => 0.5 - Math.random()).slice(0, 10); }
-      if (qs.length < 10) qs = qs.concat(QUESTIONS_SET.standard).slice(0, 10);
-      roomRef.update({ phase:'playing', questions:qs, currentQIdx:0, answers:{}, selfExpects:{}, revealIdx:0, mode, startedAt: firebase.database.ServerValue.TIMESTAMP });
+    function defaultDeckConfig() {
+      const decks = {};
+      DECK_ORDER.forEach(k => decks[k] = !!QUESTION_DECKS[k].defaultOn);
+      return { decks, order: 'random', count: 10, customText: '' };
     }
-    function submitAnswer(selection) {
+    function loadDeckConfig() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(GAME_KEY + '-deck-config') || 'null');
+        const base = defaultDeckConfig();
+        if (!saved) return base;
+        return {
+          decks: { ...base.decks, ...(saved.decks || {}) },
+          order: saved.order === 'fixed' ? 'fixed' : 'random',
+          count: Math.max(3, Math.min(20, Number(saved.count) || 10)),
+          customText: String(saved.customText || '')
+        };
+      } catch(e) { return defaultDeckConfig(); }
+    }
+    function parseCustomQuestions(text) {
+      return uniqueQuestions(String(text || '').split('\n').map(line => line.replace(/^[\s・*\-\d.、)）]+/, '').trim()).filter(Boolean));
+    }
+    function readDeckSettingsFromUI() {
+      const base = defaultDeckConfig();
+      DECK_ORDER.forEach(k => base.decks[k] = !!document.getElementById('deck-' + k)?.checked);
+      base.order = document.querySelector('input[name="question-order"]:checked')?.value === 'fixed' ? 'fixed' : 'random';
+      base.count = Math.max(3, Math.min(20, Number(document.getElementById('question-count')?.value) || 10));
+      base.customText = document.getElementById('custom-questions')?.value || '';
+      return base;
+    }
+    function saveDeckSettingsLocal(cfg) {
+      localStorage.setItem(GAME_KEY + '-deck-config', JSON.stringify(cfg));
+    }
+    function buildQuestionPool(cfg) {
+      const list = [];
+      DECK_ORDER.forEach(k => { if (cfg.decks?.[k]) list.push(...QUESTION_DECKS[k].questions); });
+      list.push(...parseCustomQuestions(cfg.customText));
+      return uniqueQuestions(list);
+    }
+    function makeQuestionsFromConfig(cfg) {
+      const pool = buildQuestionPool(cfg);
+      const count = Math.max(1, Math.min(cfg.count || 10, pool.length));
+      return cfg.order === 'fixed' ? pool.slice(0, count) : shuffle(pool).slice(0, count);
+    }
+    function updateDeckPreview() {
+      const el = document.getElementById('deck-preview');
+      if (!el) return;
+      const cfg = readDeckSettingsFromUI();
+      saveDeckSettingsLocal(cfg);
+      const pool = buildQuestionPool(cfg);
+      const qs = cfg.order === 'fixed' ? pool.slice(0, Math.min(cfg.count, pool.length)) : shuffle(pool).slice(0, Math.min(5, pool.length));
+      el.innerHTML = `<div class="flex justify-between items-center mb-2"><span class="text-[10px] font-black text-slate-400">候補 ${pool.length}問 / 出題 ${Math.min(cfg.count, pool.length)}問</span><span class="text-[10px] font-black text-indigo-500">${cfg.order === 'fixed' ? '固定順' : 'ランダム'}</span></div>` +
+        `<div class="flex flex-wrap gap-1">${qs.slice(0,5).map(q=>`<span class="bg-white text-slate-500 px-2 py-1 rounded-full border border-slate-100 text-[9px] font-black">${esc(q)}</span>`).join('')}${pool.length > 5 ? '<span class="text-[9px] text-slate-300 font-black px-2 py-1">ほか…</span>' : ''}</div>`;
+    }
+    function startCustomGame() {
+      playSfx('start');
+      if ((gameState?.members || []).length < 2) return alert('2人以上で参加してからスタートしてください。');
+      const cfg = readDeckSettingsFromUI();
+      const qs = makeQuestionsFromConfig(cfg);
+      if (qs.length < 3) return alert('お題が少なすぎます。デッキをチェックするか、カスタムお題を3問以上追加してください。');
+      saveDeckSettingsLocal(cfg);
+      answerDraft = { qIdx: null, main: '', subs: [] };
+      roomRef.update({
+        phase:'playing', questions:qs, currentQIdx:0, answers:{}, selfExpects:{}, revealIdx:0,
+        mode:'deck_builder', deckConfig:{ ...cfg, poolCount: buildQuestionPool(cfg).length },
+        startedAt: firebase.database.ServerValue.TIMESTAMP
+      });
+    }
+
+    function selectMain(name) {
+      playSfx('tap');
+      answerDraft = { qIdx: gameState.currentQIdx, main: name, subs: [] };
+      render();
+    }
+    function backToMainSelect() {
+      playSfx('tap');
+      answerDraft = { qIdx: gameState.currentQIdx, main: '', subs: [] };
+      render();
+    }
+    function toggleSub(name) {
+      playSfx('tap');
+      if (!answerDraft.main || answerDraft.qIdx !== gameState.currentQIdx) return;
+      const idx = answerDraft.subs.indexOf(name);
+      if (idx >= 0) answerDraft.subs.splice(idx, 1);
+      else {
+        if (answerDraft.subs.length >= 2) return alert('ちょっと票は2人まで選べます');
+        answerDraft.subs.push(name);
+      }
+      render();
+    }
+    function submitCurrentAnswer() {
       playSfx('tap');
       const qIdx = gameState.currentQIdx;
-      roomRef.child(`answers/${qIdx}/${myName}`).set(selection).then(() => {
+      if (answerDraft.qIdx !== qIdx || !answerDraft.main) return alert('まず、ぴったりな人を1人選んでください');
+      const entry = { main: answerDraft.main, subs: answerDraft.subs || [], at: firebase.database.ServerValue.TIMESTAMP };
+      roomRef.child(`answers/${qIdx}/${myName}`).set(entry).then(() => {
+        answerDraft = { qIdx: null, main: '', subs: [] };
         roomRef.transaction(curr => {
           if (!curr || !curr.answers || !curr.answers[qIdx]) return curr;
-          if (Object.keys(curr.answers[qIdx]).length >= curr.members.length) {
-            if (curr.currentQIdx < 9) curr.currentQIdx++; else curr.phase = 'self-check';
+          if (Object.keys(curr.answers[qIdx]).length >= (curr.members || []).length) {
+            const total = Math.max(1, (curr.questions || []).length || 10);
+            if ((curr.currentQIdx || 0) < total - 1) curr.currentQIdx = (curr.currentQIdx || 0) + 1;
+            else curr.phase = 'self-check';
           }
           return curr;
         });
@@ -297,7 +410,7 @@
       roomRef.child(`selfExpects/${myName}`).set(idx).then(() => {
         roomRef.transaction(curr => {
           if (!curr || !curr.selfExpects) return curr;
-          if (Object.keys(curr.selfExpects).length >= curr.members.length) curr.phase = 'revealing';
+          if (Object.keys(curr.selfExpects).length >= (curr.members || []).length) curr.phase = 'revealing';
           return curr;
         });
       });
@@ -306,7 +419,8 @@
       if (!confirm('強制的に次のステップへ進めますか？')) return;
       roomRef.transaction(curr => {
         if (!curr) return curr;
-        if (curr.phase === 'playing') { if (curr.currentQIdx < 9) curr.currentQIdx++; else curr.phase = 'self-check'; }
+        const total = Math.max(1, (curr.questions || []).length || 10);
+        if (curr.phase === 'playing') { if ((curr.currentQIdx || 0) < total - 1) curr.currentQIdx = (curr.currentQIdx || 0) + 1; else curr.phase = 'self-check'; }
         else if (curr.phase === 'self-check') curr.phase = 'revealing';
         return curr;
       });
@@ -314,26 +428,91 @@
     function nextReveal() {
       playSfx('tap');
       const r = gameState.revealIdx || 0;
-      if (r < 9) roomRef.update({ revealIdx: r + 1 }); else roomRef.update({ phase:'result' });
+      const total = totalQuestions();
+      if (r < total - 1) roomRef.update({ revealIdx: r + 1 }); else roomRef.update({ phase:'result' });
     }
 
+    function readAnswerEntry(entry) {
+      if (typeof entry === 'string') return { main: entry, subs: [] };
+      const rawSubs = entry?.subs;
+      const subs = Array.isArray(rawSubs) ? rawSubs : (rawSubs ? Object.values(rawSubs) : []);
+      return { main: entry?.main || '', subs: uniqueQuestions(subs).slice(0, 2) };
+    }
+    function calcQuestionResult(qIdx) {
+      const members = gameState?.members || [];
+      const ans = (gameState?.answers && gameState.answers[qIdx]) || {};
+      const mainCounts = {}, subCounts = {}, scoreCounts = {};
+      members.forEach(m => { mainCounts[m] = 0; subCounts[m] = 0; scoreCounts[m] = 0; });
+      Object.values(ans).forEach(entry => {
+        const a = readAnswerEntry(entry);
+        if (mainCounts[a.main] !== undefined) { mainCounts[a.main]++; scoreCounts[a.main] += 3; }
+        a.subs.forEach(s => { if (subCounts[s] !== undefined) { subCounts[s]++; scoreCounts[s] += 1; } });
+      });
+      const maxMain = Math.max(0, ...Object.values(mainCounts));
+      const winners = Object.keys(mainCounts).filter(m => mainCounts[m] === maxMain && maxMain > 0);
+      return { mainCounts, subCounts, scoreCounts, maxMain, winners, answered: Object.keys(ans).length };
+    }
+    function calcMemberProfile(member) {
+      const total = totalQuestions();
+      const detailMain = Array(total).fill(0);
+      const detailSub = Array(total).fill(0);
+      for (let i=0; i<total; i++) {
+        const ans = (gameState?.answers && gameState.answers[i]) || {};
+        Object.values(ans).forEach(entry => {
+          const a = readAnswerEntry(entry);
+          if (a.main === member) detailMain[i]++;
+          if (a.subs.includes(member)) detailSub[i]++;
+        });
+      }
+      const detailScore = detailMain.map((v,i)=>v*3 + detailSub[i]);
+      const totalMain = detailMain.reduce((a,b)=>a+b,0);
+      const totalSub = detailSub.reduce((a,b)=>a+b,0);
+      const totalScore = detailScore.reduce((a,b)=>a+b,0);
+      const maxScore = Math.max(0, ...detailScore);
+      const topIndices = detailScore.map((v,i)=>v===maxScore && v>0 ? i : -1).filter(v=>v!==-1);
+      return { detailMain, detailSub, detailScore, totalMain, totalSub, totalScore, topIndices };
+    }
     function getResultComment(question, winners, votes) {
-      if (!winners.length || votes === 0) return '今回は決着つかず。逆に一番気になる結果です。';
+      if (!winners.length || votes === 0) return '今回は決着つかず。ひとつに決めきれないお題でした。';
       const name = winners.join('さん & ') + 'さん';
       const comments = [
-        `${name}に票が集中。これは本人に理由を聞きたいところです。`,
-        `${name}のイメージが強めに出ました。本人の自己評価と合っているか注目です。`,
-        `${name}が選ばれました。ここから話が広がりそうです。`,
-        `${name}という結果に。周りからはそう見えているみたいです。`,
-        `${name}が最多票。納得か意外か、みんなで聞いてみましょう。`
+        `${name}にぴったり票が集まりました。本人の自己予想と合っているか注目です。`,
+        `${name}のイメージが強めに出ました。周りからはそう見えているみたいです。`,
+        `${name}が選ばれました。理由を聞くと話が広がりそうです。`,
+        `${name}という結果に。納得か意外か、みんなで聞いてみましょう。`,
+        `${name}が最多票。主観と客観のズレが見えるかもしれません。`
       ];
       return comments[Math.floor(Math.random() * comments.length)];
     }
+    function getProfileTitle(stat) {
+      if (stat.totalMain >= 4) return 'ぴったり印象の主役';
+      if (stat.totalMain >= 1 && stat.totalSub >= 3) return 'じわっと個性くっきり';
+      if (stat.totalMain >= 1) return '一点突破の印象タイプ';
+      if (stat.totalSub >= 3) return 'じわっと伝わるタイプ';
+      if (stat.totalSub >= 1) return '余白の魅力タイプ';
+      return '発見途中タイプ';
+    }
+    function getProfileLead(stat) {
+      if (stat.totalMain > 0 || stat.totalSub > 0) return 'みんなの中に、あなたっぽい印象が少しずつ集まりました。強く見られたところと、じわっと伝わったところの両方がプロフィールになります。';
+      return '今回はひとつの印象に決めつけられにくい結果でした。話すほど見え方が変わる、まだ発見途中のタイプかもしれません。';
+    }
     function memberBadge(m) {
       const color = gameState?.memberColors?.[m] || AVATAR_COLORS[Math.abs(hashCode(m)) % AVATAR_COLORS.length];
-      return `<span class="inline-flex items-center gap-1 bg-white border border-slate-100 shadow-sm px-3 py-1 rounded-full font-black text-[11px] text-slate-600"><span class="w-2.5 h-2.5 rounded-full" style="background:${color}"></span>${m}</span>`;
+      return `<span class="inline-flex items-center gap-1 bg-white border border-slate-100 shadow-sm px-3 py-1 rounded-full font-black text-[11px] text-slate-600"><span class="w-2.5 h-2.5 rounded-full" style="background:${color}"></span>${esc(m)}</span>`;
     }
     function hashCode(s) { return String(s).split('').reduce((a,c)=>((a<<5)-a)+c.charCodeAt(0),0); }
+    function deckCheckboxHtml(k, cfg) {
+      const d = QUESTION_DECKS[k];
+      return `<label class="block bg-white border-2 ${cfg.decks?.[k] ? 'border-indigo-200 soft-ring' : 'border-slate-100'} rounded-2xl p-3 active:scale-95 transition-all">
+        <div class="flex items-start gap-2">
+          <input id="deck-${k}" type="checkbox" ${cfg.decks?.[k] ? 'checked' : ''} onchange="updateDeckPreview()" class="mt-1 accent-indigo-600">
+          <div><div class="text-sm font-black text-slate-700">${d.emoji} ${esc(d.label)}</div><div class="text-[9px] font-bold text-slate-400 leading-relaxed mt-1">${esc(d.note)}<br>${d.questions.length}問</div></div>
+        </div>
+      </label>`;
+    }
+    function participantCards(names, mode) {
+      return names.map(m => `<button data-name="${esc(m)}" onclick="${mode}(this.dataset.name)" class="min-h-24 rounded-[1.6rem] font-black bg-white border-b-4 border-indigo-100 text-indigo-600 shadow-sm active:translate-y-1 active:shadow-none transition-all p-3"><div class="text-2xl mb-1">👤</div>${esc(m)}<small class="text-[10px] text-slate-300">さん</small></button>`).join('');
+    }
 
     function render() {
       const container = document.getElementById('game-content');
@@ -351,9 +530,9 @@
             <p class="text-[11px] font-bold text-slate-400 mt-2 leading-relaxed">QRから来た人は部屋IDが自動入力されます。<br>名前を入れて参加してください。</p>
           </div>
           <label class="block text-[10px] font-black text-slate-400 ml-2 mb-1 tracking-widest">ROOM ID</label>
-          <input id="room-input" value="${defaultRoom}" class="w-full mb-4 border-2 border-indigo-50 bg-white p-4 rounded-2xl font-black text-center outline-none focus:border-indigo-400">
+          <input id="room-input" value="${esc(defaultRoom)}" class="w-full mb-4 border-2 border-indigo-50 bg-white p-4 rounded-2xl font-black text-center outline-none focus:border-indigo-400">
           <label class="block text-[10px] font-black text-slate-400 ml-2 mb-1 tracking-widest">NAME</label>
-          <input id="name-input" type="text" value="${localStorage.getItem(GAME_KEY + '-name-draft') || ''}" oninput="localStorage.setItem(GAME_KEY + '-name-draft', this.value)" placeholder="名前" class="w-full mb-5 border-2 border-indigo-50 bg-white p-4 rounded-2xl font-black text-center outline-none focus:border-indigo-400">
+          <input id="name-input" type="text" value="${esc(localStorage.getItem(GAME_KEY + '-name-draft') || '')}" oninput="localStorage.setItem(GAME_KEY + '-name-draft', this.value)" placeholder="名前" class="w-full mb-5 border-2 border-indigo-50 bg-white p-4 rounded-2xl font-black text-center outline-none focus:border-indigo-400">
           <div class="grid grid-cols-1 gap-3">
             <button onclick="joinByInput('guest')" class="w-full bg-indigo-600 text-white h-15 py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all">ゲスト参加</button>
             <button onclick="joinByInput('host')" class="w-full ${hostExists?'bg-slate-100 text-slate-400':'bg-white text-indigo-600 border-2 border-indigo-100'} h-15 py-4 rounded-2xl font-black active:scale-95 transition-all" ${hostExists?'disabled':''}>${hostExists?'ホスト参加済み':'ホストとして部屋作成・参加'}</button>
@@ -365,6 +544,7 @@
 
       if (!gameState || gameState.phase === 'setup') {
         const members = gameState?.members || [myName];
+        const cfg = loadDeckConfig();
         container.innerHTML = `<div class="space-y-4 fade-in">
           <div class="glass rounded-[2.4rem] p-5 text-center">
             <p class="text-[10px] font-black text-indigo-400 tracking-[.3em] mb-3">WAITING ROOM</p>
@@ -375,7 +555,7 @@
               </button>
               ${inviteOpen ? `<div class="mt-4 text-center pop-in">
                 <div class="bg-white p-3 inline-block qr-box shadow-sm border border-white" id="qr-code"></div>
-                <p class="text-[10px] text-slate-400 font-bold mt-3 break-all">${getInviteUrl()}</p>
+                <p class="text-[10px] text-slate-400 font-bold mt-3 break-all">${esc(getInviteUrl())}</p>
                 <div class="grid grid-cols-2 gap-2 mt-3">
                   <button onclick="copyInvite()" class="bg-white text-indigo-600 h-11 rounded-2xl text-[10px] font-black shadow-sm active:scale-95">URLコピー</button>
                   <button onclick="shareInvite()" class="bg-indigo-600 text-white h-11 rounded-2xl text-[10px] font-black shadow-sm active:scale-95">共有</button>
@@ -384,82 +564,104 @@
             </div>
           </div>
           ${myRole === 'host' ? `<div class="glass rounded-[2.4rem] p-5 text-left">
-            <p class="text-[10px] font-black text-slate-400 tracking-[.24em] mb-4 text-center">GAME MODE</p>
-            <div class="space-y-3">
-              <button onclick="startGame('standard')" class="w-full bg-indigo-600 text-white h-15 py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all">スタンダード <span class="text-[10px] opacity-70">固定10問</span></button>
-              <button onclick="startGame('black')" class="w-full bg-slate-800 text-white h-15 py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all">ブラック <span class="text-[10px] opacity-70">ランダム10問</span></button>
-              <button onclick="startGame('normal_random')" class="w-full bg-white border-2 border-indigo-100 text-indigo-600 h-15 py-4 rounded-2xl font-black active:scale-95 transition-all">ノーマルランダム</button>
-              <button onclick="startGame('all_random')" class="w-full bg-white border-2 border-slate-200 text-slate-700 h-15 py-4 rounded-2xl font-black active:scale-95 transition-all">オールランダム</button>
+            <p class="text-[10px] font-black text-slate-400 tracking-[.24em] mb-4 text-center">QUESTION DECK</p>
+            <div class="grid grid-cols-2 gap-2 mb-4">${DECK_ORDER.map(k => deckCheckboxHtml(k, cfg)).join('')}</div>
+            <div class="bg-slate-50 rounded-[1.6rem] p-4 border border-slate-100 mb-4">
+              <div class="flex items-center justify-between gap-3 mb-3">
+                <label class="text-[10px] font-black text-slate-400 tracking-widest">出題数</label>
+                <input id="question-count" type="number" min="3" max="20" value="${cfg.count}" oninput="updateDeckPreview()" class="w-20 bg-white border border-slate-100 rounded-xl p-2 text-center text-sm font-black text-indigo-600 outline-none">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <label class="bg-white rounded-2xl p-3 border border-slate-100 text-[10px] font-black text-slate-500"><input type="radio" name="question-order" value="random" ${cfg.order === 'random' ? 'checked' : ''} onchange="updateDeckPreview()" class="accent-indigo-600 mr-1">ランダム排出</label>
+                <label class="bg-white rounded-2xl p-3 border border-slate-100 text-[10px] font-black text-slate-500"><input type="radio" name="question-order" value="fixed" ${cfg.order === 'fixed' ? 'checked' : ''} onchange="updateDeckPreview()" class="accent-indigo-600 mr-1">決まった順番</label>
+              </div>
             </div>
+            <label class="block text-[10px] font-black text-slate-400 ml-2 mb-1 tracking-widest">CUSTOM QUESTIONS</label>
+            <textarea id="custom-questions" oninput="updateDeckPreview()" placeholder="1行に1問ずつ追加できます&#10;例：話すほど面白そう&#10;例：実は気配り上手そう" class="w-full min-h-24 border-2 border-indigo-50 bg-white p-4 rounded-2xl font-black text-[12px] outline-none focus:border-indigo-400 mb-3">${esc(cfg.customText)}</textarea>
+            <div id="deck-preview" class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-3 mb-4"></div>
+            <div class="bg-amber-50 border border-amber-100 rounded-2xl p-3 mb-4 text-[10px] font-bold text-amber-700 leading-relaxed">投票は「ぴったり」1人が必須、「ちょっと」は0〜2人で任意。結果発表の主役はぴったり票、最終プロフィールは両方を使います。</div>
+            <button onclick="startCustomGame()" class="w-full bg-indigo-600 text-white h-16 rounded-2xl font-black shadow-lg active:scale-95 transition-all text-lg">この設定でスタート</button>
           </div>` : `<div class="glass rounded-[2.4rem] p-8 text-center"><div class="text-4xl mb-3 pulse-soft">⌛</div><p class="text-indigo-400 font-black text-sm">ホストが開始するのを待っています...</p></div>`}
         </div>`;
-        setTimeout(renderQR, 30);
+        setTimeout(()=>{ renderQR(); updateDeckPreview(); }, 30);
       } else if (gameState.phase === 'playing') {
-        const q = gameState.questions[gameState.currentQIdx];
-        const currentAns = (gameState.answers && gameState.answers[gameState.currentQIdx]) || {};
-        const others = gameState.members.filter(m => m !== myName);
+        const total = totalQuestions();
+        const qIdx = gameState.currentQIdx || 0;
+        const q = gameState.questions[qIdx];
+        const currentAns = (gameState.answers && gameState.answers[qIdx]) || {};
+        const others = (gameState.members || []).filter(m => m !== myName);
         const done = Object.keys(currentAns).length;
+        if (answerDraft.qIdx !== qIdx) answerDraft = { qIdx, main: '', subs: [] };
         if (myRole === 'host' && currentAns[myName]) forceArea.innerHTML = `<button onclick="forceNext()" class="text-[9px] bg-white border border-slate-200 text-slate-400 px-4 py-2 rounded-full font-black">SKIP ❯❯</button>`;
+        const answered = !!currentAns[myName];
+        const inSubStep = !!answerDraft.main && !answered;
         container.innerHTML = `<div class="fade-in">
           <div class="glass rounded-[2.4rem] p-5 mb-4">
             <div class="flex justify-between items-center mb-4">
-              <span class="text-[10px] bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full font-black">Q ${gameState.currentQIdx+1} / 10</span>
-              <span class="text-[10px] font-black text-slate-400">回答 ${done} / ${gameState.members.length}</span>
+              <span class="text-[10px] bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full font-black">Q ${qIdx+1} / ${total}</span>
+              <span class="text-[10px] font-black text-slate-400">回答 ${done} / ${(gameState.members || []).length}</span>
             </div>
-            <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden mb-5"><div class="h-full bg-indigo-500 transition-all" style="width:${((gameState.currentQIdx)/10)*100}%"></div></div>
-            <h2 class="text-3xl font-black text-slate-800 leading-tight">一番、<br><span class="text-indigo-600 underline decoration-indigo-200 underline-offset-8">${q}</span><br>な人は？</h2>
+            <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden mb-5"><div class="h-full bg-indigo-500 transition-all" style="width:${((qIdx+1)/total)*100}%"></div></div>
+            <h2 class="text-3xl font-black text-slate-800 leading-tight">${inSubStep ? 'ほかにも、<br><span class="text-indigo-600 underline decoration-indigo-200 underline-offset-8">ちょっと' + esc(q) + '</span><br>な人は？' : '一番、<br><span class="text-indigo-600 underline decoration-indigo-200 underline-offset-8">' + esc(q) + '</span><br>な人は？'}</h2>
+            <p class="text-[11px] font-bold text-slate-400 mt-4">${inSubStep ? '2人まで選べます。いなければスキップOK。' : 'ぴったりだと思う人を1人選んでね。'}</p>
           </div>
-          ${currentAns[myName] ? `<div class="glass rounded-[2.4rem] p-10 text-center"><div class="text-5xl mb-4 pulse-soft">✅</div><p class="text-slate-400 font-black text-sm">回答完了！<br><span class="text-indigo-500 text-2xl">${done} / ${gameState.members.length}</span></p></div>` : `<div class="card-grid">${others.map(m => `<button onclick="submitAnswer('${m.replace(/'/g,"\'")}')" class="min-h-24 rounded-[1.6rem] font-black bg-white border-b-4 border-indigo-100 text-indigo-600 shadow-sm active:translate-y-1 active:shadow-none transition-all p-3"><div class="text-2xl mb-1">${m===gameState.host?'👑':'👤'}</div>${m}<small class="text-[10px] text-slate-300">さん</small></button>`).join('')}</div>`}
+          ${answered ? `<div class="glass rounded-[2.4rem] p-10 text-center"><div class="text-5xl mb-4 pulse-soft">✅</div><p class="text-slate-400 font-black text-sm">回答完了！<br><span class="text-indigo-500 text-2xl">${done} / ${(gameState.members || []).length}</span></p></div>` : inSubStep ? `<div class="glass rounded-[2rem] p-4 mb-4 text-left"><div class="flex justify-between items-center"><div><p class="text-[10px] font-black text-slate-400">ぴったり票</p><p class="font-black text-indigo-600">${esc(answerDraft.main)}さん</p></div><button onclick="backToMainSelect()" class="bg-white border border-slate-100 text-slate-400 text-[10px] font-black px-3 py-2 rounded-xl">選び直す</button></div></div><div class="card-grid mb-4">${others.filter(m => m !== answerDraft.main).map(m => {
+            const selected = answerDraft.subs.includes(m);
+            return `<button data-name="${esc(m)}" onclick="toggleSub(this.dataset.name)" class="min-h-24 rounded-[1.6rem] font-black ${selected ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-white text-indigo-600 border-indigo-100'} border-b-4 shadow-sm active:translate-y-1 active:shadow-none transition-all p-3"><div class="text-2xl mb-1">${selected ? '💫' : '👤'}</div>${esc(m)}<small class="text-[10px] ${selected ? 'text-indigo-100' : 'text-slate-300'}">さん</small></button>`;
+          }).join('')}</div><button onclick="submitCurrentAnswer()" class="w-full bg-indigo-600 text-white h-16 rounded-2xl font-black shadow-lg active:scale-95 transition-all">${answerDraft.subs.length ? 'この内容で回答する' : 'スキップして回答する'} <span class="text-[10px] opacity-70">${answerDraft.subs.length}/2</span></button>` : `<div class="card-grid">${participantCards(others, 'selectMain')}</div>`}
         </div>`;
       } else if (gameState.phase === 'self-check') {
+        const questions = gameState.questions || [];
         const hasEx = gameState.selfExpects && gameState.selfExpects[myName] !== undefined;
         const done = Object.keys(gameState.selfExpects || {}).length;
         if (myRole === 'host' && hasEx) forceArea.innerHTML = `<button onclick="forceNext()" class="text-[9px] bg-white border border-slate-200 text-slate-400 px-4 py-2 rounded-full font-black">FORCE RESULT ❯❯</button>`;
         container.innerHTML = `<div class="fade-in">
-          <div class="glass rounded-[2.4rem] p-6 mb-4 text-center"><div class="text-5xl mb-3 wiggle">🔮</div><h2 class="text-2xl font-black text-slate-800 mb-2">自己予想</h2><p class="text-[11px] text-slate-400 font-bold">自分が一番票を集めそうな項目は？</p><p class="text-[10px] font-black text-indigo-400 mt-3">回答 ${done} / ${gameState.members.length}</p></div>
-          ${hasEx ? `<div class="glass rounded-[2.4rem] p-10 text-center"><div class="text-5xl mb-4 pulse-soft">🕯️</div><p class="text-slate-400 font-black text-sm">全員の予想を待っています...</p></div>` : `<div class="grid grid-cols-2 gap-2">${gameState.questions.map((q,i)=>`<button onclick="submitSelfExpect(${i})" class="bg-white border border-indigo-100 p-4 rounded-2xl font-black text-indigo-600 text-[10px] shadow-sm active:bg-indigo-50 active:scale-95 transition-all">#${i+1}<br>${q}</button>`).join('')}</div>`}
+          <div class="glass rounded-[2.4rem] p-6 mb-4 text-center"><div class="text-5xl mb-3 wiggle">🔮</div><h2 class="text-2xl font-black text-slate-800 mb-2">自己予想</h2><p class="text-[11px] text-slate-400 font-bold">自分が一番「ぴったり票」を集めそうな項目は？</p><p class="text-[10px] font-black text-indigo-400 mt-3">回答 ${done} / ${(gameState.members || []).length}</p></div>
+          ${hasEx ? `<div class="glass rounded-[2.4rem] p-10 text-center"><div class="text-5xl mb-4 pulse-soft">🕯️</div><p class="text-slate-400 font-black text-sm">全員の予想を待っています...</p></div>` : `<div class="grid grid-cols-2 gap-2">${questions.map((q,i)=>`<button onclick="submitSelfExpect(${i})" class="bg-white border border-indigo-100 p-4 rounded-2xl font-black text-indigo-600 text-[10px] shadow-sm active:bg-indigo-50 active:scale-95 transition-all">#${i+1}<br>${esc(q)}</button>`).join('')}</div>`}
         </div>`;
       } else if (gameState.phase === 'revealing') {
+        const total = totalQuestions();
         const rIdx = gameState.revealIdx || 0;
         const q = gameState.questions[rIdx];
-        const ans = (gameState.answers && gameState.answers[rIdx]) || {};
-        const counts = {}; gameState.members.forEach(m => counts[m] = 0);
-        Object.values(ans).forEach(v => { if (counts[v] !== undefined) counts[v]++; });
-        const max = Math.max(...Object.values(counts));
-        const winners = Object.keys(counts).filter(m => counts[m] === max && max > 0);
-        const correctGuessers = gameState.members.filter(m => gameState.selfExpects?.[m] === rIdx);
-        const totalVotes = Object.values(counts).reduce((a,b)=>a+b,0) || 1;
+        const result = calcQuestionResult(rIdx);
+        const totalMainVotes = Math.max(1, Object.values(result.mainCounts).reduce((a,b)=>a+b,0));
+        const subPeople = Object.entries(result.subCounts).filter(([,c])=>c>0).sort((a,b)=>b[1]-a[1]);
+        const correctGuessers = result.winners.filter(m => Number(gameState.selfExpects?.[m]) === rIdx);
         container.innerHTML = `<div class="fade-in text-center">
-          <p class="text-[10px] font-black text-slate-400 tracking-[.35em] mb-3">RESULT REVEAL ${rIdx+1} / 10</p>
-          <div class="glass rounded-[2.4rem] p-5 mb-4"><h2 class="text-xl font-black text-slate-700 leading-relaxed">一番、<span class="text-indigo-600 underline decoration-indigo-200 underline-offset-8">${q}</span><br>な人は？</h2></div>
+          <p class="text-[10px] font-black text-slate-400 tracking-[.35em] mb-3">RESULT REVEAL ${rIdx+1} / ${total}</p>
+          <div class="glass rounded-[2.4rem] p-5 mb-4"><h2 class="text-xl font-black text-slate-700 leading-relaxed">一番、<span class="text-indigo-600 underline decoration-indigo-200 underline-offset-8">${esc(q)}</span><br>な人は？</h2></div>
           <div class="bg-white rounded-[3rem] p-8 shadow-xl border-t-8 border-indigo-500 reveal-card mb-4">
-            <div class="text-[10px] font-black text-indigo-300 tracking-widest mb-3">DRUM ROLL...</div>
+            <div class="text-[10px] font-black text-indigo-300 tracking-widest mb-3">PITARI VOTE</div>
             <div class="text-5xl mb-4">🏆</div>
-            <div class="text-4xl font-black text-slate-800 leading-tight mb-2">${winners.length?winners.join(' & '):'該当者なし'}${winners.length?'<small class="text-sm">さん</small>':''}</div>
-            <div class="text-[11px] font-black text-indigo-500 tracking-widest mb-4">${max} VOTES</div>
-            <p class="text-[11px] font-bold text-slate-400 leading-relaxed">${getResultComment(q, winners, max)}</p>
+            <div class="text-4xl font-black text-slate-800 leading-tight mb-2">${result.winners.length?esc(result.winners.join(' & ')):'該当者なし'}${result.winners.length?'<small class="text-sm">さん</small>':''}</div>
+            <div class="text-[11px] font-black text-indigo-500 tracking-widest mb-4">ぴったり ${result.maxMain}票</div>
+            <p class="text-[11px] font-bold text-slate-400 leading-relaxed">${esc(getResultComment(q, result.winners, result.maxMain))}</p>
           </div>
           <div class="glass rounded-[2rem] p-4 mb-4 text-left space-y-2">
-            ${Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([m,c])=>`<div><div class="flex justify-between text-[10px] font-black text-slate-500 mb-1"><span>${m}さん</span><span>${c}票</span></div><div class="h-2 rounded-full bg-slate-100 overflow-hidden"><div class="h-full bg-indigo-500" style="width:${(c/totalVotes)*100}%"></div></div></div>`).join('')}
+            <p class="text-[9px] font-black text-slate-300 uppercase mb-2 tracking-widest text-center">ぴったり票</p>
+            ${Object.entries(result.mainCounts).sort((a,b)=>b[1]-a[1]).map(([m,c])=>`<div><div class="flex justify-between text-[10px] font-black text-slate-500 mb-1"><span>${esc(m)}さん</span><span>${c}票</span></div><div class="h-2 rounded-full bg-slate-100 overflow-hidden"><div class="h-full bg-indigo-500" style="width:${(c/totalMainVotes)*100}%"></div></div></div>`).join('')}
           </div>
-          ${correctGuessers.length > 0 ? `<div class="god-mode p-4 rounded-2xl mb-4 shadow-lg text-white font-black text-sm pop-in">✨ ${correctGuessers.join(', ')}さん 予想的中！<br>自己客観視の天才です！ ✨</div>` : `<div class="bg-white/70 p-3 rounded-2xl mb-4 text-[10px] font-black text-slate-400">今回は自己予想的中者なし。意外な見られ方かも？</div>`}
-          ${myRole === 'host' ? `<button onclick="nextReveal()" class="w-full bg-indigo-600 text-white h-16 rounded-2xl font-black shadow-lg text-lg active:scale-95 transition-all">${rIdx < 9 ? '次の結果をめくる ❯' : '最終プロフィール発表！'}</button>` : `<p class="text-[11px] text-slate-400 font-black animate-pulse">ホストが次を公開します...</p>`}
+          <div class="glass rounded-[2rem] p-4 mb-4 text-left">
+            <p class="text-[9px] font-black text-slate-300 uppercase mb-3 tracking-widest text-center">ちょっと票</p>
+            ${subPeople.length ? `<div class="flex flex-wrap gap-2">${subPeople.map(([m,c])=>`<span class="bg-white border border-indigo-100 text-indigo-500 rounded-full px-3 py-1 text-[10px] font-black">${esc(m)}さん ${c}</span>`).join('')}</div>` : `<p class="text-[10px] text-slate-300 font-black text-center">今回はちょっと票なし</p>`}
+          </div>
+          ${correctGuessers.length > 0 ? `<div class="god-mode p-4 rounded-2xl mb-4 shadow-lg text-white font-black text-sm pop-in">✨ ${correctGuessers.map(esc).join(', ')}さん 自己予想的中！<br>自分の見られ方をよく分かってます！ ✨</div>` : `<div class="bg-white/70 p-3 rounded-2xl mb-4 text-[10px] font-black text-slate-400">自己予想とのズレも、このゲームのおいしいところ。</div>`}
+          ${myRole === 'host' ? `<button onclick="nextReveal()" class="w-full bg-indigo-600 text-white h-16 rounded-2xl font-black shadow-lg text-lg active:scale-95 transition-all">${rIdx < total - 1 ? '次の結果をめくる ❯' : '最終プロフィール発表！'}</button>` : `<p class="text-[11px] text-slate-400 font-black animate-pulse">ホストが次を公開します...</p>`}
         </div>`;
       } else if (gameState.phase === 'result') {
-        const stat = { detail: Array(10).fill(0), total: 0 };
-        Object.values(gameState.answers || {}).forEach(qAns => Object.values(qAns).forEach(votee => { if (votee === myName) stat.total++; }));
-        Object.entries(gameState.answers || {}).forEach(([qIdx, qAns]) => Object.values(qAns).forEach(votee => { if (votee === myName) stat.detail[qIdx]++; }));
-        const maxVal = Math.max(...stat.detail);
-        const topIndices = stat.detail.map((v,i)=>v===maxVal && v>0 ? i : -1).filter(v=>v!==-1);
-        const title = stat.total >= 8 ? '印象の主役' : stat.total >= 4 ? '個性くっきり' : stat.total >= 1 ? '隠れキャラ' : 'ミステリアス';
+        const total = totalQuestions();
+        const stat = calcMemberProfile(myName);
+        const title = getProfileTitle(stat);
+        const totalForBar = Math.max(1, stat.totalScore);
         container.innerHTML = `<div class="fade-in px-1 text-left">
           <div class="text-center mb-5"><div class="text-6xl mb-3 pulse-soft">🎉</div><p class="text-[10px] font-black text-indigo-400 tracking-[.3em]">FINAL PROFILE</p><h2 class="text-3xl font-black text-slate-800 italic tracking-tighter">Your Profile</h2></div>
           <div class="glass p-6 rounded-[2.6rem] mb-5">
-            <div class="flex justify-between items-center mb-4"><div><p class="text-[10px] font-black text-slate-400">${myName}さんの称号</p><h3 class="text-2xl font-black text-indigo-600">${title}</h3></div><div class="bg-indigo-600 px-4 py-2 rounded-full text-[10px] font-black text-white">${stat.total} VOTES</div></div>
-            <div class="w-full bg-slate-50 h-10 rounded-full overflow-hidden flex mb-5 border border-slate-100">${stat.total === 0 ? `<div class="w-full flex items-center justify-center text-[8px] text-slate-300 font-black uppercase tracking-widest">No Votes</div>` : stat.detail.map((count,i)=> count>0 ? `<div class="bar-segment" style="width:${(count/stat.total)*100}%; background-color:${COLORS[i]};"></div>` : '').join('')}</div>
-            <div class="flex flex-wrap gap-2">${topIndices.length ? topIndices.map(idx=>`<span class="px-4 py-1 rounded-full font-black text-white text-[10px] shadow-sm" style="background-color:${COLORS[idx]}"># ${gameState.questions[idx]}</span>`).join('') : '<p class="text-[10px] text-slate-300 italic">票がありませんでした</p>'}</div>
+            <div class="flex justify-between items-center mb-4"><div><p class="text-[10px] font-black text-slate-400">${esc(myName)}さんの称号</p><h3 class="text-2xl font-black text-indigo-600 leading-tight">${esc(title)}</h3></div>${stat.totalScore > 0 ? `<div class="bg-indigo-600 px-4 py-2 rounded-full text-[10px] font-black text-white">ぴったり ${stat.totalMain}<br>ちょっと ${stat.totalSub}</div>` : `<div class="bg-slate-100 px-4 py-2 rounded-full text-[10px] font-black text-slate-400">発見中</div>`}</div>
+            <p class="text-[11px] font-bold text-slate-400 leading-relaxed mb-5">${esc(getProfileLead(stat))}</p>
+            <div class="w-full bg-slate-50 h-10 rounded-full overflow-hidden flex mb-5 border border-slate-100">${stat.totalScore === 0 ? `<div class="w-full flex items-center justify-center text-[8px] text-slate-300 font-black uppercase tracking-widest">not fixed yet</div>` : stat.detailScore.map((count,i)=> count>0 ? `<div class="bar-segment" style="width:${(count/totalForBar)*100}%; background-color:${COLORS[i % COLORS.length]};"></div>` : '').join('')}</div>
+            <div class="flex flex-wrap gap-2">${stat.topIndices.length ? stat.topIndices.map(idx=>`<span class="px-4 py-1 rounded-full font-black text-white text-[10px] shadow-sm" style="background-color:${COLORS[idx % COLORS.length]}"># ${esc(gameState.questions[idx])}</span>`).join('') : '<span class="px-4 py-1 rounded-full font-black bg-white border border-slate-100 text-slate-400 text-[10px]">ひとつの印象に決めつけられにくいタイプ</span>'}</div>
           </div>
-          <div class="glass p-5 rounded-[2rem] mb-5"><p class="text-[9px] font-black text-slate-300 uppercase mb-4 tracking-widest text-center border-b pb-2">Color Legend</p><div class="grid grid-cols-2 gap-y-3 gap-x-4">${gameState.questions.map((q,i)=>`<div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full shrink-0 shadow-sm" style="background-color:${COLORS[i]}"></div><span class="text-[10px] font-bold text-slate-500 truncate">${q}</span></div>`).join('')}</div></div>
+          <div class="glass p-5 rounded-[2rem] mb-5"><p class="text-[9px] font-black text-slate-300 uppercase mb-4 tracking-widest text-center border-b pb-2">Impression Detail</p><div class="space-y-3">${(gameState.questions || []).map((q,i)=>`<div class="flex items-center justify-between gap-3"><div class="flex items-center gap-2 min-w-0"><div class="w-3 h-3 rounded-full shrink-0 shadow-sm" style="background-color:${COLORS[i % COLORS.length]}"></div><span class="text-[10px] font-bold text-slate-500 truncate">${esc(q)}</span></div><span class="text-[9px] font-black text-slate-400 shrink-0">ぴ ${stat.detailMain[i] || 0} / ちょ ${stat.detailSub[i] || 0}</span></div>`).join('')}</div></div>
           ${myRole === 'host' ? `<button onclick="roomRef.update({phase:'setup', answers:{}, selfExpects:{}, revealIdx:0, currentQIdx:0})" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-black shadow-xl active:scale-95 transition-all">もう一度あそぶ</button>` : ''}
         </div>`;
       }
