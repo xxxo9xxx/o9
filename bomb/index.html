@@ -1051,6 +1051,92 @@
       h1 { font-size: clamp(38px, 12vw, 58px); letter-spacing: 0.02em; }
     }
 
+  
+    /* --- v6 PC layout: hint cards beside memo panel --- */
+    .game-layout {
+      grid-template-columns: 1fr !important;
+    }
+    .play-col {
+      width: 100%;
+    }
+    .memo-hint-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.82fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .memo-hint-grid .memo-panel {
+      margin-top: 0;
+      min-width: 0;
+    }
+    .memo-hint-grid .card-col {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .memo-hint-grid .hint-panel {
+      height: 100%;
+    }
+    @media (max-width: 980px) {
+      .memo-hint-grid {
+        display: contents;
+      }
+      .memo-panel {
+        order: 1;
+      }
+      .revealed-panel {
+        order: 2;
+      }
+      .card-col {
+        order: 3 !important;
+      }
+    }
+
+  
+    /* --- v7 PC layout: bomb and revealed keep left-column width --- */
+    @media (min-width: 981px) {
+      .play-col {
+        align-items: stretch;
+      }
+      .bomb-panel {
+        width: min(100%, 680px);
+      }
+      .memo-hint-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 680px) minmax(320px, 1fr);
+        gap: 14px;
+        align-items: start;
+      }
+      .memo-left-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 0;
+      }
+      .memo-left-stack .memo-panel,
+      .memo-left-stack .revealed-panel {
+        width: 100%;
+      }
+      .memo-hint-grid .card-col {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .memo-hint-grid,
+      .memo-left-stack {
+        display: contents;
+      }
+      .memo-panel { order: 1; }
+      .revealed-panel { order: 2; }
+      .card-col { order: 3 !important; }
+      .bomb-panel { width: 100%; max-width: none; }
+    }
+
   </style>
 </head>
 <body>
@@ -1129,7 +1215,7 @@
                 <ol>
                   <li>ROUND 1 はワイヤーを正しい順番で直接カットします。</li>
                   <li>ROUND 2 は 1〜5 の数字ダイヤルを合わせて「コード入力 OK」を押します。</li>
-                  <li>最下部のヒントカードは常に4枚から1枚選択。使うと同ラウンドの山札から補充されます。ヒントカードは何枚でもめくることができます。</li>
+                  <li>ヒントカード候補は常に4枚から1枚選択。使うと同ラウンドの山札から補充されます。ヒントカードは何枚でもめくることができます。</li>
                   <li>ヒント点の合計が低いほどよい記録です。</li>
                 </ol>
               </div>
@@ -1189,28 +1275,32 @@
             <div id="missionLog" class="logbox hintlog"></div>
           </section>
 
-          <section class="panel memo-panel">
-            <h3 class="panel-title">メモパネル <small>タップで ? → × → △ → ○</small></h3>
-            <div class="tabs">
-              <button id="wireMemoTab" class="tab active" type="button">ワイヤー順</button>
-              <button id="codeMemoTab" class="tab" type="button">コード</button>
+          <div class="memo-hint-grid">
+            <div class="memo-left-stack">
+              <section class="panel memo-panel">
+                <h3 class="panel-title">メモパネル <small>タップで ? → × → △ → ○</small></h3>
+                <div class="tabs">
+                  <button id="wireMemoTab" class="tab active" type="button">ワイヤー順</button>
+                  <button id="codeMemoTab" class="tab" type="button">コード</button>
+                </div>
+                <div id="wireMemoWrap" class="memo-grid-wrap"></div>
+                <div id="codeMemoWrap" class="memo-grid-wrap hidden"></div>
+              </section>
+
+              <section class="panel revealed-panel">
+                <h3 class="panel-title">取得済みヒント <small id="revealedSummary">0枚</small></h3>
+                <div id="revealedList" class="revealed-list"></div>
+              </section>
             </div>
-                        <div id="wireMemoWrap" class="memo-grid-wrap"></div>
-            <div id="codeMemoWrap" class="memo-grid-wrap hidden"></div>
-          </section>
 
-          <section class="panel revealed-panel">
-            <h3 class="panel-title">取得済みヒント <small id="revealedSummary">0枚</small></h3>
-            <div id="revealedList" class="revealed-list"></div>
-          </section>
-        </div>
-
-        <div class="card-col">
-          <section class="panel hint-panel">
-            <h3 class="panel-title">ヒントカード候補 <small>常に4枚 / 1枚使うと補充</small></h3>
-            <p id="roundGuide" class="memo-help">ROUND 1 ではワイヤー専用ヒントだけが出ます。</p>
-            <div id="hintGrid" class="hint-grid"></div>
-          </section>
+            <div class="card-col">
+              <section class="panel hint-panel">
+                <h3 class="panel-title">ヒントカード候補 <small>常に4枚 / 1枚使うと補充</small></h3>
+                <p id="roundGuide" class="memo-help">ROUND 1 ではワイヤー専用ヒントだけが出ます。</p>
+                <div id="hintGrid" class="hint-grid"></div>
+              </section>
+            </div>
+          </div>
         </div>
       </div>
 
