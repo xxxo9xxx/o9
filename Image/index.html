@@ -63,54 +63,42 @@
   </div>
 
   <script>
-    const QUESTION_DECKS = {
+    const DEFAULT_QUESTION_DECKS = {
       standard: {
-        label: 'スタンダード', emoji: '✨', note: '最初に使いやすい固定10問', defaultOn: true,
-        questions: ['優しそう', '頭が良さそう', '嘘がつけなそう', '行動力がありそう', '落ち着いていそう', 'モテそうなオーラ', '運動が得意そう', '話しが上手そう', 'メンタルが強そう', 'センスが良さそう']
-      },
-      soft: {
-        label: '見せ場', emoji: '🌱', note: '票が分散しやすいポジティブ問', defaultOn: true,
+        label: 'スタンダード', emoji: '✨', note: '安心して使える基本＋見せ場お題', defaultOn: true,
         questions: [
-          '静かに支えてくれそう', '話すほど面白そう', 'ふとした時に頼れそう', '独自のこだわりがありそう', '意外な魅力を持ってそう',
-          '場の空気をやわらかくしそう', '人の良いところを見つけるのが上手そう', '一緒にいると安心しそう', 'じわじわ好きになりそう', '縁の下で活躍しそう',
-          '自分のペースを大切にしてそう', '周りをよく見ていそう', '小さな変化に気づきそう', '知るほど印象が変わりそう', '困った時に声をかけてくれそう',
-          'チームにいると助かりそう', '変なところでツボが合いそう', '素直に褒めてくれそう', '空気を読んで一歩引けそう', '大事な時にちゃんとしてくれそう'
-        ]
-      },
-      normal: {
-        label: 'ノーマル追加', emoji: '🎈', note: '会話が広がる追加問', defaultOn: false,
-        questions: [
-          '相談にのってくれそう', '困っている人を放っておけなそう', '隠れた才能を持ってそう', '決めたことは最後までやり遂げそう', 'どんな場所でも馴染めそう',
-          '意外と涙もろそう', '知識の引き出しが多そう', '丁寧に暮らしてそう', '家族との仲が良そう', '自分の意見をしっかり持ってそう',
-          '先回りして行動できそう', '誰にでも平等に接しそう', '感情が安定してそう', 'アドバイス上手そう', '責任感が人一倍強そう',
-          '流されない芯がありそう', '早起きしてそう', '謙虚そう', 'いつも勉強していそう', '変化を楽しめそう',
-          '字が綺麗そう', '周りの空気を読むのが上手そう', '人から信頼されてそう', '健康管理を徹底してそう', '自分の世界観を大切にしてそう',
-          '集中力がありそう', '聞き上手そう', '記憶力が良さそう', 'なにかを育てるのが上手そう', '目標を持って生きてそう',
-          '頼まれたら断れなそう', '冷静な判断ができそう', '意外な趣味を持ってそう', '努力を人に見せなそう', 'トラブルも楽しめそう',
-          '品格がありそう', '物を長く大切に使ってそう', '精神的に自立してそう', '柔軟な発想ができそう', '誠実な恋愛をしてそう',
-          '将来のビジョンが明確そう', '包容力がありそう', '誰かの憧れの存在になってそう', 'アイデアを出すのが得意そう', 'トラブルを解決してくれそう',
-          'レスポンスが速そう', '人を惹きつけそう', 'ピンチをチャンスに変えそう', '計算が速そう', '論理的な説明が上手そう',
-          '決断に迷いがなそう', '仕事ができそう', '周囲を盛り上げるのが上手そう', '根回しや調整が完璧そう', '独自のキャリアプランを持ってそう',
-          'コミュ力が高そう', '仕事を楽しんでやってそう', '自分の独特なペースを持っていそう', '人脈を広げるのが上手そう', 'メンタルが安定してそう',
-          '人のサポートが得意そう', '街中で声をかけられることが多そう', '日記を書いていそう', '楽器が弾けそう', '初見の人に好かれそう',
-          '人をよく観察していそう', '旅行先で頼りになりそう', '集合写真でいつも良い位置にいそう', 'LINEの返信がちょうど良さそう', '初対面でも場をやわらかくしそう',
-          '実はかなり負けず嫌いそう', 'お店選びのセンスが良さそう', 'プレゼント選びが上手そう', '急なトラブルでも笑って対応しそう', '昔から先生に好かれてそう',
-          'なぜか動物に好かれそう', 'スマホの中が整理されてそう', 'カラオケで意外な選曲をしそう', 'イベントの裏方で活躍しそう', '財布の中がきれいそう', '一緒に旅行すると楽しそう'
+          '優しそう', '頭が良さそう', '嘘がつけなそう', '行動力がありそう', '落ち着いていそう', 'センスが良さそう', '相談にのってくれそう', '聞き上手そう', '話すほど面白そう', 'ふとした時に頼れそう',
+          '静かに支えてくれそう', '独自のこだわりがありそう', '意外な魅力を持ってそう', '場の空気をやわらかくしそう', '一緒にいると安心しそう', 'じわじわ好きになりそう', '知るほど印象が変わりそう', 'チームにいると助かりそう', '大事な時にちゃんとしてくれそう', '素直に褒めてくれそう'
         ]
       },
       black: {
-        label: 'ブラック', emoji: '😈', note: '飲み会向け。少しマイルド調整済み', defaultOn: false,
+        label: 'ブラック', emoji: '😈', note: '仲良し飲み会向け。刺さりすぎない軽めの黒さ', defaultOn: false,
         questions: [
-          '腹黒そう', '怒ると怖そう', '嘘が上手そう', '私生活が謎そう', '浪費癖がありそう',
-          '家ではズボラそう', '毒舌そう', '執念深そう', '人を使うのが上手そう', '昔はやんちゃしてそう',
-          '酔うと性格が変わりそう', '飽きっぽそう', '実は潔癖症そう', '意外と毒を吐きそう', '無意識に人を惑わせそう',
-          '弱みを見せなそう', '裏では繊細そう', 'お菓子を一口だけと言って半分食べそう', '寝坊してもなぜか間に合いそう', 'セールに弱そう',
-          '飲み会後に急に語り出しそう', '実は部屋に謎のこだわりがありそう', 'スタンプだけで会話を終わらせそう', '旅行の荷物が多そう', '冷蔵庫に賞味期限ギリギリの物がありそう',
-          '既読スルーの言い訳が上手そう', '財布を忘れても許されそう', '集合時間の5分前に動き出しそう', 'こっそり一番良い席を取りそう', '褒められると急に照れそう'
+          '腹黒そう', '怒ると怖そう', '嘘が上手そう', '私生活が謎そう', '浪費癖がありそう', '家ではズボラそう', '毒舌そう', '執念深そう', '人を使うのが上手そう', '昔はやんちゃしてそう',
+          '酔うと性格が変わりそう', '飽きっぽそう', '実は潔癖症そう', '意外と毒を吐きそう', '無意識に人を惑わせそう', '弱みを見せなそう', '裏では繊細そう', '寝坊してもなぜか間に合いそう', 'セールに弱そう', '褒められると急に照れそう'
         ]
+      },
+      business: {
+        label: 'ビジネス', emoji: '💼', note: '職場・研修・交流会向けの仕事系お題', defaultOn: false,
+        questions: [
+          '仕事ができそう', '根回しや調整が上手そう', '会議で要点をまとめてくれそう', 'レスポンスが速そう', '任せたら最後までやってくれそう', 'ピンチでも冷静そう', '説明がわかりやすそう', '資料づくりが上手そう', '後輩の面倒見が良さそう', 'チームの空気を整えてくれそう',
+          '新しいアイデアを出してくれそう', '締切を守りそう', '細かいミスに気づきそう', 'お客さんに好かれそう', '裏方でも手を抜かなそう', '改善点を見つけるのが上手そう', 'トラブル対応が頼れそう', '集中すると一気に進めそう', '場を前向きにしてくれそう', '将来リーダーになりそう'
+        ]
+      },
+      custom1: {
+        label: 'カスタム1', emoji: '📝', note: '自由編集用デッキ', defaultOn: false,
+        questions: ['今日一番話してみたい人', '第一印象とギャップがありそう', '実はすごい特技がありそう']
       }
     };
-    const DECK_ORDER = ['standard', 'soft', 'normal', 'black'];
+    const DEFAULT_UNUSED_QUESTIONS = [
+          'モテそうなオーラ', '運動が得意そう', '話しが上手そう', 'メンタルが強そう', '困っている人を放っておけなそう', '隠れた才能を持ってそう', '決めたことは最後までやり遂げそう', 'どんな場所でも馴染めそう', '意外と涙もろそう', '知識の引き出しが多そう',
+          '丁寧に暮らしてそう', '自分の意見をしっかり持ってそう', '先回りして行動できそう', '誰にでも平等に接しそう', '感情が安定してそう', 'アドバイス上手そう', '責任感が人一倍強そう', '流されない芯がありそう', '謙虚そう', '変化を楽しめそう',
+          '字が綺麗そう', '周りの空気を読むのが上手そう', '人から信頼されてそう', '自分の世界観を大切にしてそう', '集中力がありそう', '記憶力が良さそう', '努力を人に見せなそう', 'トラブルも楽しめそう', '品格がありそう', '包容力がありそう',
+          '人を惹きつけそう', '初対面でも場をやわらかくしそう', 'お店選びのセンスが良さそう', 'プレゼント選びが上手そう', '急なトラブルでも笑って対応しそう', 'なぜか動物に好かれそう', 'カラオケで意外な選曲をしそう', 'イベントの裏方で活躍しそう', '一緒に旅行すると楽しそう', '財布の中がきれいそう'
+    ];
+    let QUESTION_DECKS = JSON.parse(JSON.stringify(DEFAULT_QUESTION_DECKS));
+    let QUESTION_BANK = [];
+    const DECK_ORDER = ['standard', 'black', 'business', 'custom1'];
     const COLORS = ['#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#14b8a6', '#84cc16', '#eab308', '#fb923c', '#64748b', '#0ea5e9', '#c084fc', '#f472b6', '#22c55e', '#f97316'];
     const AVATAR_COLORS = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#06b6d4', '#a855f7', '#ef4444', '#64748b'];
 
@@ -141,6 +129,10 @@
     let lastRevealIdx = null;
     let audioCtx = null, masterGain = null, bgmTimer = null, soundEnabled = false;
     let answerDraft = { qIdx: null, main: '', subs: [] };
+    let currentView = 'home';
+    let managerDeckKey = 'standard';
+    let managerFilterDeck = 'all';
+    let decksLoaded = false;
 
     function esc(v) {
       return String(v ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
@@ -298,6 +290,283 @@
       else el.innerHTML = '<div class="text-[10px] text-slate-400 p-4">QRライブラリ読込中です。URLコピーを使ってください。</div>';
     }
 
+
+    function deckStoreRef() { return db.ref('questionDecks/' + GAME_KEY); }
+    function normalizeDeckData(raw, fallback) {
+      const base = JSON.parse(JSON.stringify(fallback || { label:'', emoji:'📝', note:'', defaultOn:false, questions:[] }));
+      if (!raw) return base;
+      base.label = String(raw.label || base.label || 'デッキ');
+      base.emoji = String(raw.emoji || base.emoji || '📝');
+      base.note = String(raw.note || base.note || '');
+      base.defaultOn = !!raw.defaultOn;
+      base.questions = uniqueQuestions(Array.isArray(raw.questions) ? raw.questions.map(q => String(q).trim()).filter(Boolean) : base.questions);
+      return base;
+    }
+    function createQuestionBankFromDecks(decks) {
+      const map = new Map();
+      DECK_ORDER.forEach(k => {
+        (decks[k]?.questions || []).forEach(q => {
+          const text = String(q || '').trim();
+          if (!text) return;
+          if (!map.has(text)) map.set(text, { text, decks: {} });
+          map.get(text).decks[k] = true;
+        });
+      });
+      (DEFAULT_UNUSED_QUESTIONS || []).forEach(q => {
+        const text = String(q || '').trim();
+        if (text && !map.has(text)) map.set(text, { text, decks: {} });
+      });
+      return Array.from(map.values());
+    }
+    function normalizeQuestionBank(raw, fallbackDecks) {
+      if (!Array.isArray(raw)) return createQuestionBankFromDecks(fallbackDecks || QUESTION_DECKS);
+      const map = new Map();
+      raw.forEach(item => {
+        const text = String(item?.text || '').trim();
+        if (!text) return;
+        if (!map.has(text)) map.set(text, { text, decks: {} });
+        const decks = item?.decks || {};
+        DECK_ORDER.forEach(k => { if (decks[k]) map.get(text).decks[k] = true; });
+      });
+      return Array.from(map.values());
+    }
+    function rebuildDeckQuestionsFromBank(bank) {
+      DECK_ORDER.forEach(k => { QUESTION_DECKS[k].questions = []; });
+      (bank || []).forEach(item => {
+        const text = String(item.text || '').trim();
+        if (!text) return;
+        DECK_ORDER.forEach(k => {
+          if (item.decks?.[k] && !QUESTION_DECKS[k].questions.includes(text)) QUESTION_DECKS[k].questions.push(text);
+        });
+      });
+    }
+    async function loadQuestionDecksFromFirebase() {
+      if (decksLoaded) return;
+      try {
+        const snap = await deckStoreRef().once('value');
+        const saved = snap.val() || {};
+        DECK_ORDER.forEach(k => { QUESTION_DECKS[k] = normalizeDeckData(saved[k], DEFAULT_QUESTION_DECKS[k]); });
+        QUESTION_BANK = normalizeQuestionBank(saved._bank, QUESTION_DECKS);
+        rebuildDeckQuestionsFromBank(QUESTION_BANK);
+      } catch(e) {
+        console.warn('question deck load failed', e);
+        QUESTION_BANK = createQuestionBankFromDecks(QUESTION_DECKS);
+      }
+      decksLoaded = true;
+    }
+    function openQuestionManager() {
+      currentView = 'question-manager';
+      loadQuestionDecksFromFirebase().then(render);
+      render();
+    }
+    function closeQuestionManager() { currentView = 'home'; render(); }
+    function setManagerFilterDeck(deckKey) {
+      managerFilterDeck = deckKey || 'all';
+      updateManagerFilterButtons();
+      updateManagerVisibility();
+    }
+    function managerRowMatchesFilter(row) {
+      if (managerFilterDeck === 'all') return true;
+      if (managerFilterDeck === 'unused') return !DECK_ORDER.some(k => row.querySelector(`[data-manager-deck="${k}"]`)?.checked);
+      return !!row.querySelector(`[data-manager-deck="${managerFilterDeck}"]`)?.checked;
+    }
+    function updateManagerFilterButtons() {
+      document.querySelectorAll('[data-manager-filter]').forEach(btn => {
+        const active = btn.dataset.managerFilter === managerFilterDeck;
+        btn.className = active
+          ? 'bg-indigo-600 text-white rounded-xl px-3 py-2 text-[9px] font-black shadow active:scale-95'
+          : 'bg-white text-slate-500 border border-slate-100 rounded-xl px-3 py-2 text-[9px] font-black active:scale-95';
+      });
+    }
+    function updateManagerVisibility() {
+      const rows = Array.from(document.querySelectorAll('[data-manager-row]'));
+      let visible = 0;
+      rows.forEach(row => {
+        const show = managerRowMatchesFilter(row);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      const visibleEl = document.getElementById('manager-visible-count');
+      if (visibleEl) visibleEl.textContent = visible + '問表示';
+      const emptyEl = document.getElementById('manager-filter-empty');
+      if (emptyEl) emptyEl.style.display = visible ? 'none' : '';
+    }
+    function toggleAllManagerDeck(deckKey, checked) {
+      document.querySelectorAll(`[data-manager-deck="${deckKey}"]`).forEach(el => { el.checked = checked; });
+      updateManagerCountBadges();
+    }
+    function updateManagerCountBadges() {
+      DECK_ORDER.forEach(k => {
+        const count = Array.from(document.querySelectorAll(`[data-manager-deck="${k}"]`)).filter(el => el.checked).length;
+        const el = document.getElementById('manager-count-' + k);
+        if (el) el.textContent = count + '問';
+      });
+      const unused = Array.from(document.querySelectorAll('[data-manager-row]')).filter(row => {
+        return !DECK_ORDER.some(k => row.querySelector(`[data-manager-deck="${k}"]`)?.checked);
+      }).length;
+      const unusedEl = document.getElementById('manager-unused-count');
+      if (unusedEl) unusedEl.textContent = unused + '問';
+      updateManagerVisibility();
+    }
+    function addQuestionRow() {
+      const input = document.getElementById('manager-new-question');
+      const text = String(input?.value || '').trim();
+      if (!text) return alert('追加するお題を入力してください');
+      const tbody = document.getElementById('manager-question-list');
+      if (!tbody) return;
+      const idx = Number(tbody.dataset.nextIndex || '0');
+      tbody.dataset.nextIndex = String(idx + 1);
+      tbody.insertAdjacentHTML('afterbegin', managerQuestionRowHtml({ text, decks: { custom1: true } }, idx, true));
+      input.value = '';
+      updateManagerCountBadges();
+    }
+    function readQuestionBankFromManagerUI() {
+      const rows = Array.from(document.querySelectorAll('[data-manager-row]'));
+      const map = new Map();
+      rows.forEach(row => {
+        const text = String(row.querySelector('[data-manager-text]')?.value || '').trim();
+        if (!text) return;
+        if (!map.has(text)) map.set(text, { text, decks: {} });
+        DECK_ORDER.forEach(k => {
+          if (row.querySelector(`[data-manager-deck="${k}"]`)?.checked) map.get(text).decks[k] = true;
+        });
+      });
+      return Array.from(map.values());
+    }
+    function readDeckMetaFromManagerUI() {
+      DECK_ORDER.forEach(k => {
+        const deck = QUESTION_DECKS[k];
+        deck.defaultOn = !!document.getElementById('manager-default-' + k)?.checked;
+      });
+    }
+    async function saveQuestionManagerAll(silent=false) {
+      readDeckMetaFromManagerUI();
+      const bank = readQuestionBankFromManagerUI();
+      if (!bank.length) { alert('お題が0問です。最低1問は残してください。'); return false; }
+      QUESTION_BANK = bank;
+      rebuildDeckQuestionsFromBank(QUESTION_BANK);
+      try {
+        const payload = {};
+        DECK_ORDER.forEach(k => payload[k] = QUESTION_DECKS[k]);
+        payload._bank = QUESTION_BANK;
+        await deckStoreRef().set(payload);
+        localStorage.removeItem(GAME_KEY + '-deck-config');
+        if (!silent) alert('保存しました。使わないお題も、どのデッキにもONにしない状態で残ります。');
+        if (!silent) renderQuestionManager();
+        return true;
+      } catch(e) {
+        alert('保存に失敗しました。Firebase設定や通信状態を確認してください。');
+        return false;
+      }
+    }
+    async function saveQuestionManagerAndClose() {
+      const ok = await saveQuestionManagerAll(true);
+      if (ok) { currentView = 'home'; render(); }
+    }
+    async function resetQuestionManagerAll() {
+      if (!confirm('お題管理を初期セットに戻しますか？\nFirebase上の編集内容も初期状態に戻ります。')) return;
+      QUESTION_DECKS = JSON.parse(JSON.stringify(DEFAULT_QUESTION_DECKS));
+      QUESTION_BANK = createQuestionBankFromDecks(QUESTION_DECKS);
+      try {
+        const payload = {};
+        DECK_ORDER.forEach(k => payload[k] = QUESTION_DECKS[k]);
+        payload._bank = QUESTION_BANK;
+        await deckStoreRef().set(payload);
+      } catch(e) { console.warn(e); }
+      localStorage.removeItem(GAME_KEY + '-deck-config');
+      renderQuestionManager();
+    }
+    function managerQuestionRowHtml(item, idx, isNew=false) {
+      const decks = item.decks || {};
+      return `<div data-manager-row class="bg-white border ${isNew?'border-indigo-200':'border-slate-100'} rounded-2xl p-2 shadow-sm">
+        <div class="grid grid-cols-[1fr_auto] gap-2 items-start">
+          <input data-manager-text value="${esc(item.text)}" class="min-w-0 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-[12px] font-black text-slate-700 outline-none focus:border-indigo-300" placeholder="お題を入力">
+          <div class="grid grid-cols-4 gap-1 w-[148px]">${DECK_ORDER.map(k => {
+            const d = QUESTION_DECKS[k];
+            return `<label title="${esc(d.label)}" class="flex items-center justify-center gap-1 bg-slate-50 border border-slate-100 rounded-lg px-1 py-1 text-[8px] font-black text-slate-500 active:scale-95">
+              <input type="checkbox" data-manager-deck="${k}" ${decks[k] ? 'checked' : ''} onchange="updateManagerCountBadges()" class="accent-indigo-600 w-3 h-3">
+              <span>${d.emoji}</span>
+            </label>`;
+          }).join('')}</div>
+        </div>
+      </div>`;
+    }
+    function renderQuestionManager() {
+      const container = document.getElementById('game-content');
+      const forceArea = document.getElementById('host-force-area');
+      if (forceArea) forceArea.innerHTML = '';
+      setRoomLabel();
+      const bank = QUESTION_BANK.length ? QUESTION_BANK : createQuestionBankFromDecks(QUESTION_DECKS);
+      const total = bank.length;
+      container.innerHTML = `<div class="space-y-4 fade-in pb-6">
+        <div class="glass rounded-[2.4rem] p-5 text-left">
+          <div class="flex items-start justify-between gap-3 mb-4">
+            <div>
+              <p class="text-[10px] font-black text-indigo-400 tracking-[.3em] mb-2">QUESTION MANAGER</p>
+              <h2 class="text-2xl font-black text-slate-800">問題管理・ON/OFF編集</h2>
+              <p class="text-[11px] font-bold text-slate-400 mt-2 leading-relaxed">全お題を一覧で見ながら、各デッキに入れるかをON/OFFします。お題は消さずに未使用として残せます。</p>
+            </div>
+            <button onclick="closeQuestionManager()" class="shrink-0 bg-white text-slate-500 border border-slate-100 px-4 py-3 rounded-2xl text-[10px] font-black active:scale-95">戻る</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mb-3">
+            <button onclick="saveQuestionManagerAndClose()" class="bg-indigo-600 text-white h-13 py-3 rounded-2xl font-black shadow active:scale-95">保存して戻る</button>
+            <button onclick="closeQuestionManager()" class="bg-white text-slate-500 border-2 border-slate-100 h-13 py-3 rounded-2xl font-black active:scale-95">保存せず戻る</button>
+          </div>
+          <div class="bg-indigo-50/80 border border-indigo-100 rounded-2xl p-3 text-[10px] font-bold text-indigo-500 leading-relaxed mb-3">ホスト画面では、チェックしたデッキの候補全体から「出題数」ぶんだけ抽選します。基本は出題数10問でOK。候補が30問あっても、毎回その中から10問ランダムに出せます。</div>
+          <div class="grid grid-cols-2 gap-2 mb-3">${DECK_ORDER.map(k => {
+            const d = QUESTION_DECKS[k];
+            const count = bank.filter(item => item.decks?.[k]).length;
+            return `<div class="bg-white border border-slate-100 rounded-2xl p-3">
+              <div class="flex items-center justify-between gap-2"><div class="font-black text-slate-700 text-sm">${d.emoji} ${esc(d.label)}</div><span id="manager-count-${k}" class="text-[9px] font-black text-indigo-500">${count}問</span></div>
+              <label class="flex items-center gap-1 mt-2 text-[9px] font-black text-slate-400"><input id="manager-default-${k}" type="checkbox" ${d.defaultOn ? 'checked' : ''} class="accent-indigo-600">開始時ON</label>
+              <div class="grid grid-cols-2 gap-1 mt-2">
+                <button onclick="toggleAllManagerDeck('${k}', true)" class="bg-indigo-50 text-indigo-500 rounded-xl py-2 text-[9px] font-black active:scale-95">全部ON</button>
+                <button onclick="toggleAllManagerDeck('${k}', false)" class="bg-slate-50 text-slate-400 rounded-xl py-2 text-[9px] font-black active:scale-95">全部OFF</button>
+              </div>
+            </div>`;
+          }).join('')}</div>
+          <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 text-[10px] font-bold text-slate-500 leading-relaxed">合計 ${total}問 ／ 未使用 <span id="manager-unused-count">0問</span>。横断登録OK。例：同じお題をスタンダード・ブラック・カスタム1に同時登録できます。</div>
+        </div>
+
+        <div class="glass rounded-[2.4rem] p-5 text-left">
+          <p class="text-[10px] font-black text-slate-400 tracking-widest mb-2">新しいお題を追加</p>
+          <div class="grid grid-cols-[1fr_84px] gap-2 mb-4">
+            <input id="manager-new-question" class="bg-white border-2 border-indigo-50 rounded-2xl p-3 font-black outline-none focus:border-indigo-300" placeholder="例：話すほど面白そう">
+            <button onclick="addQuestionRow()" class="bg-indigo-600 text-white rounded-2xl text-[10px] font-black shadow active:scale-95">追加</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mb-4">
+            <button onclick="saveQuestionManagerAll()" class="bg-indigo-600 text-white h-14 rounded-2xl font-black shadow-lg active:scale-95">保存</button>
+            <button onclick="resetQuestionManagerAll()" class="bg-white text-rose-500 border-2 border-rose-100 h-14 rounded-2xl font-black active:scale-95">初期セットに戻す</button>
+          </div>
+          <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 mb-3">
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <p class="text-[10px] font-black text-slate-400 tracking-widest">表示フィルター</p>
+              <span id="manager-visible-count" class="text-[9px] font-black text-indigo-500">${total}問表示</span>
+            </div>
+            <div class="flex gap-2 overflow-x-auto pb-1">
+              <button data-manager-filter="all" onclick="setManagerFilterDeck('all')" class="bg-indigo-600 text-white rounded-xl px-3 py-2 text-[9px] font-black shadow active:scale-95">全部</button>
+              ${DECK_ORDER.map(k => `<button data-manager-filter="${k}" onclick="setManagerFilterDeck('${k}')" class="bg-white text-slate-500 border border-slate-100 rounded-xl px-3 py-2 text-[9px] font-black active:scale-95">${QUESTION_DECKS[k].emoji} ${esc(QUESTION_DECKS[k].label)}</button>`).join('')}
+              <button data-manager-filter="unused" onclick="setManagerFilterDeck('unused')" class="bg-white text-slate-500 border border-slate-100 rounded-xl px-3 py-2 text-[9px] font-black active:scale-95">未使用</button>
+            </div>
+            <p class="text-[9px] font-bold text-slate-400 mt-2 leading-relaxed">スタンダードを押すと、今スタンダードにON登録されているお題だけ表示します。表示中でもON/OFF変更はそのまま反映されます。</p>
+          </div>
+          <div class="sticky top-2 z-10 bg-white/90 backdrop-blur border border-slate-100 rounded-2xl p-2 mb-2 shadow-sm">
+            <div class="grid grid-cols-[1fr_148px] gap-2 items-center text-[9px] font-black text-slate-400 px-1">
+              <span>お題</span>
+              <div class="grid grid-cols-4 gap-1 text-center">${DECK_ORDER.map(k=>`<span>${QUESTION_DECKS[k].emoji}</span>`).join('')}</div>
+            </div>
+          </div>
+          <div id="manager-filter-empty" style="display:none" class="bg-white border border-dashed border-slate-200 rounded-2xl p-5 text-center text-[11px] font-black text-slate-400 mb-2">この表示条件のお題はありません</div>
+          <div id="manager-question-list" data-next-index="${bank.length}" class="space-y-2 max-h-[62vh] overflow-y-auto pr-1">${bank.map((item, i) => managerQuestionRowHtml(item, i)).join('')}</div>
+          <div class="grid grid-cols-2 gap-2 mt-4">
+            <button onclick="saveQuestionManagerAndClose()" class="bg-indigo-600 text-white h-14 rounded-2xl font-black shadow-lg active:scale-95">保存して戻る</button>
+            <button onclick="closeQuestionManager()" class="bg-white text-slate-500 border-2 border-slate-100 h-14 rounded-2xl font-black active:scale-95">戻る</button>
+          </div>
+        </div>
+      </div>`;
+      setTimeout(() => { updateManagerFilterButtons(); updateManagerCountBadges(); }, 20);
+    }
+
     function defaultDeckConfig() {
       const decks = {};
       DECK_ORDER.forEach(k => decks[k] = !!QUESTION_DECKS[k].defaultOn);
@@ -312,7 +581,7 @@
           decks: { ...base.decks, ...(saved.decks || {}) },
           order: saved.order === 'fixed' ? 'fixed' : 'random',
           count: Math.max(3, Math.min(20, Number(saved.count) || 10)),
-          customText: String(saved.customText || '')
+          customText: ''
         };
       } catch(e) { return defaultDeckConfig(); }
     }
@@ -324,7 +593,7 @@
       DECK_ORDER.forEach(k => base.decks[k] = !!document.getElementById('deck-' + k)?.checked);
       base.order = document.querySelector('input[name="question-order"]:checked')?.value === 'fixed' ? 'fixed' : 'random';
       base.count = Math.max(3, Math.min(20, Number(document.getElementById('question-count')?.value) || 10));
-      base.customText = document.getElementById('custom-questions')?.value || '';
+      base.customText = ''; // 追加お題は問題管理ページのカスタム1/2に保存
       return base;
     }
     function saveDeckSettingsLocal(cfg) {
@@ -520,6 +789,8 @@
       forceArea.innerHTML = '';
       setRoomLabel();
 
+      if (currentView === 'question-manager') { renderQuestionManager(); return; }
+
       if (!myName) {
         const defaultRoom = currentRoomId || makeRoomId();
         const hostExists = !!(gameState && gameState.host);
@@ -538,6 +809,7 @@
             <button onclick="joinByInput('host')" class="w-full ${hostExists?'bg-slate-100 text-slate-400':'bg-white text-indigo-600 border-2 border-indigo-100'} h-15 py-4 rounded-2xl font-black active:scale-95 transition-all" ${hostExists?'disabled':''}>${hostExists?'ホスト参加済み':'ホストとして部屋作成・参加'}</button>
           </div>
           <button onclick="document.getElementById('room-input').value=makeRoomId(); playSfx('tap')" class="mt-4 w-full text-[10px] font-black text-slate-400 bg-slate-50 py-3 rounded-2xl">ランダム部屋IDにする</button>
+          <button onclick="openQuestionManager()" class="mt-3 w-full bg-white border-2 border-indigo-100 text-indigo-600 py-4 rounded-2xl text-sm font-black active:scale-95 transition-all">📚 問題管理・ON/OFF編集</button>
         </div>`;
         return;
       }
@@ -564,7 +836,7 @@
             </div>
           </div>
           ${myRole === 'host' ? `<div class="glass rounded-[2.4rem] p-5 text-left">
-            <p class="text-[10px] font-black text-slate-400 tracking-[.24em] mb-4 text-center">QUESTION DECK</p>
+            <p class="text-[10px] font-black text-slate-400 tracking-[.24em] mb-4 text-center">QUESTION DECK SELECT</p>
             <div class="grid grid-cols-2 gap-2 mb-4">${DECK_ORDER.map(k => deckCheckboxHtml(k, cfg)).join('')}</div>
             <div class="bg-slate-50 rounded-[1.6rem] p-4 border border-slate-100 mb-4">
               <div class="flex items-center justify-between gap-3 mb-3">
@@ -576,8 +848,7 @@
                 <label class="bg-white rounded-2xl p-3 border border-slate-100 text-[10px] font-black text-slate-500"><input type="radio" name="question-order" value="fixed" ${cfg.order === 'fixed' ? 'checked' : ''} onchange="updateDeckPreview()" class="accent-indigo-600 mr-1">決まった順番</label>
               </div>
             </div>
-            <label class="block text-[10px] font-black text-slate-400 ml-2 mb-1 tracking-widest">CUSTOM QUESTIONS</label>
-            <textarea id="custom-questions" oninput="updateDeckPreview()" placeholder="1行に1問ずつ追加できます&#10;例：話すほど面白そう&#10;例：実は気配り上手そう" class="w-full min-h-24 border-2 border-indigo-50 bg-white p-4 rounded-2xl font-black text-[12px] outline-none focus:border-indigo-400 mb-3">${esc(cfg.customText)}</textarea>
+            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 mb-3 text-[10px] font-bold text-slate-500 leading-relaxed">お題の追加・デッキ割り当ては、入室前の「問題管理・ON/OFF編集」から行えます。使わないお題も消さずに残せます。</div>
             <div id="deck-preview" class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-3 mb-4"></div>
             <div class="bg-amber-50 border border-amber-100 rounded-2xl p-3 mb-4 text-[10px] font-bold text-amber-700 leading-relaxed">投票は「ぴったり」1人が必須、「ちょっと」は0〜2人で任意。結果発表の主役はぴったり票、最終プロフィールは両方を使います。</div>
             <button onclick="startCustomGame()" class="w-full bg-indigo-600 text-white h-16 rounded-2xl font-black shadow-lg active:scale-95 transition-all text-lg">この設定でスタート</button>
@@ -668,6 +939,7 @@
       lastPhase = gameState?.phase || '';
       lastRevealIdx = gameState?.revealIdx;
     }
+    loadQuestionDecksFromFirebase().then(render);
     render();
   </script>
 </body>
