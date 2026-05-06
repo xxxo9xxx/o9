@@ -192,7 +192,7 @@ return updates;
 function joinWithQuestions(){
 const raw=(document.getElementById("preJoinQuestions")?.value||"").trim();
 const updates={...appendAnonymousQuestions(raw)};
-updates["participants/"+visitorId]={joinedAt:Date.now(),ua:navigator.userAgent.slice(0,80),ready:false};
+updates["participants/"+visitorId]={joinedAt:Date.now(),ua:navigator.userAgent.slice(0,80),ready:true,readyAt:Date.now()};
 roomRef.update(updates).then(()=>sfx("tap"));
 }
 function addWaitingQuestions(){
@@ -415,7 +415,7 @@ function hostCreateView(){return `<section class="glass card fade"><div class="m
 <span class="font-black text-sm">質問選択画面を参加者にも見せる</span>
 </label>
 <button onclick="initRoom()" class="btn btn-main w-full text-lg">ルーム起動</button><button onclick="openQuestionAdmin()" class="btn btn-ghost w-full mt-3">質問管理</button><p class="text-[11px] text-white/45 font-bold mt-3 leading-relaxed">質問管理で保存した質問を使います。未登録の場合は内蔵デフォルト質問を使います。</p></section>`}
-function guestJoinView(){return `<section class="glass card fade"><div class="text-center"><div class="text-6xl mb-4 pulse">🎭</div><div class="mini mb-3">ANONYMOUS QUESTION BOX</div><h2 class="text-3xl font-black mb-3">匿名質問BOX</h2></div><p class="text-white/68 font-bold text-sm leading-relaxed mb-4">匿名で、みんなに聞いてみたいことを書いてください。<br><br>0問でもOKです。複数ある場合は1行ずつ入力できます。<br><br>誰が書いたかは表示されませんが、匿名を守るために、質問を書かない人も15秒ほど考えたり、入力しているふりをしてください。</p><div class="rounded-[24px] bg-white/10 border border-white/10 p-4 mb-4"><div class="mini mb-2">例</div><p class="text-white/55 text-xs font-bold leading-relaxed">今日ちょっと緊張している人はいる？<br>この中でもっと仲良くなりたい人がいる？<br>今、気になる人がいる？<br>たまにお家に帰りたくない日がある？<br><br>など…質問には？が自動でつくので？はつけなくてOK！</p></div><textarea id="preJoinQuestions" class="input min-h-[120px] mb-4" placeholder="1行に1つずつ入力。？は自動でつきます。空欄でも参加できます。"></textarea><button onclick="joinWithQuestions()" class="btn btn-main w-full text-lg">JOIN</button>${localStorage.getItem("hon-meter-host-"+roomId)==="1"?`<button onclick="openHostView()" class="btn btn-ghost w-full mt-3">ホスト画面に戻る</button>`:""}</section>`}
+function guestJoinView(){return `<section class="glass card fade"><div class="text-center"><div class="text-6xl mb-4 pulse">🎭</div><div class="mini mb-3">ANONYMOUS QUESTION BOX</div><h2 class="text-3xl font-black mb-3">匿名質問BOX</h2></div><p class="text-white/68 font-bold text-sm leading-relaxed mb-4">匿名で、みんなに聞いてみたいことを書いてください。<br><br>0問でもOKです。複数ある場合は1行ずつ入力できます。<br><br>誰が書いたかは表示されませんが、匿名を守るために、質問を書かない人も15秒ほど考えたり、入力しているふりをしてください。</p><div class="rounded-[24px] bg-white/10 border border-white/10 p-4 mb-4"><div class="mini mb-2">例</div><p class="text-white/55 text-xs font-bold leading-relaxed">今日ちょっと緊張している人はいる？<br>この中でもっと仲良くなりたい人がいる？<br>今、気になる人がいる？<br>たまにお家に帰りたくない日がある？<br><br>など…質問には？が自動でつくので？はつけなくてOK！</p></div><textarea id="preJoinQuestions" class="input min-h-[120px] mb-4" placeholder="1行に1つずつ入力。？は自動でつきます。空欄でも参加できます。"></textarea><button onclick="joinWithQuestions()" class="btn btn-main w-full text-lg">準備OK</button>${localStorage.getItem("hon-meter-host-"+roomId)==="1"?`<button onclick="openHostView()" class="btn btn-ghost w-full mt-3">ホスト画面に戻る</button>`:""}</section>`}
 function memberReadyList(){
 const list=participantList();
 return `<div class="space-y-2">${list.map((p,i)=>{
@@ -439,24 +439,11 @@ function hostInviteView(){const ready=allGuestsReady();return `<section class="s
 function inviteFold(){return `<details class="glass card mt-4"><summary class="flex items-center justify-between gap-3"><span><span class="mini block">INVITE</span><span class="font-black">途中参加用QR / URL</span></span><span class="text-2xl">＋</span></summary><div class="text-center mt-5"><div id="qrcode" class="qrbox inline-block bg-white p-3 rounded-[24px] mb-4"></div><p class="text-[11px] text-white/60 font-bold break-all">${esc(roomUrl())}</p><button onclick="copyUrl()" class="btn btn-ghost w-full mt-4">参加者URLコピー</button></div></details>`}
 function guestLobbyView(msg){
 if(state?.phase==="invite"){
-const me=state?.participants?.[visitorId]||{};
-return `<section class="space-y-4 fade">
-<div class="glass card text-center">
-<div class="text-6xl mb-5 pulse">✨</div>
-<div class="mini mb-3">WAITING ROOM</div>
-<h2 class="text-2xl font-black mb-3">${me.ready?"準備OKです":"待機中です"}</h2>
-<p class="text-white/58 text-sm font-bold">始まるまで匿名質問を追加できます。</p>
-</div>
-<div class="glass card">
-<div class="mini mb-3">ANONYMOUS QUESTION BOX</div>
-<h3 class="text-xl font-black mb-2">追加で聞きたいこと</h3>
-<p class="text-white/55 text-xs font-bold leading-relaxed mb-4">0問でもOK。追加する場合は1行ずつ入力してください。誰が書いたかは表示されません。</p>
-<textarea id="waitingQuestions" class="input min-h-[110px] mb-3" placeholder="1行に1つずつ入力。？は自動でつきます。"></textarea>
-<div class="grid grid-cols-1 gap-3">
-<button onclick="addWaitingQuestions()" class="btn btn-ghost">匿名質問を追加</button>
-${me.ready?`<button onclick="unready()" class="btn btn-ghost">準備OKを取り消す</button>`:`<button onclick="markReady()" class="btn btn-main">準備OK</button>`}
-</div>
-</div>
+return `<section class="glass card text-center fade">
+<div class="text-6xl mb-5 pulse">✅</div>
+<div class="mini mb-3">READY</div>
+<h2 class="text-2xl font-black mb-3">準備OKです</h2>
+<p class="text-white/58 text-sm font-bold leading-relaxed">ホストがスタートするまで<br>このままお待ちください。</p>
 </section>`;
 }
 return `<section class="glass card text-center fade">
