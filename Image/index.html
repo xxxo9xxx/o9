@@ -293,7 +293,57 @@
     }
 
 
+    
     function deckStoreRef() { return db.ref('questionDecks/' + GAME_KEY); }
+    function deckStoreFallbackRef() { return db.ref('rooms/__imageProfileQuestionDecks/' + GAME_KEY); }
+    function deckLocalStorageKey() { return GAME_KEY + '-question-bank-backup'; }
+    function makeQuestionDeckPayload() {
+      const payload = {};
+      DECK_ORDER.forEach(k => payload[k] = QUESTION_DECKS[k]);
+      payload._bank = QUESTION_BANK;
+      payload.updatedAt = firebase.database.ServerValue.TIMESTAMP;
+      return payload;
+    }
+    function applyQuestionDeckPayload(saved) {
+      saved = saved || {};
+      DECK_ORDER.forEach(k => { QUESTION_DECKS[k] = normalizeDeckData(saved[k], DEFAULT_QUESTION_DECKS[k]); });
+      QUESTION_BANK = normalizeQuestionBank(saved._bank, QUESTION_DECKS);
+      rebuildDeckQuestionsFromBank(QUESTION_BANK);
+    }
+    async function readQuestionDeckPayload() {
+      const localRaw = localStorage.getItem(deckLocalStorageKey());
+      let localSaved = null;
+      if (localRaw) {
+        try { localSaved = JSON.parse(localRaw); } catch(e) { localSaved = null; }
+      }
+      const refs = [deckStoreRef(), deckStoreFallbackRef()];
+      for (const ref of refs) {
+        try {
+          const snap = await ref.once('value');
+          if (snap.exists()) return snap.val();
+        } catch(e) {
+          console.warn('question deck read failed', ref.toString?.() || '', e);
+        }
+      }
+      return localSaved;
+    }
+    async function writeQuestionDeckPayload(payload) {
+      localStorage.setItem(deckLocalStorageKey(), JSON.stringify(payload));
+      const refs = [deckStoreRef(), deckStoreFallbackRef()];
+      const errors = [];
+      let savedToFirebase = false;
+      for (const ref of refs) {
+        try {
+          await ref.set(payload);
+          savedToFirebase = true;
+        } catch(e) {
+          errors.push(e?.message || String(e));
+          console.warn('question deck write failed', ref.toString?.() || '', e);
+        }
+      }
+      return { savedToFirebase, errors };
+    }
+
     function normalizeDeckData(raw, fallback) {
       const base = JSON.parse(JSON.stringify(fallback || { label:'', emoji:'📝', note:'', defaultOn:false, questions:[] }));
       if (!raw) return base;
@@ -345,11 +395,9 @@
     async function loadQuestionDecksFromFirebase() {
       if (decksLoaded) return;
       try {
-        const snap = await deckStoreRef().once('value');
-        const saved = snap.val() || {};
-        DECK_ORDER.forEach(k => { QUESTION_DECKS[k] = normalizeDeckData(saved[k], DEFAULT_QUESTION_DECKS[k]); });
-        QUESTION_BANK = normalizeQuestionBank(saved._bank, QUESTION_DECKS);
-        rebuildDeckQuestionsFromBank(QUESTION_BANK);
+        const saved = await readQuestionDeckPayload();
+        if (saved) applyQuestionDeckPayload(saved);
+        else QUESTION_BANK = createQuestionBankFromDecks(QUESTION_DECKS);
       } catch(e) {
         console.warn('question deck load failed', e);
         QUESTION_BANK = createQuestionBankFromDecks(QUESTION_DECKS);
@@ -448,16 +496,17 @@
       QUESTION_BANK = bank;
       rebuildDeckQuestionsFromBank(QUESTION_BANK);
       try {
-        const payload = {};
-        DECK_ORDER.forEach(k => payload[k] = QUESTION_DECKS[k]);
-        payload._bank = QUESTION_BANK;
-        await deckStoreRef().set(payload);
+        const payload = makeQuestionDeckPayload();
+        const result = await writeQuestionDeckPayload(payload);
         localStorage.removeItem(GAME_KEY + '-deck-config');
-        if (!silent) alert('保存しました。使わないお題も、どのデッキにもONにしない状態で残ります。');
-        if (!silent) renderQuestionManager();
+        if (!silent) {
+          if (result.savedToFirebase) alert('保存しました。Firebaseにも保存できています。');
+          else alert('この端末には保存しましたが、Firebaseへの保存に失敗しました。Database Rulesで rooms/__imageProfileQuestionDecks または questionDecks への書き込み許可を確認してください。');
+          renderQuestionManager();
+        }
         return true;
       } catch(e) {
-        alert('保存に失敗しました。Firebase設定や通信状態を確認してください。');
+        alert('保存に失敗しました。通信状態を確認してください。');
         return false;
       }
     }
