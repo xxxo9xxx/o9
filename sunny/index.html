@@ -15,7 +15,7 @@ button{font:inherit;font-weight:900;border:0;border-radius:16px;padding:14px 20p
 button:active{transform:translateY(2px);box-shadow:0 4px 0 rgba(0,0,0,.28)}
 #menu{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 25%,rgba(255,223,107,.16),rgba(0,0,0,.68));z-index:10;padding:20px;}
 #panel{width:min(580px,94vw);padding:24px;border-radius:22px;text-align:center;background:var(--glass);border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.35);backdrop-filter:blur(10px);}
-.menuHero{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:8px}.titleSprite{position:relative;width:108px;height:108px;display:grid;place-items:center;overflow:visible;isolation:isolate;background:transparent;}.titleSprite::after{content:"";position:absolute;inset:13px;border-radius:50%;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:0;pointer-events:none;}.titleSprite img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform-origin:center center;background:transparent;display:block;}.titleSprite .ring{z-index:1}.titleSprite .face{z-index:2}.menuCatch{font-size:clamp(17px,4.6vw,22px);font-weight:1000;color:#fff3a6;text-shadow:0 2px 12px rgba(255,223,107,.35);margin:4px 0 12px;line-height:1.35}.menuQrWrap{margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:8px}.menuQrWrap img{width:132px;height:132px;border-radius:14px;background:#fff;padding:8px;box-shadow:0 10px 28px rgba(0,0,0,.25);}.menuQrHint{font-size:12px;color:#dce5ff;line-height:1.5}
+.menuHero{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:8px}.titleSprite{position:relative;width:108px;height:108px;display:grid;place-items:center;overflow:visible;isolation:isolate;background:transparent;}.titleSprite::after{content:"";position:absolute;inset:13px;border-radius:50%;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:0;pointer-events:none;}.titleSprite img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform-origin:center center;background:transparent;display:block;}.titleSprite .ring{z-index:1}.titleSprite .face{z-index:2}.menuCatch{font-size:clamp(17px,4.6vw,22px);font-weight:1000;color:#fff3a6;text-shadow:0 2px 12px rgba(255,223,107,.35);margin:4px 0 12px;line-height:1.35}.menuQrWrap{margin-top:12px;display:flex;flex-direction:column;align-items:center;gap:8px}.menuQrToggle{font-size:13px;padding:8px 12px;margin:0;min-height:36px;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.24);box-shadow:none}.menuQrContent{display:none;flex-direction:column;align-items:center;gap:8px}.menuQrWrap.open .menuQrContent{display:flex}.menuQrWrap img{width:132px;height:132px;border-radius:14px;background:#fff;padding:8px;box-shadow:0 10px 28px rgba(0,0,0,.25);}.menuQrHint{font-size:12px;color:#dce5ff;line-height:1.5}
 h1{font-size:clamp(30px,8vw,42px);line-height:1.12;margin:8px 0 12px;}p{line-height:1.6;color:#e3e9ff;margin:8px 0;}
 #hud{position:absolute;left:8px;right:8px;top:calc(8px + var(--safe-top));z-index:5;display:none;pointer-events:none;font-weight:900;flex-wrap:wrap;gap:4px 6px;align-items:flex-start;max-width:calc(100vw - 16px);}
 .pill{display:inline-block;background:rgba(0,0,0,.58);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:7px 10px;margin:0;text-shadow:0 1px 2px rgba(0,0,0,.8);}
@@ -75,7 +75,7 @@ button.gp-selected{outline:3px solid rgba(255,255,255,.96);box-shadow:0 0 0 5px 
 <div id="levelScreen" class="modal"><div id="levelPanel" class="panelGlass"><h2>LEVEL UP!</h2><p>ビルドを選んでね。完成後は自動でスコア化、エンドレスでは限界突破。</p><div id="choices"></div><button id="rerollBtn" type="button">デバッグ：3択ひきなおし</button></div></div>
 <div id="clearScreen" class="modal"><div class="resultPanel"><h2 class="clearGlow">GAME CLEAR!</h2><p>5分間生存成功！結果を見るか、エンドレスへ挑戦できます。</p><div id="clearStats" class="statsGrid"></div><div id="clearBuild" class="buildLine"></div><button id="endlessBtn" type="button">エンドレスへ挑戦</button><button id="finishBtn" type="button">結果を見る</button></div></div>
 <div id="resultScreen" class="modal"><div class="resultPanel"><h2 id="resultTitle">RESULT</h2><p id="resultComment"></p><div id="resultStats" class="statsGrid"></div><div id="resultBuild" class="buildLine"></div><div id="scoreSubmit" class="scoreSubmit"><label for="playerNameInput">ランキングに登録する名前</label><div class="scoreSubmitRow"><input id="playerNameInput" maxlength="8" autocomplete="off" placeholder="ななしサニー"><button id="submitScoreBtn" type="button">登録する</button></div><div id="rankSubmitStatus" class="rankStatus"></div></div><div id="resultRanking" class="rankingBox"><h3>歴代ランキング</h3><div class="rankColumns"><div class="rankList"><h4>🏆 スコア TOP5</h4><div id="resultScoreRanks" class="rankEmpty">読み込み中...</div></div><div class="rankList"><h4>⏱ 生存時間 TOP5</h4><div id="resultTimeRanks" class="rankEmpty">読み込み中...</div></div></div></div><button id="againBtn" type="button">もう一度</button><button id="titleBtn" type="button">タイトルへ</button></div></div>
-<div id="menu"><div id="panel"><div class="menuHero"><div class="titleSprite" aria-hidden="true"><img id="menuRingImg" class="ring" alt=""><img id="menuFaceImg" class="face" alt=""></div><h1>サニーさんサバイバー</h1></div><div class="menuCatch">もやもやを倒して５分間生き残れ！</div><button id="startBtn" type="button">ゲームスタート</button><div id="menuRanking" class="rankingBox"><h3>歴代ランキング</h3><div class="rankColumns"><div class="rankList"><h4>🏆 スコア TOP5</h4><div id="menuScoreRanks" class="rankEmpty">読み込み中...</div></div><div class="rankList"><h4>⏱ 生存時間 TOP5</h4><div id="menuTimeRanks" class="rankEmpty">読み込み中...</div></div></div></div><div class="menuQrWrap" id="menuQrWrap"><img id="menuQrImg" alt="このゲームのQRコード"><div class="menuQrHint">このゲームのURLを開くQRコード</div></div></div></div>
+<div id="menu"><div id="panel"><div class="menuHero"><div class="titleSprite" aria-hidden="true"><img id="menuRingImg" class="ring" alt=""><img id="menuFaceImg" class="face" alt=""></div><h1>サニーさんサバイバー</h1></div><div class="menuCatch">もやもやを倒して５分間生き残れ！</div><button id="startBtn" type="button">ゲームスタート</button><div id="menuRanking" class="rankingBox"><h3>歴代ランキング</h3><div class="rankColumns"><div class="rankList"><h4>🏆 スコア TOP5</h4><div id="menuScoreRanks" class="rankEmpty">読み込み中...</div></div><div class="rankList"><h4>⏱ 生存時間 TOP5</h4><div id="menuTimeRanks" class="rankEmpty">読み込み中...</div></div></div></div><div class="menuQrWrap" id="menuQrWrap"><button id="qrToggleBtn" class="menuQrToggle" type="button" aria-expanded="false">QRコードを表示</button><div class="menuQrContent" id="menuQrContent"><img id="menuQrImg" alt="このゲームのQRコード"><div class="menuQrHint">このゲームのURLを開くQRコード</div></div></div></div></div>
 </div>
 <script>
 
@@ -191,11 +191,25 @@ function setupMenuVisuals(){
       if(wrap){
         var hint=wrap.querySelector('.menuQrHint');
         if(hint)hint.textContent='公開URLで開くとQRコードが表示されます';
+        var btn=document.getElementById('qrToggleBtn');
+        if(btn){btn.textContent='公開URLでQR表示';btn.disabled=true;btn.style.opacity='.55';}
       }
     }
   }
 }
 setupMenuVisuals();
+function setupQrToggle(){
+  var wrap=document.getElementById('menuQrWrap');
+  var btn=document.getElementById('qrToggleBtn');
+  if(!wrap||!btn)return;
+  btn.addEventListener('click',function(){
+    var open=!wrap.classList.contains('open');
+    wrap.classList.toggle('open',open);
+    btn.setAttribute('aria-expanded',open?'true':'false');
+    btn.textContent=open?'QRコードをしまう':'QRコードを表示';
+  });
+}
+setupQrToggle();
 
 
 var firebaseConfig={apiKey:"AIzaSyA2CrJWFBsFJJGZOe0EvCs115E3EdEd72k",authDomain:"sunny-survivor-ranking.firebaseapp.com",projectId:"sunny-survivor-ranking",storageBucket:"sunny-survivor-ranking.firebasestorage.app",messagingSenderId:"912604013845",appId:"1:912604013845:web:8a882d32ea65491d33f51c"};
