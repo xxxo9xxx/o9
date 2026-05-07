@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FALSE ALIBI CASE FILE</title>
+  
+  <style>
+    :root{
+      --bg0:#160f0b;
+      --bg1:#221712;
+      --bg2:#3a2a21;
+      --paper:#f3ecdf;
+      --paper2:#e8dcc6;
+      --paper3:#fffaf1;
+      --ink:#2a2119;
+      --ink2:#43362b;
+      --muted:#6f6156;
+      --line:#ccbca3;
+      --line2:#b39d7f;
+      --accent:#9a6a27;
+      --accent2:#5e6f60;
+      --accent3:#6b4e2d;
+      --danger:#8c3340;
+      --good:#375f47;
+      --gold:#d8b16c;
+      --panelShadow:0 18px 42px rgba(0,0,0,.22);
+      --softShadow:0 10px 24px rgba(0,0,0,.10);
+      --radius:22px;
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+    }
+    *{box-sizing:border-box}
+    html{background:var(--bg0);min-height:100%}
+    body{
+      margin:0;min-height:100vh;color:var(--ink);font-family:var(--sans);
+      background:
+        radial-gradient(circle at 20% 10%,rgba(255,223,155,.08),transparent 28%),
+        radial-gradient(circle at 82% 18%,rgba(213,179,115,.08),transparent 24%),
+        linear-gradient(180deg,rgba(0,0,0,.16),rgba(0,0,0,.28)),
+        repeating-linear-gradient(90deg,#2c1f18 0 48px,#31231b 48px 96px),
+        linear-gradient(180deg,var(--bg2),var(--bg0));
+    }
+    body:before{
+      content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+      mix-blend-mode:soft-light;
+    }
+    button,input,select{font:inherit}
+    button{border:0;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .hidden{display:none!important}
+    .app{width:min(1320px,calc(100% - 28px));margin:0 auto;padding:18px 0 40px}
+    .panel,.hero-card{border:1px solid rgba(44,31,24,.18);background:linear-gradient(180deg,var(--paper3),var(--paper));box-shadow:var(--panelShadow);border-radius:var(--radius)}
+    .hero{display:grid;grid-template-columns:1.16fr .84fr;gap:18px;align-items:stretch;min-height:calc(100vh - 36px)}
+    .hero-card{position:relative;overflow:hidden;padding:34px 34px 30px;color:#f8f0e2;background:
+      linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)),
+      radial-gradient(circle at 80% 0%,rgba(255,214,146,.14),transparent 35%),
+      linear-gradient(135deg,#283228 0%,#1a231c 42%,#111a14 100%);}
+    .hero-card:before{
+      content:"CASE FILE";position:absolute;right:24px;top:22px;font:800 11px/1 var(--mono);letter-spacing:.24em;color:rgba(255,248,235,.34)
+    }
+    .hero-card:after{content:"";position:absolute;inset:auto -10% -22% 42%;height:240px;background:radial-gradient(circle,rgba(255,216,143,.12),transparent 65%);pointer-events:none}
+    .kicker{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,238,203,.28);background:rgba(255,248,235,.08);color:#ffdd9d;border-radius:999px;padding:7px 12px;font-size:12px;letter-spacing:.15em;text-transform:uppercase;font-weight:900}
+    h1{font-size:clamp(38px,6vw,72px);line-height:1.02;margin:18px 0 14px;letter-spacing:.03em;font-family:Georgia,"Times New Roman",serif}
+    .subtitle{max-width:760px;color:#f4ebdd;font-size:clamp(16px,2vw,22px);line-height:1.8;margin:0}
+    .notice{max-width:780px;color:#d8c9b2;font-size:14px;line-height:1.75;margin:18px 0 0}
+    .rules{list-style:none;padding:0;margin:24px 0 0;display:grid;gap:12px;max-width:840px}
+    .rules li{display:grid;grid-template-columns:34px 1fr;gap:10px;color:#f7eedf;line-height:1.66}
+    .rules b{color:#ffe6b6}
+    .rule-num{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#ffe8b7;color:#46301b;font:900 13px/1 var(--mono);box-shadow:inset 0 1px 0 rgba(255,255,255,.65)}
+    .start-box{padding:26px;display:flex;flex-direction:column;gap:16px;background:linear-gradient(180deg,var(--paper3),var(--paper2));position:relative;overflow:hidden}
+    .start-box:before{content:"";position:absolute;inset:0;background:linear-gradient(transparent 97%,rgba(125,97,67,.08) 97%),linear-gradient(90deg,transparent 97%,rgba(125,97,67,.07) 97%);background-size:100% 34px,34px 100%;pointer-events:none;opacity:.55}
+    .field-label{display:block;margin-bottom:8px;color:var(--ink);font-weight:900}
+    .input-row{display:flex;gap:10px}
+    input[type=text],select{width:100%;padding:15px 14px;border-radius:14px;background:#fffaf3;border:1px solid var(--line2);color:var(--ink);outline:0;font-family:var(--mono);letter-spacing:.08em}
+    input[type=text]{text-transform:uppercase}
+    input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(154,106,39,.12)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:12px 15px;border-radius:14px;border:1px solid rgba(53,38,28,.14);background:linear-gradient(180deg,#fffdf8,#eadfce);box-shadow:var(--softShadow);font-weight:900;transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;color:var(--ink)}
+    .btn:hover:not(:disabled){transform:translateY(-1px);border-color:rgba(154,106,39,.55);box-shadow:0 14px 26px rgba(0,0,0,.14)}
+    .btn-primary{background:linear-gradient(180deg,#c8964c,#8d6024);color:#fff7ea;border-color:#7f531d}
+    .btn-danger{background:linear-gradient(180deg,#a64654,#7b2c37);color:#fff2f5;border-color:#65212a}
+    .btn-ghost{background:linear-gradient(180deg,#fffaf2,#efe4d3)}
+    .btn-small{min-height:34px;padding:8px 10px;border-radius:11px;font-size:13px}
+    .start-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .info-box{border:1px solid rgba(154,106,39,.20);background:rgba(255,250,240,.78);border-radius:18px;padding:14px;color:var(--ink2);line-height:1.7;font-size:13px;position:relative}
+    .info-box:before{content:"NOTE";position:absolute;right:12px;top:10px;font:800 10px/1 var(--mono);letter-spacing:.14em;color:#9a7d56}
+    .info-box b{color:var(--accent3)}
+    .mono{font-family:var(--mono)}
+
+    .game-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .brand{display:flex;align-items:center;gap:14px;min-width:0}
+    .brand-mark{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(180deg,#b88442,#7b5324);border:1px solid rgba(0,0,0,.12);font-size:28px;flex:0 0 auto;box-shadow:var(--softShadow);color:#fff8ec}
+    .brand h2{margin:0;font-size:21px;font-family:Georgia,"Times New Roman",serif;letter-spacing:.02em}
+    .brand p{margin:4px 0 0;color:#8a755f;font-size:13px}
+    .game-tools{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .status-grid{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+    .status{border:1px solid rgba(44,31,24,.12);border-radius:16px;background:linear-gradient(180deg,#fffdf9,#efe3d0);padding:10px 12px;box-shadow:var(--softShadow);min-width:0}
+    .status-label{display:block;color:#8a755f;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px;font-weight:800}
+    .status-value{display:block;font-family:var(--mono);font-weight:1000;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+    .score-value{color:var(--accent)}
+    .phase-value{color:var(--good)}
+    .game-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,.76fr);gap:14px;align-items:start}
+    .main-col,.side-col{display:flex;flex-direction:column;gap:14px;min-width:0}
+    .panel{padding:18px;position:relative;overflow:hidden}
+    .panel:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(transparent 96%,rgba(112,88,64,.05) 96%),linear-gradient(90deg,transparent 96%,rgba(112,88,64,.05) 96%);background-size:100% 36px,36px 100%;opacity:.4}
+    .panel>*{position:relative}
+    .panel-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px;font-size:16px;letter-spacing:-.01em;color:var(--ink)}
+    .panel-title small{font-weight:700;color:#8a755f}
+    .case-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .case-card{border:1px solid rgba(44,31,24,.13);border-radius:18px;background:rgba(255,250,242,.9);padding:14px;min-width:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+    .case-card h4{margin:0 0 8px;color:var(--accent3);font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+    .case-card p{margin:0;color:var(--ink2);line-height:1.7;font-size:13px}
+    .suspect-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+    .suspect-card{border:1px solid rgba(44,31,24,.12);border-radius:18px;background:linear-gradient(180deg,#fffcf7,#efe2cf);padding:12px;min-width:0;box-shadow:var(--softShadow)}
+    .suspect-head{display:flex;gap:10px;align-items:flex-start}
+    .suspect-meta{min-width:0;display:flex;flex-direction:column;gap:3px}
+    .suspect-card strong{display:block;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .suspect-card span{display:block;color:#746252;font-size:11px;line-height:1.4}
+    .suspect-card em{font-style:normal;color:#9a7c5a;font-size:10px;letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
+    .avatar{width:60px;height:74px;border-radius:18px;position:relative;flex:0 0 auto;background:linear-gradient(180deg,#d8c8ae,#baa07d);border:1px solid rgba(44,31,24,.12);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}
+    .avatar:before{content:"";position:absolute;top:13px;left:50%;width:20px;height:20px;background:#fffaf0;border-radius:50%;transform:translateX(-50%)}
+    .avatar:after{content:"";position:absolute;bottom:11px;left:50%;width:42px;height:28px;background:#fffaf0;border-radius:22px 22px 10px 10px;transform:translateX(-50%)}
+    .avatar-ribbon{position:absolute;right:6px;top:6px;display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:18px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.82);color:#4f3927;font:800 10px/1 var(--mono)}
+    .avatar-sm{width:42px;height:52px;border-radius:14px}
+    .avatar-sm:before{top:9px;width:14px;height:14px}
+    .avatar-sm:after{bottom:8px;width:28px;height:19px}
+    .avatar-akai{background:linear-gradient(180deg,#c65e5e,#8f403c)}
+    .avatar-aoyama{background:linear-gradient(180deg,#5c88c1,#355f96)}
+    .avatar-kise{background:linear-gradient(180deg,#ccb45e,#907a2a)}
+    .avatar-midori{background:linear-gradient(180deg,#76a17c,#4b7251)}
+    .avatar-kuroda{background:linear-gradient(180deg,#7c7f8a,#4e5056)}
+    .cap-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+    .cap-tag{font-size:11px;color:#372718;background:#f6ead4;border:1px solid #d4bf95;border-radius:999px;padding:5px 8px;font-weight:800;line-height:1.2}
+    .testimony-board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+    .testimony-mini{border:1px solid rgba(44,31,24,.12);border-radius:16px;background:linear-gradient(180deg,#fffdf8,#efe3d0);padding:12px;min-height:170px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--softShadow)}
+    .testimony-head{display:flex;gap:10px;align-items:center}
+    .testimony-head strong{display:block;color:var(--ink);font-size:13px;margin-bottom:2px}
+    .testimony-head span{display:block;color:#7d6a59;font-size:11px}
+    .testimony-mini p,.testimony-mini .quote{margin:0;color:var(--ink2);font-size:13px;line-height:1.7}
+    .quote{position:relative;padding-left:16px}
+    .quote:before{content:"“";position:absolute;left:0;top:-4px;font-size:22px;color:#b28a57;font-family:Georgia,serif}
+    .testimony-stamp{margin-top:auto;align-self:flex-start;padding:4px 8px;border-radius:999px;background:#f2e6d2;color:#856948;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+
+    .round-panel{background:linear-gradient(180deg,#fffdf8,#efe3d0)}
+    .round-core{position:relative;border:1px solid rgba(44,31,24,.14);border-radius:22px;background:linear-gradient(180deg,#203126,#17231c);padding:16px;box-shadow:inset 0 -18px 48px rgba(0,0,0,.22),var(--softShadow);color:#edf5ec}
+    .round-core:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(transparent 95%,rgba(255,255,255,.04) 95%),linear-gradient(90deg,transparent 95%,rgba(255,255,255,.04) 95%);background-size:100% 40px,40px 100%;opacity:.5}
+    .round-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px;position:relative;z-index:1}
+    .round-lamp{display:flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);border-radius:14px;color:#b9c7ba;padding:10px;font-family:var(--mono);font-size:12px;font-weight:1000;letter-spacing:.05em}
+    .round-lamp:before{content:"";width:10px;height:10px;border-radius:99px;background:#55645a;flex:0 0 auto}
+    .round-lamp.active{color:#fff6df;border-color:rgba(216,177,108,.44);background:rgba(216,177,108,.12)}
+    .round-lamp.active:before{background:#e1c07a;box-shadow:0 0 14px rgba(216,177,108,.8);animation:pulse 1s infinite ease-in-out}
+    .round-lamp.done{color:#d8e7dd;border-color:rgba(116,173,135,.28)}
+    .round-lamp.done:before{background:#7cb08a;box-shadow:0 0 12px rgba(124,176,138,.4);opacity:.7}
+    @keyframes pulse{0%,100%{opacity:.45;transform:scale(.9)}45%{opacity:1;transform:scale(1.14)}}
+    .round-title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;position:relative;z-index:1}
+    .round-title-row h3{margin:0;font-size:20px;color:#fff5dc;font-family:Georgia,"Times New Roman",serif}
+    .round-title-row p{margin:4px 0 0;color:#c6d2c8;font-size:13px;line-height:1.55;max-width:700px}
+    .badge{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(216,177,108,.45);background:rgba(216,177,108,.12);color:#ffe7b4;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+    .order-slots,.pick-grid,.method-grid,.testimony-select-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;position:relative;z-index:1}
+    .order-slots{margin-bottom:12px}
+    .order-slot{border:1px dashed rgba(255,255,255,.18);border-radius:16px;background:rgba(255,255,255,.05);padding:12px;min-height:108px;display:flex;flex-direction:column;gap:10px}
+    .order-slot b{color:#f8e5b7;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+    .order-slot button,.pick-btn,.method-btn,.testimony-choice{width:100%;text-align:left;border-radius:16px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.08);padding:12px;box-shadow:none;color:#f0f6ef}
+    .order-slot button:not(:disabled):hover,.pick-btn:hover:not(:disabled),.method-btn:hover:not(:disabled),.testimony-choice:hover:not(:disabled),.hint-card:hover:not(:disabled){border-color:rgba(216,177,108,.5);transform:translateY(-1px)}
+    .pick-btn strong,.method-btn strong,.testimony-choice strong{display:block;font-size:14px;color:#fff7e1}
+    .pick-btn span,.method-btn span,.testimony-choice span{display:block;margin-top:4px;color:#c7d3c9;font-size:12px;line-height:1.5}
+    .pick-btn .pick-head,.testimony-choice .pick-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .pick-btn.selected,.method-btn.selected,.testimony-choice.selected{border-color:#e1c07a;background:rgba(216,177,108,.18);box-shadow:0 0 0 2px rgba(216,177,108,.18) inset}
+    .round-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px;position:relative;z-index:1}
+    .method-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .method-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .method-meta .cap-tag{background:rgba(255,248,230,.95)}
+    .locked-note{border:1px solid rgba(216,177,108,.32);background:rgba(216,177,108,.09);border-radius:16px;padding:12px 14px;color:#f4ecd9;line-height:1.7;position:relative;z-index:1}
+    .testimony-select-grid{grid-template-columns:1fr 1fr}
+    .testimony-choice .quote{color:#edf6ee}
+    .logbox{border:1px solid rgba(44,31,24,.12);border-radius:16px;background:#fff9ef;padding:14px;max-height:220px;overflow:auto;line-height:1.7;color:var(--ink2);box-shadow:var(--softShadow)}
+    .logbox p{margin:0 0 10px}
+    .logbox p:last-child{margin-bottom:0}
+    .hint-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .empty-card{border:1px dashed rgba(44,31,24,.18);border-radius:16px;padding:18px;display:grid;place-items:center;min-height:120px;background:#fffaf2;color:#958372;text-align:center}
+    .hint-card{display:flex;flex-direction:column;align-items:stretch;gap:10px;border-radius:18px;border:1px solid rgba(44,31,24,.12);background:linear-gradient(180deg,#fffefb,#f0e4d0);padding:14px;min-height:186px;position:relative;box-shadow:var(--softShadow)}
+    .hint-card:before{content:"";position:absolute;left:16px;top:-8px;width:56px;height:18px;border-radius:4px;background:rgba(189,160,124,.38);transform:rotate(-4deg)}
+    .card-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .category-pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;background:#f4e7d2;padding:5px 8px;color:#7a5b33;font-size:11px;font-weight:900;border:1px solid #d9c19a}
+    .score-badge{display:inline-flex;align-items:center;justify-content:center;min-width:48px;height:28px;border-radius:999px;background:#3f5d49;color:#fff5de;font:900 12px/1 var(--mono)}
+    .card-title{margin:0;color:var(--ink);font-weight:900;font-size:15px;line-height:1.45}
+    .card-text{margin:0;color:#68594c;font-size:12px;line-height:1.65}
+    .choose-card{margin-top:auto}
+    .revealed-list{display:flex;flex-direction:column;gap:8px}
+    .revealed-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:flex-start;border:1px solid rgba(44,31,24,.12);border-radius:14px;background:#fffaf2;padding:10px 12px}
+    .hint-body{color:var(--ink2);font-size:13px;line-height:1.6}
+    .hint-score{font:900 12px/1 var(--mono);color:#fff4dd;background:#5d755d;border-radius:999px;padding:7px 8px;white-space:nowrap}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .tab{border-radius:999px;padding:8px 12px;border:1px solid rgba(44,31,24,.12);background:#fff8ed;color:#7b6653;font-weight:900;box-shadow:none}
+    .tab.active{background:linear-gradient(180deg,#b98543,#8d6024);color:#fff5e6;border-color:#7d541f}
+    .memo-wrap{overflow:auto}
+    .memo-table{width:100%;border-collapse:collapse;font-size:13px;background:#fffaf2;border-radius:14px;overflow:hidden;box-shadow:var(--softShadow)}
+    .memo-table th,.memo-table td{border:1px solid rgba(44,31,24,.12);padding:8px 9px;text-align:center;color:var(--ink2)}
+    .memo-table thead th{background:#efe2cc;color:#71583d;font-size:12px;letter-spacing:.05em;text-transform:uppercase}
+    .memo-table tbody td:first-child{text-align:left;font-weight:800}
+    .memo-btn{width:34px;height:34px;border-radius:10px;border:1px solid rgba(44,31,24,.12);background:#fffdf8;font-weight:1000;color:#5b4a3e}
+    .memo-btn.no{background:#f5d4d9;color:#6f2330}
+    .memo-btn.maybe{background:#f4e5bf;color:#755c17}
+    .memo-btn.yes{background:#d7eadb;color:#235336}
+    .footer-note{margin:18px 0 0;text-align:center;color:#d2c1a8;font-size:12px;line-height:1.6}
+
+    .modal{position:fixed;inset:0;background:rgba(12,8,6,.62);display:grid;place-items:center;padding:18px;z-index:90}
+    .modal-card{width:min(760px,100%);border-radius:28px;border:1px solid rgba(44,31,24,.12);background:linear-gradient(180deg,#fffdf9,#efe1ce);box-shadow:0 24px 70px rgba(0,0,0,.35);padding:26px}
+    .modal-icon{font-size:44px;text-align:center}
+    .modal-card h3{margin:8px 0 8px;text-align:center;font-size:32px;font-family:Georgia,"Times New Roman",serif;color:var(--accent3)}
+    .modal-card p{margin:0;text-align:center;color:var(--ink2);line-height:1.7}
+    .result-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
+    .result-stat{border:1px solid rgba(44,31,24,.12);border-radius:16px;background:#fffaf2;padding:10px 12px;text-align:center}
+    .result-stat span{display:block;color:#8b775f;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+    .result-stat b{display:block;margin-top:5px;font-family:var(--mono);font-size:18px;color:var(--ink)}
+    .answer-reveal{white-space:pre-line;border:1px solid rgba(44,31,24,.12);background:#fff9ef;border-radius:16px;padding:13px;line-height:1.7;color:var(--ink2);margin:14px 0;font-size:14px}
+    .modal-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+    .fx-overlay{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:85;opacity:0;transition:opacity .12s ease}.fx-overlay.show{opacity:1}
+    .fx-card{padding:24px 28px;border-radius:24px;border:1px solid rgba(255,255,255,.18);box-shadow:0 24px 60px rgba(0,0,0,.32);text-align:center;min-width:min(80vw,420px);backdrop-filter:blur(8px);animation:popIn .85s ease both}
+    .fx-card strong{display:block;font-size:35px;letter-spacing:.06em;font-family:Georgia,"Times New Roman",serif}
+    .fx-card span{display:block;margin-top:8px;font-family:var(--mono);letter-spacing:.14em;color:#fff5e1}
+    .fx-overlay.phase .fx-card{background:linear-gradient(145deg,rgba(73,55,24,.96),rgba(114,81,12,.92));color:#fff0bd}
+    .fx-overlay.success .fx-card{background:linear-gradient(145deg,rgba(27,58,37,.96),rgba(50,100,63,.92));color:#e8ffef}
+    .fx-overlay.fail .fx-card{background:linear-gradient(145deg,rgba(75,23,30,.96),rgba(134,40,54,.92));color:#ffe6ec}
+    @keyframes popIn{0%{transform:scale(.74);opacity:0}18%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+    .shake{animation:shake .46s ease-in-out 2}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(7px)}60%{transform:translateX(-6px)}80%{transform:translateX(5px)}}
+    .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(20px);background:rgba(30,21,16,.95);color:#fff6ea;border:1px solid rgba(255,255,255,.14);padding:12px 16px;border-radius:999px;z-index:95;opacity:0;transition:.18s ease;pointer-events:none;box-shadow:0 12px 26px rgba(0,0,0,.28)}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+    @media(max-width:1100px){
+      .hero,.game-layout{grid-template-columns:1fr}
+      .case-grid{grid-template-columns:1fr}
+      .side-col{order:2}
+      .suspect-list,.testimony-board{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .pick-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .method-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .testimony-select-grid,.hint-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media(max-width:760px){
+      .app{width:min(100% - 18px,1320px);padding-top:10px}
+      .hero-card,.start-box,.panel,.modal-card{padding:16px}
+      .game-header{flex-direction:column}
+      .game-tools{width:100%;justify-content:flex-start}
+      .status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .round-strip{grid-template-columns:1fr}
+      .order-slots,.pick-grid,.method-grid,.suspect-list,.testimony-board,.testimony-select-grid,.hint-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .result-stats{grid-template-columns:repeat(2,1fr)}
+      .round-actions{justify-content:stretch}
+    }
+    @media(max-width:480px){
+      .input-row{flex-direction:column}
+      h1{font-size:clamp(34px,12vw,52px)}
+      .status-value{font-size:15px}
+      .order-slots,.pick-grid,.method-grid,.suspect-list,.testimony-board,.testimony-select-grid,.hint-grid{grid-template-columns:1fr}
+    }
+  </style>
+
+</head>
+<body>
+  <div class="app">
+    <section id="startScreen" class="hero">
+      <div class="hero-card">
+        <div class="kicker">CASE FILE // FALSE ALIBI</div>
+        <h1>FALSE ALIBI</h1>
+        <p class="subtitle">事件前後の行動記録を並べ替え、犯行手段を見抜き、最後に証言の矛盾を突き付ける。探偵として事件を解き明かす、推理テーマのロジックパズル。</p>
+        <p class="notice">犯行現場・被疑者・証言は最初から提示されます。あなたは捜査資料を集め、矛盾を組み立てて最後の一言を突き付ける立場です。資料を見すぎるほど捜査点は増えます。</p>
+        <ul class="rules">
+          <li><span class="rule-num">1</span><span><b>ROUND 1 / 行動記録</b>：監視記録と目撃情報から、現場付近に現れた4人の順番を整理します。</span></li>
+          <li><span class="rule-num">2</span><span><b>ROUND 2 / 犯行手段</b>：現場の痕跡から、犯行に使われた手段・道具を特定します。</span></li>
+          <li><span class="rule-num">3</span><span><b>ROUND 3 / 証言照合</b>：行動記録と犯行手段を重ね、1つだけ矛盾する証言を突き止めます。</span></li>
+        </ul>
+      </div>
+      <aside class="panel start-box">
+        <div>
+          <label class="field-label" for="caseIdInput">事件ID</label>
+          <div class="input-row">
+            <input id="caseIdInput" type="text" placeholder="FA-7K3A9Q" autocomplete="off" />
+            <button id="randomIdBtn" class="btn btn-ghost" type="button">ID生成</button>
+          </div>
+        </div>
+        <div>
+          <label class="field-label" for="difficultySelect">難易度</label>
+          <select id="difficultySelect">
+            <option value="normal">ふつう</option>
+            <option value="hard">むずかしい</option>
+          </select>
+        </div>
+        <div class="start-actions">
+          <button id="startBtn" class="btn btn-primary" type="button">事件を捜査する</button>
+          <button id="demoBtn" class="btn btn-ghost" type="button">デモIDを入れる</button>
+        </div>
+        <div class="info-box">
+          <b>設計メモ：</b><br>
+          ROUND1とROUND2は独立して解けます。最後のROUND3だけは、行動記録と犯行手段の両方がそろって初めて証言の矛盾が見えてきます。
+        </div>
+        <div class="info-box">
+          <b>スコア式：</b>使った捜査資料の合計点。低いほど鮮やかな解決。<br>
+          <b>メモ：</b>? → × → △ → ○ で候補を管理できます。
+        </div>
+      </aside>
+    </section>
+
+    <section id="gameScreen" class="hidden">
+      <header class="game-header">
+        <div class="brand">
+          <div class="brand-mark">🕵️</div>
+          <div>
+            <h2>FALSE ALIBI CASE FILE</h2>
+            <p>現場資料を組み立て、最後の矛盾を暴く</p>
+          </div>
+        </div>
+        <div class="game-tools">
+          <button id="copyIdBtn" class="btn btn-small btn-ghost" type="button">事件IDコピー</button>
+          <button id="backToStartBtn" class="btn btn-small btn-ghost" type="button">事件一覧へ</button>
+        </div>
+      </header>
+
+      <div class="status-grid" aria-live="polite">
+        <div class="status"><span class="status-label">事件ID</span><span id="statusId" class="status-value">-</span></div>
+        <div class="status"><span class="status-label">ROUND</span><span id="statusPhase" class="status-value phase-value">-</span></div>
+        <div class="status"><span class="status-label">捜査点</span><span id="statusScore" class="status-value score-value">0</span></div>
+        <div class="status"><span class="status-label">時間</span><span id="statusTime" class="status-value">00:00</span></div>
+      </div>
+
+      <div class="game-layout">
+        <main class="main-col">
+          <section class="panel">
+            <h3 class="panel-title">事件ファイル <small>被疑者・証言は開示済み</small></h3>
+            <div class="case-grid">
+              <div class="case-card">
+                <h4>事件概要</h4>
+                <p id="caseSummary"></p>
+              </div>
+              <div class="case-card">
+                <h4>公開情報：所持・扱える物</h4>
+                <p>各人物が所持または扱える物は最初からわかっています。ROUND2で手段が確定したら、この公開情報と行動記録を照合します。</p>
+              </div>
+            </div>
+            <div style="height:12px"></div>
+            <div id="suspectList" class="suspect-list"></div>
+            <div style="height:12px"></div>
+            <h3 class="panel-title">証言調書 <small>この中に1つだけ矛盾する証言がある</small></h3>
+            <div id="testimonyBoard" class="testimony-board"></div>
+          </section>
+
+          <section class="panel round-panel">
+            <h3 class="panel-title">推理ボード <small>行動記録と犯行手段が最後の矛盾へつながる</small></h3>
+            <div id="roundCore" class="round-core">
+              <div class="round-strip">
+                <div id="lampOrder" class="round-lamp active">ROUND 1 / MOVEMENT</div>
+                <div id="lampMethod" class="round-lamp">ROUND 2 / METHOD</div>
+                <div id="lampTestimony" class="round-lamp">ROUND 3 / TESTIMONY</div>
+              </div>
+
+              <div id="orderPanel">
+                <div class="round-title-row">
+                  <div><h3>ROUND 1：行動記録の整理</h3><p>監視記録・目撃情報をもとに、現場付近に現れた4人の順番を確定してください。</p></div>
+                  <span class="badge">行動記録</span>
+                </div>
+                <div id="orderSlots" class="order-slots"></div>
+                <div id="suspectPickGrid" class="pick-grid"></div>
+                <div class="round-actions">
+                  <button id="clearOrderBtn" class="btn btn-ghost" type="button">並びを消す</button>
+                  <button id="submitOrderBtn" class="btn btn-primary" type="button">行動記録を確定</button>
+                </div>
+              </div>
+
+              <div id="methodPanel" class="hidden">
+                <div class="round-title-row">
+                  <div><h3>ROUND 2：犯行手段の特定</h3><p>現場痕跡と人物情報を照合し、使われた手段・道具を1つ特定してください。</p></div>
+                  <span class="badge">鑑識</span>
+                </div>
+                <div id="methodGrid" class="method-grid"></div>
+                <div class="round-actions">
+                  <button id="submitMethodBtn" class="btn btn-primary" type="button">犯行手段を確定</button>
+                </div>
+              </div>
+
+              <div id="testimonyPanel" class="hidden">
+                <div class="round-title-row">
+                  <div><h3>ROUND 3：証言の矛盾</h3><p>行動記録と犯行手段を重ね合わせ、1つだけ成り立たない証言を選んでください。</p></div>
+                  <span class="badge">追及</span>
+                </div>
+                <div class="locked-note">このROUNDは、行動記録だけでも犯行手段だけでも解けません。2つの結論を組み合わせて、誰の証言が崩れるかを見抜きます。</div>
+                <div style="height:10px"></div>
+                <div id="testimonySelectGrid" class="testimony-select-grid"></div>
+                <div class="round-actions">
+                  <button id="submitTestimonyBtn" class="btn btn-danger" type="button">この証言を追及する</button>
+                </div>
+              </div>
+            </div>
+            <div style="height:12px"></div>
+            <div id="missionLog" class="logbox"></div>
+          </section>
+        </main>
+
+        <aside class="side-col">
+          <section class="panel">
+            <h3 class="panel-title">捜査資料 <small>常に4枚 / 1枚調べると補充</small></h3>
+            <p id="roundGuide" class="notice" style="margin:0 0 12px"></p>
+            <div id="hintGrid" class="hint-grid"></div>
+          </section>
+
+          <section class="panel">
+            <h3 class="panel-title">閲覧済み資料 <small id="revealedSummary">0枚</small></h3>
+            <div id="revealedList" class="revealed-list"></div>
+          </section>
+
+          <section class="panel">
+            <h3 class="panel-title">探偵メモ <small>タップで ? → × → △ → ○</small></h3>
+            <div class="tabs">
+              <button id="memoOrderTab" class="tab active" type="button">行動順</button>
+              <button id="memoMethodTab" class="tab" type="button">手段</button>
+              <button id="memoTestimonyTab" class="tab" type="button">証言</button>
+            </div>
+            <div id="memoOrderWrap" class="memo-wrap"></div>
+            <div id="memoMethodWrap" class="memo-wrap hidden"></div>
+            <div id="memoTestimonyWrap" class="memo-wrap hidden"></div>
+          </section>
+        </aside>
+      </div>
+      <p class="footer-note">プロトタイプ v2：推理体験重視版。行動記録＋犯行手段＋証言矛盾をつなげ、低い捜査点で CASE CLOSED を目指してください。</p>
+    </section>
+  </div>
+
+  <div id="resultModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+    <div class="modal-card">
+      <div id="resultIcon" class="modal-icon">✅</div>
+      <h3 id="resultTitle">CASE CLOSED</h3>
+      <p id="resultMessage"></p>
+      <div id="resultStats" class="result-stats"></div>
+      <div id="answerReveal" class="answer-reveal"></div>
+      <div class="modal-actions">
+        <button id="copyResultBtn" class="btn btn-primary" type="button">記録をコピー</button>
+        <button id="retrySameBtn" class="btn btn-ghost" type="button">同じ事件を再捜査</button>
+        <button id="freshFromResultBtn" class="btn btn-ghost" type="button">新しい事件へ</button>
+        <button id="closeResultBtn" class="btn btn-ghost" type="button">閉じる</button>
+      </div>
+    </div>
+  </div>
+  <div id="fxOverlay" class="fx-overlay hidden"></div>
+  <div id="toast" class="toast"></div>
+
+  <script>
+    "use strict";
+
+    const SUSPECTS = [
+      { id:"akai", short:"赤井", name:"赤井レン", role:"受付スタッフ", color:"akai", capabilities:["master_key","fake_id"] },
+      { id:"aoyama", short:"青山", name:"青山ミオ", role:"設備係", color:"aoyama", capabilities:["master_key","blackout"] },
+      { id:"kise", short:"黄瀬", name:"黄瀬トオル", role:"美術部", color:"kise", capabilities:["window_tool","chemical"] },
+      { id:"midori", short:"緑川", name:"緑川ハル", role:"図書委員", color:"midori", capabilities:["fake_id","window_tool"] },
+      { id:"kuroda", short:"黒田", name:"黒田シン", role:"警備補助", color:"kuroda", capabilities:["blackout","chemical"] }
+    ];
+    const METHODS = [
+      { id:"master_key", name:"マスターキー", icon:"🗝️", category:"鍵", tags:["metal","quiet","door","authority","few_trace"], desc:"扉を正面から開けられる管理用キー" },
+      { id:"fake_id", name:"偽の入館証", icon:"💳", category:"認証", tags:["card","quiet","gate","record","nonmetal"], desc:"受付ゲートの通過記録を偽装するカード" },
+      { id:"window_tool", name:"窓用工具", icon:"🪛", category:"工具", tags:["metal","noise","window","scratch","physical"], desc:"窓枠をこじ開ける工具" },
+      { id:"blackout", name:"停電装置", icon:"⚡", category:"電気", tags:["device","silent","control","record","nonmetal"], desc:"短時間だけ照明とカメラを落とす装置" },
+      { id:"chemical", name:"薬品スプレー", icon:"🧪", category:"薬品", tags:["chemical","quiet","vent","smell","nonmetal"], desc:"換気口から使える薬品スプレー" }
+    ];
+    const ATTRS = [
+      { id:"metal", label:"金属製" },
+      { id:"nonmetal", label:"非金属" },
+      { id:"quiet", label:"音を立てにくい" },
+      { id:"noise", label:"音が出る" },
+      { id:"door", label:"扉に関係する" },
+      { id:"gate", label:"受付ゲートに関係する" },
+      { id:"window", label:"窓に関係する" },
+      { id:"control", label:"制御盤に関係する" },
+      { id:"vent", label:"換気口に関係する" },
+      { id:"record", label:"記録が残る" },
+      { id:"few_trace", label:"痕跡が少ない" },
+      { id:"scratch", label:"傷跡が残る" },
+      { id:"smell", label:"においが残る" },
+      { id:"authority", label:"管理権限に関係する" },
+      { id:"physical", label:"物理的にこじ開ける" },
+      { id:"chemical", label:"薬品に関係する" },
+      { id:"device", label:"装置に関係する" },
+      { id:"card", label:"カードに関係する" }
+    ];
+    const PHASES = ["order","method","testimony"];
+    const OFFER_COUNT = 4;
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    const els = {
+      startScreen:$("#startScreen"), gameScreen:$("#gameScreen"), caseIdInput:$("#caseIdInput"), randomIdBtn:$("#randomIdBtn"), demoBtn:$("#demoBtn"), difficultySelect:$("#difficultySelect"), startBtn:$("#startBtn"),
+      statusId:$("#statusId"), statusPhase:$("#statusPhase"), statusScore:$("#statusScore"), statusTime:$("#statusTime"), copyIdBtn:$("#copyIdBtn"), backToStartBtn:$("#backToStartBtn"),
+      caseSummary:$("#caseSummary"), suspectList:$("#suspectList"), testimonyBoard:$("#testimonyBoard"), testimonySelectGrid:$("#testimonySelectGrid"),
+      lampOrder:$("#lampOrder"), lampMethod:$("#lampMethod"), lampTestimony:$("#lampTestimony"), roundCore:$("#roundCore"),
+      orderPanel:$("#orderPanel"), methodPanel:$("#methodPanel"), testimonyPanel:$("#testimonyPanel"), orderSlots:$("#orderSlots"), suspectPickGrid:$("#suspectPickGrid"), clearOrderBtn:$("#clearOrderBtn"), submitOrderBtn:$("#submitOrderBtn"),
+      methodGrid:$("#methodGrid"), submitMethodBtn:$("#submitMethodBtn"), submitTestimonyBtn:$("#submitTestimonyBtn"),
+      missionLog:$("#missionLog"), roundGuide:$("#roundGuide"), hintGrid:$("#hintGrid"), revealedList:$("#revealedList"), revealedSummary:$("#revealedSummary"),
+      memoOrderTab:$("#memoOrderTab"), memoMethodTab:$("#memoMethodTab"), memoTestimonyTab:$("#memoTestimonyTab"), memoOrderWrap:$("#memoOrderWrap"), memoMethodWrap:$("#memoMethodWrap"), memoTestimonyWrap:$("#memoTestimonyWrap"),
+      resultModal:$("#resultModal"), resultIcon:$("#resultIcon"), resultTitle:$("#resultTitle"), resultMessage:$("#resultMessage"), resultStats:$("#resultStats"), answerReveal:$("#answerReveal"), copyResultBtn:$("#copyResultBtn"), retrySameBtn:$("#retrySameBtn"), freshFromResultBtn:$("#freshFromResultBtn"), closeResultBtn:$("#closeResultBtn"),
+      fxOverlay:$("#fxOverlay"), toast:$("#toast")
+    };
+    let State = null;
+
+    function xmur3(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=(h<<13)|(h>>>19);}return function(){h=Math.imul(h^(h>>>16),2246822507);h=Math.imul(h^(h>>>13),3266489909);return (h^=h>>>16)>>>0;};}
+    function mulberry32(a){return function(){let t=a+=0x6D2B79F5;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
+    function seededRng(seedText){return mulberry32(xmur3(seedText)());}
+    function shuffle(arr,rng){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+    function pick(arr,rng){return arr[Math.floor(rng()*arr.length)];}
+    function normalizeId(v){return String(v||"").trim().toUpperCase().replace(/[^A-Z0-9\-]/g,"").replace(/\-+/g,"-").replace(/^\-+|\-+$/g,"");}
+    function generateCaseId(){const alphabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";const bytes=new Uint8Array(6);if(crypto&&crypto.getRandomValues)crypto.getRandomValues(bytes);else for(let i=0;i<bytes.length;i++)bytes[i]=Math.floor(Math.random()*256);return "FA-"+Array.from(bytes,b=>alphabet[b%alphabet.length]).join("");}
+    function suspectById(id){return SUSPECTS.find(s=>s.id===id);}
+    function methodById(id){return METHODS.find(m=>m.id===id);}
+    function suspectName(id){const s=suspectById(id);return `${s.short}`;}
+    function methodName(id){const m=methodById(id);return `${m.name}`;}
+    function canUse(suspectId, methodId){return suspectById(suspectId).capabilities.includes(methodId);}
+    function suspectAvatarClass(id){return `avatar-${suspectById(id).color||id}`;}
+    function arraysEqual(a,b){return a.length===b.length&&a.every((x,i)=>x===b[i]);}
+    function escapeHtml(v){return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#039;");}
+    function fmtTime(sec){const m=Math.floor(sec/60),s=sec%60;return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;}
+    function elapsedSeconds(){if(!State)return 0;const end=State.finishedAt||Date.now();return Math.max(0,Math.floor((end-State.startedAt)/1000));}
+    function permutations(arr,len=arr.length){const res=[],used=Array(arr.length).fill(false),cur=[];function bt(){if(cur.length===len){res.push(cur.slice());return;}for(let i=0;i<arr.length;i++){if(used[i])continue;used[i]=true;cur.push(arr[i]);bt();cur.pop();used[i]=false;}}bt();return res;}
+    const ORDER_CANDIDATES = permutations(SUSPECTS.map(s=>s.id),4);
+
+    function scoreFromMatches(matches,total){const ratio=matches/total;if(ratio>=.65)return 1;if(ratio>=.42)return 2;if(ratio>=.25)return 3;if(ratio>=.13)return 4;return 5;}
+    function addHint(list,seen,total,answerValue,candidates,data){
+      if(seen.has(data.key))return;
+      if(!data.test(answerValue))return;
+      const matches=candidates.filter(data.test).length;
+      if(matches<=0||matches>=total)return;
+      seen.add(data.key);
+      list.push({...data,score:scoreFromMatches(matches,total),matches});
+    }
+    function adjustDifficulty(hints,difficulty){
+      if(difficulty!=="hard")return hints;
+      return hints.map(h=>({...h,score:Math.min(6,h.score+(h.category==="複合"?0:1))}));
+    }
+
+    function generateOrderHints(answerOrder,difficulty){
+      const list=[],seen=new Set(),total=ORDER_CANDIDATES.length;
+      const present=new Set(answerOrder);
+      const pos=id=>answerOrder.indexOf(id)+1;
+      const add=data=>addHint(list,seen,total,answerOrder,ORDER_CANDIDATES,data);
+      for(const s of SUSPECTS){
+        if(present.has(s.id)){
+          add({key:`o:in:${s.id}`,round:"order",category:"行動",target:s.short,title:"目撃ログ",text:`${suspectName(s.id)}は、事件前後に現場付近へ来ている。`,test:o=>o.includes(s.id)});
+          add({key:`o:exact:${s.id}:${pos(s.id)}`,round:"order",category:"行動",target:s.short,title:"防犯カメラの断片",text:`${suspectName(s.id)}は、${pos(s.id)}番目に現場付近へ来た。`,test:o=>o.indexOf(s.id)+1===pos(s.id)});
+          for(let n=1;n<=4;n++) if(n!==pos(s.id)) add({key:`o:not:${s.id}:${n}`,round:"order",category:"行動",target:s.short,title:"通過記録の照合",text:`${suspectName(s.id)}は、${n}番目ではない。`,test:o=>o.indexOf(s.id)!==n-1});
+          add({key:`o:half:${s.id}:${pos(s.id)<=2?"front":"back"}`,round:"order",category:"行動",target:s.short,title:"廊下メモ",text:`${suspectName(s.id)}は、${pos(s.id)<=2?"前半2人":"後半2人"}のどちらか。`,test:o=>pos(s.id)<=2?o.indexOf(s.id)<=1:o.indexOf(s.id)>=2});
+        } else {
+          add({key:`o:out:${s.id}`,round:"order",category:"行動",target:s.short,title:"入退館照合",text:`${suspectName(s.id)}は、現場付近へ来た4人には含まれない。`,test:o=>!o.includes(s.id)});
+        }
+      }
+      for(let i=0;i<answerOrder.length;i++){
+        for(let j=i+1;j<answerOrder.length;j++){
+          const a=answerOrder[i],b=answerOrder[j];
+          add({key:`o:before:${a}:${b}`,round:"order",category:"順序",target:`${suspectById(a).short}・${suspectById(b).short}`,title:"時系列メモ",text:`${suspectName(a)}は、${suspectName(b)}より前に現場付近へ来た。`,test:o=>o.includes(a)&&o.includes(b)&&o.indexOf(a)<o.indexOf(b)});
+          const adj=Math.abs(i-j)===1;
+          add({key:`o:adj:${a}:${b}:${adj}`,round:"order",category:"順序",target:`${suspectById(a).short}・${suspectById(b).short}`,title:"足音の記録",text:`${suspectName(a)}と${suspectName(b)}は、${adj?"連続して":"連続していない"}現場付近へ来た。`,test:o=>o.includes(a)&&o.includes(b)&&(Math.abs(o.indexOf(a)-o.indexOf(b))===1)===adj});
+        }
+      }
+      const front=answerOrder.slice(0,2),back=answerOrder.slice(2,4);
+      add({key:`o:front:${front.slice().sort().join("-")}`,round:"order",category:"順序",target:"前半2人",title:"前半の監視記録",text:`前半2人には、${suspectName(front[0])}と${suspectName(front[1])}が含まれる。`,test:o=>sameSet(o.slice(0,2),front)});
+      add({key:`o:back:${back.slice().sort().join("-")}`,round:"order",category:"順序",target:"後半2人",title:"後半の監視記録",text:`後半2人には、${suspectName(back[0])}と${suspectName(back[1])}が含まれる。`,test:o=>sameSet(o.slice(2,4),back)});
+      return adjustDifficulty(list,difficulty);
+    }
+    function sameSet(a,b){return a.length===b.length&&a.slice().sort().join("|")===b.slice().sort().join("|");}
+
+    function generateMethodHints(answerMethod,difficulty){
+      const list=[],seen=new Set(),total=METHODS.length;
+      const add=data=>addHint(list,seen,total,answerMethod,METHODS,data);
+      for(const m of METHODS){
+        if(m.id!==answerMethod.id){
+          add({key:`m:not:${m.id}`,round:"method",category:"手段",target:m.name,title:"鑑識除外リスト",text:`犯行手段は、${methodName(m.id)}ではない。`,test:x=>x.id!==m.id});
+        } else {
+          add({key:`m:exact:${m.id}`,round:"method",category:"手段",target:m.name,title:"核心資料",text:`犯行手段は、${methodName(m.id)}である。`,test:x=>x.id===m.id});
+        }
+      }
+      for(const attr of ATTRS){
+        const has=answerMethod.tags.includes(attr.id);
+        add({key:`m:attr:${attr.id}:${has}`,round:"method",category:"属性",target:attr.label,title:"鑑識属性メモ",text:`犯行手段は、${attr.label}${has?"。":"ではない。"}`,test:x=>x.tags.includes(attr.id)===has});
+      }
+      for(const s of SUSPECTS){
+        const capable=s.capabilities.includes(answerMethod.id);
+        add({key:`m:cap:${s.id}:${capable}`,round:"method",category:"権限",target:s.short,title:"人物ファイル照合",text:`犯行手段を扱える人物には、${suspectName(s.id)}が${capable?"含まれる":"含まれない"}。`,test:x=>s.capabilities.includes(x.id)===capable});
+      }
+      return adjustDifficulty(list,difficulty);
+    }
+
+    function makeStatementPool(order,method){
+      const pool=[];
+      function add(base){
+        pool.push({...base,truth:true});
+        pool.push({...base,text:base.falseText,tags:base.falseTags,claim:!base.claim,truth:false});
+      }
+      for(let n=1;n<=4;n++){
+        const subject=order[n-1];
+        const actual=canUse(subject,method.id);
+        add({kind:"position",tags:[`pos${n}`,actual?"claim_can":"claim_cannot","position"],falseTags:[`pos${n}`,actual?"claim_cannot":"claim_can","position"],claim:actual,subject,text:`${n}番目に現場付近へ来た人物は、犯行手段を${actual?"使える":"使えない"}。`,falseText:`${n}番目に現場付近へ来た人物は、犯行手段を${actual?"使えない":"使える"}。`});
+      }
+      for(const side of ["front","back"]){
+        const label=side==="front"?"前半2人":"後半2人";
+        const ids=side==="front"?order.slice(0,2):order.slice(2,4);
+        const actual=ids.some(id=>canUse(id,method.id));
+        add({kind:"half",tags:[side,actual?"claim_has":"claim_none","area"],falseTags:[side,actual?"claim_none":"claim_has","area"],claim:actual,subject:side,text:`${label}の中に、犯行手段を使える人物が${actual?"いる":"いない"}。`,falseText:`${label}の中に、犯行手段を使える人物が${actual?"いない":"いる"}。`});
+      }
+      const absent=SUSPECTS.map(s=>s.id).find(id=>!order.includes(id));
+      const absentCan=canUse(absent,method.id);
+      add({kind:"absent",tags:["absent",absentCan?"claim_can":"claim_cannot"],falseTags:["absent",absentCan?"claim_cannot":"claim_can"],claim:absentCan,subject:absent,text:`現場付近へ来なかった人物は、犯行手段を${absentCan?"使える":"使えない"}。`,falseText:`現場付近へ来なかった人物は、犯行手段を${absentCan?"使えない":"使える"}。`});
+      for(const ref of order){
+        const before=order.slice(0,order.indexOf(ref));
+        const after=order.slice(order.indexOf(ref)+1);
+        for(const [dir,ids,label] of [["before",before,`${suspectName(ref)}より前に来た人物`],["after",after,`${suspectName(ref)}より後に来た人物`]]){
+          const actual=ids.some(id=>canUse(id,method.id));
+          add({kind:"relative",ref,dir,tags:[dir,`ref_${ref}`,actual?"claim_has":"claim_none","relative"],falseTags:[dir,`ref_${ref}`,actual?"claim_none":"claim_has","relative"],claim:actual,subject:ref,text:`${label}の中に、犯行手段を使える人物が${actual?"いる":"いない"}。`,falseText:`${label}の中に、犯行手段を使える人物が${actual?"いない":"いる"}。`});
+        }
+      }
+      return pool;
+    }
+
+    function generateTestimonies(order,method,rng){
+      const pool=makeStatementPool(order,method);
+      const truePool=shuffle(pool.filter(p=>p.truth),rng);
+      const falsePool=shuffle(pool.filter(p=>!p.truth),rng);
+      const falseBase=falsePool.find(p=>p.kind!=="absent") || falsePool[0];
+      const usedKeys=new Set([statementKey(falseBase)]);
+      const chosenTrue=[];
+      for(const st of truePool){
+        const key=statementKey(st);
+        if(usedKeys.has(key))continue;
+        if(chosenTrue.some(x=>x.kind===st.kind && chosenTrue.length<3))continue;
+        chosenTrue.push(st); usedKeys.add(key);
+        if(chosenTrue.length>=4)break;
+      }
+      for(const st of truePool){
+        if(chosenTrue.length>=4)break;
+        const key=statementKey(st); if(usedKeys.has(key))continue;
+        chosenTrue.push(st); usedKeys.add(key);
+      }
+      const speakers=shuffle(SUSPECTS.map(s=>s.id),rng);
+      const falseSpeaker=speakers[0];
+      const map=new Map();
+      map.set(falseSpeaker,falseBase);
+      let ti=0;
+      for(const sp of speakers.slice(1)) map.set(sp,chosenTrue[ti++]);
+      return SUSPECTS.map((s,idx)=>{
+        const base=map.get(s.id);
+        return { id:`t${idx+1}`, speaker:s.id, text:base.text, truth:base.truth, kind:base.kind, tags:base.tags, subject:base.subject, ref:base.ref||null, dir:base.dir||null, claim:base.claim };
+      });
+    }
+    function statementKey(st){return `${st.kind}|${st.subject||""}|${st.ref||""}|${st.dir||""}|${st.text}`;}
+
+    function generateTestimonyHints(testimonies,difficulty){
+      const falseSt=testimonies.find(t=>!t.truth);
+      const list=[],seen=new Set(),total=testimonies.length;
+      const add=data=>addHint(list,seen,total,falseSt,testimonies,data);
+      for(const s of SUSPECTS){
+        const isSpeaker=falseSt.speaker===s.id;
+        add({key:`t:speaker:${s.id}:${isSpeaker}`,round:"testimony",category:"証言",target:s.short,title:"発言者メモ",text:`嘘の証言は、${suspectName(s.id)}の発言${isSpeaker?"である":"ではない"}。`,test:t=>(t.speaker===s.id)===isSpeaker});
+      }
+      if(falseSt.kind==="position"){
+        const posTag=falseSt.tags.find(t=>/^pos\d$/.test(t));
+        const n=Number(posTag.replace("pos",""));
+        add({key:`t:kind:position`,round:"testimony",category:"照合",target:`${n}番目`,title:"矛盾点の範囲",text:`嘘の証言は、${n}番目に来た人物について述べている。`,test:t=>t.tags.includes(posTag)});
+      }
+      if(falseSt.kind==="half"){
+        const side=falseSt.tags.includes("front")?"front":"back";
+        add({key:`t:kind:half:${side}`,round:"testimony",category:"照合",target:side==="front"?"前半":"後半",title:"矛盾点の範囲",text:`嘘の証言は、${side==="front"?"前半2人":"後半2人"}について述べている。`,test:t=>t.tags.includes(side)});
+      }
+      if(falseSt.kind==="relative"){
+        const dir=falseSt.dir;
+        const ref=falseSt.ref;
+        add({key:`t:relative:${ref}:${dir}`,round:"testimony",category:"照合",target:suspectById(ref).short,title:"矛盾点の範囲",text:`嘘の証言は、${suspectName(ref)}より${dir==="before"?"前":"後"}に来た人物について述べている。`,test:t=>t.tags.includes(`ref_${ref}`)&&t.tags.includes(dir)});
+      }
+      if(falseSt.kind==="absent"){
+        add({key:`t:absent`,round:"testimony",category:"照合",target:"不在者",title:"矛盾点の範囲",text:`嘘の証言は、現場付近へ来なかった人物について述べている。`,test:t=>t.tags.includes("absent")});
+      }
+      const saysCan=falseSt.tags.includes("claim_can")||falseSt.tags.includes("claim_has");
+      add({key:`t:claim:${saysCan}`,round:"testimony",category:"照合",target:saysCan?"使える":"使えない",title:"証言の言い回し",text:`嘘の証言は、犯行手段を使える人物が${saysCan?"いる / 使える":"いない / 使えない"}という内容である。`,test:t=>(t.tags.includes("claim_can")||t.tags.includes("claim_has"))===saysCan});
+      return adjustDifficulty(list,difficulty);
+    }
+
+    function buildPuzzle(id,difficulty){
+      const rng=seededRng(`FALSE_ALIBI|${id}|${difficulty}|v1`);
+      const order=shuffle(SUSPECTS.map(s=>s.id),rng).slice(0,4);
+      const method=pick(METHODS,rng);
+      const testimonies=generateTestimonies(order,method,seededRng(`${id}|testimony|${difficulty}|v1`));
+      return {
+        order, method, testimonies,
+        orderDeck:shuffle(generateOrderHints(order,difficulty),seededRng(`${id}|orderDeck|${difficulty}|v1`)),
+        methodDeck:shuffle(generateMethodHints(method,difficulty),seededRng(`${id}|methodDeck|${difficulty}|v1`)),
+        testimonyDeck:shuffle(generateTestimonyHints(testimonies,difficulty),seededRng(`${id}|testimonyDeck|${difficulty}|v1`))
+      };
+    }
+
+    function newState(rawId,difficulty){
+      let id=normalizeId(rawId); if(!id) id=generateCaseId(); if(!id.startsWith("FA-"))id="FA-"+id;
+      const puzzle=buildPuzzle(id,difficulty);
+      return {
+        id,difficulty,answer:{order:puzzle.order,method:puzzle.method,testimonies:puzzle.testimonies,falseTestimony:puzzle.testimonies.find(t=>!t.truth)},
+        decks:{order:puzzle.orderDeck.slice(),method:puzzle.methodDeck.slice(),testimony:puzzle.testimonyDeck.slice()},
+        slots:[],phase:"order",revealed:[],score:0,logs:[],startedAt:Date.now(),finishedAt:null,timer:null,locked:false,
+        orderInput:[],methodInput:null,testimonyInput:null,resultText:"",
+        memo:{ order:Object.fromEntries(SUSPECTS.map(s=>[s.id,Array(4).fill("?")])), method:Object.fromEntries(METHODS.map(m=>[m.id,"?"])), testimony:Object.fromEntries(puzzle.testimonies.map(t=>[t.id,"?"])) }
+      };
+    }
+
+    function startGame(rawId=els.caseIdInput.value){
+      State=newState(rawId,els.difficultySelect.value);
+      els.caseIdInput.value=State.id;
+      els.startScreen.classList.add("hidden"); els.gameScreen.classList.remove("hidden"); els.resultModal.classList.add("hidden");
+      refillSlots(); stopTimer(); State.timer=setInterval(renderTime,500); renderAll(); window.scrollTo({top:0,behavior:"smooth"});
+    }
+    function activeDeck(){return State.decks[State.phase]||[];}
+    function refillSlots(){const deck=activeDeck();while(State.slots.length<OFFER_COUNT&&deck.length)State.slots.push(deck.shift());while(State.slots.length<OFFER_COUNT)State.slots.push(null);}
+    function phaseLabel(p=State.phase){return p==="order"?"TIMELINE":p==="method"?"METHOD":p==="testimony"?"TESTIMONY":p==="done"?"CLOSED":"FAILED";}
+
+    function useCard(index){
+      if(!State||State.locked)return;const card=State.slots[index];if(!card)return;
+      State.revealed.push(card); State.score+=card.score; State.logs.push({text:card.text,round:card.round});
+      State.slots.splice(index,1); refillSlots(); renderAll(); toast(`捜査カードを取得しました。+${card.score}点`);
+    }
+    function advancePhase(next){State.phase=next;State.slots=[];refillSlots();showFx("phase",next==="method"?"METHOD UNLOCKED":"TESTIMONY UNLOCKED",next==="method"?"ROUND 2 START":"ROUND 3 START");renderAll();}
+    function submitOrder(){
+      if(!State||State.locked||State.phase!=="order")return;
+      if(State.orderInput.length!==4){toast("4人の順番をすべて入れてください。");return;}
+      if(arraysEqual(State.orderInput,State.answer.order)){State.logs.push({text:"行動順が確定した。次は犯行手段を特定する。",round:"system"});advancePhase("method");}
+      else fail("行動順の照合に失敗しました。証言記録が崩れ、捜査は迷宮入りしました。");
+    }
+    function submitMethod(){
+      if(!State||State.locked||State.phase!=="method")return;
+      if(!State.methodInput){toast("犯行手段を1つ選んでください。");return;}
+      if(State.methodInput===State.answer.method.id){State.logs.push({text:`犯行手段は${methodName(State.answer.method.id)}と判明した。最後に証言を照合する。`,round:"system"});advancePhase("testimony");}
+      else fail("犯行手段の特定に失敗しました。誤った根拠で告発してしまいました。");
+    }
+    function submitTestimony(){
+      if(!State||State.locked||State.phase!=="testimony")return;
+      if(!State.testimonyInput){toast("突き付ける証言を選んでください。");return;}
+      if(State.testimonyInput===State.answer.falseTestimony.id) success();
+      else fail("その証言は、行動順と犯行手段の結果とは矛盾しませんでした。誤認追及です。");
+    }
+    function success(){
+      State.finishedAt=Date.now();State.locked=true;State.phase="done";stopTimer();
+      State.resultText=`FALSE ALIBI CASE CLOSED｜ID:${State.id}｜${State.score}点｜${State.revealed.length}枚｜${fmtTime(elapsedSeconds())}`;
+      showFx("success","CASE CLOSED","FALSE ALIBI EXPOSED");renderAll();showResult(true);
+    }
+    function fail(msg){
+      State.finishedAt=Date.now();State.locked=true;State.phase="fail";stopTimer();State.resultText=`FALSE ALIBI 捜査失敗｜ID:${State.id}｜${State.score}点｜${State.revealed.length}枚｜${fmtTime(elapsedSeconds())}`;
+      els.roundCore.classList.remove("shake"); void els.roundCore.offsetWidth; els.roundCore.classList.add("shake");
+      showFx("fail","FALSE ACCUSATION","INVESTIGATION FAILED");renderAll();showResult(false,msg);
+    }
+    function stopTimer(){if(State&&State.timer){clearInterval(State.timer);State.timer=null;}}
+
+    function renderAll(){renderStatus();renderCaseFile();renderRound();renderCards();renderRevealed();renderMemos();renderLogs();renderTime();}
+    function renderStatus(){els.statusId.textContent=State.id;els.statusPhase.textContent=phaseLabel();els.statusScore.textContent=String(State.score);}
+    function renderTime(){if(State)els.statusTime.textContent=fmtTime(elapsedSeconds());}
+    function renderCaseFile(){
+      els.caseSummary.innerHTML="資料室で機密ファイルが消失。犯行時刻の前後に、5人の関係者のうち4人が現場付近へ現れている。<br>あなたの仕事は、<b>行動記録</b>、<b>犯行手段</b>、<b>証言調書</b>をつなぎ、最後に矛盾を突き付けることです。";
+      els.suspectList.innerHTML=SUSPECTS.map(s=>`<article class="suspect-card"><div class="suspect-head"><div class="avatar ${suspectAvatarClass(s.id)}"><span class="avatar-ribbon">${escapeHtml(s.short)}</span></div><div class="suspect-meta"><strong>${escapeHtml(s.name)}</strong><span>${escapeHtml(s.role)}</span><em>所持・扱える物</em></div></div><div class="cap-tags">${s.capabilities.map(id=>`<span class="cap-tag">${escapeHtml(methodById(id).name)}</span>`).join("")}</div></article>`).join("");
+      els.testimonyBoard.innerHTML=State.answer.testimonies.map(t=>{const s=suspectById(t.speaker);return `<article class="testimony-mini"><div class="testimony-head"><div class="avatar avatar-sm ${suspectAvatarClass(t.speaker)}"></div><div><strong>${escapeHtml(s.name)}</strong><span>${escapeHtml(s.role)}</span></div></div><div class="quote">${escapeHtml(t.text)}</div><div class="testimony-stamp">聴取記録</div></article>`;}).join("");
+    }
+    function renderRound(){
+      els.lampOrder.className=`round-lamp ${State.phase==="order"?"active":(PHASES.indexOf(State.phase)>0||State.phase==="done")?"done":""}`;
+      els.lampMethod.className=`round-lamp ${State.phase==="method"?"active":(PHASES.indexOf(State.phase)>1||State.phase==="done")?"done":""}`;
+      els.lampTestimony.className=`round-lamp ${State.phase==="testimony"?"active":State.phase==="done"?"done":""}`;
+      els.orderPanel.classList.toggle("hidden",State.phase!=="order"); els.methodPanel.classList.toggle("hidden",State.phase!=="method"); els.testimonyPanel.classList.toggle("hidden",State.phase!=="testimony");
+      renderOrderPanel(); renderMethodPanel(); renderTestimonyPanel();
+      els.roundGuide.textContent=State.phase==="order"?"監視記録・足音・目撃情報などの資料から、4人の行動記録を整理します。":State.phase==="method"?"鑑識資料・人物ファイルから、使われた手段の性質を絞り込みます。":State.phase==="testimony"?"ここでは2つの結論をぶつけます。どの証言だけが成り立たないかを追及してください。":"捜査は終了しました。";
+    }
+    function renderOrderPanel(){
+      els.orderSlots.innerHTML=Array.from({length:4},(_,i)=>{const id=State.orderInput[i];return `<div class="order-slot"><b>${i+1}番目</b>${id?`<button type="button" data-remove-order="${i}"><div class="pick-head"><div class="avatar avatar-sm ${suspectAvatarClass(id)}"></div><div><strong>${escapeHtml(suspectById(id).name)}</strong><span style="display:block;color:#c7d3c9;font-size:11px;margin-top:3px">タップで外す</span></div></div></button>`:`<button type="button" disabled>未選択</button>`}</div>`;}).join("");
+      els.suspectPickGrid.innerHTML=SUSPECTS.map(s=>{const selected=State.orderInput.includes(s.id);return `<button class="pick-btn ${selected?"selected":""}" data-pick-suspect="${s.id}" type="button" ${selected||State.orderInput.length>=4||State.locked?"disabled":""}><div class="pick-head"><div class="avatar avatar-sm ${suspectAvatarClass(s.id)}"></div><div><strong>${escapeHtml(s.name)}</strong><span>${escapeHtml(s.role)}</span></div></div></button>`;}).join("");
+      $$('[data-pick-suspect]').forEach(btn=>btn.addEventListener("click",()=>{if(State.orderInput.length<4&&!State.orderInput.includes(btn.dataset.pickSuspect)){State.orderInput.push(btn.dataset.pickSuspect);renderRound();}}));
+      $$('[data-remove-order]').forEach(btn=>btn.addEventListener("click",()=>{State.orderInput.splice(Number(btn.dataset.removeOrder),1);renderRound();}));
+      els.submitOrderBtn.disabled=State.locked||State.phase!=="order"; els.clearOrderBtn.disabled=State.locked||State.phase!=="order";
+    }
+    function renderMethodPanel(){
+      els.methodGrid.innerHTML=METHODS.map(m=>`<button class="method-btn ${State.methodInput===m.id?"selected":""}" data-method="${m.id}" type="button" ${State.locked||State.phase!=="method"?"disabled":""}><strong>${m.icon} ${escapeHtml(m.name)}</strong><span>${escapeHtml(m.desc)}</span><div class="method-meta"><span class="cap-tag">分類：${escapeHtml(m.category)}</span><span class="cap-tag">特徴：${escapeHtml(m.tags.slice(0,2).map(t=>ATTRS.find(a=>a.id===t)?.label||t).join(' / '))}</span></div></button>`).join("");
+      $$('[data-method]').forEach(btn=>btn.addEventListener("click",()=>{State.methodInput=btn.dataset.method;renderMethodPanel();}));
+      els.submitMethodBtn.disabled=State.locked||State.phase!=="method";
+    }
+    function renderTestimonyPanel(){
+      els.testimonySelectGrid.innerHTML=State.answer.testimonies.map(t=>{const s=suspectById(t.speaker);return `<button class="testimony-choice ${State.testimonyInput===t.id?"selected":""}" data-testimony="${t.id}" type="button" ${State.locked||State.phase!=="testimony"?"disabled":""}><div class="pick-head"><div class="avatar avatar-sm ${suspectAvatarClass(t.speaker)}"></div><div><strong>${escapeHtml(s.name)}の証言</strong><span>${escapeHtml(s.role)}</span></div></div><div class="quote">${escapeHtml(t.text)}</div></button>`;}).join("");
+      $$('[data-testimony]').forEach(btn=>btn.addEventListener("click",()=>{State.testimonyInput=btn.dataset.testimony;renderTestimonyPanel();}));
+      els.submitTestimonyBtn.disabled=State.locked||State.phase!=="testimony";
+    }
+    function renderCards(){
+      refillSlots();
+      els.hintGrid.innerHTML=State.slots.map((card,i)=>{
+        if(!card)return `<div class="empty-card">これ以上、閲覧できる資料はありません。</div>`;
+        return `<button class="hint-card" data-card-slot="${i}" type="button" ${State.locked?"disabled":""}>
+          <div class="card-top"><span class="category-pill">${cardIcon(card.category)} ${escapeHtml(card.category)}</span><span class="score-badge">${card.score}点</span></div>
+          <p class="card-title">${escapeHtml(card.title)}</p><p class="card-text">対象：${escapeHtml(card.target)}<br>資料を閲覧すると捜査点が増えます。</p>
+          <div class="btn btn-small btn-primary choose-card">資料を閲覧する</div></button>`;
+      }).join("");
+      $$('[data-card-slot]').forEach(btn=>btn.addEventListener("click",()=>useCard(Number(btn.dataset.cardSlot))));
+    }
+    function cardIcon(cat){return cat==="行動"?"👣":cat==="順序"?"🕒":cat==="手段"?"🧰":cat==="属性"?"🔬":cat==="権限"?"🗂️":cat==="証言"?"🗣️":"⚖️";}
+    function renderRevealed(){
+      els.revealedSummary.textContent=`${State.revealed.length}枚 / 合計${State.score}点`;
+      if(!State.revealed.length){els.revealedList.innerHTML=`<div class="empty-card">まだ資料を閲覧していません。</div>`;return;}
+      els.revealedList.innerHTML=State.revealed.slice().reverse().map(h=>`<article class="revealed-row"><div class="hint-body">${escapeHtml(h.text)}</div><div class="hint-score">${h.score}点</div></article>`).join("");
+    }
+    function renderLogs(){
+      if(!State.logs.length){els.missionLog.innerHTML=`<p>閲覧した資料や推理の進行がここに時系列で記録されます。</p>`;return;}
+      els.missionLog.innerHTML=State.logs.slice(-7).map(l=>`<p>${escapeHtml(l.text)}</p>`).join(""); els.missionLog.scrollTop=els.missionLog.scrollHeight;
+    }
+    function renderMemos(){renderOrderMemo();renderMethodMemo();renderTestimonyMemo();}
+    function renderOrderMemo(){
+      let html=`<table class="memo-table"><thead><tr><th>人物</th><th>1番目</th><th>2番目</th><th>3番目</th><th>4番目</th></tr></thead><tbody>`;
+      for(const s of SUSPECTS){html+=`<tr><td>${escapeHtml(s.short)}</td>`;for(let p=0;p<4;p++){const v=State.memo.order[s.id][p];html+=`<td><button class="memo-btn ${memoClass(v)}" data-memo="order" data-id="${s.id}" data-pos="${p}" type="button">${v}</button></td>`;}html+=`</tr>`;}
+      html+=`</tbody></table>`;els.memoOrderWrap.innerHTML=html;bindMemoButtons();
+    }
+    function renderMethodMemo(){
+      let html=`<table class="memo-table"><thead><tr><th>手段</th><th>メモ</th></tr></thead><tbody>`;
+      for(const m of METHODS){const v=State.memo.method[m.id];html+=`<tr><td>${m.icon} ${escapeHtml(m.name)}</td><td><button class="memo-btn ${memoClass(v)}" data-memo="method" data-id="${m.id}" type="button">${v}</button></td></tr>`;}
+      html+=`</tbody></table>`;els.memoMethodWrap.innerHTML=html;bindMemoButtons();
+    }
+    function renderTestimonyMemo(){
+      let html=`<table class="memo-table"><thead><tr><th>証言</th><th>メモ</th></tr></thead><tbody>`;
+      for(const t of State.answer.testimonies){const v=State.memo.testimony[t.id];html+=`<tr><td>${suspectName(t.speaker)}</td><td><button class="memo-btn ${memoClass(v)}" data-memo="testimony" data-id="${t.id}" type="button">${v}</button></td></tr>`;}
+      html+=`</tbody></table>`;els.memoTestimonyWrap.innerHTML=html;bindMemoButtons();
+    }
+    function bindMemoButtons(){
+      $$('[data-memo]').forEach(btn=>btn.addEventListener("click",()=>{
+        const kind=btn.dataset.memo,id=btn.dataset.id;
+        if(kind==="order")State.memo.order[id][Number(btn.dataset.pos)]=nextMemo(State.memo.order[id][Number(btn.dataset.pos)]);
+        if(kind==="method")State.memo.method[id]=nextMemo(State.memo.method[id]);
+        if(kind==="testimony")State.memo.testimony[id]=nextMemo(State.memo.testimony[id]);
+        renderMemos();
+      }));
+    }
+    function nextMemo(v){return v==="?"?"×":v==="×"?"△":v==="△"?"○":"?";}
+    function memoClass(v){return v==="×"?"no":v==="△"?"maybe":v==="○"?"yes":"";}
+    function switchMemo(tab){
+      for(const [name,btn,wrap] of [["order",els.memoOrderTab,els.memoOrderWrap],["method",els.memoMethodTab,els.memoMethodWrap],["testimony",els.memoTestimonyTab,els.memoTestimonyWrap]]){btn.classList.toggle("active",name===tab);wrap.classList.toggle("hidden",name!==tab);}
+    }
+
+    function explainFalse(){
+      const st=State.answer.falseTestimony, method=State.answer.method, order=State.answer.order;
+      const capableList=SUSPECTS.filter(s=>s.capabilities.includes(method.id)).map(s=>suspectName(s.id)).join("・");
+      let detail="";
+      if(st.kind==="position"){
+        const posTag=st.tags.find(t=>/^pos\d$/.test(t)); const n=Number(posTag.replace("pos","")); const target=order[n-1];
+        detail=`ROUND1で、${n}番目に現場付近へ来た人物は${suspectName(target)}だと判明。\nROUND2で、犯行手段は${methodName(method.id)}だと判明。\n${suspectName(target)}は${methodName(method.id)}を${canUse(target,method.id)?"使える":"使えない"}人物です。`;
+      } else if(st.kind==="half"){
+        const side=st.tags.includes("front")?"front":"back"; const ids=side==="front"?order.slice(0,2):order.slice(2,4);
+        detail=`ROUND1で、${side==="front"?"前半2人":"後半2人"}は${ids.map(suspectName).join("・")}だと判明。\nROUND2で、犯行手段は${methodName(method.id)}だと判明。\n${methodName(method.id)}を使える人物は${capableList}です。`;
+      } else if(st.kind==="relative"){
+        const idx=order.indexOf(st.ref); const ids=st.dir==="before"?order.slice(0,idx):order.slice(idx+1);
+        detail=`ROUND1で、${suspectName(st.ref)}より${st.dir==="before"?"前":"後"}に来た人物は${ids.length?ids.map(suspectName).join("・"):"いません"}。\nROUND2で、犯行手段は${methodName(method.id)}だと判明。\n${methodName(method.id)}を使える人物は${capableList}です。`;
+      } else if(st.kind==="absent"){
+        const absent=SUSPECTS.map(s=>s.id).find(id=>!order.includes(id));
+        detail=`ROUND1で、現場付近へ来なかった人物は${suspectName(absent)}だと判明。\nROUND2で、犯行手段は${methodName(method.id)}だと判明。\n${suspectName(absent)}は${methodName(method.id)}を${canUse(absent,method.id)?"使える":"使えない"}人物です。`;
+      }
+      return detail;
+    }
+    function showResult(success,msg=""){
+      els.resultModal.classList.remove("hidden"); els.resultIcon.textContent=success?"✅":"⚠️"; els.resultTitle.textContent=success?"CASE CLOSED":"FALSE ACCUSATION"; els.resultMessage.textContent=success?"行動記録と犯行手段が結びつき、決定的な矛盾を突き付けました。":msg; els.copyResultBtn.classList.toggle("hidden",!success);
+      els.resultStats.innerHTML=[["事件ID",State.id],["捜査点",`${State.score}`],["使用カード",`${State.revealed.length}`],["時間",fmtTime(elapsedSeconds())]].map(([l,v])=>`<div class="result-stat"><span>${escapeHtml(l)}</span><b>${escapeHtml(v)}</b></div>`).join("");
+      const falseSt=State.answer.falseTestimony;
+      els.answerReveal.textContent=`行動順：${State.answer.order.map(suspectName).join(" → ")}\n犯行手段：${methodName(State.answer.method.id)}\n嘘の証言：${suspectName(falseSt.speaker)}「${falseSt.text}」\n\n${explainFalse()}\n\nよって、この証言はROUND1とROUND2の組み合わせと矛盾します。`;
+    }
+    function showFx(type,title,sub=""){
+      els.fxOverlay.innerHTML=`<div class="fx-card"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(sub)}</span></div>`; els.fxOverlay.className=`fx-overlay ${type} show`; clearTimeout(showFx._timer); showFx._timer=setTimeout(()=>{els.fxOverlay.className="fx-overlay hidden";els.fxOverlay.innerHTML="";},type==="success"||type==="fail"?1400:900);
+    }
+    function toast(msg,ms=2200){els.toast.textContent=msg;els.toast.classList.add("show");clearTimeout(toast._timer);toast._timer=setTimeout(()=>els.toast.classList.remove("show"),ms);}
+    function copyText(text){if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).catch(()=>fallbackCopy(text));else fallbackCopy(text);}
+    function fallbackCopy(text){const ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(_){}ta.remove();}
+    function copyId(){copyText(State?State.id:normalizeId(els.caseIdInput.value));toast("事件IDをコピーしました。");}
+    function copyResult(){copyText(State.resultText||`FALSE ALIBI｜ID:${State.id}`);toast("記録をコピーしました。");}
+    function backToStart(){stopTimer();els.gameScreen.classList.add("hidden");els.startScreen.classList.remove("hidden");els.resultModal.classList.add("hidden");window.scrollTo({top:0,behavior:"smooth"});}
+
+    function bindEvents(){
+      els.randomIdBtn.addEventListener("click",()=>{els.caseIdInput.value=generateCaseId();});
+      els.demoBtn.addEventListener("click",()=>{els.caseIdInput.value="FA-DEMO42";});
+      els.startBtn.addEventListener("click",()=>startGame()); els.caseIdInput.addEventListener("keydown",e=>{if(e.key==="Enter")startGame();});
+      els.copyIdBtn.addEventListener("click",copyId); els.backToStartBtn.addEventListener("click",backToStart);
+      els.clearOrderBtn.addEventListener("click",()=>{State.orderInput=[];renderRound();}); els.submitOrderBtn.addEventListener("click",submitOrder); els.submitMethodBtn.addEventListener("click",submitMethod); els.submitTestimonyBtn.addEventListener("click",submitTestimony);
+      els.memoOrderTab.addEventListener("click",()=>switchMemo("order")); els.memoMethodTab.addEventListener("click",()=>switchMemo("method")); els.memoTestimonyTab.addEventListener("click",()=>switchMemo("testimony"));
+      els.copyResultBtn.addEventListener("click",copyResult); els.retrySameBtn.addEventListener("click",()=>startGame(State.id)); els.freshFromResultBtn.addEventListener("click",()=>startGame(generateCaseId())); els.closeResultBtn.addEventListener("click",()=>els.resultModal.classList.add("hidden"));
+    }
+    bindEvents(); if(!normalizeId(els.caseIdInput.value))els.caseIdInput.value=generateCaseId();
+  </script>
+</body>
+</html>
