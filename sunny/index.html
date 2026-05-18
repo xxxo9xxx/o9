@@ -13,8 +13,8 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);c
 canvas{display:block;width:100%;height:100%;background:#142044;touch-action:none;}
 button{font:inherit;font-weight:900;border:0;border-radius:16px;padding:14px 20px;margin:6px;cursor:pointer;background:linear-gradient(#ffe779,#ffad3d);color:#362100;box-shadow:0 7px 0 rgba(0,0,0,.28);min-height:48px;}
 button:active{transform:translateY(2px);box-shadow:0 4px 0 rgba(0,0,0,.28)}
-#menu{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 25%,rgba(255,223,107,.16),rgba(0,0,0,.68));z-index:10;padding:20px;}
-#panel{width:min(580px,94vw);padding:24px;border-radius:22px;text-align:center;background:var(--glass);border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.35);backdrop-filter:blur(10px);}
+#menu{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:center;background:radial-gradient(circle at 50% 25%,rgba(255,223,107,.16),rgba(0,0,0,.68));z-index:10;padding:calc(12px + var(--safe-top)) 20px calc(18px + var(--safe-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+#panel{width:min(580px,94vw);padding:24px;border-radius:22px;text-align:center;background:var(--glass);border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.35);backdrop-filter:blur(10px);margin:0 auto;}
 .menuHero{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:8px}.titleSprite{position:relative;width:108px;height:108px;display:grid;place-items:center;overflow:visible;isolation:isolate;background:transparent;}.titleSprite::after{content:"";position:absolute;inset:13px;border-radius:50%;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:0;pointer-events:none;}.titleSprite img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform-origin:center center;background:transparent;display:block;}.titleSprite .ring{z-index:1}.titleSprite .face{z-index:2}.menuCatch{font-size:clamp(17px,4.6vw,22px);font-weight:1000;color:#fff3a6;text-shadow:0 2px 12px rgba(255,223,107,.35);margin:4px 0 12px;line-height:1.35}.menuQrWrap{margin-top:12px;display:flex;flex-direction:column;align-items:center;gap:8px}.menuQrToggle{font-size:13px;padding:8px 12px;margin:0;min-height:36px;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.24);box-shadow:none}.menuQrContent{display:none;flex-direction:column;align-items:center;gap:8px}.menuQrWrap.open .menuQrContent{display:flex}.menuQrWrap img{width:132px;height:132px;border-radius:14px;background:#fff;padding:8px;box-shadow:0 10px 28px rgba(0,0,0,.25);}.menuQrHint{font-size:12px;color:#dce5ff;line-height:1.5}
 h1{font-size:clamp(30px,8vw,42px);line-height:1.12;margin:8px 0 12px;}p{line-height:1.6;color:#e3e9ff;margin:8px 0;}
 #hud{position:absolute;left:8px;right:8px;top:calc(8px + var(--safe-top));z-index:5;display:none;pointer-events:none;font-weight:900;flex-wrap:wrap;gap:4px 6px;align-items:flex-start;max-width:calc(100vw - 16px);}
@@ -54,12 +54,28 @@ button.gp-selected{outline:3px solid rgba(255,255,255,.96);box-shadow:0 0 0 5px 
 .rankColumns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .rankList{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:10px;min-height:92px;}
 .rankList h4{margin:0 0 7px;font-size:13px;color:#66d9ff;text-align:center;}
-.rankRow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:6px;align-items:center;font-size:12px;line-height:1.35;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08);}
-.rankRow:last-child{border-bottom:0}.rankName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;font-weight:900}.rankMeta{color:#fff3a6;font-weight:900;text-align:right;white-space:nowrap}.rankSub{grid-column:2/4;color:#dce5ff;font-size:10px;opacity:.9}.rankEmpty{font-size:12px;color:#dce5ff;text-align:center;padding:12px 4px}.scoreSubmit{margin:12px 0;padding:12px;border-radius:16px;background:rgba(255,223,107,.10);border:1px solid rgba(255,223,107,.25);}
-.scoreSubmit label{display:block;font-size:13px;font-weight:900;color:#fff3a6;margin-bottom:7px}.scoreSubmitRow{display:flex;gap:8px;align-items:center}.scoreSubmit input{flex:1;min-width:0;height:46px;border-radius:13px;border:1px solid rgba(255,255,255,.26);background:rgba(0,0,0,.34);color:#fff;font:inherit;font-weight:900;padding:0 12px;outline:none}.scoreSubmit input:focus{border-color:#ffdf6b;box-shadow:0 0 0 3px rgba(255,223,107,.18)}.scoreSubmit button{margin:0;white-space:nowrap}.rankStatus{font-size:12px;color:#dce5ff;text-align:center;margin-top:7px;min-height:1.4em}
-@media(max-width:680px){.rankColumns{grid-template-columns:1fr}.scoreSubmitRow{flex-direction:column}.scoreSubmit input,.scoreSubmit button{width:100%;}.rankingBox{padding:10px}.rankRow{font-size:11px}}
+.rankingControls{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 10px}.rankLoadBtn{font-size:12px;padding:8px 12px;margin:0;min-height:34px;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.24);box-shadow:none}.rankLoadBtn:disabled{opacity:.58;cursor:not-allowed}.rankRow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:6px;align-items:center;font-size:12px;line-height:1.35;padding:6px 5px;border-bottom:1px solid rgba(255,255,255,.08);border-radius:10px;cursor:pointer}.rankRow:hover,.rankRow:focus-visible{background:rgba(255,255,255,.08);outline:2px solid rgba(255,223,107,.55);outline-offset:1px}.rankRow.open{background:rgba(255,223,107,.10);border-color:rgba(255,223,107,.18)}
+.rankRow:last-child{border-bottom:0}.rankName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;font-weight:900}.rankMeta{color:#fff3a6;font-weight:900;text-align:right;white-space:nowrap}.rankSub{grid-column:2/4;color:#dce5ff;font-size:10px;opacity:.9}.rankDetail{display:none;grid-column:1/4;margin-top:6px;padding:8px 9px;border-radius:10px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.10);color:#e3e9ff;font-size:10px;line-height:1.55}.rankRow.open .rankDetail{display:block}.rankDetail b{color:#fff3a6}.rankDetail .muted{color:#b9c5ee}.rankEmpty{font-size:12px;color:#dce5ff;text-align:center;padding:12px 4px}.rankHint{font-size:10px;color:#dce5ff;text-align:center;opacity:.82;margin-top:6px}.scoreSubmit{margin:12px 0;padding:12px;border-radius:16px;background:rgba(255,223,107,.10);border:1px solid rgba(255,223,107,.25);}
+.scoreSubmit label{display:block;font-size:13px;font-weight:900;color:#fff3a6;margin-bottom:7px}.scoreSubmitRow{display:flex;gap:8px;align-items:center}.scoreSubmit input{flex:1;min-width:0;height:46px;border-radius:13px;border:1px solid rgba(255,255,255,.26);background:rgba(0,0,0,.34);color:#fff;font:inherit;font-weight:900;padding:0 12px;outline:none}.scoreSubmit input:focus{border-color:#ffdf6b;box-shadow:0 0 0 3px rgba(255,223,107,.18)}.scoreSubmit button{margin:0;white-space:nowrap}.scoreSubmit button:disabled{opacity:.58;cursor:not-allowed}.rankStatus{font-size:12px;color:#dce5ff;text-align:center;margin-top:7px;min-height:1.4em}.rankingControls .rankStatus{margin-top:0;min-height:0;font-size:11px}
+@media(max-width:680px){#menu{padding:calc(8px + var(--safe-top)) 10px calc(12px + var(--safe-bottom));}#panel{padding:14px;width:min(580px,96vw)}.rankColumns{grid-template-columns:1fr}.scoreSubmitRow{flex-direction:column}.scoreSubmit input,.scoreSubmit button{width:100%;}.rankingBox{padding:10px;margin:10px 0}.rankRow{font-size:11px}.rankingControls{gap:6px}.rankLoadBtn{width:auto;min-width:132px}.menuHero{gap:6px;margin-bottom:4px}.titleSprite{width:76px;height:76px}h1{font-size:clamp(26px,7vw,36px);margin:4px 0 7px}.menuCatch{margin:2px 0 8px}}
 #debugPanel{position:absolute;right:8px;top:118px;z-index:7;display:none;flex-direction:column;gap:4px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:8px;backdrop-filter:blur(8px);}.debugTitle{font-size:11px;font-weight:900;color:#fff3a6;text-align:center;margin-bottom:2px;}#debugPanel button{font-size:11px;padding:6px 8px;margin:0;border-radius:9px;box-shadow:none;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.22);text-align:left;min-height:28px;}
 @media(max-width:680px){#choices{grid-template-columns:1fr}.pill{font-size:10px;padding:5px 7px}#hud{left:6px;right:6px;top:calc(5px + var(--safe-top));gap:3px 4px}#hpOuter{left:6px;top:calc(48px + var(--safe-top));width:min(210px,calc(100vw - 12px));height:14px}#expOuter{left:6px;top:calc(66px + var(--safe-top));width:min(280px,calc(100vw - 12px));height:14px}#msg{top:calc(88px + var(--safe-top));font-size:12px;border-radius:16px;padding:8px 10px}.panelGlass,.resultPanel{padding:13px;border-radius:20px}.choice{min-height:auto;padding:12px}.choice .emoji{font-size:28px}.choice b{font-size:16px}.choice small{font-size:12px}.slot{width:29px;height:29px;font-size:15px;border-radius:9px}.slot .lv{font-size:8px}.slotGroup{padding:4px 5px;gap:4px;border-radius:13px}.slotLabel{font-size:8px}#weaponSlots,#passiveSlots{gap:4px}#bottomSlots{gap:5px;bottom:calc(5px + var(--safe-bottom))}#debugPanel{right:4px;top:96px;transform-origin:right top;opacity:.55}.statsGrid{grid-template-columns:1fr 1fr}.statBox{padding:9px}button{width:100%;margin:6px 0;min-height:46px}.titleSprite{width:92px;height:92px}.menuQrWrap img{width:116px;height:116px}.menuCatch{font-size:17px}}@media(max-height:620px){.pill{font-size:9px;padding:4px 6px}#hpOuter{top:calc(42px + var(--safe-top));height:12px}#expOuter{top:calc(58px + var(--safe-top));height:12px}#expText{font-size:9px}#msg{top:calc(76px + var(--safe-top))}.slot{width:25px;height:25px;font-size:13px}.slotGroup{padding:3px 4px}.slotLabel{display:none}.panelGlass,.resultPanel{padding:10px}.choice{padding:10px}.choice .emoji{font-size:24px}}
+
+
+/* v14: 固定ゲーム領域（縦/横）を中央に拡大表示するためのHUD位置補正 */
+:root{--play-left:0px;--play-top:0px;--play-width:100vw;--play-height:100dvh;}
+#hud{left:calc(var(--play-left,0px) + 8px);right:auto;top:calc(var(--play-top,0px) + 8px + var(--safe-top));width:calc(var(--play-width,100vw) - 16px);max-width:calc(var(--play-width,100vw) - 16px);}
+#hpOuter{left:calc(var(--play-left,0px) + 8px);top:calc(var(--play-top,0px) + 58px + var(--safe-top));width:min(240px,calc(var(--play-width,100vw) - 16px));}
+#expOuter{left:calc(var(--play-left,0px) + 8px);top:calc(var(--play-top,0px) + 82px + var(--safe-top));width:min(360px,calc(var(--play-width,100vw) - 16px));}
+@media(max-width:680px){
+  #hud{left:calc(var(--play-left,0px) + 6px);right:auto;top:calc(var(--play-top,0px) + 5px + var(--safe-top));width:calc(var(--play-width,100vw) - 12px);max-width:calc(var(--play-width,100vw) - 12px);}
+  #hpOuter{left:calc(var(--play-left,0px) + 6px);top:calc(var(--play-top,0px) + 48px + var(--safe-top));width:min(210px,calc(var(--play-width,100vw) - 12px));}
+  #expOuter{left:calc(var(--play-left,0px) + 6px);top:calc(var(--play-top,0px) + 66px + var(--safe-top));width:min(280px,calc(var(--play-width,100vw) - 12px));}
+}
+@media(max-height:620px){
+  #hpOuter{top:calc(var(--play-top,0px) + 42px + var(--safe-top));}
+  #expOuter{top:calc(var(--play-top,0px) + 58px + var(--safe-top));}
+}
 
 </style>
 </head>
@@ -74,8 +90,8 @@ button.gp-selected{outline:3px solid rgba(255,255,255,.96);box-shadow:0 0 0 5px 
 <div id="debugPanel"><div class="debugTitle">DEBUG</div><button type="button" data-debug="level">L LvUP</button><button type="button" data-spawn="normal">1 基本</button><button type="button" data-spawn="fast">2 速い</button><button type="button" data-spawn="tank">3 硬い</button><button type="button" data-spawn="split">5 分裂</button><button type="button" data-boss="basicBoss">6 中ボス</button><button type="button" data-boss="specialBoss">7 特殊</button><button type="button" data-boss="rushBoss">8 突進</button></div>
 <div id="levelScreen" class="modal"><div id="levelPanel" class="panelGlass"><h2>LEVEL UP!</h2><p>ビルドを選んでね。完成後は自動でスコア化、エンドレスでは限界突破。</p><div id="choices"></div><button id="rerollBtn" type="button">デバッグ：3択ひきなおし</button></div></div>
 <div id="clearScreen" class="modal"><div class="resultPanel"><h2 class="clearGlow">GAME CLEAR!</h2><p>5分間生存成功！結果を見るか、エンドレスへ挑戦できます。</p><div id="clearStats" class="statsGrid"></div><div id="clearBuild" class="buildLine"></div><button id="endlessBtn" type="button">エンドレスへ挑戦</button><button id="finishBtn" type="button">結果を見る</button></div></div>
-<div id="resultScreen" class="modal"><div class="resultPanel"><h2 id="resultTitle">RESULT</h2><p id="resultComment"></p><div id="resultStats" class="statsGrid"></div><div id="resultBuild" class="buildLine"></div><div id="scoreSubmit" class="scoreSubmit"><label for="playerNameInput">ランキングに登録する名前</label><div class="scoreSubmitRow"><input id="playerNameInput" maxlength="8" autocomplete="off" placeholder="ななしサニー"><button id="submitScoreBtn" type="button">登録する</button></div><div id="rankSubmitStatus" class="rankStatus"></div></div><div id="resultRanking" class="rankingBox"><h3>歴代ランキング</h3><div class="rankColumns"><div class="rankList"><h4>🏆 スコア TOP5</h4><div id="resultScoreRanks" class="rankEmpty">読み込み中...</div></div><div class="rankList"><h4>⏱ 生存時間 TOP5</h4><div id="resultTimeRanks" class="rankEmpty">読み込み中...</div></div></div></div><button id="againBtn" type="button">もう一度</button><button id="titleBtn" type="button">タイトルへ</button></div></div>
-<div id="menu"><div id="panel"><div class="menuHero"><div class="titleSprite" aria-hidden="true"><img id="menuRingImg" class="ring" alt=""><img id="menuFaceImg" class="face" alt=""></div><h1>サニーさんサバイバー</h1></div><div class="menuCatch">もやもやを倒して５分間生き残れ！</div><button id="startBtn" type="button">ゲームスタート</button><div id="menuRanking" class="rankingBox"><h3>歴代ランキング</h3><div class="rankColumns"><div class="rankList"><h4>🏆 スコア TOP5</h4><div id="menuScoreRanks" class="rankEmpty">読み込み中...</div></div><div class="rankList"><h4>⏱ 生存時間 TOP5</h4><div id="menuTimeRanks" class="rankEmpty">読み込み中...</div></div></div></div><div class="menuQrWrap" id="menuQrWrap"><button id="qrToggleBtn" class="menuQrToggle" type="button" aria-expanded="false">QRコードを表示</button><div class="menuQrContent" id="menuQrContent"><img id="menuQrImg" alt="このゲームのQRコード"><div class="menuQrHint">このゲームのURLを開くQRコード</div></div></div></div></div>
+<div id="resultScreen" class="modal"><div class="resultPanel"><h2 id="resultTitle">RESULT</h2><p id="resultComment"></p><div id="resultStats" class="statsGrid"></div><div id="resultBuild" class="buildLine"></div><div id="scoreSubmit" class="scoreSubmit"><label for="playerNameInput">ランキングに登録する名前（できればひらがなフルネーム）</label><div class="scoreSubmitRow"><input id="playerNameInput" maxlength="16" autocomplete="off" inputmode="text" placeholder="ななしサニーでもOK"><button id="submitScoreBtn" type="button">登録する</button></div><div id="rankSubmitStatus" class="rankStatus"></div></div><div id="resultRanking" class="rankingBox"><h3>歴代ランキング</h3><div class="rankingControls"><button id="resultLoadRankingsBtn" class="rankLoadBtn" type="button">ランキングを表示/更新</button><span id="resultRankingStatus" class="rankStatus">必要な時だけ読み込みます</span></div><div class="rankColumns"><div class="rankList"><h4>🏆 スコア TOP5</h4><div id="resultScoreRanks" class="rankEmpty">ランキングを表示/更新で読み込み</div></div><div class="rankList"><h4>⏱ 生存時間 TOP5</h4><div id="resultTimeRanks" class="rankEmpty">ランキングを表示/更新で読み込み</div></div></div><div class="rankHint">順位をタップすると、使った武器などの詳細を開きます。</div></div><button id="againBtn" type="button">もう一度</button><button id="titleBtn" type="button">タイトルへ</button></div></div>
+<div id="menu"><div id="panel"><div class="menuHero"><div class="titleSprite" aria-hidden="true"><img id="menuRingImg" class="ring" alt=""><img id="menuFaceImg" class="face" alt=""></div><h1>サニーさんサバイバー</h1></div><div class="menuCatch">もやもやを倒して５分間生き残れ！</div><button id="startBtn" type="button">ゲームスタート</button><div id="menuRanking" class="rankingBox"><h3>歴代ランキング</h3><div class="rankingControls"><button id="menuLoadRankingsBtn" class="rankLoadBtn" type="button">ランキングを表示</button><span id="menuRankingStatus" class="rankStatus">通信節約のため手動読み込み</span></div><div class="rankColumns"><div class="rankList"><h4>🏆 スコア TOP5</h4><div id="menuScoreRanks" class="rankEmpty">ランキングを表示で読み込み</div></div><div class="rankList"><h4>⏱ 生存時間 TOP5</h4><div id="menuTimeRanks" class="rankEmpty">ランキングを表示で読み込み</div></div></div><div class="rankHint">順位をタップすると、使った武器などの詳細を開きます。</div></div><div class="menuQrWrap" id="menuQrWrap"><button id="qrToggleBtn" class="menuQrToggle" type="button" aria-expanded="false">QRコードを表示</button><div class="menuQrContent" id="menuQrContent"><img id="menuQrImg" alt="このゲームのQRコード"><div class="menuQrHint">このゲームのURLを開くQRコード</div></div></div></div></div>
 </div>
 <script>
 
@@ -90,7 +106,9 @@ var CONFIG={
 var canvas=document.getElementById('canvas');
 var ctx=canvas.getContext('2d');
 function currentViewport(){var vv=window.visualViewport;return{w:Math.floor(vv?vv.width:window.innerWidth),h:Math.floor(vv?vv.height:window.innerHeight)};}
-var vp=currentViewport(),width=vp.w,height=vp.h,dpr=1;
+var WORLD_PORTRAIT_W=390,WORLD_PORTRAIT_H=760,WORLD_LANDSCAPE_W=760,WORLD_LANDSCAPE_H=390;
+var GAME_WORLD_W=WORLD_PORTRAIT_W,GAME_WORLD_H=WORLD_PORTRAIT_H,worldLayout='portrait';
+var vp=currentViewport(),screenWidth=vp.w,screenHeight=vp.h,width=GAME_WORLD_W,height=GAME_WORLD_H,dpr=1,worldScale=1,worldOffsetX=0,worldOffsetY=0,worldViewW=GAME_WORLD_W,worldViewH=GAME_WORLD_H;
 var running=false,paused=false,gameOver=false,clearOffered=false,endlessMode=false;
 var totalKills=0,lastTime=performance.now(),player=null;
 var enemies=[],bullets=[],items=[],particles=[],trails=[],lightnings=[],zones=[];
@@ -213,7 +231,8 @@ setupQrToggle();
 
 
 var firebaseConfig={apiKey:"AIzaSyA2CrJWFBsFJJGZOe0EvCs115E3EdEd72k",authDomain:"sunny-survivor-ranking.firebaseapp.com",projectId:"sunny-survivor-ranking",storageBucket:"sunny-survivor-ranking.firebasestorage.app",messagingSenderId:"912604013845",appId:"1:912604013845:web:8a882d32ea65491d33f51c"};
-var firebaseInitPromise=null,fireDb=null,fireFns=null,lastResultPayload=null,scoreAlreadySubmitted=false;
+var firebaseInitPromise=null,fireDb=null,fireFns=null,lastResultPayload=null,scoreAlreadySubmitted=false,scoreSubmitInProgress=false,rankingsLoaded=false,rankingsLoading=false;
+var RANKING_LIMITS={score:1000000,time:3600,level:300,kills:30000,cooldownMs:8000};
 function initRanking(){
   if(firebaseInitPromise)return firebaseInitPromise;
   firebaseInitPromise=Promise.all([
@@ -226,6 +245,7 @@ function initRanking(){
     return fireDb;
   }).catch(function(err){
     setRankingStatus('ランキング接続に失敗しました');
+    setRankBoxStatus('menu','接続失敗');setRankBoxStatus('result','接続失敗');
     renderRankError('menuScoreRanks');renderRankError('menuTimeRanks');renderRankError('resultScoreRanks');renderRankError('resultTimeRanks');
     console.warn('ranking init failed',err);
     throw err;
@@ -233,25 +253,129 @@ function initRanking(){
   return firebaseInitPromise;
 }
 function setRankingStatus(text){var el=document.getElementById('rankSubmitStatus');if(el)el.textContent=text||'';}
-function sanitizeName(v){v=String(v||'').replace(/[<>]/g,'').replace(/\s+/g,' ').trim();if(!v)v='ななしサニー';return v.slice(0,8);}
-function plainBuildSummary(){
-  var names=[];
-  fusionOrder.forEach(function(id){if(getFusionLevel(id)>0)names.push(fusionDefs[id].name+' Lv'+getFusionLevel(id));});
-  weaponOrder.forEach(function(id){if(getWeaponLevel(id)>0)names.push(weaponDefs[id].name+' Lv'+getWeaponLevel(id));});
-  if(names.length===0)names.push('サニーショット');
-  return names.slice(0,5).join(' / ').slice(0,120);
+function setRankBoxStatus(scope,text){var el=document.getElementById(scope+'RankingStatus');if(el)el.textContent=text||'';}
+function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function sanitizeName(v){v=String(v||'').replace(/[<>]/g,'').replace(/\s+/g,' ').trim();if(!v)v='ななしサニー';return v.slice(0,16);}
+function collectBuildData(){
+  var fusions=[],weapons=[],passives=[],breaks=[];
+  fusionOrder.forEach(function(id){var lv=getFusionLevel(id);if(lv>0)fusions.push({id:id,name:fusionDefs[id].name,level:lv,icon:fusionDefs[id].icon});});
+  weaponOrder.forEach(function(id){var lv=getWeaponLevel(id);if(lv>0)weapons.push({id:id,name:weaponDefs[id].name,level:lv,icon:weaponDefs[id].icon});});
+  passiveOrder.forEach(function(id){var lv=getPassiveLevel(id);if(lv>0)passives.push({id:id,name:passiveDefs[id].name,level:lv,icon:passiveDefs[id].icon});});
+  breakOrder.forEach(function(id){var lv=getBreakLevel(id);if(lv>0)breaks.push({id:id,name:breakDefs[id].name,level:lv,icon:breakDefs[id].icon});});
+  return{fusions:fusions,weapons:weapons,passives:passives,breaks:breaks};
 }
-function makeResultPayload(name){return{ name:sanitizeName(name), score:Math.max(0,Math.floor(score||0)), surviveTime:Math.max(0,Math.floor(gameTime||0)), level:Math.max(1,Math.floor(level||1)), kills:Math.max(0,Math.floor(totalKills||0)), mode:endlessMode?'ENDLESS':'NORMAL', build:plainBuildSummary(), ua:(navigator.userAgent||'').slice(0,120) };}
+function plainItemList(list,prefix){return list.map(function(x){return (x.icon||'')+' '+x.name+' '+(prefix||'Lv')+x.level;}).join(' / ');}
+function extractBuildLine(text,label){
+  text=String(text||'');
+  var lines=text.split(/\n|<br\s*\/?\s*>/i);
+  for(var i=0;i<lines.length;i++){
+    var line=String(lines[i]||'').trim();
+    if(line.indexOf(label+':')===0||line.indexOf(label+'：')===0){
+      return line.replace(label+':','').replace(label+'：','').trim();
+    }
+  }
+  return '';
+}
+function plainBuildParts(){
+  var bd=collectBuildData();
+  return{
+    fusionText:plainItemList(bd.fusions,'Lv'),
+    weaponText:plainItemList(bd.weapons,'Lv'),
+    passiveText:plainItemList(bd.passives,'Lv'),
+    breakText:plainItemList(bd.breaks,'+')
+  };
+}
+function plainBuildSummary(){
+  var bd=collectBuildData();
+  var names=[];
+  bd.fusions.forEach(function(x){names.push(x.name+' Lv'+x.level);});
+  bd.weapons.forEach(function(x){names.push(x.name+' Lv'+x.level);});
+  if(names.length===0)names.push('サニーショット');
+  return names.slice(0,5).join(' / ').slice(0,140);
+}
+function plainBuildFull(){
+  var parts=plainBuildParts();
+  var attack=[parts.fusionText,parts.weaponText].filter(Boolean).join(' / ');
+  var lines=[];
+  lines.push('武器: '+(attack||'サニーショット'));
+  lines.push('補助: '+(parts.passiveText||'なし'));
+  if(parts.breakText)lines.push('限界突破: '+parts.breakText);
+  return lines.join('\n').slice(0,800);
+}
+function makeResultPayload(name){
+  var bd=collectBuildData();
+  var parts=plainBuildParts();
+  return{
+    name:sanitizeName(name),
+    score:Math.max(0,Math.floor(score||0)),
+    surviveTime:Math.max(0,Math.floor(gameTime||0)),
+    level:Math.max(1,Math.floor(level||1)),
+    kills:Math.max(0,Math.floor(totalKills||0)),
+    mode:endlessMode?'ENDLESS':'NORMAL',
+    titles:earnedTitles(),
+    build:plainBuildSummary(),
+    buildFull:plainBuildFull(),
+    fusionText:parts.fusionText,
+    weaponText:parts.weaponText,
+    passiveText:parts.passiveText,
+    breakText:parts.breakText,
+    fusions:bd.fusions,
+    weapons:bd.weapons,
+    passives:bd.passives,
+    breaks:bd.breaks,
+    resultTitle:(document.getElementById('resultTitle')&&document.getElementById('resultTitle').textContent)||'',
+    clientCreatedAt:new Date().toISOString(),
+    gameVersion:'v14-fixed-world-landscape'
+  };
+}
+function validatePayload(p){
+  if(!p)return'記録データを作れませんでした';
+  if(p.score<0||p.score>RANKING_LIMITS.score)return'スコアが異常値のため登録しません';
+  if(p.surviveTime<0||p.surviveTime>RANKING_LIMITS.time)return'生存時間が異常値のため登録しません';
+  if(p.level<1||p.level>RANKING_LIMITS.level)return'レベルが異常値のため登録しません';
+  if(p.kills<0||p.kills>RANKING_LIMITS.kills)return'撃破数が異常値のため登録しません';
+  if(String(p.name||'').length>16)return'名前が長すぎます';
+  return'';
+}
+function setSubmitButtonState(disabled){var btn=document.getElementById('submitScoreBtn');if(btn){btn.disabled=!!disabled;btn.textContent=disabled?'登録中...':'登録する';}}
+function submitCooldownLeft(){var last=Number(localStorage.getItem('sunnyLastSubmitAt')||0);return Math.max(0,RANKING_LIMITS.cooldownMs-(Date.now()-last));}
 function formatRankTime(sec){sec=Math.max(0,Math.floor(sec||0));return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');}
+function formatRankDate(data){try{var v=data.createdAt;if(v&&typeof v.toDate==='function')return v.toDate().toLocaleString('ja-JP');if(v&&v.seconds)return new Date(v.seconds*1000).toLocaleString('ja-JP');if(data.clientCreatedAt)return new Date(data.clientCreatedAt).toLocaleString('ja-JP');}catch(e){}return'記録なし';}
 function renderRankError(id){var el=document.getElementById(id);if(el){el.className='rankEmpty';el.textContent='ランキングを読めませんでした';}}
+function renderRankPrompt(){['menuScoreRanks','menuTimeRanks','resultScoreRanks','resultTimeRanks'].forEach(function(id){var el=document.getElementById(id);if(el&&!rankingsLoaded){el.className='rankEmpty';el.textContent=(id.indexOf('menu')===0?'ランキングを表示で読み込み':'ランキングを表示/更新で読み込み');}});}
+function listFromData(data,key){var arr=Array.isArray(data[key])?data[key]:[];return arr.map(function(x){return escapeHtml((x.icon||'')+' '+(x.name||'')+' '+(key==='breaks'?'+':'Lv')+(x.level||1));}).join(' / ');}
+function rankDetailHtml(data){
+  var attack=[listFromData(data,'fusions'),listFromData(data,'weapons')].filter(Boolean).join(' / ');
+  if(!attack){attack=[data.fusionText,data.weaponText].filter(Boolean).map(escapeHtml).join(' / ');}
+  var passive=listFromData(data,'passives');
+  if(!passive&&data.passiveText)passive=escapeHtml(data.passiveText);
+  if(!passive)passive=escapeHtml(extractBuildLine(data.buildFull,'補助'));
+  if(passive==='なし')passive='';
+  var br=listFromData(data,'breaks');
+  if(!br&&data.breakText)br=escapeHtml(data.breakText);
+  if(!br)br=escapeHtml(extractBuildLine(data.buildFull,'限界突破'));
+  var build=escapeHtml(data.buildFull||data.build||attack||'記録なし').replace(/\n/g,'<br>');
+  var titles=Array.isArray(data.titles)?data.titles.join(' / '):'';
+  return '<div class="rankDetail"><b>詳細</b><br>'+
+    'スコア：'+escapeHtml(Math.floor(data.score||0))+'点 / 生存時間：'+escapeHtml(formatRankTime(data.surviveTime||0))+'<br>'+
+    '到達Lv：'+escapeHtml(data.level||1)+' / 撃破数：'+escapeHtml(data.kills||0)+' / モード：'+escapeHtml(data.mode||'NORMAL')+'<br>'+
+    (titles?'称号：'+escapeHtml(titles)+'<br>':'')+
+    '<b>使用武器</b><br>'+(attack||build||'記録なし')+'<br>'+
+    '<b>補助</b><br>'+(passive||'なし')+'<br>'+
+    (br?'<b>限界突破</b><br>'+br+'<br>':'')+
+    '<span class="muted">登録日時：'+escapeHtml(formatRankDate(data))+'</span></div>';
+}
 function renderRankList(id,docs,kind){
   var el=document.getElementById(id);if(!el)return;
   if(!docs||!docs.length){el.className='rankEmpty';el.textContent='まだ記録がありません';return;}
   el.className='';
-  el.innerHTML=docs.slice(0,5).map(function(d,i){var data=d.data?d.data():d;var name=String(data.name||'ななしサニー').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});var score=Math.floor(data.score||0);var time=Math.floor(data.surviveTime||0);var main=(kind==='time')?formatRankTime(time):(score+'点');var sub=(kind==='time')?(score+'点 / Lv'+(data.level||1)+' / '+(data.kills||0)+'撃破'):(formatRankTime(time)+' / Lv'+(data.level||1)+' / '+(data.kills||0)+'撃破');return '<div class="rankRow"><span>'+(i+1)+'位</span><span class="rankName">'+name+'</span><span class="rankMeta">'+main+'</span><span class="rankSub">'+sub+'</span></div>';}).join('');
+  el.innerHTML=docs.slice(0,5).map(function(d,i){var data=d.data?d.data():d;var name=escapeHtml(data.name||'ななしサニー');var score=Math.floor(data.score||0);var time=Math.floor(data.surviveTime||0);var main=(kind==='time')?formatRankTime(time):(score+'点');var sub=(kind==='time')?(score+'点 / Lv'+(data.level||1)+' / '+(data.kills||0)+'撃破'):(formatRankTime(time)+' / Lv'+(data.level||1)+' / '+(data.kills||0)+'撃破');return '<div class="rankRow" role="button" tabindex="0" data-rank-click="1"><span>'+(i+1)+'位</span><span class="rankName">'+name+'</span><span class="rankMeta">'+escapeHtml(main)+'</span><span class="rankSub">'+escapeHtml(sub)+'　▼詳細</span>'+rankDetailHtml(data)+'</div>';}).join('');
 }
 function mirrorRankings(scoreDocs,timeDocs){renderRankList('menuScoreRanks',scoreDocs,'score');renderRankList('menuTimeRanks',timeDocs,'time');renderRankList('resultScoreRanks',scoreDocs,'score');renderRankList('resultTimeRanks',timeDocs,'time');}
+function setRankingButtons(disabled){['menuLoadRankingsBtn','resultLoadRankingsBtn'].forEach(function(id){var btn=document.getElementById(id);if(btn)btn.disabled=!!disabled;});}
 function loadRankings(){
+  if(rankingsLoading)return;
+  rankingsLoading=true;setRankingButtons(true);setRankBoxStatus('menu','読み込み中...');setRankBoxStatus('result','読み込み中...');
   initRanking().then(function(){
     var fs=fireFns;
     var col=fs.collection(fireDb,'scores');
@@ -259,15 +383,25 @@ function loadRankings(){
       fs.getDocs(fs.query(col,fs.orderBy('score','desc'),fs.limit(5))),
       fs.getDocs(fs.query(col,fs.orderBy('surviveTime','desc'),fs.limit(5)))
     ]);
-  }).then(function(snaps){mirrorRankings(snaps[0].docs,snaps[1].docs);}).catch(function(err){console.warn('ranking load failed',err);renderRankError('menuScoreRanks');renderRankError('menuTimeRanks');renderRankError('resultScoreRanks');renderRankError('resultTimeRanks');});
+  }).then(function(snaps){rankingsLoaded=true;mirrorRankings(snaps[0].docs,snaps[1].docs);setRankBoxStatus('menu','読み込み済み。順位をタップで詳細');setRankBoxStatus('result','読み込み済み。順位をタップで詳細');}).catch(function(err){console.warn('ranking load failed',err);renderRankError('menuScoreRanks');renderRankError('menuTimeRanks');renderRankError('resultScoreRanks');renderRankError('resultTimeRanks');setRankBoxStatus('menu','読み込み失敗');setRankBoxStatus('result','読み込み失敗');}).finally(function(){rankingsLoading=false;setRankingButtons(false);});
 }
 function submitScore(){
   if(scoreAlreadySubmitted){setRankingStatus('この結果は登録済みです');return;}
+  if(scoreSubmitInProgress){setRankingStatus('登録中です');return;}
+  var cd=submitCooldownLeft();if(cd>0){setRankingStatus('連続登録を防ぐため、少し待ってから登録してください');return;}
   var input=document.getElementById('playerNameInput');
   var payload=makeResultPayload(input?input.value:'');
-  setRankingStatus('登録中...');
-  initRanking().then(function(){var fs=fireFns;payload.createdAt=fs.serverTimestamp();return fs.addDoc(fs.collection(fireDb,'scores'),payload);}).then(function(){scoreAlreadySubmitted=true;setRankingStatus('登録しました！');loadRankings();}).catch(function(err){console.warn('score submit failed',err);setRankingStatus('登録に失敗しました。Firestoreのルールを確認してください。');});
+  var problem=validatePayload(payload);if(problem){setRankingStatus(problem);return;}
+  scoreSubmitInProgress=true;setSubmitButtonState(true);setRankingStatus('登録中...');
+  initRanking().then(function(){var fs=fireFns;payload.createdAt=fs.serverTimestamp();return fs.addDoc(fs.collection(fireDb,'scores'),payload);}).then(function(){scoreAlreadySubmitted=true;localStorage.setItem('sunnyLastSubmitAt',String(Date.now()));setRankingStatus('登録しました！ランキングを更新します');loadRankings();}).catch(function(err){console.warn('score submit failed',err);setRankingStatus('登録に失敗しました。Firestoreのルールを確認してください。');}).finally(function(){scoreSubmitInProgress=false;setSubmitButtonState(false);});
 }
+function setupRankingEvents(){
+  var m=document.getElementById('menuLoadRankingsBtn');if(m)m.addEventListener('click',loadRankings);
+  var r=document.getElementById('resultLoadRankingsBtn');if(r)r.addEventListener('click',loadRankings);
+  ['menuRanking','resultRanking'].forEach(function(id){var box=document.getElementById(id);if(!box)return;box.addEventListener('click',function(e){var row=e.target.closest&&e.target.closest('.rankRow[data-rank-click]');if(row){row.classList.toggle('open');}});box.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){var row=e.target.closest&&e.target.closest('.rankRow[data-rank-click]');if(row){e.preventDefault();row.classList.toggle('open');}}});});
+}
+setupRankingEvents();
+renderRankPrompt();
 
 window.onerror=function(message,source,line,column){var box=document.getElementById('error');box.style.display='block';box.textContent=['JavaScript Error:',String(message),'line:'+line+' col:'+column].join('\n');};
 
@@ -329,7 +463,82 @@ var breakDefs={
 };
 var breakOrder=['attack','haste','area','hp','speed','magnet','fusion'];
 
-function resize(){var v=currentViewport();width=v.w;height=v.h;var raw=window.devicePixelRatio||1;dpr=Math.min(raw,width<720?1.35:1.6);document.documentElement.style.setProperty('--game-height',height+'px');canvas.width=Math.floor(width*dpr);canvas.height=Math.floor(height*dpr);canvas.style.width=width+'px';canvas.style.height=height+'px';ctx.setTransform(dpr,0,0,dpr,0,0);if(player){player.r=playerRadiusForViewport();player.x=clamp(player.x,player.r,width-player.r);player.y=clamp(player.y,player.r,height-player.r);}}
+function shouldUseLandscapeWorld(){
+  var sw=Math.max(1,screenWidth||0),sh=Math.max(1,screenHeight||0);
+  // v14: PC / iPad などの横長画面では、面積を変えずに横長フィールドへ切り替える。
+  // 390x760 と 760x390 は同じ面積なので、敵密度・移動距離の総量を大きく変えずに大画面感を出せる。
+  return sw>=700&&sh>=340&&sw>sh*1.12;
+}
+function setWorldLayoutForViewport(){
+  if(shouldUseLandscapeWorld()){
+    GAME_WORLD_W=WORLD_LANDSCAPE_W;
+    GAME_WORLD_H=WORLD_LANDSCAPE_H;
+    worldLayout='landscape';
+  }else{
+    GAME_WORLD_W=WORLD_PORTRAIT_W;
+    GAME_WORLD_H=WORLD_PORTRAIT_H;
+    worldLayout='portrait';
+  }
+}
+function rescaleWorldObjects(oldW,oldH,newW,newH){
+  if(!oldW||!oldH||oldW===newW&&oldH===newH)return;
+  var sx=newW/oldW,sy=newH/oldH;
+  function map(o,vel){
+    if(!o)return;
+    if(typeof o.x==='number')o.x*=sx;
+    if(typeof o.y==='number')o.y*=sy;
+    if(vel){
+      if(typeof o.vx==='number')o.vx*=sx;
+      if(typeof o.vy==='number')o.vy*=sy;
+    }
+    if(typeof o.impactY==='number')o.impactY*=sy;
+  }
+  map(player,false);
+  [enemies,bullets,items,particles,trails,lightnings,zones].forEach(function(arr){
+    if(Array.isArray(arr))arr.forEach(function(o){map(o,true);});
+  });
+}
+function updateWorldViewport(){
+  var oldW=width||GAME_WORLD_W,oldH=height||GAME_WORLD_H;
+  setWorldLayoutForViewport();
+  width=GAME_WORLD_W;
+  height=GAME_WORLD_H;
+  rescaleWorldObjects(oldW,oldH,width,height);
+  var sw=Math.max(1,screenWidth||GAME_WORLD_W),sh=Math.max(1,screenHeight||GAME_WORLD_H);
+  worldScale=Math.min(sw/GAME_WORLD_W,sh/GAME_WORLD_H);
+  if(!isFinite(worldScale)||worldScale<=0)worldScale=1;
+  worldViewW=GAME_WORLD_W*worldScale;
+  worldViewH=GAME_WORLD_H*worldScale;
+  worldOffsetX=(sw-worldViewW)/2;
+  worldOffsetY=(sh-worldViewH)/2;
+  document.documentElement.style.setProperty('--play-left',worldOffsetX+'px');
+  document.documentElement.style.setProperty('--play-top',worldOffsetY+'px');
+  document.documentElement.style.setProperty('--play-width',worldViewW+'px');
+  document.documentElement.style.setProperty('--play-height',worldViewH+'px');
+  document.documentElement.style.setProperty('--world-layout',worldLayout);
+}
+function setScreenCanvasTransform(){ctx.setTransform(dpr,0,0,dpr,0,0);}
+function setWorldCanvasTransform(){ctx.setTransform(dpr*worldScale,0,0,dpr*worldScale,dpr*worldOffsetX,dpr*worldOffsetY);}
+function screenToWorld(x,y){return{x:(x-worldOffsetX)/worldScale,y:(y-worldOffsetY)/worldScale};}
+function resize(){
+  var v=currentViewport();
+  screenWidth=v.w;
+  screenHeight=v.h;
+  updateWorldViewport();
+  var raw=window.devicePixelRatio||1;
+  dpr=Math.min(raw,screenWidth<720?1.35:1.6);
+  document.documentElement.style.setProperty('--game-height',screenHeight+'px');
+  canvas.width=Math.floor(screenWidth*dpr);
+  canvas.height=Math.floor(screenHeight*dpr);
+  canvas.style.width=screenWidth+'px';
+  canvas.style.height=screenHeight+'px';
+  setScreenCanvasTransform();
+  if(player){
+    player.r=playerRadiusForViewport();
+    player.x=clamp(player.x,player.r,width-player.r);
+    player.y=clamp(player.y,player.r,height-player.r);
+  }
+}
 window.addEventListener('resize',resize);if(window.visualViewport){window.visualViewport.addEventListener('resize',resize);window.visualViewport.addEventListener('scroll',resize);}resize();
 function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function rand(a,b){return a+Math.random()*(b-a);}
@@ -373,7 +582,7 @@ function statGridHtml(){var titles=earnedTitles();return '<div class="statBox"><
 '<div class="statBox wide"><span>称号</span><b>'+titles.join(' / ')+'</b></div>';}
 function buildText(){var weapons=[];weaponOrder.forEach(function(id){var lv=getWeaponLevel(id);if(lv>0)weapons.push(weaponDefs[id].icon+' '+weaponDefs[id].name+' Lv'+lv);});fusionOrder.forEach(function(id){var lv=getFusionLevel(id);if(lv>0)weapons.push(fusionDefs[id].icon+' '+fusionDefs[id].name+' Lv'+lv);});var passives=[];passiveOrder.forEach(function(id){var lv=getPassiveLevel(id);if(lv>0)passives.push(passiveDefs[id].icon+' '+passiveDefs[id].name+' Lv'+lv);});var breaks=[];breakOrder.forEach(function(id){var lv=getBreakLevel(id);if(lv>0)breaks.push(breakDefs[id].icon+' '+breakDefs[id].name+' +'+lv);});return '<b>所持武器</b><br>'+(weapons.length?weapons.join(' / '):'なし')+'<br><br><b>所持パッシブ</b><br>'+(passives.length?passives.join(' / '):'なし')+(breaks.length?'<br><br><b>限界突破</b><br>'+breaks.join(' / '):'');}
 function earnedTitles(){var t=[];if(gameTime>=CLEAR_TIME)t.push('モヤモヤサバイバー');if(fusionCount()>=2)t.push('合成マスター');if(totalKills>=360)t.push('ぶち上げ殲滅王');if(endlessMode&&gameTime>=480)t.push('サニーさんの守護者');if(fusionCount()===0&&gameTime>=270)t.push('逆張りチャレンジャー');if(t.length===0)t.push('見習いサバイバー');return t;}
-function showResult(title,comment){stopBgm();paused=true;running=false;scoreAlreadySubmitted=false;lastResultPayload=makeResultPayload('');document.getElementById('levelScreen').style.display='none';document.getElementById('clearScreen').style.display='none';document.getElementById('resultTitle').textContent=title;document.getElementById('resultComment').textContent=comment;document.getElementById('resultStats').innerHTML=statGridHtml();document.getElementById('resultBuild').innerHTML=buildText();var input=document.getElementById('playerNameInput');if(input){input.value=localStorage.getItem('sunnyPlayerName')||'';}setRankingStatus('名前を入れて登録できます');document.getElementById('resultScreen').style.display='flex';loadRankings();selectedActionIndex=0;actionSelectionVisible=(lastInputMode==='gamepad');if(actionSelectionVisible)setActionFocus(0,true);else clearActionSelection();}
+function showResult(title,comment){stopBgm();paused=true;running=false;scoreAlreadySubmitted=false;scoreSubmitInProgress=false;document.getElementById('levelScreen').style.display='none';document.getElementById('clearScreen').style.display='none';document.getElementById('resultTitle').textContent=title;document.getElementById('resultComment').textContent=comment;document.getElementById('resultStats').innerHTML=statGridHtml();document.getElementById('resultBuild').innerHTML=buildText();var input=document.getElementById('playerNameInput');if(input){input.value=localStorage.getItem('sunnyPlayerName')||'';}lastResultPayload=makeResultPayload('');setSubmitButtonState(false);setRankingStatus('できればひらがなフルネームで登録できます');if(!rankingsLoaded)renderRankPrompt();document.getElementById('resultScreen').style.display='flex';selectedActionIndex=0;actionSelectionVisible=(lastInputMode==='gamepad');if(actionSelectionVisible)setActionFocus(0,true);else clearActionSelection();}
 function showClearScreen(){if(clearOffered||gameOver)return;clearOffered=true;paused=true;gameTime=CLEAR_TIME;screenFlash=.42;bigBurst(player.x,player.y,'#ffdf6b',100,1.2);document.getElementById('clearStats').innerHTML=statGridHtml();document.getElementById('clearBuild').innerHTML=buildText();document.getElementById('clearScreen').style.display='flex';selectedActionIndex=0;actionSelectionVisible=(lastInputMode==='gamepad');if(actionSelectionVisible)setActionFocus(0,true);else clearActionSelection();showMessage('5分生存クリア！',1600);playSfx('clear');}
 function showGameOver(){if(gameOver)return;gameOver=true;paused=false;deathShown=false;deathTimer=1.35;deathResultTitle=endlessMode?'ENDLESS RESULT':'GAME OVER';deathResultComment=endlessMode?'エンドレスのモヤモヤに飲み込まれました。':'モヤモヤに飲み込まれました。ビルドと合成を変えて再挑戦！';screenFlash=.55;playSfx('gameover');playDeathBurstSfx();showMessage('サニーさんダウン！',1200);if(player){player.hitFace=.9;player.inv=0;bigBurst(player.x,player.y,'#ffdf6b',95,1.2);bigBurst(player.x,player.y,'#ff6678',65,1.0);}}
 
@@ -381,13 +590,13 @@ function showGameOver(){if(gameOver)return;gameOver=true;paused=false;deathShown
 function startGame(){ensureAudio();playBgm();resize();player={x:width/2,y:height/2,r:playerRadiusForViewport(),hp:120,maxHp:120,baseSpeed:240,speed:240,facingX:1,facingY:0,inv:.75,ringAngle:0,hitFace:0};enemies=[];bullets=[];items=[];particles=[];trails=[];lightnings=[];zones=[];iceAngle=0;fairyAngle=0;screenFlash=0;warningTimer=0;levelPulse=0;deathTimer=0;deathShown=false;deathResultTitle='';deathResultComment='';weaponLevels={};fusionLevels={};passiveLevels={};breakLevels={};weaponTimers={};bossFlags={};gameTime=0;score=0;level=1;exp=0;nextExp=nextExpFor(level);spawnTimer=.95;waveTimer=12;pressureTimer=18;sunnyTimer=.16;running=true;paused=false;gameOver=false;clearOffered=false;endlessMode=false;totalKills=0;lastEndlessBossMinute=5;lastTime=performance.now();document.getElementById('menu').style.display='none';document.getElementById('clearScreen').style.display='none';document.getElementById('resultScreen').style.display='none';document.getElementById('levelScreen').style.display='none';document.getElementById('hud').style.display='flex';document.getElementById('hpOuter').style.display='block';document.getElementById('expOuter').style.display='block';document.getElementById('bottomSlots').style.display='flex';document.getElementById('debugPanel').style.display=DEBUG_MODE?'flex':'none';document.getElementById('rerollBtn').style.display=DEBUG_MODE?'inline-block':'none';updateSlots();updateHud();showMessage('サニーショット固定。武器選択で突破口を作ろう！');}
 function hideGameUi(){document.getElementById('hud').style.display='none';document.getElementById('hpOuter').style.display='none';document.getElementById('expOuter').style.display='none';document.getElementById('bottomSlots').style.display='none';document.getElementById('debugPanel').style.display='none';}
 
-document.getElementById('startBtn').addEventListener('click',startGame);document.getElementById('againBtn').addEventListener('click',startGame);document.getElementById('titleBtn').addEventListener('click',function(){stopBgm();running=false;paused=false;gameOver=false;document.getElementById('resultScreen').style.display='none';document.getElementById('clearScreen').style.display='none';hideGameUi();document.getElementById('menu').style.display='flex';loadRankings();selectedActionIndex=0;actionSelectionVisible=(lastInputMode==='gamepad');if(actionSelectionVisible)setActionFocus(0,true);else clearActionSelection();});document.getElementById('finishBtn').addEventListener('click',function(){showResult('GAME CLEAR!','5分間生き残りました！');});document.getElementById('endlessBtn').addEventListener('click',function(){endlessMode=true;paused=false;document.getElementById('clearScreen').style.display='none';document.getElementById('modeText').textContent='ENDLESS';showMessage('ENDLESS START! 限界突破解放',1500);screenFlash=.25;});document.getElementById('rerollBtn').addEventListener('click',function(){if(DEBUG_MODE){renderLevelChoices();showMessage('3択ひきなおし');}});document.getElementById('submitScoreBtn').addEventListener('click',function(){var input=document.getElementById('playerNameInput');if(input)localStorage.setItem('sunnyPlayerName',sanitizeName(input.value));submitScore();});
+document.getElementById('startBtn').addEventListener('click',startGame);document.getElementById('againBtn').addEventListener('click',startGame);document.getElementById('titleBtn').addEventListener('click',function(){stopBgm();running=false;paused=false;gameOver=false;document.getElementById('resultScreen').style.display='none';document.getElementById('clearScreen').style.display='none';hideGameUi();document.getElementById('menu').style.display='flex';if(!rankingsLoaded)renderRankPrompt();selectedActionIndex=0;actionSelectionVisible=(lastInputMode==='gamepad');if(actionSelectionVisible)setActionFocus(0,true);else clearActionSelection();});document.getElementById('finishBtn').addEventListener('click',function(){showResult('GAME CLEAR!','5分間生き残りました！');});document.getElementById('endlessBtn').addEventListener('click',function(){endlessMode=true;paused=false;document.getElementById('clearScreen').style.display='none';document.getElementById('modeText').textContent='ENDLESS';showMessage('ENDLESS START! 限界突破解放',1500);screenFlash=.25;});document.getElementById('rerollBtn').addEventListener('click',function(){if(DEBUG_MODE){renderLevelChoices();showMessage('3択ひきなおし');}});document.getElementById('submitScoreBtn').addEventListener('click',function(){var input=document.getElementById('playerNameInput');if(input)localStorage.setItem('sunnyPlayerName',sanitizeName(input.value));submitScore();});
 var playerNameInput=document.getElementById('playerNameInput');if(playerNameInput){playerNameInput.addEventListener('pointerdown',function(e){e.stopPropagation();},true);playerNameInput.addEventListener('keydown',function(e){e.stopPropagation();});}
-loadRankings();
+if(!rankingsLoaded)renderRankPrompt();
 var debugPanel=document.getElementById('debugPanel');debugPanel.addEventListener('click',function(e){if(!DEBUG_MODE||!running||gameOver)return;var t=e.target;if(t.dataset.debug==='level'){gainExp(nextExp);showMessage('DEBUG LEVEL UP');}if(t.dataset.spawn&&t.dataset.spawn!=='none'){for(var i=0;i<5;i++)spawnEnemy(t.dataset.spawn);}if(t.dataset.boss)spawnBoss(t.dataset.boss);});
 document.addEventListener('keydown',function(e){var key=e.key.toLowerCase();keys[key]=true;if(!DEBUG_MODE)return;if(key==='l'&&running&&!gameOver&&!paused&&player){gainExp(nextExp);showMessage('DEBUG LEVEL UP');}if(running&&!gameOver&&!paused&&player){if(key==='1')for(var i=0;i<5;i++)spawnEnemy('normal');if(key==='2')for(var j=0;j<5;j++)spawnEnemy('fast');if(key==='3')for(var k=0;k<3;k++)spawnEnemy('tank');if(key==='5')for(var m=0;m<3;m++)spawnEnemy('split');if(key==='6')spawnBoss('basicBoss');if(key==='7')spawnBoss('specialBoss');if(key==='8')spawnBoss('rushBoss');}});
 document.addEventListener('keyup',function(e){keys[e.key.toLowerCase()]=false;});
-function pointerPosition(e){var rect=canvas.getBoundingClientRect();return{x:e.clientX-rect.left,y:e.clientY-rect.top};}
+function pointerPosition(e){var rect=canvas.getBoundingClientRect();return screenToWorld(e.clientX-rect.left,e.clientY-rect.top);}
 canvas.addEventListener('pointerdown',function(e){var p=pointerPosition(e);touch.active=true;touch.startX=p.x;touch.startY=p.y;touch.x=p.x;touch.y=p.y;canvas.setPointerCapture&&canvas.setPointerCapture(e.pointerId);});canvas.addEventListener('pointermove',function(e){if(!touch.active)return;var p=pointerPosition(e);touch.x=p.x;touch.y=p.y;});canvas.addEventListener('pointerup',function(e){touch.active=false;canvas.releasePointerCapture&&canvas.releasePointerCapture(e.pointerId);});canvas.addEventListener('pointercancel',function(){touch.active=false;});
 
 function isVisible(el){if(!el)return false;var cur=el;while(cur&&cur!==document.body){var st=getComputedStyle(cur);if(st.display==='none'||st.visibility==='hidden')return false;cur=cur.parentElement;}return true;}
@@ -609,10 +818,49 @@ function drawMetalBallBullet(b){var r=b.r||10;var g=ctx.createRadialGradient(b.x
 function drawHotIronBullet(b){var r=b.r||18;ctx.save();ctx.translate(b.x,b.y);ctx.shadowColor='#ff7a35';ctx.shadowBlur=16;ctx.fillStyle='#333844';ctx.beginPath();ctx.roundRect?ctx.roundRect(-r*.75,-r*.42,r*1.5,r*.9,6):ctx.rect(-r*.75,-r*.42,r*1.5,r*.9);ctx.fill();ctx.strokeStyle='#ffb06a';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#ff7a35';ctx.globalAlpha=.75;ctx.fillRect(-r*.55,r*.18,r*1.1,r*.15);ctx.globalAlpha=1;ctx.strokeStyle='#d8d8d8';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-r*.55,r*.45,Math.PI,0);ctx.stroke();ctx.restore();}
 function drawFairies(){var lv=getFusionLevel('fairySummon');if(lv<=0||!player)return;var pairs=1+(lv>=2?1:0)+(lv>=3?1:0),radius=54+lv*9,orbR=(13.0+lv*1.55)*areaMult();for(var p=0;p<pairs;p++){for(var k=0;k<2;k++){var fire=k===0,ang=fairyAngle+(p*Math.PI*2/pairs)+(fire?0:Math.PI),ox=player.x+Math.cos(ang)*radius,oy=player.y+Math.sin(ang)*radius;ctx.save();ctx.shadowColor=fire?'#ff7a35':'#9ee8ff';ctx.shadowBlur=14;ctx.fillStyle=fire?'#ff7a35':'#9ee8ff';ctx.beginPath();ctx.arc(ox,oy,orbR,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,255,255,.86)';ctx.beginPath();ctx.arc(ox-orbR*.25,oy-orbR*.28,orbR*.28,0,Math.PI*2);ctx.fill();ctx.font=Math.max(12,orbR*1.05)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(fire?'🔥':'❄️',ox,oy+1);ctx.restore();}}}
 
-function drawBackground(){ctx.clearRect(0,0,width,height);var g=ctx.createRadialGradient(width*.5,height*.28,0,width*.5,height*.5,Math.max(width,height));g.addColorStop(0,endlessMode?'#41265f':'#263a70');g.addColorStop(.6,'#111936');g.addColorStop(1,'#070b18');ctx.fillStyle=g;ctx.fillRect(0,0,width,height);ctx.strokeStyle='rgba(255,255,255,.038)';ctx.lineWidth=1;for(var gx=0;gx<width;gx+=56){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,height);ctx.stroke();}for(var gy=0;gy<height;gy+=56){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(width,gy);ctx.stroke();}}
+function drawBackground(){
+  setScreenCanvasTransform();
+  ctx.clearRect(0,0,screenWidth,screenHeight);
+  var og=ctx.createRadialGradient(screenWidth*.5,screenHeight*.28,0,screenWidth*.5,screenHeight*.5,Math.max(screenWidth,screenHeight));
+  og.addColorStop(0,endlessMode?'#25194a':'#162452');
+  og.addColorStop(.62,'#0d1430');
+  og.addColorStop(1,'#050815');
+  ctx.fillStyle=og;
+  ctx.fillRect(0,0,screenWidth,screenHeight);
+  setWorldCanvasTransform();
+  var g=ctx.createRadialGradient(width*.5,height*.28,0,width*.5,height*.5,Math.max(width,height));
+  g.addColorStop(0,endlessMode?'#41265f':'#263a70');
+  g.addColorStop(.6,'#111936');
+  g.addColorStop(1,'#070b18');
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,width,height);
+  ctx.strokeStyle='rgba(255,255,255,.038)';
+  ctx.lineWidth=1;
+  for(var gx=0;gx<width;gx+=56){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,height);ctx.stroke();}
+  for(var gy=0;gy<height;gy+=56){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(width,gy);ctx.stroke();}
+}
+function drawViewportFrame(){
+  setScreenCanvasTransform();
+  ctx.save();
+  ctx.fillStyle='#050815';
+  if(worldOffsetY>0){
+    ctx.fillRect(0,0,screenWidth,worldOffsetY+1);
+    ctx.fillRect(0,worldOffsetY+worldViewH-1,screenWidth,screenHeight-(worldOffsetY+worldViewH)+1);
+  }
+  if(worldOffsetX>0){
+    ctx.fillRect(0,0,worldOffsetX+1,screenHeight);
+    ctx.fillRect(worldOffsetX+worldViewW-1,0,screenWidth-(worldOffsetX+worldViewW)+1,screenHeight);
+  }
+  ctx.globalAlpha=.85;
+  ctx.strokeStyle='rgba(255,255,255,.18)';
+  ctx.lineWidth=1;
+  ctx.strokeRect(Math.round(worldOffsetX)+.5,Math.round(worldOffsetY)+.5,Math.max(1,Math.round(worldViewW)-1),Math.max(1,Math.round(worldViewH)-1));
+  ctx.restore();
+  setWorldCanvasTransform();
+}
 function drawEnemyHp(en){if(en.boss)return;var g=getPassiveLevel('goggles');if(g<=0)return;var ratio=Math.max(0,en.hp/en.maxHp),barW=Math.max(24,en.r*2.2),y=en.y-en.r-12;ctx.save();ctx.fillStyle='rgba(0,0,0,.65)';ctx.fillRect(en.x-barW/2,y,barW,5);ctx.fillStyle=ratio<.35?'#ff6678':'#79ff8e';ctx.fillRect(en.x-barW/2,y,barW*ratio,5);if(g>=2){ctx.font='10px system-ui';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle='#fff';ctx.fillText(Math.ceil(en.hp),en.x,y-2);}if(g>=3&&ratio<.35){ctx.font='13px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#ffdf6b';ctx.fillText('!',en.x+barW/2+7,y+4);}ctx.restore();}
 function drawIceOrbs(){var lv=getWeaponLevel('ice');if(lv<=0||!player)return;var count=1+(lv>=2?1:0)+(lv>=5?1:0),radius=44+lv*8,orbR=(10.5+lv*1.15)*areaMult();for(var o=0;o<count;o++){var a=iceAngle+Math.PI*2*o/count,ox=player.x+Math.cos(a)*radius,oy=player.y+Math.sin(a)*radius;ctx.save();ctx.shadowColor='#9ee8ff';ctx.shadowBlur=12;ctx.fillStyle='#9ee8ff';ctx.beginPath();ctx.arc(ox,oy,orbR,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,255,255,.76)';ctx.beginPath();ctx.arc(ox-orbR*.25,oy-orbR*.25,orbR*.35,0,Math.PI*2);ctx.fill();ctx.restore();}}
-function draw(){drawBackground();if(!running&&!player)return;if(!player)return;items.forEach(function(item){if(!item)return;var type=item.type||'gem';ctx.save();var fill=type==='heart'?'#ff7899':(type==='magnet'?'#66d9ff':(type==='bomb'?'#ffdf6b':(type==='chest'?'#ffdf6b':'#6cff92')));ctx.fillStyle=fill;ctx.beginPath();ctx.arc(item.x,item.y,item.r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.globalAlpha=.9;if(type==='gem'){ctx.beginPath();ctx.arc(item.x-1,item.y-1,item.r*.35,0,Math.PI*2);ctx.fill();}else{ctx.font=Math.max(14,item.r*1.45)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(type==='heart'?'❤️':(type==='magnet'?'🧲':(type==='bomb'?'💣':'🎁')),item.x,item.y+1);}ctx.restore();});
+function draw(){drawBackground();if(!running&&!player){drawViewportFrame();return;}if(!player){drawViewportFrame();return;}items.forEach(function(item){if(!item)return;var type=item.type||'gem';ctx.save();var fill=type==='heart'?'#ff7899':(type==='magnet'?'#66d9ff':(type==='bomb'?'#ffdf6b':(type==='chest'?'#ffdf6b':'#6cff92')));ctx.fillStyle=fill;ctx.beginPath();ctx.arc(item.x,item.y,item.r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.globalAlpha=.9;if(type==='gem'){ctx.beginPath();ctx.arc(item.x-1,item.y-1,item.r*.35,0,Math.PI*2);ctx.fill();}else{ctx.font=Math.max(14,item.r*1.45)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(type==='heart'?'❤️':(type==='magnet'?'🧲':(type==='bomb'?'💣':'🎁')),item.x,item.y+1);}ctx.restore();});
 zones.forEach(function(z){if(!z)return;var za=Math.max(0,z.life/(z.max||1));ctx.save();var fill=z.type==='steam'?'#dff7ff':(z.type==='ironPressZone'||z.type==='pressMark'?'#ff7a35':(z.type==='lightningRod'?'#fff06b':'#9ee8ff'));ctx.globalAlpha=(z.type==='pressMark'?.10:.18)+za*.24;ctx.fillStyle=fill;ctx.beginPath();ctx.arc(z.x,z.y,z.r,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.45*za;ctx.strokeStyle=z.type==='ironPressZone'?'#ffdf6b':'#fff';ctx.lineWidth=z.type==='pressMark'?1:2;ctx.stroke();if(z.type==='lightningRod'){ctx.globalAlpha=.9*za;ctx.strokeStyle='#fff06b';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(z.x,z.y-z.r*.55);ctx.lineTo(z.x,z.y+z.r*.35);ctx.stroke();ctx.font='18px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff06b';ctx.fillText('⚡',z.x,z.y-z.r*.72);}ctx.restore();});
 trails.forEach(function(tr){if(!tr)return;var ta=Math.max(0,tr.life/tr.max);ctx.save();ctx.globalAlpha=ta*.55;ctx.fillStyle=tr.color;ctx.strokeStyle=tr.color;if(tr.type==='line'){ctx.lineWidth=Math.max(1,tr.size*.22);ctx.beginPath();ctx.arc(tr.x,tr.y,tr.size*ta,0,Math.PI*2);ctx.stroke();}else if(tr.type==='smoke'){ctx.globalAlpha=ta*.32;ctx.beginPath();ctx.arc(tr.x,tr.y,tr.size*(1.25-ta*.15),0,Math.PI*2);ctx.fill();}else{ctx.beginPath();ctx.arc(tr.x,tr.y,tr.size*ta,0,Math.PI*2);ctx.fill();}ctx.restore();});
 particles.forEach(function(p){if(!p)return;var pa=Math.max(0,p.life/(p.max||.65));ctx.save();ctx.globalAlpha=pa;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,(p.r||3)*pa,0,Math.PI*2);ctx.fill();ctx.restore();});
@@ -620,7 +868,7 @@ lightnings.forEach(function(ln){if(!ln)return;var la=Math.max(0,ln.life/ln.max);
 enemies.forEach(function(en){if(!en)return;ctx.save();var pulse=en.hitPulse>0?1.18:1;if(en.boss){var br=Math.max(0,en.hp/en.maxHp);pulse*=br<.18?1.16+.12*Math.sin(performance.now()/55):(br<.42?1.08:1);ctx.globalAlpha=br<.28?.82+.18*Math.sin(performance.now()/70):1;}var drewSprite=drawEnemySprite(en);if(!drewSprite){ctx.fillStyle=en.color;ctx.beginPath();ctx.arc(en.x,en.y,en.r*pulse,0,Math.PI*2);ctx.fill();ctx.font=Math.max(14,en.r*1.08)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(en.emoji||'☁️',en.x,en.y+1);}if(en.boss){ctx.strokeStyle='rgba(255,255,255,.38)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(en.x,en.y,en.r*(1.16+0.05*Math.sin(performance.now()/90)),0,Math.PI*2);ctx.stroke();ctx.globalAlpha=.16;ctx.fillStyle='#ff445f';ctx.beginPath();ctx.arc(en.x,en.y,en.r+72,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}ctx.restore();drawEnemyHp(en);});
 bullets.forEach(function(b){if(!b)return;ctx.save();if(b.type==='missile'){var ma=Math.atan2(b.vy,b.vx);ctx.translate(b.x,b.y);ctx.rotate(ma);ctx.shadowColor=b.drill?'#d6e8ff':'#ff775f';ctx.shadowBlur=10;ctx.fillStyle=b.color;ctx.beginPath();ctx.ellipse(0,0,b.r*1.35,b.r*.78,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=b.drill?'#ffffff':'#ffcf75';ctx.globalAlpha=.72;ctx.beginPath();if(b.drill){ctx.moveTo(b.r*1.75,0);ctx.lineTo(b.r*.55,-b.r*.55);ctx.lineTo(b.r*.55,b.r*.55);ctx.closePath();}else{ctx.ellipse(-b.r*1.15,0,b.r*.65,b.r*.32,0,0,Math.PI*2);}ctx.fill();}else if(b.type==='ironPress'){drawHotIronBullet(b);}else if(b.type==='iron'){drawMetalBallBullet(b);}else if(b.type==='railgun'||b.type==='laser'||b.type==='needle'){var ang=Math.atan2(b.vy,b.vx),lx=Math.cos(ang)*(b.length||18),ly=Math.sin(ang)*(b.length||18);ctx.shadowColor=b.color;ctx.shadowBlur=b.type==='railgun'?18:8;ctx.strokeStyle=b.color;ctx.lineWidth=b.thickness||1.5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(b.x-lx*.15,b.y-ly*.15);ctx.lineTo(b.x+lx,b.y+ly);ctx.stroke();if(b.type==='railgun'){ctx.globalAlpha=.35;ctx.lineWidth=(b.thickness||3)*2.2;ctx.beginPath();ctx.moveTo(b.x-lx*.08,b.y-ly*.08);ctx.lineTo(b.x+lx*.85,b.y+ly*.85);ctx.stroke();}}else{ctx.shadowColor=b.color;ctx.shadowBlur=b.type==='fire'||b.ricochet?10:0;ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();if(b.type==='fire'){ctx.font=Math.max(12,b.r*1.15)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🔥',b.x,b.y+1);}else if(b.type==='ice'){ctx.fillStyle='rgba(255,255,255,.75)';ctx.beginPath();ctx.arc(b.x-b.r*.25,b.y-b.r*.25,b.r*.35,0,Math.PI*2);ctx.fill();ctx.font=Math.max(12,b.r*1.0)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('❄️',b.x,b.y+1);}else if(b.ricochet){ctx.strokeStyle='rgba(255,255,255,.72)';ctx.lineWidth=1.5;ctx.stroke();}}ctx.restore();});
 drawIceOrbs();drawFairies();if(levelPulse>0){var lp=levelPulse;ctx.save();ctx.globalAlpha=lp*.85;ctx.strokeStyle='#66d9ff';ctx.lineWidth=3;ctx.shadowColor='#66d9ff';ctx.shadowBlur=18;ctx.beginPath();ctx.arc(player.x,player.y,player.r+14+(1-lp)*46,0,Math.PI*2);ctx.stroke();ctx.font='bold '+Math.round(20+8*lp)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff3a6';ctx.shadowColor='#ffdf6b';ctx.shadowBlur=14;ctx.fillText('LV UP!',player.x,player.y-player.r-34-(1-lp)*16);ctx.restore();}var playerAlpha=player.inv>0?.68+.32*Math.sin(performance.now()/35):1;if(gameOver&&deathTimer>0){playerAlpha*=.32+.68*Math.abs(Math.sin(performance.now()/42));}var deathScale=(gameOver&&deathTimer>0)?(1+(1.35-deathTimer)*.24):1;var spriteSize=player.r*2.35*deathScale;ctx.save();ctx.translate(player.x,player.y);ctx.globalAlpha=playerAlpha;ctx.rotate(player.ringAngle||0);if(playerRingImg&&playerRingImg.complete&&playerRingImg.naturalWidth!==0){ctx.drawImage(playerRingImg,-spriteSize/2,-spriteSize/2,spriteSize,spriteSize);}else{ctx.fillStyle='#ffd95a';ctx.beginPath();ctx.arc(0,0,player.r+8,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.save();ctx.globalAlpha=playerAlpha;ctx.translate(player.x,player.y);var face=((player.hitFace>0||gameOver)&&playerHitImg&&playerHitImg.complete&&playerHitImg.naturalWidth!==0)?playerHitImg:playerFaceImg;if(face&&face.complete&&face.naturalWidth!==0){ctx.drawImage(face,-spriteSize/2,-spriteSize/2,spriteSize,spriteSize);}else{ctx.fillStyle='#362100';ctx.font='25px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('☀️',0,1);}ctx.restore();if(gameOver&&deathTimer>0){ctx.save();ctx.globalAlpha=Math.max(0,deathTimer/1.35)*.55;ctx.strokeStyle='#ffdf6b';ctx.lineWidth=3;ctx.shadowColor='#ffdf6b';ctx.shadowBlur=18;ctx.beginPath();ctx.arc(player.x,player.y,player.r+18+(1.35-deathTimer)*36,0,Math.PI*2);ctx.stroke();ctx.restore();}
-if(touch.active){ctx.save();ctx.globalAlpha=.30;ctx.strokeStyle='#66d9ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(touch.startX,touch.startY,42,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(touch.x,touch.y,20,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(touch.startX,touch.startY);ctx.lineTo(touch.x,touch.y);ctx.stroke();ctx.restore();}if(screenFlash>0){ctx.save();ctx.globalAlpha=screenFlash*.65;ctx.fillStyle='#fff6b8';ctx.fillRect(0,0,width,height);ctx.restore();}}
+if(touch.active){ctx.save();ctx.globalAlpha=.30;ctx.strokeStyle='#66d9ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(touch.startX,touch.startY,42,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(touch.x,touch.y,20,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(touch.startX,touch.startY);ctx.lineTo(touch.x,touch.y);ctx.stroke();ctx.restore();}if(screenFlash>0){ctx.save();ctx.globalAlpha=screenFlash*.65;ctx.fillStyle='#fff6b8';ctx.fillRect(0,0,width,height);ctx.restore();}drawViewportFrame();}
 function loop(){var now=performance.now();var dt=Math.min((now-lastTime)/1000,.033);lastTime=now;updateGamepad(dt);update(dt);draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
 if(DEBUG_MODE){window.__SUNNY_TEST__={start:startGame,setTime:function(t){gameTime=t;},giveExp:function(v){gainExp(v);checkLevelUps();updateHud();},setWeapon:function(id,lv){weaponLevels[id]=lv;updateSlots();},setFusion:function(id,lv){fusionLevels[id]=lv;updateSlots();},spawnBoss:spawnBoss,openChest:openTreasureChest,state:function(){return{running:running,paused:paused,gameTime:gameTime,level:level,exp:exp,nextExp:nextExp,enemies:enemies.length,bullets:bullets.length,items:items.length,trails:trails.length,particles:particles.length,clearOffered:clearOffered,endlessMode:endlessMode,hp:player&&player.hp};}};}
 })();
