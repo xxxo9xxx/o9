@@ -105,7 +105,14 @@ var CONFIG={
 };
 var canvas=document.getElementById('canvas');
 var ctx=canvas.getContext('2d');
-function currentViewport(){var vv=window.visualViewport;return{w:Math.floor(vv?vv.width:window.innerWidth),h:Math.floor(vv?vv.height:window.innerHeight)};}
+function currentViewport(){
+  var vv=window.visualViewport;
+  // v15: スマホのブラウザツールバー表示/非表示で visualViewport と innerHeight がずれることがある。
+  // 小さい方だけを見るとゲーム領域が上寄りに見える場合があるため、実際に使える大きい方を採用する。
+  var w=Math.floor(Math.max(vv?vv.width:0,window.innerWidth||0,document.documentElement.clientWidth||0));
+  var h=Math.floor(Math.max(vv?vv.height:0,window.innerHeight||0,document.documentElement.clientHeight||0));
+  return{w:w,h:h};
+}
 var WORLD_PORTRAIT_W=390,WORLD_PORTRAIT_H=760,WORLD_LANDSCAPE_W=760,WORLD_LANDSCAPE_H=390;
 var GAME_WORLD_W=WORLD_PORTRAIT_W,GAME_WORLD_H=WORLD_PORTRAIT_H,worldLayout='portrait';
 var vp=currentViewport(),screenWidth=vp.w,screenHeight=vp.h,width=GAME_WORLD_W,height=GAME_WORLD_H,dpr=1,worldScale=1,worldOffsetX=0,worldOffsetY=0,worldViewW=GAME_WORLD_W,worldViewH=GAME_WORLD_H;
@@ -232,7 +239,9 @@ setupQrToggle();
 
 var firebaseConfig={apiKey:"AIzaSyA2CrJWFBsFJJGZOe0EvCs115E3EdEd72k",authDomain:"sunny-survivor-ranking.firebaseapp.com",projectId:"sunny-survivor-ranking",storageBucket:"sunny-survivor-ranking.firebasestorage.app",messagingSenderId:"912604013845",appId:"1:912604013845:web:8a882d32ea65491d33f51c"};
 var firebaseInitPromise=null,fireDb=null,fireFns=null,lastResultPayload=null,scoreAlreadySubmitted=false,scoreSubmitInProgress=false,rankingsLoaded=false,rankingsLoading=false;
-var RANKING_LIMITS={score:1000000,time:3600,level:300,kills:30000,cooldownMs:8000};
+// v15: エンドレスや追加合成で通常プレイでも100万点を超えることがあるため、
+// 登録拒否の上限をかなり広めに変更。最終的な公開運用ではFirestore Rules側でも同じ上限に合わせる。
+var RANKING_LIMITS={score:50000000,time:14400,level:999,kills:999999,cooldownMs:8000};
 function initRanking(){
   if(firebaseInitPromise)return firebaseInitPromise;
   firebaseInitPromise=Promise.all([
@@ -325,12 +334,12 @@ function makeResultPayload(name){
     breaks:bd.breaks,
     resultTitle:(document.getElementById('resultTitle')&&document.getElementById('resultTitle').textContent)||'',
     clientCreatedAt:new Date().toISOString(),
-    gameVersion:'v14-fixed-world-landscape'
+    gameVersion:'v16-endless-auto-break'
   };
 }
 function validatePayload(p){
   if(!p)return'記録データを作れませんでした';
-  if(p.score<0||p.score>RANKING_LIMITS.score)return'スコアが異常値のため登録しません';
+  if(p.score<0||p.score>RANKING_LIMITS.score)return'スコアが上限を超えたため登録しません（上限設定を確認）';
   if(p.surviveTime<0||p.surviveTime>RANKING_LIMITS.time)return'生存時間が異常値のため登録しません';
   if(p.level<1||p.level>RANKING_LIMITS.level)return'レベルが異常値のため登録しません';
   if(p.kills<0||p.kills>RANKING_LIMITS.kills)return'撃破数が異常値のため登録しません';
@@ -509,8 +518,12 @@ function updateWorldViewport(){
   if(!isFinite(worldScale)||worldScale<=0)worldScale=1;
   worldViewW=GAME_WORLD_W*worldScale;
   worldViewH=GAME_WORLD_H*worldScale;
-  worldOffsetX=(sw-worldViewW)/2;
-  worldOffsetY=(sh-worldViewH)/2;
+  worldOffsetX=Math.max(0,(sw-worldViewW)/2);
+  worldOffsetY=Math.max(0,(sh-worldViewH)/2);
+  // v15: スマホ縦画面ではブラウザツールバーが消えた後も上下中央に見えるよう、
+  // フィールド外の余白を必ず上下へ均等配分する。極小誤差で上寄りに見えるのを防ぐ。
+  if(worldLayout==='portrait'&&sh>worldViewH+2){worldOffsetY=Math.round((sh-worldViewH)/2);}
+  if(sw>worldViewW+2){worldOffsetX=Math.round((sw-worldViewW)/2);} 
   document.documentElement.style.setProperty('--play-left',worldOffsetX+'px');
   document.documentElement.style.setProperty('--play-top',worldOffsetY+'px');
   document.documentElement.style.setProperty('--play-width',worldViewW+'px');
@@ -539,7 +552,7 @@ function resize(){
     player.y=clamp(player.y,player.r,height-player.r);
   }
 }
-window.addEventListener('resize',resize);if(window.visualViewport){window.visualViewport.addEventListener('resize',resize);window.visualViewport.addEventListener('scroll',resize);}resize();
+window.addEventListener('resize',resize);if(window.visualViewport){window.visualViewport.addEventListener('resize',resize);window.visualViewport.addEventListener('scroll',resize);}window.addEventListener('orientationchange',function(){setTimeout(resize,80);setTimeout(resize,320);});document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(resize,80);});resize();
 function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function rand(a,b){return a+Math.random()*(b-a);}
 function choose(arr){return arr[Math.floor(Math.random()*arr.length)];}
@@ -674,6 +687,30 @@ for(var p=0;p<3;p++){
 
 function buildAllChoices(){var choices=[];fusionOrder.forEach(function(fid){var fd=fusionDefs[fid];if(getFusionLevel(fid)===0&&getWeaponLevel(fd.a)>=5&&getWeaponLevel(fd.b)>=5){choices.push({id:'fusion_'+fid,tag:'✨合成チャンス',icon:fd.icon,name:fd.name,desc:weaponDefs[fd.a].name+' Lv5 + '+weaponDefs[fd.b].name+' Lv5。'+fd.desc});}else if(getFusionLevel(fid)>0&&getFusionLevel(fid)<3){choices.push({id:'fusionLv_'+fid,tag:'合成武器強化',icon:fd.icon,name:fd.name+' Lv'+(getFusionLevel(fid)+1),desc:fd.desc});}});weaponOrder.forEach(function(wid){var lv=getWeaponLevel(wid),wd=weaponDefs[wid];if(lv===0&&canAddWeapon()){choices.push({id:wid,tag:'武器追加',icon:wd.icon,name:wd.name,desc:wd.desc});}else if(lv>0&&lv<5){choices.push({id:wid,tag:'武器強化',icon:wd.icon,name:wd.name+' Lv'+(lv+1),desc:wd.desc});}});passiveOrder.forEach(function(pid){var lv=getPassiveLevel(pid),pd=passiveDefs[pid];if(lv===0&&canAddPassive()){choices.push({id:'passive_'+pid,tag:'パッシブ追加',icon:pd.icon,name:pd.name,desc:pd.desc});}else if(lv>0&&lv<5){choices.push({id:'passive_'+pid,tag:'パッシブ強化',icon:pd.icon,name:pd.name+' Lv'+(lv+1),desc:pd.desc});}});return choices;}
 function buildBreakChoices(){return breakOrder.map(function(id){var bd=breakDefs[id];return{id:'break_'+id,tag:'限界突破',icon:bd.icon,name:bd.name+' +'+(getBreakLevel(id)+1),desc:bd.desc};});}
+function chooseAutoBreakChoice(){
+  var weighted=[];
+  function add(id,w){for(var i=0;i<w;i++)weighted.push(id);}
+  add('attack',4);
+  add('haste',4);
+  add('area',3);
+  add('hp',3);
+  add('speed',2);
+  add('magnet',1);
+  if(fusionCount()>0)add('fusion',4);
+  var id=weighted.length?choose(weighted):'attack';
+  var bd=breakDefs[id];
+  return{id:'break_'+id,tag:'自動限界突破',icon:bd.icon,name:bd.name+' +'+(getBreakLevel(id)+1),desc:bd.desc};
+}
+function applyAutoLimitBreak(){
+  var c=chooseAutoBreakChoice();
+  var bid=c.id.replace('break_','');
+  applyChoice(c,true);
+  levelPulse=Math.max(levelPulse,.72);
+  screenFlash=Math.max(screenFlash,.10);
+  if(player&&Math.random()<.65)bigBurst(player.x,player.y,'#ffdf6b',18,.45);
+  showMessage('LIMIT BREAK! '+breakDefs[bid].name+' +'+getBreakLevel(bid),900);
+  playSfx('level');
+}
 function renderLevelChoices(){
 var box=document.getElementById('choices');box.innerHTML='';var choices=buildAllChoices();if(choices.length===0&&endlessMode)choices=buildBreakChoices();var out=[],used={};
 function take(filter){var pool=choices.filter(function(c){return !used[c.id]&&filter(c);});if(!pool.length)return false;var c=choose(pool);used[c.id]=true;out.push(c);return true;}
@@ -706,7 +743,7 @@ function chooseChestUpgrade(){var choices=buildAllChoices();if(!choices.length&&
 function rollChestLevels(kind){var r=Math.random();if(kind==='rushBoss')return r<.45?3:(r<.82?4:5);if(kind==='specialBoss')return r<.52?2:(r<.9?3:4);return r<.74?1:(r<.96?2:3);}
 function openTreasureChest(levels){levels=Math.max(1,Math.min(7,levels||1));var previews=[];for(var i=0;i<levels;i++){level++;nextExp=nextExpFor(level);var c=chooseChestUpgrade();if(c){previews.push(c.name);applyChoice(c,true);}else{score+=650+level*24;previews.push('熟練スコア');}}paused=false;document.getElementById('levelScreen').style.display='none';screenFlash=Math.max(screenFlash,.33);bigBurst(player.x,player.y,'#ffdf6b',82,1.05);playSfx('fusion');showMessage('宝箱！ Lv+'+levels+'  '+previews.slice(0,3).join(' / ')+(previews.length>3?' ...':''),1800);updateHud();}
 function gainExp(v){exp+=v;}
-function checkLevelUps(){if(paused||!running||gameOver)return;var guard=0;while(exp>=nextExp&&guard++<6){exp-=nextExp;level++;nextExp=nextExpFor(level);var choices=buildAllChoices();if(choices.length>0||(endlessMode&&buildBreakChoices().length>0)){openLevelChoices();break;}else{score+=600+level*32;if(level%3===0)showMessage('熟練ボーナス +' + (600+level*32),700);}}}
+function checkLevelUps(){if(paused||!running||gameOver)return;var guard=0;while(exp>=nextExp&&guard++<10){exp-=nextExp;level++;nextExp=nextExpFor(level);if(endlessMode){applyAutoLimitBreak();continue;}var choices=buildAllChoices();if(choices.length>0){openLevelChoices();break;}else{score+=600+level*32;if(level%3===0)showMessage('熟練ボーナス +' + (600+level*32),700);}}}
 
 function difficulty(){var t=gameTime;var hp=.88+t*.0062,sp=.84+t*.00125,den=.72+t*.0046,dmg=.80+t*.0021;if(t<40){hp*=.88;sp*=.86;den*=.78;dmg*=.78;}if(t<90){hp*=.90;sp*=.93;den*=.90;dmg*=.86;}else if(t<125){hp*=.94;sp*=.96;dmg*=.92;}if(t>=150){hp*=1.12;den*=1.10;}if(t>=220){hp*=1.22;sp*=1.08;den*=1.18;dmg*=1.12;}if(t>=255){hp*=1.18;sp*=1.08;den*=1.18;dmg*=1.12;}if(t>=282){hp*=1.10;den*=1.16;sp*=1.06;dmg*=1.08;}if(t>220&&fusionCount()===0){var f=1+(t-220)/125;hp*=f;den*=1.16;sp*=1.08;dmg*=1.08;}else if(t>245&&fusionCount()<2){hp*=1.12;den*=1.08;}if(endlessMode){var e=t-CLEAR_TIME;hp*=1+e/72;sp*=1+e/490;den*=1+e/105;dmg*=1+e/520;if(t>=480){hp*=1.45;den*=1.30;}if(t>=600){hp*=1.8;sp*=1.2;den*=1.45;dmg*=1.22;}}var pc=desktopTuning();hp*=pc.hp;sp*=pc.sp;den*=pc.den;dmg*=pc.dmg;return{hp:hp,sp:sp,den:den,dmg:dmg};}
 function enemySizeScale(){return (width<720?.84:.90)*desktopTuning().size;}
