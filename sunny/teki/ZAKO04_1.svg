@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 76.54 76.54">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 76.5 76.5">
   <!-- Generator: Adobe Illustrator 29.0.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 186)  -->
   <defs>
     <style>
@@ -7,13 +7,13 @@
         fill: #ccddea;
       }
 
-      .st0, .st1, .st2 {
+      .st0, .st1, .st2, .st3 {
         stroke: #73584a;
         stroke-linecap: round;
         stroke-linejoin: round;
       }
 
-      .st0, .st2 {
+      .st0, .st2, .st3 {
         stroke-width: 2px;
       }
 
@@ -21,25 +21,43 @@
         stroke-width: 3px;
       }
 
-      .st3 {
-        display: none;
+      .st2 {
+        fill: none;
       }
 
-      .st2 {
+      .st3 {
         fill: #fff;
+      }
+
+      .st4 {
+        display: none;
       }
     </style>
   </defs>
-  <g id="_レイヤー_7" data-name="レイヤー_7" class="st3">
-    <circle class="st1" cx="38.98" cy="40.31" r="21.81"/>
-    <circle class="st0" cx="13.17" cy="27.6" r="3.43"/>
-    <circle class="st0" cx="60.8" cy="57.83" r="2.88"/>
-    <circle class="st0" cx="23.58" cy="58.17" r="4.15"/>
-    <circle class="st0" cx="61.72" cy="20.24" r="4.9"/>
+  <g id="_レイヤー_1" data-name="レイヤー_1">
+    <g id="_レイヤー_7" class="st4">
+      <circle class="st1" cx="39" cy="40.3" r="21.8"/>
+      <circle class="st0" cx="13.2" cy="27.6" r="3.4"/>
+      <circle class="st0" cx="60.8" cy="57.8" r="2.9"/>
+      <circle class="st0" cx="23.6" cy="58.2" r="4.2"/>
+      <circle class="st0" cx="61.7" cy="20.2" r="4.9"/>
+      <g>
+        <ellipse class="st3" cx="29.9" cy="38.5" rx="2.6" ry="4.3"/>
+        <ellipse class="st3" cx="48.1" cy="38.5" rx="2.6" ry="4.3"/>
+        <line class="st2" x1="36.1" y1="49.8" x2="41.9" y2="49.8"/>
+      </g>
+    </g>
+  </g>
+  <g id="_レイヤー_8">
+    <circle class="st1" cx="39.1" cy="39.6" r="21.8"/>
+    <circle class="st0" cx="13.3" cy="26.9" r="3.4"/>
+    <circle class="st0" cx="60.9" cy="57.1" r="2.9"/>
+    <circle class="st0" cx="23.7" cy="57.5" r="4.2"/>
+    <circle class="st0" cx="61.8" cy="19.5" r="4.9"/>
     <g>
-      <ellipse class="st2" cx="29.86" cy="38.55" rx="2.61" ry="4.32"/>
-      <ellipse class="st2" cx="48.11" cy="38.55" rx="2.61" ry="4.32"/>
-      <line class="st0" x1="36.1" y1="49.79" x2="41.86" y2="49.79"/>
+      <ellipse class="st3" cx="29.9" cy="38.4" rx="2.6" ry="4.3"/>
+      <ellipse class="st3" cx="48.2" cy="38.4" rx="2.6" ry="4.3"/>
+      <line class="st2" x1="41.9" y1="49.6" x2="36.2" y2="49.6"/>
     </g>
   </g>
 </svg>
