@@ -1,0 +1,2625 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>りっちゃんすっくんのどんぐり集めゲーム</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap');
+        :root {
+            overscroll-behavior: none;
+            --wood: #8b5a2b;
+            --leaf: #4f9b47;
+            --leaf-dark: #2f6f35;
+            --cream: #fff6d9;
+            --gold: #f6c945;
+            --acorn: #9a5b26;
+        }
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0; padding: 0; width: 100%;
+            height: 100vh; height: 100dvh;
+            overflow: hidden;
+            font-family: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'Yu Gothic', 'YuGothic', 'Meiryo', system-ui, sans-serif;
+            background: radial-gradient(circle at 50% 0%, #fff0b8 0%, #d9f0a7 35%, #7fc36a 100%);
+            color: #4b3219;
+        }
+
+        .name-guide {
+            margin: 12px 0 4px 0;
+            font-size: clamp(1.02em, 4.5vw, 1.15em);
+            font-weight: 800;
+            color: #6b431e;
+            letter-spacing: .02em;
+        }
+        h1, h2, button, input, .info-pill, .character-card, .modal-content {
+            font-family: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', 'Yu Gothic', 'YuGothic', 'Meiryo', system-ui, sans-serif;
+            letter-spacing: .02em;
+        }
+        h1, h2 {
+            font-weight: 900;
+            text-shadow: 0 3px 0 rgba(255,255,255,.72), 0 6px 14px rgba(93,58,23,.16);
+        }
+        button {
+            font-weight: 900;
+            border-radius: 999px !important;
+        }
+        input {
+            border-radius: 999px !important;
+            font-weight: 700;
+        }
+
+        .app-container {
+            display: flex; flex-direction: column; width: 100%; height: 100%;
+            background:
+                radial-gradient(circle at 12% 12%, rgba(255,255,255,.45) 0 4px, transparent 5px),
+                radial-gradient(circle at 84% 18%, rgba(255,255,255,.35) 0 3px, transparent 4px);
+        }
+        .info-bar {
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+            padding: 8px 8px calc(8px + env(safe-area-inset-top, 0px));
+            background: linear-gradient(180deg, #fff7d7 0%, #ffe5a0 100%);
+            border-bottom: 3px solid #b8792f;
+            box-shadow: 0 3px 10px rgba(80, 45, 10, .22);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        .hud-pill {
+            min-width: 100px;
+            display: inline-flex; justify-content: center; align-items: center;
+            padding: 7px 10px;
+            border-radius: 999px;
+            color: #4a2b13;
+            font-size: clamp(.9rem, 3.2vw, 1.05rem);
+            font-weight: 900;
+            letter-spacing: .02em;
+            background: rgba(255, 255, 255, .7);
+            border: 2px solid rgba(139, 90, 43, .35);
+            box-shadow: inset 0 -2px 0 rgba(139, 90, 43, .12);
+            white-space: nowrap;
+        }
+        #score-display::before { content: "🌰"; margin-right: 4px; }
+        #bullet-display::before { content: "🌲"; margin-right: 4px; }
+        #level-display::before { content: "🌳"; margin-right: 4px; }
+
+        #canvas-holder {
+            flex-grow: 1;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; line-height: 0;
+            background: linear-gradient(180deg, #9edb7e 0%, #66ad5f 100%);
+            position: relative;
+        }
+        #canvas-holder::before {
+            content: "";
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(circle at 18% 18%, rgba(255,255,255,.30), transparent 18%),
+                radial-gradient(circle at 82% 12%, rgba(255,245,160,.32), transparent 20%),
+                linear-gradient(180deg, rgba(255,255,255,.14), rgba(0,0,0,.08));
+            pointer-events: none;
+        }
+        #canvas-holder canvas {
+            max-width: 100%; max-height: 100%; object-fit: contain;
+            border-left: 3px solid #5a351b;
+            border-right: 3px solid #5a351b;
+            box-shadow: 0 0 0 4px rgba(255, 244, 196, .45), 0 10px 28px rgba(40, 70, 20, .35);
+            display: none;
+            z-index: 1;
+        }
+        #combo-display {
+            position: absolute;
+            top: 18px; right: 18px;
+            z-index: 3;
+            font-size: clamp(1.25rem, 5vw, 1.8rem);
+            font-weight: 1000;
+            color: #ffffff;
+            text-shadow: 0 2px 0 #6b3d15, 0 4px 10px rgba(0,0,0,.45);
+            display: none;
+            transition: transform .1s ease-out;
+            line-height: 1.08;
+            text-align: right;
+            padding: 8px 12px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(105, 65, 24, .58), rgba(46, 111, 53, .45));
+            border: 2px solid rgba(255, 245, 190, .75);
+            backdrop-filter: blur(2px);
+        }
+        #combo-display.active { transform: scale(1.18) rotate(-2deg); }
+        .fever-text { color: #ffe45e; font-weight: 1000; }
+        .fever-timer { font-size: .72em; color: #ffffff; font-weight: 800; }
+
+        .game-state-content {
+            display: none;
+            flex-direction: column; justify-content: center; align-items: center;
+            color: #4a2b13;
+            padding: 18px;
+            text-align: center;
+            z-index: 2;
+            width: min(94%, 460px);
+            line-height: 1.2;
+        }
+        .title-card {
+            width: 100%;
+            padding: 22px 18px;
+            border-radius: 28px;
+            background: linear-gradient(180deg, rgba(255, 249, 215, .96), rgba(255, 226, 150, .96));
+            border: 4px solid #a56b2d;
+            box-shadow: 0 10px 0 #6e431d, 0 18px 30px rgba(44, 69, 20, .35);
+            position: relative;
+            overflow: hidden;
+        }
+        .title-card::before, .title-card::after {
+            content: "";
+            position: absolute;
+            width: 115px; height: 115px;
+            border-radius: 50%;
+            background: rgba(246, 201, 69, .22);
+            pointer-events: none;
+        }
+        .title-card::before { left: -30px; top: -35px; }
+        .title-card::after { right: -42px; bottom: -50px; }
+        .character-row {
+            display: flex;
+            justify-content: center;
+            align-items: end;
+            gap: 12px;
+            min-height: 96px;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
+        }
+        .character-row img {
+            width: clamp(76px, 25vw, 112px);
+            height: auto;
+            filter: drop-shadow(0 6px 0 rgba(107, 61, 21, .16));
+        }
+        .character-row img:nth-child(2) { transform: translateY(-4px); }
+        .game-state-content h1 {
+            margin: 2px 0 10px;
+            font-size: clamp(2rem, 10vw, 3.25rem);
+            line-height: 1.02;
+            color: #7a4317;
+            text-shadow: 0 3px 0 #fff1a8;
+            letter-spacing: .02em;
+            position: relative;
+            z-index: 1;
+        }
+        .game-state-content h2 {
+            margin: 8px 0 10px;
+            font-size: clamp(1.8rem, 8vw, 2.35rem);
+            color: #7a4317;
+            text-shadow: 0 2px 0 #fff1a8;
+            position: relative;
+            z-index: 1;
+        }
+        .game-state-content p {
+            font-size: clamp(1rem, 4.5vw, 1.35rem);
+            line-height: 1.55;
+            margin: 0 0 16px 0;
+            font-weight: 800;
+            position: relative;
+            z-index: 1;
+        }
+        .sub-note {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .6);
+            border: 1px solid rgba(139, 90, 43, .25);
+            font-size: .86em;
+        }
+        .game-state-content button,
+        .button-bar button,
+        .modal-content button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-weight: 900;
+            color: white;
+            background: linear-gradient(180deg, #62b85a, #2f8d45);
+            box-shadow: 0 5px 0 #206d31, 0 8px 14px rgba(0,0,0,.18);
+            transition: transform .08s ease, box-shadow .08s ease, filter .2s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .game-state-content button:active,
+        .button-bar button:active,
+        .modal-content button:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #206d31, 0 4px 8px rgba(0,0,0,.16);
+        }
+        .game-state-content input {
+            padding: 12px 14px;
+            width: 82%; max-width: 260px;
+            margin: 12px 0;
+            border: 3px solid #c69043;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 800;
+            text-align: center;
+            background: #fffdf1;
+            color: #4a2b13;
+            outline: none;
+            position: relative;
+            z-index: 1;
+        }
+        .game-state-content input:focus { border-color: #50a24b; box-shadow: 0 0 0 4px rgba(80,162,75,.18); }
+        .game-state-content .button-group {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        .game-state-content .button-group button { margin: 0; }
+        #submit-score-btn { background: linear-gradient(180deg, #f6c945, #e9942f); box-shadow: 0 5px 0 #b76818, 0 8px 14px rgba(0,0,0,.18); color: #4a2b13; }
+        #retry-btn { background: linear-gradient(180deg, #62b85a, #2f8d45); }
+        #start-btn { font-size: 1.25rem; padding: 14px 34px; }
+
+        .button-bar {
+            display: flex; justify-content: center; align-items: center;
+            padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px));
+            background: linear-gradient(180deg, #ffe8a8, #ffd375);
+            box-shadow: 0 -3px 12px rgba(80,45,10,.18);
+            border-top: 3px solid #b8792f;
+            flex-shrink: 0; gap: 10px;
+        }
+        .button-bar button {
+            flex-grow: 1;
+            max-width: 240px;
+            padding: 11px 10px;
+            font-size: clamp(.94rem, 3.7vw, 1.04rem);
+        }
+        #ranking-btn { background: linear-gradient(180deg, #70bdf3, #2d83c6); box-shadow: 0 5px 0 #1c6098, 0 8px 14px rgba(0,0,0,.18); }
+
+        .modal-overlay {
+            display: none; position: fixed; z-index: 100; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(38, 63, 24, .68);
+            justify-content: center; align-items: center;
+            padding: 15px; box-sizing: border-box;
+            backdrop-filter: blur(2px);
+        }
+        .modal-content {
+            background: linear-gradient(180deg, #fffaf0, #ffecc0);
+            padding: 24px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 10px 0 #75491f, 0 18px 28px rgba(0,0,0,.28);
+            border: 4px solid #a56b2d;
+            width: 100%; max-width: 430px; max-height: 90vh;
+            display: flex; flex-direction: column;
+            color: #4a2b13;
+            line-height: 1.25;
+        }
+        .modal-content h2 {
+            margin-top: 0; margin-bottom: 18px; flex-shrink: 0;
+            font-size: 1.65rem;
+            color: #7a4317;
+            text-shadow: 0 2px 0 #fff1a8;
+        }
+        .close-btn { background: linear-gradient(180deg, #ef775e, #d94b32) !important; box-shadow: 0 5px 0 #a53020, 0 8px 14px rgba(0,0,0,.18) !important; margin-top: 18px; flex-shrink: 0; }
+        .legend-item {
+            display: flex; align-items: center;
+            margin-bottom: 10px;
+            font-size: .98rem;
+            text-align: left;
+            font-weight: 800;
+            background: rgba(255,255,255,.52);
+            border: 1px solid rgba(139,90,43,.18);
+            border-radius: 13px;
+            padding: 8px 10px;
+        }
+        .legend-icon {
+            width: 28px; height: 28px; border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid rgba(94,55,20,.35);
+            flex-shrink: 0;
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,.12);
+        }
+        #ranking-list {
+            list-style-type: none; padding: 0; text-align: left;
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 0;
+            margin: 0;
+        }
+        #ranking-list li {
+            background-color: rgba(255,255,255,.62);
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(139,90,43,.18);
+            font-size: 1rem;
+            font-weight: 850;
+            border-radius: 12px;
+            margin-bottom: 6px;
+        }
+        #ranking-list li:nth-child(1) { background: linear-gradient(90deg, #fff2a3, #fffdf1); }
+        #ranking-list li:nth-child(2) { background: linear-gradient(90deg, #eeeeee, #fffdf1); }
+        #ranking-list li:nth-child(3) { background: linear-gradient(90deg, #ffd5a6, #fffdf1); }
+
+        .ranking-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin: 0 0 12px;
+            flex-shrink: 0;
+        }
+        .ranking-tab {
+            padding: 8px 6px !important;
+            font-size: .86rem !important;
+            background: linear-gradient(180deg, #fff8d9, #f5d487) !important;
+            color: #5a3516 !important;
+            border: 2px solid rgba(139,90,43,.35) !important;
+            box-shadow: 0 3px 0 #b8792f !important;
+        }
+        .ranking-tab.active {
+            background: linear-gradient(180deg, #8ed36f, #4f9b47) !important;
+            color: #fffdf0 !important;
+            box-shadow: 0 3px 0 #2f6f35 !important;
+        }
+        .category-guide {
+            margin: 8px 0 6px;
+            font-size: .95rem;
+            font-weight: 900;
+            color: #6b431e;
+        }
+        .category-select {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 8px 0 4px;
+        }
+        .category-choice {
+            padding: 9px 8px !important;
+            font-size: .95rem !important;
+            background: linear-gradient(180deg, #fff8d9, #f0cf7c) !important;
+            color: #5a3516 !important;
+            border: 2px solid rgba(139,90,43,.35) !important;
+            box-shadow: 0 4px 0 #b8792f, 0 7px 12px rgba(0,0,0,.13) !important;
+        }
+        .category-choice.selected {
+            background: linear-gradient(180deg, #8ed36f, #4f9b47) !important;
+            color: #fffdf0 !important;
+            box-shadow: 0 4px 0 #2f6f35, 0 7px 12px rgba(0,0,0,.13) !important;
+        }
+        button:disabled { filter: grayscale(.4); opacity: .7; cursor: not-allowed; }
+
+        #character-display::before { content: "🐿️"; margin-right: 4px; }
+        .character-select {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 12px 0 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .game-state-content .character-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 3px;
+            min-width: 0;
+            padding: 9px 7px 10px;
+            border-radius: 18px;
+            border: 3px solid rgba(151, 92, 38, .42);
+            background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255, 238, 176, .88));
+            color: #4a2b13;
+            box-shadow: inset 0 -4px 0 rgba(139, 90, 43, .15), 0 4px 10px rgba(80, 45, 10, .16);
+            text-align: center;
+            line-height: 1.18;
+        }
+        .game-state-content .character-card.selected {
+            transform: translateY(-3px);
+            border-color: #2f8d45;
+            background: linear-gradient(180deg, #fffdf1, #dff5a9);
+            box-shadow: 0 0 0 4px rgba(255, 232, 92, .55), inset 0 -4px 0 rgba(47, 141, 69, .18), 0 8px 14px rgba(80, 45, 10, .18);
+        }
+        .game-state-content .character-card:active {
+            transform: translateY(-1px);
+            box-shadow: inset 0 -2px 0 rgba(139, 90, 43, .15), 0 3px 8px rgba(80, 45, 10, .15);
+        }
+        .character-card img {
+            width: clamp(58px, 21vw, 82px);
+            height: auto;
+            filter: drop-shadow(0 5px 0 rgba(107, 61, 21, .14));
+        }
+        .character-card strong {
+            font-size: clamp(1rem, 4vw, 1.16rem);
+            color: #7a4317;
+        }
+        .character-card span:not(.choice-badge) {
+            font-size: clamp(.78rem, 3.2vw, .9rem);
+            font-weight: 900;
+        }
+        .character-card small {
+            font-size: clamp(.68rem, 2.8vw, .78rem);
+            font-weight: 800;
+            color: #6a4a25;
+        }
+        .choice-badge {
+            align-self: flex-start;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #fff1a8;
+            border: 1px solid rgba(139, 90, 43, .28);
+            font-size: .72rem;
+            font-weight: 1000;
+            color: #6a3f17;
+        }
+        .result-character {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 6px 13px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.66);
+            border: 2px solid rgba(139,90,43,.28);
+            font-weight: 1000;
+            color: #6a3f17;
+            position: relative;
+            z-index: 1;
+        }
+        .result-character img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 0 rgba(107, 61, 21, .12));
+        }
+        .legend-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+
+
+
+        /* 2026-06 UI調整: ロゴ、ゲーム内HUD、ランキングタブ、結果ボタン */
+        .game-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            margin: 0 0 12px !important;
+            line-height: .96 !important;
+            letter-spacing: .01em !important;
+        }
+        .game-logo .logo-line {
+            display: inline-block;
+            white-space: nowrap;
+            border-radius: 999px;
+            border: 3px solid #7b4619;
+            box-shadow: 0 5px 0 #e09332, 0 9px 16px rgba(77, 41, 12, .20), inset 0 2px 0 rgba(255,255,255,.55);
+            text-shadow:
+                2px 0 0 #fff3ab,
+                -2px 0 0 #fff3ab,
+                0 2px 0 #fff3ab,
+                0 -2px 0 #fff3ab,
+                2px 2px 0 #fff3ab,
+                -2px 2px 0 #fff3ab,
+                0 5px 0 rgba(89, 50, 17, .18);
+        }
+        .game-logo .logo-line-top {
+            padding: .13em .58em .17em;
+            font-size: clamp(1.24rem, 5.6vw, 1.85rem);
+            color: #e46e35;
+            background: linear-gradient(180deg, #fffdf2, #ffe38c);
+            transform: rotate(-1.6deg);
+        }
+        .game-logo .logo-line-main {
+            padding: .12em .45em .18em;
+            font-size: clamp(1.72rem, 7.6vw, 2.72rem);
+            color: #8c4b18;
+            background: linear-gradient(180deg, #fff3a8, #f7c14d 72%, #ee963a);
+            transform: rotate(1deg);
+        }
+        .game-logo .logo-line-main::before,
+        .game-logo .logo-line-main::after {
+            content: "🌰";
+            font-size: .58em;
+            vertical-align: .08em;
+            margin: 0 .16em;
+            text-shadow: none;
+        }
+
+        .game-state-content .character-card {
+            min-height: 176px;
+            padding: 11px 8px 14px;
+            gap: 5px;
+            overflow: visible;
+        }
+        .character-card img { width: clamp(54px, 19vw, 76px); }
+        .character-card small {
+            display: block;
+            width: 100%;
+            margin-top: 3px;
+            padding: 5px 7px;
+            border-radius: 999px;
+            line-height: 1.22;
+            background: rgba(255, 255, 255, .72);
+            border: 1px solid rgba(139, 90, 43, .20);
+        }
+        .game-state-content .character-card.selected {
+            box-shadow: 0 0 0 3px rgba(255, 232, 92, .55), inset 0 -4px 0 rgba(47, 141, 69, .18), 0 8px 14px rgba(80, 45, 10, .18);
+        }
+
+        .result-buttons {
+            width: 82%;
+            max-width: 280px;
+            margin: 10px auto 0;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 11px;
+        }
+        .result-buttons button { width: 100%; }
+        #submit-score-btn { margin-top: 10px; }
+        #retry-btn {
+            background: linear-gradient(180deg, #fff8d9, #d9b25d) !important;
+            color: #5a3516 !important;
+            box-shadow: 0 5px 0 #a9782c, 0 8px 14px rgba(0,0,0,.16) !important;
+        }
+
+        .ranking-tabs {
+            display: flex;
+            gap: 0;
+            margin: 0;
+            padding: 5px 5px 0;
+            border: 3px solid #b8792f;
+            border-bottom: 0;
+            border-radius: 18px 18px 0 0;
+            background: rgba(255, 236, 179, .70);
+        }
+        .ranking-tab {
+            flex: 1 1 0;
+            padding: 9px 4px 10px !important;
+            font-size: clamp(.76rem, 3.1vw, .9rem) !important;
+            border-radius: 13px 13px 0 0 !important;
+            border: 0 !important;
+            border-bottom: 3px solid transparent !important;
+            background: linear-gradient(180deg, #fff8d9, #efd18b) !important;
+            box-shadow: inset 0 -3px 0 rgba(139, 90, 43, .14) !important;
+        }
+        .ranking-tab.active {
+            transform: translateY(2px);
+            background: linear-gradient(180deg, #8ed36f, #4f9b47) !important;
+            color: #fffdf0 !important;
+            border-bottom-color: #4f9b47 !important;
+            box-shadow: inset 0 2px 0 rgba(255,255,255,.28) !important;
+        }
+        #ranking-list {
+            padding: 8px;
+            border: 3px solid #b8792f;
+            border-top: 0;
+            border-radius: 0 0 18px 18px;
+            background: rgba(255, 253, 241, .62);
+        }
+
+
+        /* 2026-06 追加調整: かぶり防止、ロゴ強化、結果ボタン余白 */
+        .game-logo {
+            filter: drop-shadow(0 8px 0 rgba(105, 60, 22, .18));
+        }
+        .game-logo .logo-line {
+            position: relative;
+            max-width: 100%;
+            border-width: 4px;
+        }
+        .game-logo .logo-line-top::before,
+        .game-logo .logo-line-top::after {
+            content: "🍃";
+            font-size: .72em;
+            margin: 0 .18em;
+            text-shadow: none;
+        }
+        .game-logo .logo-line-main {
+            background:
+                radial-gradient(circle at 22% 25%, rgba(255,255,255,.72), transparent 18%),
+                linear-gradient(180deg, #fff4a7, #f7c14d 70%, #ee963a);
+        }
+        .game-logo .logo-line-main::before,
+        .game-logo .logo-line-main::after {
+            font-size: .52em;
+            margin: 0 .12em;
+        }
+        .game-state-content .character-card {
+            min-height: 190px;
+            padding: 13px 8px 15px;
+            gap: 6px;
+            overflow: hidden;
+        }
+        .game-state-content .character-card.selected {
+            transform: none;
+            border-color: #2f8d45;
+            outline: 3px solid rgba(255, 232, 92, .72);
+            outline-offset: 2px;
+        }
+        .character-card small {
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: keep-all;
+        }
+        .result-buttons {
+            margin-top: 16px;
+            gap: 12px;
+        }
+        #submit-score-btn {
+            margin-top: 16px;
+        }
+
+
+        /* 2026-06 v3 修正: 小枝HUD右上、タイトル枠内、SVGロゴ、キャラ文字の切れ防止 */
+        #combo-display {
+            top: 60px;
+            right: 12px;
+        }
+        .title-card {
+            overflow: visible;
+        }
+        #start-content .title-card {
+            padding-left: clamp(12px, 3.4vw, 18px);
+            padding-right: clamp(12px, 3.4vw, 18px);
+        }
+        .game-logo {
+            width: 100%;
+            max-width: 100%;
+            gap: 5px !important;
+            margin: 0 0 10px !important;
+            filter: drop-shadow(0 6px 0 rgba(105, 60, 22, .16));
+        }
+        .game-logo .logo-row {
+            width: 100%;
+            max-width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(3px, 1.2vw, 8px);
+            position: relative;
+            z-index: 1;
+        }
+        .game-logo .logo-mascot {
+            width: clamp(30px, 8.8vw, 45px);
+            height: auto;
+            flex: 0 0 auto;
+            object-fit: contain;
+            filter: drop-shadow(0 3px 0 rgba(107, 61, 21, .14));
+        }
+        .game-logo .logo-ricchan { transform: rotate(-8deg) translateY(1px); }
+        .game-logo .logo-sukkun { transform: rotate(8deg) translateY(1px); }
+        .game-logo .logo-line {
+            max-width: 100%;
+            box-sizing: border-box;
+            border-width: 3px !important;
+            line-height: 1.02 !important;
+            white-space: nowrap;
+        }
+        .game-logo .logo-line-top {
+            flex: 0 1 auto;
+            max-width: calc(100% - 84px);
+            padding: .12em .46em .17em !important;
+            font-size: clamp(1rem, 4.35vw, 1.48rem) !important;
+            letter-spacing: -.015em !important;
+        }
+        .game-logo .logo-line-top::before,
+        .game-logo .logo-line-top::after {
+            content: none !important;
+            display: none !important;
+        }
+        .game-logo .logo-line-main {
+            max-width: calc(100% - 8px) !important;
+            padding: .12em .25em .18em !important;
+            font-size: clamp(1.28rem, 5.9vw, 2.08rem) !important;
+            letter-spacing: -.055em !important;
+        }
+        .game-logo .logo-line-main::before,
+        .game-logo .logo-line-main::after {
+            content: none !important;
+            display: none !important;
+        }
+
+        .character-select {
+            overflow: visible;
+            align-items: start;
+            gap: clamp(12px, 3vw, 18px);
+            margin-top: 10px;
+            margin-bottom: 16px;
+        }
+        .game-state-content .character-card {
+            overflow: visible !important;
+            min-height: 0 !important;
+            padding: 0 2px 10px !important;
+            gap: 4px !important;
+            border: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            color: #4a2b13 !important;
+        }
+        .game-state-content .character-card.selected {
+            transform: none !important;
+            border: 0 !important;
+            outline: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+        .game-state-content .character-card:active {
+            transform: translateY(1px) !important;
+            box-shadow: none !important;
+        }
+        .character-frame {
+            width: min(100%, 122px);
+            aspect-ratio: 1 / .92;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            border: 3px solid rgba(151, 92, 38, .42);
+            background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255, 238, 176, .9));
+            box-shadow: inset 0 -4px 0 rgba(139, 90, 43, .15), 0 4px 10px rgba(80, 45, 10, .16);
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+        .character-card.selected .character-frame {
+            border-color: #2f8d45;
+            background: linear-gradient(180deg, #fffdf1, #dff5a9);
+            box-shadow: 0 0 0 4px rgba(255, 232, 92, .58), inset 0 -4px 0 rgba(47, 141, 69, .18), 0 7px 12px rgba(80, 45, 10, .18);
+        }
+        .character-frame img {
+            width: clamp(62px, 19vw, 86px) !important;
+            height: auto;
+            filter: drop-shadow(0 5px 0 rgba(107, 61, 21, .14));
+            margin-top: 4px;
+        }
+        .character-card .choice-badge {
+            position: absolute;
+            top: -7px;
+            left: 5px;
+            z-index: 3;
+        }
+        .character-card strong,
+        .character-card span:not(.choice-badge),
+        .character-card small {
+            position: relative;
+            z-index: 2;
+            overflow: visible;
+        }
+        .character-card small {
+            max-width: 126px;
+            min-height: 0 !important;
+            width: auto !important;
+            margin-top: 2px;
+            padding: 4px 7px;
+            white-space: normal;
+            line-height: 1.25;
+        }
+        @media (max-width: 360px) {
+            .game-logo .logo-mascot { width: 28px; }
+            .game-logo .logo-line-top { max-width: calc(100% - 62px); font-size: clamp(.92rem, 4.2vw, 1.18rem) !important; }
+            .game-logo .logo-line-main { font-size: clamp(1.16rem, 5.6vw, 1.58rem) !important; }
+            .character-frame { width: min(100%, 108px); }
+            .character-frame img { width: clamp(56px, 18vw, 72px) !important; }
+            .character-card small { font-size: .66rem; }
+        }
+
+
+        /* 2026-06 v5 小修正: 小枝HUDを左上へ移動 */
+        .game-logo .logo-line-main {
+            max-width: 100% !important;
+            padding: .12em .18em .18em !important;
+            font-size: clamp(1.15rem, 5.25vw, 1.88rem) !important;
+            letter-spacing: -.07em !important;
+        }
+        .game-logo .logo-line-main::before,
+        .game-logo .logo-line-main::after {
+            content: "🌰" !important;
+            display: inline-block !important;
+            font-size: .58em !important;
+            margin: 0 .07em !important;
+            vertical-align: .08em !important;
+            filter: drop-shadow(0 2px 0 rgba(89, 50, 17, .18));
+            text-shadow: none !important;
+        }
+        .character-card small {
+            box-sizing: border-box;
+            max-width: none !important;
+            min-width: clamp(142px, 37vw, 172px) !important;
+            padding: 5px 9px !important;
+            white-space: nowrap !important;
+            font-size: clamp(.66rem, 2.6vw, .76rem) !important;
+            line-height: 1.15 !important;
+        }
+        @media (max-width: 360px) {
+            .game-logo .logo-line-main {
+                font-size: clamp(1.02rem, 5.05vw, 1.42rem) !important;
+                letter-spacing: -.075em !important;
+                padding-left: .12em !important;
+                padding-right: .12em !important;
+            }
+            .game-logo .logo-line-main::before,
+            .game-logo .logo-line-main::after {
+                font-size: .52em !important;
+                margin: 0 .04em !important;
+            }
+            .character-card small {
+                min-width: 132px !important;
+                font-size: .62rem !important;
+                padding-left: 6px !important;
+                padding-right: 6px !important;
+            }
+        }
+
+
+        /* 2026-06 追加調整: みんなのきろくを列揃え */
+        #ranking-list li.ranking-row {
+            display: grid;
+            grid-template-columns: 3.7em minmax(0, 1fr) 5.8em 5.8em;
+            align-items: center;
+            column-gap: 8px;
+            padding: 9px 10px;
+            line-height: 1.2;
+        }
+        .rank-place {
+            display: inline-grid;
+            grid-template-columns: 1.05em 2.35em;
+            align-items: center;
+            justify-content: end;
+            text-align: right;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+            color: #6b431e;
+        }
+        .rank-crown {
+            display: inline-block;
+            width: 1.05em;
+            text-align: center;
+            font-size: .95em;
+            line-height: 1;
+        }
+        .rank-number {
+            display: inline-block;
+            min-width: 2.35em;
+            text-align: right;
+        }
+        .rank-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #4f3218;
+        }
+        .rank-score {
+            text-align: right;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+            color: #9a4f12;
+        }
+        .rank-meta {
+            text-align: right;
+            white-space: nowrap;
+            font-size: .86em;
+            color: #6c7a35;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        @media (max-width: 390px) {
+            #ranking-list li.ranking-row {
+                grid-template-columns: 3.5em minmax(0, 1fr) 5.3em;
+                row-gap: 3px;
+                column-gap: 6px;
+            }
+            .rank-meta {
+                grid-column: 2 / 4;
+                text-align: left;
+                font-size: .78em;
+            }
+            .rank-score { font-size: .92em; }
+        }
+
+    
+
+        /* 2026-06 追加調整 v7: ランキング名を省略しない・タブの浮きを解消 */
+        .ranking-tabs {
+            align-items: stretch !important;
+            gap: 4px !important;
+            padding: 6px 6px 0 !important;
+        }
+        .ranking-tab {
+            transform: none !important;
+            margin: 0 !important;
+            position: relative;
+            top: 0 !important;
+            border-radius: 14px 14px 0 0 !important;
+            box-shadow: inset 0 -2px 0 rgba(139, 90, 43, .18) !important;
+        }
+        .ranking-tab.active {
+            transform: none !important;
+            top: 0 !important;
+            background: linear-gradient(180deg, #7fcf6c, #4f9b47) !important;
+            color: #fffdf0 !important;
+            border-bottom: 0 !important;
+            box-shadow: inset 0 2px 0 rgba(255,255,255,.28) !important;
+        }
+        #ranking-list li.ranking-row {
+            grid-template-columns: 3.7em minmax(5.2em, 1fr) 5.9em 5.4em !important;
+            align-items: center !important;
+        }
+        .rank-name {
+            min-width: 0 !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            white-space: normal !important;
+            word-break: keep-all !important;
+            overflow-wrap: anywhere !important;
+            line-height: 1.18 !important;
+        }
+        .rank-meta {
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+        @media (max-width: 420px) {
+            #ranking-list li.ranking-row {
+                grid-template-columns: 3.6em minmax(0, 1fr) 5.6em !important;
+                grid-template-areas:
+                    "place name score"
+                    "place meta meta";
+                row-gap: 3px !important;
+            }
+            .rank-place { grid-area: place; }
+            .rank-name { grid-area: name; }
+            .rank-score { grid-area: score; }
+            .rank-meta {
+                grid-area: meta;
+                text-align: left !important;
+                font-size: .78em !important;
+            }
+        }
+
+
+        /* 2026-06 追加調整 v8: ランキングは順位・なまえ・スコア・詳細の固定列 */
+        .ranking-head {
+            display: grid;
+            grid-template-columns: 3.7em minmax(0, 1fr) 5.3em 3.5em;
+            column-gap: 6px;
+            align-items: center;
+            padding: 7px 10px 5px;
+            margin: 0 0 4px;
+            font-size: .78em;
+            font-weight: 900;
+            color: #7a552b;
+            background: rgba(255, 248, 217, .82);
+            border: 1px solid rgba(139, 90, 43, .18);
+            border-radius: 12px;
+        }
+        #ranking-list li.ranking-row {
+            display: grid !important;
+            grid-template-columns: 3.7em minmax(0, 1fr) 5.3em 3.5em !important;
+            grid-template-areas:
+                "place name score detail"
+                "more more more more" !important;
+            column-gap: 6px !important;
+            row-gap: 5px !important;
+            align-items: center !important;
+            padding: 9px 10px !important;
+        }
+        .rank-place { grid-area: place; }
+        .rank-name {
+            grid-area: name;
+            min-width: 0 !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            white-space: normal !important;
+            overflow-wrap: anywhere !important;
+            word-break: keep-all !important;
+            line-height: 1.15 !important;
+        }
+        .rank-score {
+            grid-area: score;
+            text-align: right;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+            color: #9a4f12;
+            font-weight: 900;
+        }
+        .rank-detail-cell {
+            grid-area: detail;
+            text-align: right;
+        }
+        .rank-detail-btn {
+            border: 1px solid #d6b06a;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #fff7d8, #f0ca76);
+            color: #6b431e;
+            font-weight: 900;
+            font-size: .86em;
+            width: 2.35em;
+            min-width: 2.35em;
+            height: 2.05em;
+            padding: 0;
+            cursor: pointer;
+            box-shadow: 0 2px 0 rgba(139, 90, 43, .22);
+            font-family: inherit;
+            line-height: 1;
+        }
+        .rank-detail-btn:active { transform: translateY(1px); box-shadow: 0 1px 0 rgba(139, 90, 43, .22); }
+        .rank-more {
+            grid-area: more;
+            display: none;
+            background: rgba(255, 252, 235, .72);
+            border: 1px dashed rgba(139, 90, 43, .28);
+            border-radius: 10px;
+            padding: 6px 9px;
+            color: #6c7a35;
+            font-size: .86em;
+            line-height: 1.45;
+        }
+        .ranking-row.open .rank-more { display: block; }
+        .rank-more strong { color: #6b431e; }
+        @media (max-width: 360px) {
+            .ranking-head,
+            #ranking-list li.ranking-row {
+                grid-template-columns: 3.45em minmax(0, 1fr) 4.75em 3.25em !important;
+                column-gap: 4px !important;
+                padding-left: 7px !important;
+                padding-right: 7px !important;
+            }
+            .ranking-head { font-size: .72em; }
+            .rank-score { font-size: .9em; }
+            .rank-detail-btn { font-size: .78em; width: 2.25em; min-width: 2.25em; height: 2em; }
+        }
+
+    </style>
+</head>
+<body>
+<div class="app-container">
+<div class="info-bar"><span class="hud-pill" id="character-display">すっくん</span>
+<span class="hud-pill" id="score-display">あつめたどんぐり: 0</span>
+<span class="hud-pill" id="level-display">森: 1</span>
+</div>
+<div id="canvas-holder">
+<div id="combo-display"></div>
+<div class="game-state-content" id="start-content">
+<div class="title-card">
+<h1 class="game-logo"><span class="logo-row logo-row-top"><img alt="りっちゃん" class="logo-mascot logo-ricchan" id="logo-ricchan-img"/><span class="logo-line logo-line-top">りっちゃんすっくんの</span><img alt="すっくん" class="logo-mascot logo-sukkun" id="logo-sukkun-img"/></span><span class="logo-line logo-line-main">どんぐり集めゲーム</span></h1>
+<p>キャラクターをえらんで<br/>まつぼっくりボールで<br/>森のどんぐりをたくさん集めよう！<br/><span class="sub-note">COMBOで高得点をねらおう！</span></p>
+<div aria-label="キャラクターをえらぶ" class="character-select">
+<button aria-pressed="true" class="character-card selected" data-character="sukkun" type="button">
+<span class="choice-badge">攻め</span>
+<span class="character-frame"><img alt="すっくん" id="choice-sukkun-img"/></span>
+<strong>すっくん</strong>
+<span>アイテム長もち</span>
+<small>アイテム時間+3秒</small>
+</button>
+<button aria-pressed="false" class="character-card" data-character="ricchan" type="button">
+<span class="choice-badge">安定</span>
+<span class="character-frame"><img alt="りっちゃん" id="choice-ricchan-img"/></span>
+<strong>りっちゃん</strong>
+<span>あんしん収穫</span>
+<small>はっぱトレー少し広め</small>
+</button>
+</div>
+<button id="start-btn">ゲームスタート</button>
+</div>
+</div>
+<div class="game-state-content" id="game-over-content">
+<div class="title-card">
+<div class="result-character">
+<img alt="えらんだリス" id="result-character-img"/>
+<div><span id="result-character-name">すっくん</span>の収穫きろく</div>
+</div>
+<h2>収穫おしまい。</h2>
+<p>あつめたどんぐり: <span id="final-score">0</span>こ<br/><span class="sub-note" id="final-message">ナイス収穫！</span></p>
+<p class="name-guide">名前をいれてきろくを残してね。</p>
+<input id="player-name" maxlength="14" placeholder="なまえ（14文字まで）" type="text"/>
+<p class="category-guide">のせるランキングをえらんでね。</p>
+<div aria-label="のせるランキングをえらぶ" class="category-select">
+<button aria-pressed="true" class="category-choice selected" data-category="elementary" type="button">小学生</button>
+<button aria-pressed="false" class="category-choice" data-category="junior_plus" type="button">中学生以上</button>
+</div>
+<div class="button-group result-buttons">
+<button id="submit-score-btn">きろくをのこす</button>
+<button id="retry-btn">最初にもどる</button>
+</div>
+</div>
+</div>
+</div>
+<div class="button-bar">
+<button id="how-to-play-btn">おたすけアイテム</button>
+<button id="ranking-btn">みんなのきろく</button>
+</div>
+</div>
+<div class="modal-overlay" id="how-to-play-modal">
+<div class="modal-content">
+<h2>おたすけアイテム</h2>
+<div class="legend-item"><div class="legend-icon" style="background-color: #e85b44;"></div>小枝をチャージ（タップで発射）</div>
+<div class="legend-item"><div class="legend-icon" style="background-color: #3aa0e3;"></div>大きなはっぱトレー（一定時間ワイドに）</div>
+<div class="legend-item"><div class="legend-icon" style="background-color: #f6c945;"></div>ジャンボまつぼっくり（ボールが一定時間大きく）</div>
+<div class="legend-item"><div class="legend-icon" style="background-color: #f7f2e7;"></div>ころころ分身（まつぼっくりが3つに分裂）</div>
+<div class="legend-item"><div class="legend-icon" style="background-color: #45b86b;"></div>きのこネット（落下を守る安全ゾーン）</div>
+<button class="close-btn" data-modal-id="how-to-play-modal">閉じる</button>
+</div>
+</div>
+<div class="modal-overlay" id="ranking-modal">
+<div class="modal-content">
+<h2 id="ranking-title">小学生のきろく</h2>
+<div aria-label="ランキングを切り替える" class="ranking-tabs">
+<button class="ranking-tab active" data-ranking="elementary" type="button">小学生</button>
+<button class="ranking-tab" data-ranking="junior_plus" type="button">中学生以上</button>
+<button class="ranking-tab" data-ranking="all" type="button">ぜんぶ</button>
+</div>
+<ul id="ranking-list"><li>読み込み中...</li></ul>
+<button class="close-btn" data-modal-id="ranking-modal">閉じる</button>
+</div>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    query,
+    where,
+    orderBy,
+    limit,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAKJf8RNFw8Pnz4dyezwYxzKtneMTaNhYw",
+  authDomain: "ritchan-sukkun-donguri.firebaseapp.com",
+  projectId: "ritchan-sukkun-donguri",
+  storageBucket: "ritchan-sukkun-donguri.firebasestorage.app",
+  messagingSenderId: "276678740758",
+  appId: "1:276678740758:web:8a9f7321524b42a5675e37"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const SCORES_COLLECTION = "scores";
+
+window.donguriFirebaseReady = true;
+
+window.donguriAddScore = async function(scoreData) {
+    return addDoc(collection(db, SCORES_COLLECTION), {
+        name: scoreData.name,
+        score: scoreData.score,
+        clearedStages: scoreData.clearedStages,
+        playedAtText: scoreData.playedAtText,
+        playedAtMillis: scoreData.playedAtMillis,
+        character: scoreData.character,
+        category: scoreData.category,
+        hidden: false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        version: "risu_donguri_v1"
+    });
+};
+
+window.donguriGetRanking = async function(rankingType = "elementary") {
+    const base = [where("hidden", "==", false)];
+    if (rankingType === "elementary") base.push(where("category", "==", "elementary"));
+    if (rankingType === "junior_plus") base.push(where("category", "==", "junior_plus"));
+    const q = query(collection(db, SCORES_COLLECTION), ...base, orderBy("score", "desc"), limit(10));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+</script>
+<script>
+const LEGACY_API_URL = 'https://script.google.com/macros/s/AKfycbx_rEO5BpjwJMPgV7-7AIpZLrGHsb8UzXDZpiTMZgBwpUFacvaDqlFJ0DAQGjY7oVp4/exec';
+const SUKKUN_DATA = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iX+ODrOOCpOODpOODvF8zIiBkYXRhLW5hbWU9IuODrOOCpOODpOODvF8zIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDYyLjM2IDYyLjM2Ij4KICA8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMjkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogMi4xLjAgQnVpbGQgMTg2KSAgLS0+CiAgPGRlZnM+CiAgICA8c3R5bGU+CiAgICAgIC5zdDAgewogICAgICAgIGZpbGw6ICNhMzMzMzU7CiAgICAgIH0KCiAgICAgIC5zdDEgewogICAgICAgIGZpbGw6ICNmN2U3Y2Y7CiAgICAgIH0KCiAgICAgIC5zdDIgewogICAgICAgIGZpbGw6ICM1MWEzNDc7CiAgICAgIH0KCiAgICAgIC5zdDMgewogICAgICAgIGZpbGw6ICNiMzdmM2M7CiAgICAgIH0KCiAgICAgIC5zdDQgewogICAgICAgIGZpbGw6ICM0YmEyNDc7CiAgICAgIH0KCiAgICAgIC5zdDUgewogICAgICAgIGZpbGw6ICM0MjhmM2Y7CiAgICAgIH0KCiAgICAgIC5zdDYgewogICAgICAgIGZpbGw6IG5vbmU7CiAgICAgICAgc3Ryb2tlOiAjNzQ0YjI4OwogICAgICAgIHN0cm9rZS13aWR0aDogLjZweDsKICAgICAgfQoKICAgICAgLnN0NiwgLnN0NyB7CiAgICAgICAgc3Ryb2tlLW1pdGVybGltaXQ6IDEwOwogICAgICB9CgogICAgICAuc3Q3IHsKICAgICAgICBmaWxsOiAjZmZmOwogICAgICAgIHN0cm9rZTogIzI1MWUxYzsKICAgICAgICBzdHJva2Utd2lkdGg6IC4xcHg7CiAgICAgIH0KCiAgICAgIC5zdDggewogICAgICAgIGZpbGw6ICM3NDRiMjg7CiAgICAgIH0KCiAgICAgIC5zdDkgewogICAgICAgIGZpbGw6ICNkZDk3NDM7CiAgICAgIH0KCiAgICAgIC5zdDEwIHsKICAgICAgICBmaWxsOiAjZDE2YzJiOwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8Zz4KICAgIDxwYXRoIGNsYXNzPSJzdDkiIGQ9Ik05LjUzLDU5LjExYzAtMTcsOS42OS0zMC43OSwyMS42NS0zMC43OXMyMS42NSwxMy43OCwyMS42NSwzMC43OUg5LjUzWiIvPgogICAgPHBhdGggY2xhc3M9InN0MyIgZD0iTTMxLjE4LDI4LjMyYy02LjE4LDAtMTEuNzQsMy42OS0xNS42OSw5LjU5LDIuODcuODYsNy44NSwyLjIxLDExLjYsMi41LDAsMCwxLjczLDEuMzcsNC4wOSwxLjM3czQuMDktMS4zNyw0LjA5LTEuMzdjMy43NS0uMjksOC43My0xLjY0LDExLjYtMi41LTMuOTQtNS45LTkuNTEtOS41OS0xNS42OS05LjU5WiIvPgogICAgPHBhdGggY2xhc3M9InN0OSIgZD0iTTQ2LjkxLDM4LjA3YzMuMjQsMCw2LjQ0LTEuOTQsNy42Ni0yLjc4czQuNTUtMS4zOSw0Ljk3LDEuNjgtMy42Miw3LjgzLTEyLjkzLDcuODMiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDkiIGQ9Ik0xNS40NSwzOC4wN2MtMy4yNCwwLTYuNDQtMS45NC03LjY2LTIuNzhzLTQuNTUtMS4zOS00Ljk3LDEuNjhjLS40MiwzLjA3LDMuNjIsNy44MywxMi45Myw3LjgzIi8+CiAgICA8cGF0aCBjbGFzcz0ic3QxIiBkPSJNNDEuNjEsNTYuNDRjMC04LjE5LTQuNjctMTQuODMtMTAuNDMtMTQuODMtNS43NiwwLTEwLjQzLDYuNjQtMTAuNDMsMTQuODMsMCwuOTEuMDcsMS44LjE4LDIuNjdoMjAuNDljLjExLS44Ny4xOC0xLjc2LjE4LTIuNjdaIi8+CiAgICA8cGF0aCBjbGFzcz0ic3Q5IiBkPSJNNDkuMTksMTkuNThjLS42Mi0zLjczLTIuNS02LjQ0LTQuMjUtNy43MS0uNzYtLjUxLTMuMTgtMS4xMi0zLjE4LTEuMTIsMCwwLTMuNjIsNS42My00LjYyLDcuMDVsLTIuMDMtNy4xNC0zLjkzLDguMTUtMy45My04LjE1LTIuMDMsNy4xNGMtMS4wMS0xLjQyLTQuNjItNy4wNS00LjYyLTcuMDUsMCwwLTIuNDIuNi0zLjE4LDEuMTItMS43NSwxLjI4LTMuNjIsMy45OC00LjI1LDcuNzEtNC4xNSwwLTcuNTEsMy4zNi03LjUxLDcuNTEsMCw0LjE1LDMuMzYsNy41MSw3LjUxLDcuNTEsMCwwLDguMzMsMi43OSwxMy45MiwzLjIzLDAsMCwxLjczLDEuMzcsNC4wOSwxLjM3LDIuMzYsMCw0LjA5LTEuMzcsNC4wOS0xLjM3LDUuNTgtLjQzLDEzLjkyLTMuMjMsMTMuOTItMy4yMyw0LjE1LDAsNy41MS0zLjM2LDcuNTEtNy41MSwwLTQuMTUtMy4zNi03LjUxLTcuNTEtNy41MVoiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDgiIGQ9Ik0yNS4yMiwxNy43OWwyLjAzLTcuMTQsMy45Myw4LjE1LDMuOTMtOC4xNSwyLjAzLDcuMTRjMS4wMS0xLjQyLDQuNjItNy4wNSw0LjYyLTcuMDUsMCwwLDIuNDIuNiwzLjE4LDEuMTIuMTktMi4yMS4xNi04LjI0LTIuMDQtOC4yNC0xLjM3LDAtLjg5LDMuMy0zLjQsNS41OS0zLjAzLS45MS01LjgyLS45My04LjMyLS45M3MtNS4yOS4wMi04LjMyLjkzYy0yLjUxLTIuMjktMi4wMy01LjU5LTMuNC01LjU5LTIuMiwwLTIuMjMsNi4wMy0yLjA0LDguMjQuNzYtLjUxLDMuMTgtMS4xMiwzLjE4LTEuMTIsMCwwLDMuNjIsNS42Myw0LjYyLDcuMDVaIi8+CiAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNMzEuMTgsMjYuMzZjLS4zMywxLjEzLTEuMTksMS40OC0yLjA3LDEuNDJoMHMuNjQsMy4xOCwyLjA3LDMuMTgsMi4wNy0zLjE4LDIuMDctMy4xOGgwYy0uODkuMDYtMS43NS0uMjgtMi4wNy0xLjQyWiIvPgogICAgPGVsbGlwc2UgY2xhc3M9InN0OCIgY3g9IjIyLjQxIiBjeT0iMjIuMzgiIHJ4PSIzLjUyIiByeT0iMi45OCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTkuMjQgMjMuNykgcm90YXRlKC00Ny4zNCkiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDYiIGQ9Ik0yNi42NiwyNi4zNmMuMzIsMS4xLDMuNzgsMi41Niw0LjUyLDB2LTEuNjgiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDYiIGQ9Ik0zNS43LDI2LjM2Yy0uMzIsMS4xLTMuNzgsMi41Ni00LjUyLDB2LTEuNjgiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDgiIGQ9Ik0zMS4xOCwyNC42OGMuNTcsMCwyLjQ1LS44NCwyLjQ1LTEuNTlzLTEuMzgtLjUyLTIuNDUtLjUyYy0xLjA3LDAtMi40NS0uMjItMi40NS41MnMxLjg4LDEuNTksMi40NSwxLjU5Ii8+CiAgICA8Y2lyY2xlIGNsYXNzPSJzdDEwIiBjeD0iMTMuMTciIGN5PSIyNy4yNCIgcj0iNC45NSIvPgogICAgPGNpcmNsZSBjbGFzcz0ic3QxMCIgY3g9IjQ5LjE5IiBjeT0iMjcuMjQiIHI9IjQuOTUiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDYiIGQ9Ik0xOC40NiwxNy4yNWMuMDYuMDIsNC41OS0uNDMsNi42LDEuNjkiLz4KICAgIDxlbGxpcHNlIGNsYXNzPSJzdDgiIGN4PSIzOS45NSIgY3k9IjIyLjM4IiByeD0iMi45OCIgcnk9IjMuNTIiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC00LjYgMzIuOTkpIHJvdGF0ZSgtNDIuNjYpIi8+CiAgICA8Y2lyY2xlIGNsYXNzPSJzdDciIGN4PSIzOC4xNCIgY3k9IjIyLjM1IiByPSIuOTUiLz4KICAgIDxjaXJjbGUgY2xhc3M9InN0NyIgY3g9IjM5LjI3IiBjeT0iMjAuOTEiIHI9Ii43MyIvPgogICAgPHBhdGggY2xhc3M9InN0NiIgZD0iTTQzLjksMTcuMjVjLS4wNi4wMi00LjU5LS40My02LjYsMS42OSIvPgogICAgPHBhdGggY2xhc3M9InN0NiIgZD0iTTMzLjI1LDI3Ljc3cy0uNjQsMy4xOC0yLjA3LDMuMThjLTEuNDQsMC0yLjA3LTMuMTgtMi4wNy0zLjE4Ii8+CiAgICA8Zz4KICAgICAgPGNpcmNsZSBjbGFzcz0ic3Q3IiBjeD0iMjQuMjIiIGN5PSIyMi4zNSIgcj0iLjk1Ii8+CiAgICAgIDxjaXJjbGUgY2xhc3M9InN0NyIgY3g9IjIzLjA5IiBjeT0iMjAuOTEiIHI9Ii43MyIvPgogICAgPC9nPgogIDwvZz4KICA8Zz4KICAgIDxwYXRoIGNsYXNzPSJzdDIiIGQ9Ik0zMi41MSw0MS45NGMxLjE2LDEuMDksMi4xNSwxLjQ5LDMuMjgsMS40OXMxLjU4LTEuMzgsMS41OC0zLjcyYzAtMi4zNC0uNDUtMy43Mi0xLjU4LTMuNzJzLTIuMTMuNDEtMy4yOCwxLjQ5Ii8+CiAgICA8cGF0aCBjbGFzcz0ic3QyIiBkPSJNMjkuODUsNDEuOTRjLTEuMTYsMS4wOS0yLjE1LDEuNDktMy4yOCwxLjQ5cy0xLjU4LTEuMzgtMS41OC0zLjcyLjQ1LTMuNzIsMS41OC0zLjcyLDIuMTMuNDEsMy4yOCwxLjQ5Ii8+CiAgICA8cGF0aCBjbGFzcz0ic3Q0IiBkPSJNMzMuMDEsMzkuNzJjMCwyLjI3LS43LDIuNzMtMS44MywyLjczLTEuMTMsMC0xLjgzLS40NS0xLjgzLTIuNzNzLjctMi43MywxLjgzLTIuNzNjMS4xMywwLDEuODMuNDUsMS44MywyLjczWiIvPgogICAgPHBhdGggY2xhc3M9InN0NSIgZD0iTTI5Ljg1LDQxLjkzYy0uMzItLjQtLjUtMS4wNy0uNS0yLjIxcy4xOC0xLjgxLjUtMi4yMXYtLjAyYy0uMTItLjExLS4yNC0uMjItLjM2LS4zMi0uNTguMjgtLjkyLjk4LS45MiwyLjU0cy4zNCwyLjI2LjkyLDIuNTRjLjEyLS4xLjI0LS4yLjM2LS4zMnYtLjAyWiIvPgogICAgPHBhdGggY2xhc3M9InN0NSIgZD0iTTMyLjUxLDM3LjUxYy4zMi40LjUsMS4wNy41LDIuMjFzLS4xOCwxLjgxLS41LDIuMjF2LjAyYy4xMi4xMS4yNC4yMi4zNi4zMi41OC0uMjguOTItLjk4LjkyLTIuNTRzLS4zNC0yLjI2LS45Mi0yLjU0Yy0uMTIuMS0uMjQuMi0uMzYuMzJ2LjAyWiIvPgogICAgPHJlY3QgY2xhc3M9InN0NSIgeD0iMjcuMzciIHk9IjM4LjUiIHdpZHRoPSIxLjkiIGhlaWdodD0iLjc3IiByeD0iLjM5IiByeT0iLjM5IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMy41NiAtNi45KSByb3RhdGUoMTguMikiLz4KICAgIDxyZWN0IGNsYXNzPSJzdDUiIHg9IjI3LjM3IiB5PSI0MC4xNyIgd2lkdGg9IjEuOSIgaGVpZ2h0PSIuNzciIHJ4PSIuMzkiIHJ5PSIuMzkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xMS4yNSAxMC44Nykgcm90YXRlKC0xOC4yKSIvPgogICAgPHJlY3QgY2xhc3M9InN0NSIgeD0iMzMuMDkiIHk9IjM4LjUiIHdpZHRoPSIxLjkiIGhlaWdodD0iLjc3IiByeD0iLjM5IiByeT0iLjM5IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3OC41MiA2NS4xOSkgcm90YXRlKDE2MS44KSIvPgogICAgPHJlY3QgY2xhc3M9InN0NSIgeD0iMzMuMDkiIHk9IjQwLjE3IiB3aWR0aD0iMS45IiBoZWlnaHQ9Ii43NyIgcng9Ii4zOSIgcnk9Ii4zOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTMuNzIgODkuNykgcm90YXRlKC0xNjEuOCkiLz4KICA8L2c+Cjwvc3ZnPg==';
+const RICCHAN_DATA = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iX+ODrOOCpOODpOODvF8zIiBkYXRhLW5hbWU9IuODrOOCpOODpOODvF8zIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDYyLjM2IDYyLjM2Ij4KICA8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMjkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogMi4xLjAgQnVpbGQgMTg2KSAgLS0+CiAgPGRlZnM+CiAgICA8c3R5bGU+CiAgICAgIC5zdDAgewogICAgICAgIGZpbGw6ICNmN2U3Y2Y7CiAgICAgIH0KCiAgICAgIC5zdDEgewogICAgICAgIHN0cm9rZTogIzI1MWUxYzsKICAgICAgICBzdHJva2UtbGluZWpvaW46IHJvdW5kOwogICAgICAgIHN0cm9rZS13aWR0aDogLjhweDsKICAgICAgfQoKICAgICAgLnN0MSwgLnN0MiB7CiAgICAgICAgZmlsbDogbm9uZTsKICAgICAgfQoKICAgICAgLnN0MyB7CiAgICAgICAgZmlsbDogI2IzN2YzYzsKICAgICAgfQoKICAgICAgLnN0NCB7CiAgICAgICAgZmlsbDogI2ZmZjsKICAgICAgfQoKICAgICAgLnN0MiB7CiAgICAgICAgc3Ryb2tlOiAjNzQ0YjI4OwogICAgICAgIHN0cm9rZS1taXRlcmxpbWl0OiAxMDsKICAgICAgICBzdHJva2Utd2lkdGg6IC42cHg7CiAgICAgIH0KCiAgICAgIC5zdDUgewogICAgICAgIGZpbGw6ICNhYzJjMjY7CiAgICAgIH0KCiAgICAgIC5zdDYgewogICAgICAgIGZpbGw6ICNjNzM0MmQ7CiAgICAgIH0KCiAgICAgIC5zdDcgewogICAgICAgIGZpbGw6ICM3NDRiMjg7CiAgICAgIH0KCiAgICAgIC5zdDggewogICAgICAgIGZpbGw6ICNkZDk3NDM7CiAgICAgIH0KCiAgICAgIC5zdDkgewogICAgICAgIGZpbGw6ICNkMTZjMmI7CiAgICAgIH0KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgogIDxwYXRoIGNsYXNzPSJzdDgiIGQ9Ik05LjUzLDU4Ljc0YzAtMTcsOS42OS0zMC43OSwyMS42NS0zMC43OSwxMS45NSwwLDIxLjY1LDEzLjc4LDIxLjY1LDMwLjc5SDkuNTNaIi8+CiAgPHBhdGggY2xhc3M9InN0OCIgZD0iTTQ2LjkxLDM3LjdjMy4yNCwwLDYuNDQtMS45NCw3LjY2LTIuNzhzNC41NS0xLjM5LDQuOTcsMS42OGMuNDIsMy4wNy0zLjYyLDcuODMtMTIuOTMsNy44MyIvPgogIDxwYXRoIGNsYXNzPSJzdDgiIGQ9Ik0xNS40NSwzNy43Yy0zLjI0LDAtNi40NC0xLjk0LTcuNjYtMi43OHMtNC41NS0xLjM5LTQuOTcsMS42OGMtLjQyLDMuMDcsMy42Miw3LjgzLDEyLjkzLDcuODMiLz4KICA8cGF0aCBjbGFzcz0ic3QzIiBkPSJNMzEuMTgsMjcuOTVjLTYuMTgsMC0xMS43NCwzLjY5LTE1LjY5LDkuNTksMi44Ny44Niw3Ljg1LDIuMjEsMTEuNiwyLjUsMCwwLDEuNzMsMS4zNyw0LjA5LDEuMzdzNC4wOS0xLjM3LDQuMDktMS4zN2MzLjc1LS4yOSw4LjczLTEuNjQsMTEuNi0yLjUtMy45NC01LjktOS41MS05LjU5LTE1LjY5LTkuNTlaIi8+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTQxLjYxLDU2LjA3YzAtOC4xOS00LjY3LTE0LjgzLTEwLjQzLTE0LjgzLTUuNzYsMC0xMC40Myw2LjY0LTEwLjQzLDE0LjgzLDAsLjkxLjA3LDEuOC4xOCwyLjY3aDIwLjQ5Yy4xMS0uODcuMTgtMS43Ni4xOC0yLjY3WiIvPgogIDxwYXRoIGNsYXNzPSJzdDciIGQ9Ik0yNS4yMiwxNy43OWwyLjAzLTcuMTQsMy45Myw4LjE1LDMuOTMtOC4xNSwyLjAzLDcuMTRjMS4wMS0xLjQyLDQuNjItNy4wNSw0LjYyLTcuMDUsMCwwLDIuNDIuNiwzLjE4LDEuMTIuMTktMi4yMS4xNi04LjI0LTIuMDQtOC4yNC0xLjM3LDAtLjg5LDMuMy0zLjQsNS41OS0zLjAzLS45MS01LjgyLS45My04LjMyLS45M3MtNS4yOS4wMi04LjMyLjkzYy0yLjUxLTIuMjktMi4wMy01LjU5LTMuNC01LjU5LTIuMiwwLTIuMjMsNi4wMy0yLjA0LDguMjQuNzYtLjUxLDMuMTgtMS4xMiwzLjE4LTEuMTIsMCwwLDMuNjIsNS42Myw0LjYyLDcuMDVaIi8+CiAgPHBhdGggY2xhc3M9InN0OCIgZD0iTTQ5LjE5LDE5LjU4Yy0uNjItMy43My0yLjUtNi40NC00LjI1LTcuNzEtLjc2LS41MS0zLjE4LTEuMTItMy4xOC0xLjEyLDAsMC0zLjYyLDUuNjMtNC42Miw3LjA1bC0yLjAzLTcuMTQtMy45Myw4LjE1LTMuOTMtOC4xNS0yLjAzLDcuMTRjLTEuMDEtMS40Mi00LjYyLTcuMDUtNC42Mi03LjA1LDAsMC0yLjQyLjYtMy4xOCwxLjEyLTEuNzUsMS4yOC0zLjYyLDMuOTgtNC4yNSw3LjcxLTQuMTUsMC03LjUxLDMuMzYtNy41MSw3LjUxLDAsNC4xNSwzLjM2LDcuNTEsNy41MSw3LjUxLDAsMCw4LjMzLDIuNzksMTMuOTIsMy4yMywwLDAsMS43MywxLjM3LDQuMDksMS4zNywyLjM2LDAsNC4wOS0xLjM3LDQuMDktMS4zNyw1LjU4LS40MywxMy45Mi0zLjIzLDEzLjkyLTMuMjMsNC4xNSwwLDcuNTEtMy4zNiw3LjUxLTcuNTEsMC00LjE1LTMuMzYtNy41MS03LjUxLTcuNTFaIi8+CiAgPGVsbGlwc2UgY2xhc3M9InN0NyIgY3g9IjIxLjQ5IiBjeT0iMjAuODgiIHJ4PSIzLjc5IiByeT0iMi44NCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTcuOTEgMjYuNjYpIHJvdGF0ZSgtNTUuMzIpIi8+CiAgPHBhdGggY2xhc3M9InN0NyIgZD0iTTE5LjI2LDE5LjdjLS4zNy0uMy0xLjMxLTIuNjItMS4wOC0yLjg3LjE0LS4xNi44OSwxLjc0LDEuODYsMS44NSIvPgogIDxwYXRoIGNsYXNzPSJzdDciIGQ9Ik0yMC4zMiwxOC43OWMtLjMtLjMtLjg5LTIuNDctLjY2LTIuNjcuMTUtLjEzLjYxLDEuNjQsMS40NiwxLjg0Ii8+CiAgPHBhdGggY2xhc3M9InN0NyIgZD0iTTIxLjYzLDE4LjYzYy0uMjctLjMzLS42My0yLjU0LS4zOS0yLjcyLjE2LS4xMS40NCwxLjY5LDEuMjcsMS45OCIvPgogIDxjaXJjbGUgY2xhc3M9InN0NCIgY3g9IjIwLjcyIiBjeT0iMTkuOCIgcj0iMS4wMiIvPgogIDxwYXRoIGNsYXNzPSJzdDIiIGQ9Ik0yNi42NiwyNi41NGMwLDEuNDYsMy43OCwzLjQsNC41Miwwdi0yLjIzIi8+CiAgPHBhdGggY2xhc3M9InN0NyIgZD0iTTMxLjE4LDI0LjMxYy41NywwLDIuNDUtLjg0LDIuNDUtMS41OSwwLS43NS0xLjM4LS41Mi0yLjQ1LS41Mi0xLjA3LDAtMi40NS0uMjItMi40NS41MiwwLC43NSwxLjg4LDEuNTksMi40NSwxLjU5Ii8+CiAgPGVsbGlwc2UgY2xhc3M9InN0NyIgY3g9IjQwLjg4IiBjeT0iMjAuODgiIHJ4PSIyLjg0IiByeT0iMy43OSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQuNjIgMjYuOTcpIHJvdGF0ZSgtMzQuNjgpIi8+CiAgPHBhdGggY2xhc3M9InN0NyIgZD0iTTQzLjEsMTkuN2MuMzctLjMsMS4zMS0yLjYyLDEuMDgtMi44Ny0uMTQtLjE2LS44OSwxLjc0LTEuODYsMS44NSIvPgogIDxwYXRoIGNsYXNzPSJzdDciIGQ9Ik00Mi4wNCwxOC43OWMuMy0uMy44OS0yLjQ3LjY2LTIuNjctLjE1LS4xMy0uNjEsMS42NC0xLjQ2LDEuODQiLz4KICA8cGF0aCBjbGFzcz0ic3Q3IiBkPSJNNDAuNzMsMTguNjNjLjI3LS4zMy42My0yLjU0LjM5LTIuNzItLjE2LS4xMS0uNDQsMS42OS0xLjI3LDEuOTgiLz4KICA8Y2lyY2xlIGNsYXNzPSJzdDQiIGN4PSIzOS4yNCIgY3k9IjE5LjgiIHI9IjEuMDIiLz4KICA8cGF0aCBjbGFzcz0ic3QyIiBkPSJNMzUuNywyNi41NGMwLDEuNDYtMy43OCwzLjQtNC41Miwwdi0yLjIzIi8+CiAgPGNpcmNsZSBjbGFzcz0ic3Q5IiBjeD0iMTMuMTciIGN5PSIyNi44OCIgcj0iNC45NSIvPgogIDxjaXJjbGUgY2xhc3M9InN0OSIgY3g9IjQ5LjE5IiBjeT0iMjYuODgiIHI9IjQuOTUiLz4KICA8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMjEuMTIsMTEuMTkiLz4KICA8Zz4KICAgIDxwYXRoIGNsYXNzPSJzdDYiIGQ9Ik00Mi40NiwxMi44NmMuNjMsMS40NiwxLjM5LDIuMjIsMi40MywyLjY3czItLjY0LDIuOTMtMi43OWMuOTMtMi4xNSwxLjA2LTMuNi4wMi00LjA0cy0yLjExLS40Ny0zLjYxLjA3Ii8+CiAgICA8cGF0aCBjbGFzcz0ic3Q2IiBkPSJNNDAuMDIsMTEuODFjLTEuNDkuNTQtMi41Ny41Mi0zLjYxLjA3cy0uOTEtMS44OS4wMi00LjA0LDEuODktMy4yNCwyLjkzLTIuNzksMS43OSwxLjIyLDIuNDMsMi42NyIvPgogICAgPHBhdGggY2xhc3M9InN0NiIgZD0iTTQzLjgxLDExLjAyYy0uOSwyLjA5LTEuNzIsMi4yMy0yLjc2LDEuNzgtMS4wNC0uNDUtMS41LTEuMTQtLjYtMy4yM3MxLjcyLTIuMjMsMi43Ni0xLjc4YzEuMDQuNDUsMS41LDEuMTQuNiwzLjIzWiIvPgogICAgPGc+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDUiIGQ9Ik00MC4wMywxMS43OWMtLjE0LS40OS0uMDQtMS4xOC40MS0yLjIzcy44OS0xLjU5LDEuMzQtMS44M3YtLjAyYy0uMDYtLjE1LS4xMy0uMjktLjItLjQzLS42NC4wMy0xLjIzLjUzLTEuODUsMS45N3MtLjU4LDIuMjEtLjE2LDIuN2MuMTUtLjA0LjMtLjA5LjQ2LS4xNXYtLjAyWiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3Q1IiBkPSJNNDQuMjIsOC43OWMuMTQuNDkuMDQsMS4xOC0uNDEsMi4yM3MtLjg5LDEuNTktMS4zNCwxLjgzdi4wMmMuMDYuMTUuMTMuMjkuMi40My42NC0uMDMsMS4yMy0uNTMsMS44NS0xLjk3cy41OC0yLjIxLjE2LTIuN2MtLjE1LjA0LS4zLjA5LS40Ni4xNXYuMDJaIi8+CiAgICAgIDxyZWN0IGNsYXNzPSJzdDUiIHg9IjM4Ljg4IiB5PSI4LjAxIiB3aWR0aD0iMS45IiBoZWlnaHQ9Ii43NyIgcng9Ii4zOSIgcnk9Ii4zOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTUuNTYgLTI0LjI5KSByb3RhdGUoNDEuNTEpIi8+CiAgICAgIDxyZWN0IGNsYXNzPSJzdDUiIHg9IjM4LjIyIiB5PSI5LjU0IiB3aWR0aD0iMS45IiBoZWlnaHQ9Ii43NyIgcng9Ii4zOSIgcnk9Ii4zOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMS4wNCAtMy40NSkgcm90YXRlKDUuMTEpIi8+CiAgICAgIDxyZWN0IGNsYXNzPSJzdDUiIHg9IjQ0LjEzIiB5PSIxMC4yNyIgd2lkdGg9IjEuOSIgaGVpZ2h0PSIuNzciIHJ4PSIuMzkiIHJ5PSIuMzkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDg5LjAzIDI1LjI5KSByb3RhdGUoLTE3NC44OSkiLz4KICAgICAgPHJlY3QgY2xhc3M9InN0NSIgeD0iNDMuNDciIHk9IjExLjgiIHdpZHRoPSIxLjkiIGhlaWdodD0iLjc3IiByeD0iLjM5IiByeT0iLjM5IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2OS42MSA1MC43NSkgcm90YXRlKC0xMzguNDkpIi8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4=';
+
+let paddle, balls = [], blocks = [], items = [], bullets = [];
+let score = 0, bulletCount = 0, level = 1;
+let itemSpawnInterval;
+let gameState = 'start';
+let comboCount = 0;
+let isWallActive = false; let wallTimer;
+let isFeverTime = false; let feverEndTime = 0;
+let sukkunImg, ricchanImg;
+let forestLeaves = [], particles = [], scorePopups = [];
+let screenShake = 0;
+let bannerText = '', bannerTimer = 0;
+let selectedCharacterKey = 'sukkun';
+let selectedSubmitCategory = 'elementary';
+let activeRankingType = 'elementary';
+
+const CHARACTER_TYPES = {
+    sukkun: {
+        name: 'すっくん',
+        role: 'アイテム長もち',
+        initialShots: 0,
+        bulletBonus: 0,
+        paddleBonus: 0,
+        effectBonus: 3000,
+        wallBonus: 3000,
+        startBanner: 'すっくんで冬じたくスタート！'
+    },
+    ricchan: {
+        name: 'りっちゃん',
+        role: 'あんしん収穫',
+        initialShots: 0,
+        bulletBonus: 0,
+        paddleBonus: 10,
+        effectBonus: 0,
+        wallBonus: 0,
+        startBanner: 'りっちゃんで冬じたくスタート！'
+    }
+};
+
+const PADDLE_INITIAL_WIDTH = 80, PADDLE_HEIGHT = 15;
+const BALL_INITIAL_SIZE = 15;
+const INITIAL_BALL_SPEED_Y = 5, INITIAL_BALL_SPEED_X_RANGE = 5;
+const BLOCK_WIDTH = 55, BLOCK_HEIGHT = 20, BLOCK_GAP = 1;
+const PADDLE_BALL_SIZE_DURATION = 15000;
+const WALL_DURATION = 15000;
+const MAX_BALLS = 10;
+const FEVER_THRESHOLD = 25;
+const FEVER_DURATION = 30000;
+const PADDLE_TOUCH_TIMEOUT = 10000;
+
+const ITEM_TYPES = {
+    RED:    { color: [232, 91, 68],  effect: 'bullet',      label: '小枝+5', icon: 'twig' },
+    BLUE:   { color: [58, 160, 227],  effect: 'paddle_size', label: '大きなはっぱトレー',   icon: 'leaf' },
+    YELLOW: { color: [246, 201, 69],  effect: 'ball_size',   label: 'ジャンボまつぼっくり',     icon: 'pinecone' },
+    WHITE:  { color: [247, 242, 231], effect: 'ball_split',  label: 'ころころ分身',   icon: 'sparkle' },
+    GREEN:  { color: [69, 184, 107],  effect: 'safety_wall', label: 'きのこネット',   icon: 'mushroom' }
+};
+
+function preload() {
+    sukkunImg = loadImage(SUKKUN_DATA);
+    ricchanImg = loadImage(RICCHAN_DATA);
+}
+
+function setup() {
+    let canvas = createCanvas(400, 600);
+    canvas.parent('canvas-holder');
+    pixelDensity(Math.min(2, window.devicePixelRatio || 1));
+    textFont("'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif");
+    initializeForestLeaves();
+    noLoop();
+    getRanking();
+    updateGameView();
+    initializeCharacterImages();
+    setCharacterChoice(selectedCharacterKey);
+    document.querySelectorAll('.character-card').forEach(card => {
+        card.addEventListener('click', () => setCharacterChoice(card.dataset.character));
+    });
+    document.querySelectorAll('.category-choice').forEach(btn => {
+        btn.addEventListener('click', () => setSubmitCategory(btn.dataset.category));
+    });
+    document.querySelectorAll('.ranking-tab').forEach(btn => {
+        btn.addEventListener('click', () => setRankingType(btn.dataset.ranking));
+    });
+    document.getElementById('start-btn').addEventListener('click', startGame);
+    document.getElementById('retry-btn').addEventListener('click', returnToStart);
+    document.getElementById('submit-score-btn').addEventListener('click', handleSubmitScore);
+    document.getElementById('how-to-play-btn').addEventListener('click', () => showModal('how-to-play-modal'));
+    document.getElementById('ranking-btn').addEventListener('click', () => { getRanking(activeRankingType); showModal('ranking-modal'); });
+    document.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', () => hideModal(btn.dataset.modalId)));
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) hideModal(modal.id);
+        });
+    });
+}
+
+function draw() {
+    if (gameState !== 'playing') return;
+    updateComboDisplay();
+
+    push();
+    if (screenShake > 0.05) {
+        translate(random(-screenShake, screenShake), random(-screenShake, screenShake));
+        screenShake *= 0.86;
+    } else {
+        screenShake = 0;
+    }
+
+    drawForestBackground();
+    updateItemEffects();
+    updatePaddle();
+    drawBlocks();
+    updateAndDrawItems();
+    updateAndDrawBullets();
+    updateAndDrawBalls();
+    drawSafetyWall();
+    drawPaddle();
+    updateAndDrawParticles();
+    updateAndDrawScorePopups();
+    drawFeverOverlay();
+    drawBanner();
+    pop();
+
+    drawInGameHud();
+
+    if (blocks.length > 0 && blocks.every(b => !b.visible)) {
+        advanceForest();
+    }
+}
+
+function touchStarted() { if (gameState === 'playing') { shoot(); return false; } }
+function mousePressed() { if (gameState === 'playing') shoot(); }
+
+function updateGameView() {
+    const canvasEl = document.querySelector('#canvas-holder canvas');
+    const startContentEl = document.getElementById('start-content');
+    const gameOverContentEl = document.getElementById('game-over-content');
+    const comboDisplayEl = document.getElementById('combo-display');
+    canvasEl.style.display = 'none';
+    startContentEl.style.display = 'none';
+    gameOverContentEl.style.display = 'none';
+    comboDisplayEl.style.display = 'none';
+    switch (gameState) {
+        case 'start': startContentEl.style.display = 'flex'; break;
+        case 'playing': canvasEl.style.display = 'block'; break;
+        case 'game_over':
+            updateResultCharacterImage();
+            gameOverContentEl.style.display = 'flex';
+            break;
+    }
+}
+
+function startGame() {
+    gameState = 'playing';
+    resetGame();
+    updateGameView();
+    loop();
+}
+
+function handleGameOver() {
+    gameState = 'game_over';
+    clearInterval(itemSpawnInterval);
+    clearTimeout(wallTimer);
+    document.getElementById('final-score').textContent = score;
+    document.getElementById('final-message').textContent = getHarvestMessage(score);
+    updateGameView();
+    noLoop();
+}
+
+function returnToStart() {
+    gameState = 'start';
+    clearInterval(itemSpawnInterval);
+    clearTimeout(wallTimer);
+    isWallActive = false;
+    isFeverTime = false;
+    comboCount = 0;
+    updateGameView();
+    noLoop();
+}
+
+function getHarvestMessage(value) {
+    if (value >= 12000) return '森の伝説レベル！すごすぎる！';
+    if (value >= 7000) return '大きな倉庫がいっぱい！';
+    if (value >= 3500) return '冬じたく大成功！';
+    if (value >= 1200) return 'いい感じに集まったね！';
+    return 'また森にあつめに行こう！';
+}
+
+function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+function hideModal(id) { document.getElementById(id).style.display = 'none'; }
+
+function getCharacterConfig() {
+    return CHARACTER_TYPES[selectedCharacterKey] || CHARACTER_TYPES.sukkun;
+}
+
+function getSelectedCharacterImage() {
+    return selectedCharacterKey === 'ricchan' ? ricchanImg : sukkunImg;
+}
+
+
+function getCategoryLabel(category) {
+    return category === 'junior_plus' ? '中学生以上' : '小学生';
+}
+
+function getRankingTitle(rankingType) {
+    if (rankingType === 'junior_plus') return '中学生以上のきろく';
+    if (rankingType === 'all') return 'ぜんぶのきろく';
+    return '小学生のきろく';
+}
+
+function setSubmitCategory(category) {
+    if (!['elementary', 'junior_plus'].includes(category)) return;
+    selectedSubmitCategory = category;
+    document.querySelectorAll('.category-choice').forEach(btn => {
+        const selected = btn.dataset.category === selectedSubmitCategory;
+        btn.classList.toggle('selected', selected);
+        btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+}
+
+function setRankingType(rankingType) {
+    if (!['elementary', 'junior_plus', 'all'].includes(rankingType)) return;
+    activeRankingType = rankingType;
+    document.querySelectorAll('.ranking-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.ranking === activeRankingType);
+    });
+    getRanking(activeRankingType);
+}
+
+function getCharacterLabel(characterKey) {
+    return characterKey === 'ricchan' ? 'りっちゃん' : 'すっくん';
+}
+
+function getSelectedCharacterData() {
+    return selectedCharacterKey === 'ricchan' ? RICCHAN_DATA : SUKKUN_DATA;
+}
+
+function getPaddleBaseWidth() {
+    return PADDLE_INITIAL_WIDTH + getCharacterConfig().paddleBonus;
+}
+
+function initializeCharacterImages() {
+    const suImg = document.getElementById('choice-sukkun-img');
+    const riImg = document.getElementById('choice-ricchan-img');
+    const logoSuImg = document.getElementById('logo-sukkun-img');
+    const logoRiImg = document.getElementById('logo-ricchan-img');
+    if (suImg) suImg.src = SUKKUN_DATA;
+    if (riImg) riImg.src = RICCHAN_DATA;
+    if (logoSuImg) logoSuImg.src = SUKKUN_DATA;
+    if (logoRiImg) logoRiImg.src = RICCHAN_DATA;
+    updateResultCharacterImage();
+}
+
+function setCharacterChoice(key) {
+    if (!CHARACTER_TYPES[key]) return;
+    selectedCharacterKey = key;
+    updateCharacterChoiceUI();
+    updateResultCharacterImage();
+    updateInfoDisplay();
+}
+
+function updateCharacterChoiceUI() {
+    document.querySelectorAll('.character-card').forEach(card => {
+        const selected = card.dataset.character === selectedCharacterKey;
+        card.classList.toggle('selected', selected);
+        card.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+}
+
+function updateResultCharacterImage() {
+    const resultImg = document.getElementById('result-character-img');
+    const resultName = document.getElementById('result-character-name');
+    const config = getCharacterConfig();
+    if (resultImg) {
+        resultImg.src = getSelectedCharacterData();
+        resultImg.alt = `${config.name}の収穫きろく`;
+    }
+    if (resultName) resultName.textContent = config.name;
+}
+
+function resetGame() {
+    const config = getCharacterConfig();
+    const paddleBaseWidth = getPaddleBaseWidth();
+    score = 0;
+    bulletCount = config.initialShots;
+    comboCount = 0;
+    level = 1;
+    updateInfoDisplay();
+    paddle = { x: width / 2 - paddleBaseWidth / 2, y: height - 40, w: paddleBaseWidth, h: PADDLE_HEIGHT, isEnlarged: false, sizeEffectEndTime: 0 };
+    balls = [];
+    spawnNewBall();
+    setupBlocks(false);
+    items = [];
+    bullets = [];
+    particles = [];
+    scorePopups = [];
+    screenShake = 0;
+    isWallActive = false;
+    clearTimeout(wallTimer);
+    isFeverTime = false;
+    feverEndTime = 0;
+    clearInterval(itemSpawnInterval);
+    itemSpawnInterval = setInterval(() => spawnItem(), 12000);
+    showBanner(config.startBanner);
+
+    const submitBtn = document.getElementById('submit-score-btn');
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'きろくをのこす'; }
+    const playerNameInput = document.getElementById('player-name');
+    if (playerNameInput) playerNameInput.disabled = false;
+    setSubmitCategory('elementary');
+}
+
+function setupBlocks(isLevelUp) {
+    blocks = [];
+    const cols = Math.floor(width / (BLOCK_WIDTH + BLOCK_GAP));
+    const rows = 10;
+    const blockCount = isLevelUp ? 40 : 25;
+    const offsetX = (width - cols * (BLOCK_WIDTH + BLOCK_GAP) + BLOCK_GAP) / 2;
+    const palettes = [
+        { color: [191, 111, 39], accent: [246, 201, 69], kind: 'acorn' },
+        { color: [218, 130, 50], accent: [121, 76, 28], kind: 'leaf' },
+        { color: [146, 98, 52], accent: [250, 232, 162], kind: 'basket' },
+        { color: [211, 83, 54], accent: [255, 198, 97], kind: 'berry' },
+        { color: [137, 173, 75], accent: [252, 228, 134], kind: 'leaf' }
+    ];
+    let positions = new Set();
+    while (blocks.length < blockCount) {
+        let r = floor(random(rows));
+        let c = floor(random(cols));
+        let posKey = `${r},${c}`;
+        if (!positions.has(posKey)) {
+            positions.add(posKey);
+            let palette = random(palettes);
+            blocks.push({
+                x: c * (BLOCK_WIDTH + BLOCK_GAP) + offsetX,
+                y: r * (BLOCK_HEIGHT + BLOCK_GAP) + 50,
+                w: BLOCK_WIDTH,
+                h: BLOCK_HEIGHT,
+                visible: true,
+                color: [...palette.color],
+                accent: [...palette.accent],
+                kind: palette.kind,
+                wobble: random(TWO_PI)
+            });
+        }
+    }
+}
+
+function advanceForest() {
+    level++;
+    setupBlocks(true);
+    spawnNewBall(width / 2, height / 2);
+    updateInfoDisplay();
+    screenShake = 5;
+    showBanner(`森 ${level}へ！`);
+    spawnFestivalBurst(width / 2, height / 2, 32);
+}
+
+function updateItemEffects() {
+    let currentTime = millis();
+    if (paddle.isEnlarged && currentTime > paddle.sizeEffectEndTime) paddle.isEnlarged = false;
+    balls.forEach(ball => { if (ball.isEnlarged && currentTime > ball.sizeEffectEndTime) ball.isEnlarged = false; });
+    if (isFeverTime && currentTime > feverEndTime) {
+        isFeverTime = false;
+        showBanner('フィーバー終了！');
+    }
+}
+
+function updatePaddle() {
+    const baseWidth = getPaddleBaseWidth();
+    paddle.w = paddle.isEnlarged ? baseWidth * 1.5 : baseWidth;
+    let targetX = (touches.length > 0) ? touches[0].x : mouseX;
+    paddle.x = constrain(targetX - paddle.w / 2, 0, width - paddle.w);
+}
+
+function drawForestBackground() {
+    // 背景は前景より淡く。弾・ブロック・ボールを邪魔しないよう、森全体を少しかすませる。
+    const topColor = isFeverTime ? color(255, 224, 150) : color(214, 238, 198);
+    const bottomColor = isFeverTime ? color(255, 185, 128) : color(157, 203, 148);
+    noStroke();
+    for (let y = 0; y < height; y += 4) {
+        const c = lerpColor(topColor, bottomColor, y / height);
+        fill(c);
+        rect(0, y, width, 4);
+    }
+
+    push();
+    const sunPulse = 1 + sin(frameCount * 0.04) * 0.04;
+    fill(255, 237, 122, 80);
+    ellipse(width - 72, 68, 104 * sunPulse, 104 * sunPulse);
+    fill(255, 226, 91, 135);
+    ellipse(width - 72, 68, 62, 62);
+    pop();
+
+    drawCloud(70, 62, 1.0, 70);
+    drawCloud(250, 92, .75, 45);
+
+    fill(96, 155, 100, 130);
+    beginShape();
+    vertex(0, 210);
+    bezierVertex(65, 160, 118, 190, 185, 155);
+    bezierVertex(260, 116, 316, 168, 400, 135);
+    vertex(400, 600);
+    vertex(0, 600);
+    endShape(CLOSE);
+
+    fill(84, 142, 91, 150);
+    beginShape();
+    vertex(0, 278);
+    bezierVertex(75, 220, 140, 256, 196, 211);
+    bezierVertex(265, 166, 337, 235, 400, 194);
+    vertex(400, 600);
+    vertex(0, 600);
+    endShape(CLOSE);
+
+    drawTree(-26, 248, 1.15);
+    drawTree(336, 240, 1.05);
+    drawTree(26, 328, .82);
+    drawTree(302, 340, .82);
+
+    fill(118, 91, 46, 78);
+    rect(0, height - 28, width, 28);
+    fill(139, 101, 54, 58);
+    for (let i = 0; i < width; i += 28) {
+        ellipse(i + ((frameCount / 2) % 28), height - 12, 32, 10);
+    }
+
+    updateForestLeaves();
+
+    // 背景だけを白くかすませて、弾・ブロック・ボールを見やすくする
+    noStroke();
+    fill(255, 252, 238, isFeverTime ? 76 : 118);
+    rect(0, 0, width, height);
+    fill(255, 255, 255, isFeverTime ? 28 : 48);
+    ellipse(width * .18, height * .20, 230, 126);
+    ellipse(width * .78, height * .34, 272, 152);
+    ellipse(width * .48, height * .52, 340, 118);
+}
+
+function drawCloud(x, y, s, alphaValue) {
+    push();
+    translate(x, y);
+    scale(s);
+    noStroke();
+    fill(255, 255, 255, alphaValue);
+    ellipse(0, 0, 42, 22);
+    ellipse(22, -8, 38, 28);
+    ellipse(45, 0, 50, 24);
+    ellipse(70, 2, 38, 18);
+    pop();
+}
+
+function drawTree(x, y, s) {
+    push();
+    translate(x, y);
+    scale(s);
+    noStroke();
+    fill(95, 58, 26);
+    rect(36, 58, 22, 120, 8);
+    fill(54, 128, 61, 210);
+    ellipse(48, 46, 96, 96);
+    fill(65, 151, 63, 210);
+    ellipse(20, 70, 78, 78);
+    fill(49, 115, 58, 225);
+    ellipse(76, 75, 84, 84);
+    fill(82, 166, 72, 210);
+    ellipse(48, 90, 90, 78);
+    pop();
+}
+
+function initializeForestLeaves() {
+    forestLeaves = [];
+    const colors = [[239, 151, 55, 155], [230, 96, 55, 140], [246, 201, 69, 145], [133, 176, 78, 135]];
+    for (let i = 0; i < 32; i++) {
+        forestLeaves.push({
+            x: random(width),
+            y: random(-height, height),
+            size: random(5, 11),
+            speedY: random(.25, .85),
+            speedX: random(-.18, .18),
+            angle: random(TWO_PI),
+            spin: random(-.02, .02),
+            seed: random(1000),
+            color: random(colors)
+        });
+    }
+}
+
+function updateForestLeaves() {
+    for (const leaf of forestLeaves) {
+        leaf.y += leaf.speedY * (isFeverTime ? 1.7 : 1);
+        leaf.x += leaf.speedX + sin(frameCount * .018 + leaf.seed) * .24;
+        leaf.angle += leaf.spin + sin(frameCount * .02 + leaf.seed) * .003;
+        if (leaf.y > height + 20) {
+            leaf.y = random(-60, -10);
+            leaf.x = random(width);
+        }
+        if (leaf.x < -20) leaf.x = width + 20;
+        if (leaf.x > width + 20) leaf.x = -20;
+        drawLeafShape(leaf.x, leaf.y, leaf.size, leaf.angle, leaf.color);
+    }
+}
+
+function drawLeafShape(x, y, s, angle, col) {
+    push();
+    translate(x, y);
+    rotate(angle);
+    noStroke();
+    fill(col[0], col[1], col[2], col[3] ?? 180);
+    ellipse(0, 0, s * 1.8, s);
+    stroke(92, 64, 23, 80);
+    strokeWeight(1);
+    line(-s * .65, 0, s * .65, 0);
+    pop();
+}
+
+function drawPaddle() {
+    push();
+    const pulse = paddle.isEnlarged ? sin(frameCount * .18) * 2.5 : 0;
+    drawingContext.shadowColor = 'rgba(47, 82, 23, 0.34)';
+    drawingContext.shadowBlur = 12;
+    drawingContext.shadowOffsetY = 4;
+
+    if (isFeverTime) {
+        colorMode(HSB, 360, 100, 100);
+        const hue = (frameCount * 3) % 360;
+        fill(hue, 82, 92);
+        stroke((hue + 60) % 360, 80, 100);
+        strokeWeight(2.5);
+        rect(paddle.x, paddle.y - pulse, paddle.w, paddle.h + pulse, 9);
+        colorMode(RGB, 255);
+    } else {
+        fill(111, 166, 68);
+        stroke(62, 93, 35);
+        strokeWeight(2.2);
+        rect(paddle.x, paddle.y - pulse, paddle.w, paddle.h + pulse, 9);
+        noStroke();
+        fill(177, 109, 43, 200);
+        rect(paddle.x + 6, paddle.y + paddle.h - 4, paddle.w - 12, 4, 4);
+        fill(255, 241, 158, 70);
+        rect(paddle.x + 8, paddle.y + 3 - pulse, paddle.w - 16, 4, 999);
+    }
+    drawingContext.shadowBlur = 0;
+
+    if (paddle.isEnlarged) {
+        drawLeafShape(paddle.x + 3, paddle.y + 7, 10, -0.25, [73, 166, 82, 220]);
+        drawLeafShape(paddle.x + paddle.w - 3, paddle.y + 7, 10, 0.25, [73, 166, 82, 220]);
+    }
+
+    const characterImg = getSelectedCharacterImage();
+    if (characterImg) {
+        imageMode(CENTER);
+        image(characterImg, paddle.x + paddle.w / 2, paddle.y + 29 + sin(frameCount * .12) * 1.2, 34, 34);
+        imageMode(CORNER);
+    }
+    pop();
+}
+
+function collideRectCircle(rx, ry, rw, rh, cx, cy, diameter) {
+    let testX = cx;
+    let testY = cy;
+    if (cx < rx) testX = rx; else if (cx > rx + rw) testX = rx + rw;
+    if (cy < ry) testY = ry; else if (cy > ry + rh) testY = ry + rh;
+    return dist(cx, cy, testX, testY) <= diameter / 2;
+}
+
+function updateAndDrawBalls() {
+    let currentTime = millis();
+
+    for (let i = balls.length - 1; i >= 0; i--) {
+        let ball = balls[i];
+        ball.size = ball.isEnlarged ? BALL_INITIAL_SIZE * 2 : BALL_INITIAL_SIZE;
+        ball.x += ball.speedX;
+        ball.y += ball.speedY;
+        ball.rotation += 0.12 * Math.sign(ball.speedX || 1);
+
+        if (ball.x < ball.size / 2 || ball.x > width - ball.size / 2) {
+            ball.speedX *= -1;
+            ball.x = constrain(ball.x, ball.size / 2, width - ball.size / 2);
+            if (currentTime - ball.lastPaddleTouch > PADDLE_TOUCH_TIMEOUT) {
+                ball.speedY += random(-1, 1);
+                let speed = sqrt(ball.speedX * ball.speedX + ball.speedY * ball.speedY);
+                let targetSpeed = 7;
+                ball.speedX = (ball.speedX / speed) * targetSpeed;
+                ball.speedY = (ball.speedY / speed) * targetSpeed;
+                if (abs(ball.speedY) < 2) ball.speedY = ball.speedY > 0 ? 2 : -2;
+            }
+        }
+
+        if (ball.y < ball.size / 2) {
+            ball.speedY *= -1;
+            ball.y = ball.size / 2;
+            if (currentTime - ball.lastPaddleTouch > PADDLE_TOUCH_TIMEOUT) {
+                ball.speedX += random(-1.5, 1.5);
+                ball.speedX = constrain(ball.speedX, -8, 8);
+            }
+        }
+
+        if (isWallActive && ball.y + ball.size / 2 > height - 10) {
+            ball.speedY *= -1;
+            ball.y = height - 10 - ball.size / 2;
+            screenShake = max(screenShake, 2.5);
+            spawnScorePopup(ball.x, height - 34, 'セーフ！');
+        } else if (ball.y > height) {
+            balls.splice(i, 1);
+            if (balls.length > 0) {
+                comboCount = 0;
+            } else {
+                handleGameOver();
+            }
+            continue;
+        }
+
+        if (collideRectCircle(paddle.x, paddle.y, paddle.w, paddle.h, ball.x, ball.y, ball.size)) {
+            ball.speedY = -abs(ball.speedY);
+            ball.y = paddle.y - ball.size / 2;
+            let hitPosition = (ball.x - paddle.x) / paddle.w;
+            let centerOffset = hitPosition - 0.5;
+            let angleAdjustment = centerOffset * 6;
+            ball.speedX += angleAdjustment;
+            ball.speedX = constrain(ball.speedX, -8, 8);
+            ball.lastPaddleTouch = currentTime;
+            increaseBallSpeed(ball);
+            comboCount = 0;
+            spawnTinyBounce(ball.x, ball.y + ball.size / 2);
+        }
+
+        for (let block of blocks) {
+            if (block.visible && collideRectCircle(block.x, block.y, block.w, block.h, ball.x, ball.y, ball.size)) {
+                if (!isFeverTime) ball.speedY *= -1;
+                block.visible = false;
+                comboCount++;
+                triggerComboAnimation();
+                if (comboCount >= FEVER_THRESHOLD && !isFeverTime) {
+                    startFever();
+                }
+                let scoreToAdd = 10 * comboCount;
+                if (isFeverTime) scoreToAdd *= 2;
+                score += scoreToAdd;
+                screenShake = min(7, screenShake + (isFeverTime ? 1.7 : .85));
+                spawnHarvestBurst(block.x + block.w / 2, block.y + block.h / 2, block);
+                spawnScorePopup(block.x + block.w / 2, block.y, `+${scoreToAdd}`);
+                increaseBallSpeed(ball);
+                updateInfoDisplay();
+                if (comboCount > 0 && comboCount % 5 === 0) {
+                    spawnItem(block.x + block.w / 2, block.y + block.h / 2);
+                }
+                if (!isFeverTime) break;
+            }
+        }
+
+        drawPineconeBall(ball.x, ball.y, ball.size, ball.rotation, isFeverTime);
+    }
+    if (balls.length === 0 && gameState === 'playing') handleGameOver();
+}
+
+function startFever() {
+    isFeverTime = true;
+    feverEndTime = millis() + FEVER_DURATION;
+    screenShake = 8;
+    showBanner('どんぐりフィーバー！');
+    spawnFestivalBurst(width / 2, height / 2, 42);
+}
+
+function updateComboDisplay() {
+    const el = document.getElementById('combo-display');
+    if (isFeverTime) {
+        const remainingTime = Math.max(0, (feverEndTime - millis()) / 1000);
+        const comboText = `${comboCount} COMBO`;
+        const feverText = `<span class="fever-text">どんぐりフィーバー！</span>`;
+        const timerText = `<span class="fever-timer">${remainingTime.toFixed(1)}s</span>`;
+        el.innerHTML = `${comboText}<br>${feverText}<br>${timerText}`;
+        el.style.display = 'block';
+    } else if (comboCount > 1) {
+        el.innerHTML = `${comboCount} COMBO`;
+        el.style.display = 'block';
+    } else {
+        el.style.display = 'none';
+    }
+}
+
+function triggerComboAnimation() {
+    const el = document.getElementById('combo-display');
+    el.classList.add('active');
+    setTimeout(() => el.classList.remove('active'), 100);
+}
+
+function drawBlocks() {
+    strokeWeight(BLOCK_GAP);
+    for (let block of blocks) {
+        if (!block.visible) continue;
+        push();
+        translate(block.x, block.y);
+        const bob = isFeverTime ? sin(frameCount * .12 + block.wobble) * 1.2 : 0;
+        translate(0, bob);
+        drawingContext.shadowColor = 'rgba(75, 43, 14, 0.28)';
+        drawingContext.shadowBlur = 5;
+        drawingContext.shadowOffsetY = 3;
+        fill(block.color[0], block.color[1], block.color[2]);
+        stroke(isFeverTime ? color(255, 236, 92) : color(92, 55, 23));
+        strokeWeight(isFeverTime ? 2.2 : 1.4);
+        rect(0, 0, block.w, block.h, 6);
+        drawingContext.shadowBlur = 0;
+        noStroke();
+        fill(255, 241, 164, 70);
+        rect(4, 3, block.w - 8, 4, 999);
+        fill(block.accent[0], block.accent[1], block.accent[2], 180);
+        if (block.kind === 'acorn') {
+            drawTinyAcorn(block.w / 2, block.h / 2 + 1, 15);
+        } else if (block.kind === 'leaf') {
+            drawLeafShape(block.w / 2, block.h / 2 + 1, 9, sin(frameCount * .02 + block.wobble) * .35, [...block.accent, 210]);
+        } else if (block.kind === 'basket') {
+            stroke(99, 61, 23, 110);
+            strokeWeight(1.2);
+            line(9, 7, block.w - 9, 7);
+            line(9, 13, block.w - 9, 13);
+            noStroke();
+            drawTinyAcorn(block.w / 2 - 8, block.h / 2 + 2, 10);
+            drawTinyAcorn(block.w / 2 + 8, block.h / 2 + 2, 10);
+        } else {
+            fill(255, 232, 128, 170);
+            ellipse(block.w / 2 - 7, block.h / 2 + 1, 8, 8);
+            ellipse(block.w / 2 + 6, block.h / 2 - 1, 7, 7);
+            ellipse(block.w / 2 + 13, block.h / 2 + 3, 6, 6);
+        }
+        pop();
+    }
+    noStroke();
+}
+
+function updateAndDrawItems() {
+    for (let i = items.length - 1; i >= 0; i--) {
+        let item = items[i];
+        item.y += 2;
+        item.angle += .045;
+        drawHarvestItem(item);
+        if (collideRectCircle(paddle.x, paddle.y, paddle.w, paddle.h, item.x, item.y, 24)) {
+            applyItemEffect(item.type.effect, item.x, item.y, item.type.label);
+            spawnPickupBurst(item.x, item.y, item.type.color);
+            items.splice(i, 1);
+        } else if (item.y > height + 20) {
+            items.splice(i, 1);
+        }
+    }
+}
+
+function drawHarvestItem(item) {
+    push();
+    translate(item.x, item.y);
+    rotate(sin(frameCount * .08 + item.seed) * .2 + item.angle * .1);
+    drawingContext.shadowColor = 'rgba(61, 35, 10, .35)';
+    drawingContext.shadowBlur = 10;
+    fill(item.type.color[0], item.type.color[1], item.type.color[2]);
+    stroke(255, 248, 203);
+    strokeWeight(2.5);
+    ellipse(0, 0, 25, 25);
+    drawingContext.shadowBlur = 0;
+    noStroke();
+    if (item.type.icon === 'twig') {
+        drawTwigShot(0, 0, 17, item.angle);
+    } else if (item.type.icon === 'pinecone') {
+        drawPinecone(0, 0, 15);
+    } else if (item.type.icon === 'leaf') {
+        drawLeafShape(0, 0, 11, -0.2, [255, 255, 255, 190]);
+    } else if (item.type.icon === 'acorn') {
+        drawTinyAcorn(0, 1, 15);
+    } else if (item.type.icon === 'sparkle') {
+        drawSparkle(0, 0, 12, color(255, 255, 255, 235));
+    } else if (item.type.icon === 'mushroom') {
+        drawMushroom(0, 2, 16);
+    }
+    pop();
+}
+
+function updateAndDrawBullets() {
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        let bullet = bullets[i];
+        bullet.y -= 10;
+        bullet.spin += .18;
+        drawTwigShot(bullet.x, bullet.y, 18, bullet.spin);
+        let hit = false;
+        for (let block of blocks) {
+            if (block.visible && bullet.x > block.x && bullet.x < block.x + block.w && bullet.y > block.y && bullet.y < block.y + block.h) {
+                block.visible = false;
+                score += 10;
+                spawnHarvestBurst(block.x + block.w / 2, block.y + block.h / 2, block);
+                spawnScorePopup(block.x + block.w / 2, block.y, '+10');
+                screenShake = max(screenShake, 2.4);
+                updateInfoDisplay();
+                hit = true;
+                break;
+            }
+        }
+        if (hit || bullet.y < -20) bullets.splice(i, 1);
+    }
+}
+
+function increaseBallSpeed(ball) {
+    const MAX_SPEED = 12;
+    let speedVec = createVector(ball.speedX, ball.speedY);
+    if (speedVec.mag() < MAX_SPEED) {
+        speedVec.mult(1.03);
+        ball.speedX = speedVec.x;
+        ball.speedY = speedVec.y;
+    }
+}
+
+
+function drawInGameHud() {
+    push();
+    // 小枝数はゲームエリア左上に、枠なし・小さめで表示
+    const x = 14;
+    const y = 24;
+    drawingContext.shadowColor = 'rgba(255,255,255,.75)';
+    drawingContext.shadowBlur = 5;
+    push();
+    translate(x + 10, y);
+    drawTwigShot(0, 0, 13, -0.35);
+    pop();
+    drawingContext.shadowBlur = 0;
+    fill(86, 55, 24);
+    stroke(255, 250, 220, 180);
+    strokeWeight(3);
+    textAlign(LEFT, CENTER);
+    textStyle(BOLD);
+    textSize(13);
+    text(`小枝 × ${bulletCount}`, x + 24, y + .5);
+    noStroke();
+    fill(86, 55, 24);
+    text(`小枝 × ${bulletCount}`, x + 24, y + .5);
+    pop();
+}
+
+function updateInfoDisplay() {
+    const characterDisplay = document.getElementById('character-display');
+    if (characterDisplay) characterDisplay.textContent = getCharacterConfig().name;
+    document.getElementById('score-display').textContent = 'あつめたどんぐり: ' + score;
+    const bulletDisplay = document.getElementById('bullet-display');
+    if (bulletDisplay) bulletDisplay.textContent = '小枝: ' + bulletCount;
+    document.getElementById('level-display').textContent = '森: ' + level;
+}
+
+function spawnNewBall(x = width / 2, y = height / 2, templateBall = null) {
+    if (balls.length >= MAX_BALLS) return;
+    let newBall = {
+        x: x,
+        y: y,
+        speedX: random(-INITIAL_BALL_SPEED_X_RANGE, INITIAL_BALL_SPEED_X_RANGE),
+        speedY: INITIAL_BALL_SPEED_Y,
+        isEnlarged: templateBall ? templateBall.isEnlarged : false,
+        sizeEffectEndTime: templateBall ? templateBall.sizeEffectEndTime : 0,
+        lastPaddleTouch: millis(),
+        size: BALL_INITIAL_SIZE,
+        rotation: random(TWO_PI)
+    };
+    if (abs(newBall.speedX) < 1.2) newBall.speedX = random([ -1.8, 1.8 ]);
+    balls.push(newBall);
+}
+
+function spawnItem(x = random(20, width - 20), y = 0) {
+    if (gameState !== 'playing' || isFeverTime) return;
+    const itemKeys = Object.keys(ITEM_TYPES);
+    const randomKey = random(itemKeys);
+    items.push({ x: x, y: y, type: ITEM_TYPES[randomKey], angle: random(TWO_PI), seed: random(1000) });
+}
+
+function shoot() {
+    if (bulletCount > 0) {
+        bullets.push({ x: paddle.x + paddle.w / 2, y: paddle.y - 6, spin: random(TWO_PI) });
+        bulletCount--;
+        updateInfoDisplay();
+    }
+}
+
+function applyItemEffect(effect, x = width / 2, y = height / 2, label = 'ゲット！') {
+    let currentTime = millis();
+    const config = getCharacterConfig();
+    const effectDuration = PADDLE_BALL_SIZE_DURATION + config.effectBonus;
+    const wallDuration = WALL_DURATION + config.wallBonus;
+    let displayLabel = label;
+    switch (effect) {
+        case 'bullet': {
+            const addedShots = 5 + config.bulletBonus;
+            bulletCount += addedShots;
+            displayLabel = `小枝+${addedShots}`;
+            break;
+        }
+        case 'paddle_size':
+            paddle.isEnlarged = true;
+            paddle.sizeEffectEndTime = currentTime + effectDuration;
+            break;
+        case 'ball_size':
+            balls.forEach(b => { b.isEnlarged = true; b.sizeEffectEndTime = currentTime + effectDuration; });
+            break;
+        case 'ball_split':
+            const currentBalls = [...balls];
+            for (const ball of currentBalls) spawnNewBall(ball.x, ball.y, ball);
+            break;
+        case 'safety_wall':
+            isWallActive = true;
+            clearTimeout(wallTimer);
+            wallTimer = setTimeout(() => { isWallActive = false; }, wallDuration);
+            break;
+    }
+    spawnScorePopup(x, y, displayLabel);
+    updateInfoDisplay();
+}
+
+function drawSafetyWall() {
+    if (!isWallActive) return;
+    push();
+    noStroke();
+    fill(55, 176, 95, 115);
+    rect(0, height - 13, width, 13);
+    stroke(245, 255, 220, 180);
+    strokeWeight(2);
+    for (let x = 0; x < width; x += 18) {
+        line(x, height - 11, x + 16, height - 3);
+        line(x + 16, height - 11, x, height - 3);
+    }
+    noStroke();
+    for (let x = 12; x < width; x += 34) drawMushroom(x, height - 10, 13);
+    pop();
+}
+
+function drawPineconeBall(x, y, s, rotation, fever) {
+    push();
+    translate(x, y);
+    rotate(rotation);
+    if (fever) {
+        drawingContext.shadowColor = 'rgba(255, 236, 78, .95)';
+        drawingContext.shadowBlur = 20;
+        stroke(255, 111, 53);
+        strokeWeight(max(1.5, s * .12));
+    } else {
+        drawingContext.shadowColor = 'rgba(50, 30, 8, .35)';
+        drawingContext.shadowBlur = 7;
+        stroke(67, 43, 19);
+        strokeWeight(max(1, s * .08));
+    }
+    fill(fever ? color(172, 102, 34) : color(118, 70, 29));
+    ellipse(0, 0, s * .72, s * 1.05);
+    stroke(fever ? color(255, 224, 96, 210) : color(205, 143, 70, 180));
+    strokeWeight(max(1, s * .07));
+    for (let yy = -s * .28; yy <= s * .32; yy += s * .18) {
+        line(-s * .23, yy, s * .22, yy + s * .12);
+        line(s * .23, yy, -s * .22, yy + s * .12);
+    }
+    noStroke();
+    fill(255, 239, 156, fever ? 130 : 70);
+    ellipse(-s * .12, -s * .2, s * .16, s * .25);
+    drawingContext.shadowBlur = 0;
+    pop();
+}
+
+function drawTwigShot(x, y, s, spin) {
+    push();
+    translate(x, y);
+    rotate(spin);
+    drawingContext.shadowColor = 'rgba(50, 30, 8, .28)';
+    drawingContext.shadowBlur = 5;
+    stroke(101, 64, 28);
+    strokeWeight(max(2, s * .18));
+    strokeCap(ROUND);
+    line(0, s * .45, 0, -s * .45);
+    strokeWeight(max(1.3, s * .1));
+    line(0, -s * .12, s * .32, -s * .38);
+    line(0, s * .08, -s * .28, -s * .18);
+    stroke(214, 143, 64, 170);
+    strokeWeight(max(1, s * .06));
+    line(-s * .05, s * .35, -s * .05, -s * .35);
+    drawingContext.shadowBlur = 0;
+    pop();
+}
+
+function drawAcorn(x, y, s, rotation, fever) {
+    push();
+    translate(x, y);
+    rotate(rotation * .35);
+    if (fever) {
+        drawingContext.shadowColor = 'rgba(255, 236, 78, .9)';
+        drawingContext.shadowBlur = 18;
+    } else {
+        drawingContext.shadowColor = 'rgba(62, 35, 10, .32)';
+        drawingContext.shadowBlur = 5;
+    }
+    stroke(81, 49, 20);
+    strokeWeight(max(1, s * .08));
+    fill(fever ? color(255, 221, 58) : color(164, 94, 36));
+    ellipse(0, s * .12, s * .82, s * .9);
+    fill(fever ? color(139, 82, 23) : color(98, 59, 25));
+    arc(0, -s * .2, s * .95, s * .55, PI, TWO_PI, CHORD);
+    noStroke();
+    fill(255, 240, 148, fever ? 190 : 100);
+    ellipse(-s * .13, s * .05, s * .18, s * .26);
+    stroke(81, 49, 20);
+    strokeWeight(max(1, s * .07));
+    line(0, -s * .45, s * .12, -s * .66);
+    drawingContext.shadowBlur = 0;
+    pop();
+}
+
+function drawTinyAcorn(cx, cy, s) {
+    push();
+    translate(cx, cy);
+    stroke(89, 55, 24, 180);
+    strokeWeight(1);
+    fill(167, 94, 35);
+    ellipse(0, s * .08, s * .68, s * .78);
+    fill(93, 58, 26);
+    arc(0, -s * .17, s * .76, s * .44, PI, TWO_PI, CHORD);
+    noStroke();
+    fill(255, 230, 126, 95);
+    ellipse(-s * .12, 0, s * .13, s * .19);
+    stroke(89, 55, 24, 160);
+    line(0, -s * .37, s * .11, -s * .52);
+    pop();
+}
+
+function drawPinecone(x, y, s) {
+    push();
+    translate(x, y);
+    fill(118, 70, 29);
+    stroke(67, 43, 19);
+    strokeWeight(1);
+    ellipse(0, 0, s * .72, s);
+    stroke(205, 143, 70, 180);
+    for (let yy = -s * .25; yy <= s * .3; yy += s * .2) {
+        line(-s * .22, yy, s * .2, yy + s * .12);
+        line(s * .22, yy, -s * .2, yy + s * .12);
+    }
+    pop();
+}
+
+function drawFlyingPinecone(x, y, s, spin) {
+    push();
+    translate(x, y);
+    rotate(spin);
+    drawingContext.shadowColor = 'rgba(50, 30, 8, .35)';
+    drawingContext.shadowBlur = 6;
+    drawPinecone(0, 0, s);
+    drawingContext.shadowBlur = 0;
+    pop();
+}
+
+function drawMushroom(x, y, s) {
+    push();
+    translate(x, y);
+    noStroke();
+    fill(255, 241, 206);
+    rect(-s * .18, -s * .05, s * .36, s * .45, 4);
+    fill(225, 73, 57);
+    arc(0, -s * .06, s, s * .72, PI, TWO_PI, CHORD);
+    fill(255, 235, 208, 190);
+    ellipse(-s * .22, -s * .18, s * .16, s * .12);
+    ellipse(s * .13, -s * .24, s * .13, s * .1);
+    pop();
+}
+
+function drawSparkle(x, y, s, col) {
+    push();
+    translate(x, y);
+    fill(col);
+    noStroke();
+    beginShape();
+    vertex(0, -s);
+    vertex(s * .22, -s * .22);
+    vertex(s, 0);
+    vertex(s * .22, s * .22);
+    vertex(0, s);
+    vertex(-s * .22, s * .22);
+    vertex(-s, 0);
+    vertex(-s * .22, -s * .22);
+    endShape(CLOSE);
+    pop();
+}
+
+function spawnHarvestBurst(x, y, block) {
+    const count = isFeverTime ? 18 : 10;
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x, y,
+            vx: random(-3.1, 3.1),
+            vy: random(-4.0, 1.4),
+            life: random(28, 48),
+            maxLife: 48,
+            size: random(4, 9),
+            kind: random(['leaf', 'crumb', 'sparkle', 'acorn']),
+            color: block ? [...block.color, 220] : [246, 201, 69, 220],
+            spin: random(-.12, .12),
+            angle: random(TWO_PI)
+        });
+    }
+}
+
+function spawnPickupBurst(x, y, col) {
+    for (let i = 0; i < 14; i++) {
+        particles.push({
+            x, y,
+            vx: random(-2.4, 2.4),
+            vy: random(-3.2, .8),
+            life: random(24, 42),
+            maxLife: 42,
+            size: random(3, 7),
+            kind: 'sparkle',
+            color: [col[0], col[1], col[2], 235],
+            spin: random(-.18, .18),
+            angle: random(TWO_PI)
+        });
+    }
+}
+
+function spawnFestivalBurst(x, y, count = 24) {
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x: x + random(-20, 20), y: y + random(-16, 16),
+            vx: random(-4.3, 4.3),
+            vy: random(-5.0, 2.3),
+            life: random(38, 68),
+            maxLife: 68,
+            size: random(5, 12),
+            kind: random(['sparkle', 'leaf', 'acorn']),
+            color: random([[255, 235, 80, 240], [255, 140, 75, 230], [120, 215, 92, 230], [255, 255, 255, 220]]),
+            spin: random(-.18, .18),
+            angle: random(TWO_PI)
+        });
+    }
+}
+
+function spawnTinyBounce(x, y) {
+    for (let i = 0; i < 5; i++) {
+        particles.push({
+            x, y,
+            vx: random(-1.6, 1.6),
+            vy: random(-1.9, -.4),
+            life: random(12, 22),
+            maxLife: 22,
+            size: random(2, 4),
+            kind: 'sparkle',
+            color: [255, 245, 160, 210],
+            spin: random(-.1, .1),
+            angle: random(TWO_PI)
+        });
+    }
+}
+
+function updateAndDrawParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += .09;
+        p.vx *= .99;
+        p.angle += p.spin;
+        p.life--;
+        const alpha = map(p.life, 0, p.maxLife, 0, p.color[3] ?? 220, true);
+        if (p.kind === 'leaf') {
+            drawLeafShape(p.x, p.y, p.size, p.angle, [p.color[0], p.color[1], p.color[2], alpha]);
+        } else if (p.kind === 'acorn') {
+            push();
+            tint(255, alpha);
+            drawTinyAcorn(p.x, p.y, p.size);
+            noTint();
+            pop();
+        } else if (p.kind === 'sparkle') {
+            drawSparkle(p.x, p.y, p.size, color(p.color[0], p.color[1], p.color[2], alpha));
+        } else {
+            noStroke();
+            fill(p.color[0], p.color[1], p.color[2], alpha);
+            ellipse(p.x, p.y, p.size, p.size);
+        }
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+}
+
+function spawnScorePopup(x, y, textValue) {
+    scorePopups.push({ x, y, text: textValue, life: 46, maxLife: 46, vy: -1.0 });
+}
+
+function updateAndDrawScorePopups() {
+    for (let i = scorePopups.length - 1; i >= 0; i--) {
+        const p = scorePopups[i];
+        p.y += p.vy;
+        p.vy *= .98;
+        p.life--;
+        const alpha = map(p.life, 0, p.maxLife, 0, 255, true);
+        push();
+        textAlign(CENTER, CENTER);
+        textSize(p.text.includes('+') ? 17 : 13);
+        textStyle(BOLD);
+        stroke(94, 55, 22, alpha);
+        strokeWeight(4);
+        fill(255, 247, 132, alpha);
+        text(p.text, p.x, p.y);
+        pop();
+        if (p.life <= 0) scorePopups.splice(i, 1);
+    }
+}
+
+function drawCharacterHelpers() {
+    if (!ricchanImg) return;
+    push();
+    imageMode(CENTER);
+    const bob = sin(frameCount * .08) * 2;
+    image(ricchanImg, width - 35, height - 48 + bob, 58, 58);
+    if (isFeverTime || comboCount >= 8) {
+        const phrase = isFeverTime ? 'フィーバー！' : `${comboCount} COMBO!`;
+        drawSpeechBubble(width - 92, height - 105 + bob, phrase);
+    }
+    imageMode(CORNER);
+    pop();
+}
+
+function drawSpeechBubble(x, y, message) {
+    push();
+    textAlign(CENTER, CENTER);
+    textSize(11);
+    textStyle(BOLD);
+    stroke(104, 65, 30);
+    strokeWeight(2);
+    fill(255, 250, 222, 238);
+    rect(x - 46, y - 15, 92, 30, 12);
+    triangle(x + 28, y + 12, x + 38, y + 22, x + 42, y + 9);
+    noStroke();
+    fill(91, 53, 21);
+    text(message, x, y + 1);
+    pop();
+}
+
+function drawFeverOverlay() {
+    if (!isFeverTime) return;
+    push();
+    noFill();
+    stroke(255, 230, 80, 150 + sin(frameCount * .18) * 70);
+    strokeWeight(5 + sin(frameCount * .2) * 1.5);
+    rect(7, 7, width - 14, height - 14, 18);
+    noStroke();
+    fill(255, 245, 98, 28);
+    const wave = sin(frameCount * .08) * 22;
+    beginShape();
+    vertex(0, height * .35 + wave);
+    bezierVertex(95, height * .27 - wave, 180, height * .45 + wave, 400, height * .32 - wave);
+    vertex(width, 0);
+    vertex(0, 0);
+    endShape(CLOSE);
+    pop();
+}
+
+function showBanner(textValue) {
+    bannerText = textValue;
+    bannerTimer = 82;
+}
+
+function drawBanner() {
+    if (bannerTimer <= 0) return;
+    const alpha = bannerTimer < 20 ? map(bannerTimer, 0, 20, 0, 255) : 255;
+    const y = 118 + sin(frameCount * .09) * 2;
+    push();
+    textAlign(CENTER, CENTER);
+    textStyle(BOLD);
+    textSize(24);
+    rectMode(CENTER);
+    noStroke();
+    fill(75, 46, 17, alpha * .68);
+    rect(width / 2, y, 260, 46, 23);
+    stroke(255, 243, 161, alpha);
+    strokeWeight(3);
+    fill(255, 220, 84, alpha);
+    text(bannerText, width / 2, y + 1);
+    bannerTimer--;
+    pop();
+}
+
+async function handleSubmitScore() {
+    const playerNameInput = document.getElementById('player-name');
+    const playerName = playerNameInput.value.trim();
+    if (!playerName) { alert('名前をいれてね。'); return; }
+    if (!selectedSubmitCategory) { alert('ランキングをえらんでね。'); return; }
+    playerNameInput.disabled = true;
+    document.getElementById('submit-score-btn').disabled = true;
+    document.getElementById('submit-score-btn').textContent = '送信中...';
+    await sendScore(playerName, score, selectedSubmitCategory);
+}
+
+async function sendScore(playerName, playerScore, category) {
+    try {
+        if (!window.donguriAddScore) throw new Error('Firebaseの準備ができていません');
+        const playedAt = new Date();
+        await window.donguriAddScore({
+            name: playerName,
+            score: Math.floor(playerScore),
+            clearedStages: Math.max(0, level - 1),
+            playedAtText: formatPlayedAt(playedAt),
+            playedAtMillis: playedAt.getTime(),
+            character: selectedCharacterKey,
+            category: category
+        });
+        alert(`${getCategoryLabel(category)}のきろくに登録しました！`);
+        getRanking(category);
+        activeRankingType = category;
+        document.querySelectorAll('.ranking-tab').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.ranking === activeRankingType);
+        });
+    } catch (error) {
+        console.error('スコアの送信に失敗しました:', error);
+        alert('きろくの送信に失敗しました。Firebaseのルールやインデックスを確認してください。');
+    } finally {
+        const btn = document.getElementById('submit-score-btn');
+        if (btn) { btn.disabled = false; btn.textContent = 'きろくをのこす'; }
+        const playerNameInput = document.getElementById('player-name');
+        if (playerNameInput) playerNameInput.disabled = false;
+    }
+}
+
+
+function escapeHtml(value) {
+    return String(value).replace(/[&<>'"]/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[char]));
+}
+
+function formatPlayedAt(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '記録なし';
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    return `${y}/${m}/${d} ${hh}:${mm}`;
+}
+
+function getPlayedAtText(player) {
+    if (player.playedAtText) return player.playedAtText;
+    if (player.playedAtMillis) return formatPlayedAt(new Date(player.playedAtMillis));
+    if (player.createdAt && typeof player.createdAt.toDate === 'function') return formatPlayedAt(player.createdAt.toDate());
+    return '記録なし';
+}
+
+function getClearedStages(player) {
+    const value = Number(player.clearedStages || 0);
+    return Number.isFinite(value) ? Math.max(0, value) : 0;
+}
+
+async function getRanking(rankingType = activeRankingType) {
+    activeRankingType = rankingType;
+    const rankingList = document.getElementById('ranking-list');
+    const rankingTitle = document.getElementById('ranking-title');
+    if (rankingTitle) rankingTitle.textContent = getRankingTitle(activeRankingType);
+    document.querySelectorAll('.ranking-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.ranking === activeRankingType);
+    });
+    rankingList.innerHTML = '<li>森の掲示板を読み込み中...</li>';
+    try {
+        if (!window.donguriGetRanking) throw new Error('Firebaseの準備ができていません');
+        const rankingData = await window.donguriGetRanking(activeRankingType);
+        rankingList.innerHTML = '';
+        if (rankingData.length === 0) {
+            rankingList.innerHTML = '<li>まだ誰も収穫していません。一番乗りを目指そう！</li>';
+            return;
+        }
+
+        const head = document.createElement('li');
+        head.className = 'ranking-head';
+        head.innerHTML = '<span>順位</span><span>なまえ</span><span style="text-align:right;">スコア</span><span style="text-align:right;">詳細</span>';
+        rankingList.appendChild(head);
+
+        rankingData.forEach((player, index) => {
+            const li = document.createElement('li');
+            li.className = 'ranking-row';
+            const crown = index === 0 ? '👑' : '';
+            const characterName = getCharacterLabel(player.character);
+            const categoryText = getCategoryLabel(player.category);
+            const safeName = String(player.name || '');
+            const detailId = `rank-more-${index}-${Date.now()}`;
+            li.innerHTML = `
+                <span class="rank-place"><span class="rank-crown">${crown}</span><span class="rank-number">${index + 1}位</span></span>
+                <span class="rank-name">${escapeHtml(safeName)}</span>
+                <span class="rank-score">${Math.floor(player.score || 0)}こ</span>
+                <span class="rank-detail-cell"><button class="rank-detail-btn" type="button" aria-expanded="false" aria-controls="${detailId}" aria-label="詳細を表示">▼</button></span>
+                <span class="rank-more" id="${detailId}">
+                    <strong>使用キャラ：</strong>${characterName}　<strong>ランキング：</strong>${categoryText}<br>
+                    <strong>プレイ日時：</strong>${getPlayedAtText(player)}　<strong>クリアステージ：</strong>${getClearedStages(player)}
+                </span>
+            `;
+            const detailBtn = li.querySelector('.rank-detail-btn');
+            detailBtn.addEventListener('click', () => {
+                const isOpen = li.classList.toggle('open');
+                detailBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                detailBtn.textContent = isOpen ? '▲' : '▼';
+                detailBtn.setAttribute('aria-label', isOpen ? '詳細を閉じる' : '詳細を表示');
+            });
+            rankingList.appendChild(li);
+        });
+    } catch (error) {
+        console.error('ランキングの取得に失敗しました:', error);
+        rankingList.innerHTML = '<li>森の掲示板を読み込めませんでした。Firestoreのルールやインデックスを確認してください。</li>';
+    }
+}
+
+</script>
+</body>
+</html>
