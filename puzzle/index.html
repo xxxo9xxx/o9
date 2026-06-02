@@ -52,7 +52,7 @@
   resetCanvasTransform();
   const COLS = 7;
   const ROWS = 11;
-  const CELL = 51;
+  const CELL = 53;
   const GAP = 4;
   const TILE = CELL - GAP;
   const ROUND = 13;
@@ -919,7 +919,7 @@
       for (const cell of run.cells) {
         for (let r = cell.r; r >= 0; r--) {
           const t = ground[r][cell.c];
-          if (t && t.kind !== 'lion' && !used.has(t.id)) {
+          if (t && !used.has(t.id)) {
             used.add(t.id);
             cellsToLift.push(t);
           }
@@ -1171,6 +1171,60 @@
     return tiles.length;
   }
 
+  function compactFloatGroupColumns(g) {
+    if (!g || !g.tiles || !g.tiles.length) return;
+    const maxRowByCol = new Map();
+    for (const t of g.tiles) {
+      maxRowByCol.set(t.col, Math.max(maxRowByCol.get(t.col) ?? -1, t.row));
+    }
+    for (const [col, maxR] of maxRowByCol) {
+      const colTiles = g.tiles
+        .filter(t => t.col === col)
+        .sort((a, b) => b.row - a.row);
+      let r = maxR;
+      for (const t of colTiles) {
+        t.row = r--;
+      }
+    }
+    updateGroupTileTargets(g);
+  }
+
+  function blastFloatingGroupCells(g, cellList, center, color = '#ffe17a') {
+    if (!g || !floatGroups.includes(g)) return 0;
+    const removeKeys = new Set();
+    for (const cell of cellList) {
+      if (cell.r < 0 || cell.r >= ROWS || cell.c < 0 || cell.c >= COLS) continue;
+      removeKeys.add(keyOf(cell.r, cell.c));
+    }
+    if (!removeKeys.size) return 0;
+    updateGroupTileTargets(g);
+    const blasted = [];
+    const remain = [];
+    for (const t of g.tiles) {
+      if (removeKeys.has(keyOf(t.row, t.col))) blasted.push({ tile: t, x: t.x, y: t.y });
+      else remain.push(t);
+    }
+    if (!blasted.length) return 0;
+    g.tiles = remain;
+    if (blasted.length) {
+      launchers.push({
+        tiles: blasted.map(({ tile, x, y }) => {
+          const a = Math.atan2(y - center.y, x - center.x) + rand(.7, -.7);
+          const p = 220 + rand(170);
+          return { tile, x, y, vx: Math.cos(a) * p, vy: -620 - rand(280), rot: tile.rot, spin: rand(10, -10) };
+        }),
+        age: 0, color, fever: true, mass: blasted.length
+      });
+    }
+    if (!g.tiles.length) {
+      floatGroups = floatGroups.filter(x => x !== g);
+    } else {
+      compactFloatGroupColumns(g);
+      g.hot = Math.max(g.hot || 0, .9);
+    }
+    return blasted.length;
+  }
+
   function triggerLionSpecial(runs = [], group = null) {
     const lionCells = lionMatchCellsFromRuns(runs);
     const matchCount = Math.max(3, lionCells.length);
@@ -1212,7 +1266,9 @@
         for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) cells.push({ r: cell.r + dr, c: cell.c + dc });
       }
     }
-    const blasted = blastGroundCells(cells, center, '#ffe17a');
+    const blastedGround = blastGroundCells(cells, center, '#ffe17a');
+    const blastedFloat = group ? blastFloatingGroupCells(group, cells, center, '#ffe17a') : 0;
+    const blasted = blastedGround + blastedFloat;
     const finalScore = Math.round((blasted * (matchCount >= 4 ? 190 : 125) + matchCount * 650) * tMult * (fever > 0 ? 1.5 : 1));
     addScore(finalScore);
     totalLaunched += blasted;
@@ -2253,20 +2309,53 @@
     roundedRect(-TILE / 2, -TILE / 2, TILE, TILE, ROUND);
     const g = ctx.createLinearGradient(-TILE / 2, -TILE / 2, TILE / 2, TILE / 2);
     if (isLion) {
-      g.addColorStop(0, '#fff4b4'); g.addColorStop(.46, '#dca53a'); g.addColorStop(1, '#302014');
+      const tnow = performance.now() * .001;
+      const pulse = Math.sin(tnow * 6 + t.id) * .5 + .5;
+      g.addColorStop(0, pulse > .5 ? '#fffbe0' : '#fff4b4');
+      g.addColorStop(.38, '#ffd75f');
+      g.addColorStop(.72, '#d081ff');
+      g.addColorStop(1, '#27143b');
     } else {
       g.addColorStop(0, col.edge); g.addColorStop(.48, col.fill); g.addColorStop(1, col.dark);
     }
     ctx.fillStyle = g; ctx.fill();
+
+    if (isLion) {
+      const tnow = performance.now() * .001;
+      const pulse = Math.sin(tnow * 7 + t.id) * .5 + .5;
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = .45 + pulse * .30;
+      ctx.strokeStyle = '#fff58c';
+      ctx.lineWidth = 2.2 + pulse * 1.2;
+      roundedRect(-TILE / 2 + 2, -TILE / 2 + 2, TILE - 4, TILE - 4, ROUND - 1);
+      ctx.stroke();
+      ctx.rotate(tnow * 1.8 + t.id);
+      for (let i = 0; i < 4; i++) {
+        const a = i * Math.PI / 2;
+        const sx = Math.cos(a) * TILE * .34;
+        const sy = Math.sin(a) * TILE * .34;
+        ctx.fillStyle = i % 2 ? '#b9f4ff' : '#fff58c';
+        ctx.beginPath();
+        ctx.moveTo(sx, sy - 4);
+        ctx.lineTo(sx + 2.4, sy);
+        ctx.lineTo(sx, sy + 4);
+        ctx.lineTo(sx - 2.4, sy);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = isLion ? 'rgba(255,238,140,.86)' : 'rgba(255,255,255,.48)'; ctx.lineWidth = isLion ? 2 : 1.35;
+    ctx.strokeStyle = isLion ? 'rgba(255,248,180,.96)' : 'rgba(255,255,255,.48)'; ctx.lineWidth = isLion ? 2.4 : 1.35;
     roundedRect(-TILE / 2 + 1.5, -TILE / 2 + 1.5, TILE - 3, TILE - 3, ROUND - 2); ctx.stroke();
-    ctx.globalAlpha = isLion ? .22 : .33;
+    ctx.globalAlpha = isLion ? .26 : .33;
     ctx.fillStyle = '#fff'; roundedRect(-TILE / 2 + 7, -TILE / 2 + 6, TILE - 18, 11, 8); ctx.fill();
     ctx.globalAlpha = 1;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     if (isLion) {
-      drawLionSilhouetteMark(0, 1, TILE * .34);
+      drawLionSilhouetteMark(0, 0, TILE * .35);
       ctx.fillStyle = '#fff8c9';
       ctx.font = '900 8px system-ui, sans-serif';
       ctx.fillText('SPECIAL', 0, TILE / 2 - 7);
