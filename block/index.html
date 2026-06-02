@@ -1075,6 +1075,216 @@
             .rank-detail-btn { font-size: .78em; width: 2.25em; min-width: 2.25em; height: 2em; }
         }
 
+
+        /* 2026-06 v11 修正: ランキングの名前・スコアを1行固定にする */
+        #ranking-modal .modal-content {
+            width: min(100%, 430px);
+            padding-left: clamp(14px, 4vw, 24px);
+            padding-right: clamp(14px, 4vw, 24px);
+        }
+        #ranking-modal .modal-content h2 {
+            font-size: clamp(1.25rem, 5.1vw, 1.65rem) !important;
+            margin-bottom: 12px !important;
+            white-space: nowrap;
+        }
+        #ranking-list {
+            padding: 6px !important;
+        }
+        #ranking-list li {
+            font-size: clamp(.76rem, 2.85vw, .88rem) !important;
+        }
+        .ranking-tabs {
+            gap: 3px !important;
+        }
+        .ranking-tab {
+            white-space: nowrap !important;
+            font-size: clamp(.68rem, 2.55vw, .82rem) !important;
+            padding-left: 2px !important;
+            padding-right: 2px !important;
+            letter-spacing: -.04em !important;
+        }
+        .ranking-head,
+        #ranking-list li.ranking-row {
+            grid-template-columns: 3.15em minmax(0, 1fr) 4.85em 2.7em !important;
+            column-gap: 4px !important;
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+        }
+        .ranking-head {
+            font-size: clamp(.66rem, 2.45vw, .76rem) !important;
+            white-space: nowrap !important;
+        }
+        .ranking-head span {
+            min-width: 0;
+            white-space: nowrap !important;
+            overflow: hidden;
+            text-overflow: clip;
+        }
+        #ranking-list li.ranking-row {
+            font-size: clamp(.74rem, 2.78vw, .86rem) !important;
+            line-height: 1.08 !important;
+            row-gap: 4px !important;
+        }
+        .rank-place {
+            grid-template-columns: .9em 2.05em !important;
+            min-width: 0 !important;
+            font-size: .94em !important;
+            line-height: 1 !important;
+        }
+        .rank-crown {
+            width: .9em !important;
+            min-width: .9em !important;
+            font-size: .88em !important;
+        }
+        .rank-number {
+            min-width: 2.05em !important;
+            font-size: .96em !important;
+        }
+        .rank-name {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            overflow-wrap: normal !important;
+            word-break: keep-all !important;
+            line-height: 1.08 !important;
+            letter-spacing: -.03em !important;
+        }
+        .rank-score {
+            white-space: nowrap !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            font-size: .98em !important;
+            letter-spacing: -.05em !important;
+            line-height: 1 !important;
+        }
+        .rank-detail-cell {
+            min-width: 0 !important;
+        }
+        .rank-detail-btn {
+            width: 2.1em !important;
+            min-width: 2.1em !important;
+            height: 1.85em !important;
+            font-size: .74em !important;
+        }
+        .rank-more {
+            font-size: .82em !important;
+        }
+        @media (max-width: 390px) {
+            #ranking-modal .modal-overlay,
+            #ranking-modal.modal-overlay {
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
+            #ranking-list {
+                padding: 5px !important;
+            }
+            .ranking-head,
+            #ranking-list li.ranking-row {
+                grid-template-columns: 3.0em minmax(0, 1fr) 4.55em 2.45em !important;
+                column-gap: 3px !important;
+                padding-left: 6px !important;
+                padding-right: 6px !important;
+            }
+            .rank-score {
+                font-size: .92em !important;
+            }
+            .rank-detail-btn {
+                width: 2em !important;
+                min-width: 2em !important;
+                height: 1.78em !important;
+                font-size: .7em !important;
+            }
+        }
+        @media (max-width: 340px) {
+            #ranking-modal .modal-content {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+            }
+            .ranking-head,
+            #ranking-list li.ranking-row {
+                grid-template-columns: 2.8em minmax(0, 1fr) 4.35em 2.25em !important;
+                column-gap: 2px !important;
+                padding-left: 5px !important;
+                padding-right: 5px !important;
+            }
+            #ranking-list li.ranking-row {
+                font-size: .70rem !important;
+            }
+            .ranking-head {
+                font-size: .62rem !important;
+            }
+        }
+
+
+        /* 2026-06 v12: 詳細ボタンを▼アイコンだけにして列ずれを解消 */
+        .ranking-head,
+        #ranking-list li.ranking-row {
+            grid-template-columns: 3.05em minmax(0, 1fr) 4.65em 1.55em !important;
+            column-gap: 4px !important;
+            align-items: center !important;
+        }
+        .ranking-head span:last-child {
+            text-align: center !important;
+        }
+        .rank-detail-cell {
+            text-align: center !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-width: 0 !important;
+        }
+        .rank-detail-btn {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 1.45em !important;
+            min-width: 1.45em !important;
+            height: 1.45em !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            color: #6b431e !important;
+            font-size: 1em !important;
+            line-height: 1 !important;
+            font-weight: 900 !important;
+            vertical-align: middle !important;
+        }
+        .rank-detail-btn:active {
+            transform: translateY(1px) !important;
+            box-shadow: none !important;
+        }
+        @media (max-width: 390px) {
+            .ranking-head,
+            #ranking-list li.ranking-row {
+                grid-template-columns: 2.95em minmax(0, 1fr) 4.35em 1.35em !important;
+                column-gap: 3px !important;
+            }
+            .rank-detail-btn {
+                width: 1.3em !important;
+                min-width: 1.3em !important;
+                height: 1.3em !important;
+                font-size: .94em !important;
+            }
+        }
+        @media (max-width: 340px) {
+            .ranking-head,
+            #ranking-list li.ranking-row {
+                grid-template-columns: 2.75em minmax(0, 1fr) 4.2em 1.25em !important;
+                column-gap: 2px !important;
+            }
+            .rank-detail-btn {
+                width: 1.2em !important;
+                min-width: 1.2em !important;
+                height: 1.2em !important;
+                font-size: .9em !important;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -2587,7 +2797,7 @@ async function getRanking(rankingType = activeRankingType) {
 
         const head = document.createElement('li');
         head.className = 'ranking-head';
-        head.innerHTML = '<span>順位</span><span>なまえ</span><span style="text-align:right;">スコア</span><span style="text-align:right;">詳細</span>';
+        head.innerHTML = '<span>順位</span><span>なまえ</span><span style="text-align:right;">スコア</span><span aria-hidden="true"></span>';
         rankingList.appendChild(head);
 
         rankingData.forEach((player, index) => {
