@@ -13,7 +13,7 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       touch-action: none; overscroll-behavior: none;
     }
-    #wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #070b19; }
+    #wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #070b19; overflow: hidden; }
     canvas {
       display: block;
       width: min(100vw, calc(100dvh * 390 / 844));
@@ -22,6 +22,16 @@
       border-radius: 24px;
       box-shadow: 0 24px 80px rgba(0,0,0,.52), inset 0 0 0 1px rgba(255,255,255,.08);
       background: #111; touch-action: none;
+    }
+    @media (max-width: 600px) {
+      canvas {
+        width: 100vw;
+        height: 100dvh;
+        max-width: 100vw;
+        max-height: 100dvh;
+        border-radius: 0;
+        box-shadow: none;
+      }
     }
     .note {
       position: fixed; left: 50%; bottom: max(10px, env(safe-area-inset-bottom)); transform: translateX(-50%);
@@ -105,6 +115,17 @@
     gameover: 'game_over_05_demo.mp3',
     score: 'score_02_1_demo.mp3',
     cutin: 'cutin.mp3'
+  };
+  const AUDIO_FALLBACK_URLS = {
+    intro: 'https://xxxo9xxx.github.io/o9/puzzle/intro.mp3',
+    loop: 'https://xxxo9xxx.github.io/o9/puzzle/loop.mp3',
+    combo1: 'https://xxxo9xxx.github.io/o9/puzzle/break_and_chain_03_1_demo.mp3',
+    combo2: 'https://xxxo9xxx.github.io/o9/puzzle/break_and_chain_03_2_demo.mp3',
+    combo3: 'https://xxxo9xxx.github.io/o9/puzzle/break_and_chain_03_3_demo.mp3',
+    combo4: 'https://xxxo9xxx.github.io/o9/puzzle/break_and_chain_03_4_demo.mp3',
+    gameover: 'https://xxxo9xxx.github.io/o9/puzzle/game_over_05_demo.mp3',
+    score: 'https://xxxo9xxx.github.io/o9/puzzle/score_02_1_demo.mp3',
+    cutin: 'https://xxxo9xxx.github.io/o9/puzzle/cutin.mp3'
   };
 
   const State = { TITLE: 'title', PLAY: 'play', OVER: 'over' };
@@ -522,7 +543,7 @@
       const Ctx = window.AudioContext || window.webkitAudioContext;
       const ac = new Ctx();
       const master = ac.createGain();
-      master.gain.value = .12;
+      master.gain.value = .32;
       master.connect(ac.destination);
       audio = { ac, master };
     } catch (e) { muted = true; }
@@ -530,27 +551,36 @@
   function initMediaAudio() {
     if (mediaAudio) return;
     try {
-      const make = (src, volume = .8, loop = false) => {
-        const a = new Audio(src);
+      const make = (key, volume = .95, loop = false) => {
+        const a = new Audio(AUDIO_FILES[key]);
         a.preload = 'auto';
         a.loop = loop;
-        a.volume = volume;
+        a.volume = clamp(volume, 0, 1);
+        a.dataset.fallbackTried = '0';
+        a.addEventListener('error', () => {
+          if (a.dataset.fallbackTried === '1') return;
+          const fallback = AUDIO_FALLBACK_URLS[key];
+          if (!fallback) return;
+          a.dataset.fallbackTried = '1';
+          a.src = fallback;
+          a.load();
+        });
         return a;
       };
-      const intro = make(AUDIO_FILES.intro, .72, false);
-      const loop = make(AUDIO_FILES.loop, .62, true);
+      const intro = make('intro', .90, false);
+      const loop = make('loop', .80, true);
       mediaAudio = {
         intro,
         loop,
         introDone: false,
         sfx: {
-          combo1: make(AUDIO_FILES.combo1, .80, false),
-          combo2: make(AUDIO_FILES.combo2, .82, false),
-          combo3: make(AUDIO_FILES.combo3, .84, false),
-          combo4: make(AUDIO_FILES.combo4, .86, false),
-          gameover: make(AUDIO_FILES.gameover, .88, false),
-          score: make(AUDIO_FILES.score, .82, false),
-          cutin: make(AUDIO_FILES.cutin, .78, false),
+          combo1: make('combo1', .98, false),
+          combo2: make('combo2', 1.00, false),
+          combo3: make('combo3', 1.00, false),
+          combo4: make('combo4', 1.00, false),
+          gameover: make('gameover', 1.00, false),
+          score: make('score', .95, false),
+          cutin: make('cutin', .95, false),
         }
       };
       intro.addEventListener('ended', () => {
@@ -618,9 +648,32 @@
     if (!mediaAudio || !mediaAudio.sfx || !mediaAudio.sfx[key]) return;
     try {
       const base = mediaAudio.sfx[key];
-      const a = base.cloneNode();
-      a.volume = clamp((base.volume || .8) * volumeScale, 0, 1);
-      a.play().catch(() => {});
+      // gameover/score はiPhoneでcloneNode再生が失敗することがあるため、元Audioを直接鳴らす。
+      if (key === 'gameover' || key === 'score') {
+        base.pause();
+        base.currentTime = 0;
+        base.volume = clamp((base.volume || 1) * volumeScale, 0, 1);
+        base.play().catch(() => {
+          const fallback = AUDIO_FALLBACK_URLS[key];
+          if (fallback && base.src !== fallback) {
+            base.src = fallback;
+            base.load();
+            base.play().catch(() => {});
+          }
+        });
+        return;
+      }
+      const a = base.cloneNode(true);
+      a.volume = clamp((base.volume || .95) * volumeScale, 0, 1);
+      a.play().catch(() => {
+        const fallback = AUDIO_FALLBACK_URLS[key];
+        if (!fallback) return;
+        try {
+          const b = new Audio(fallback);
+          b.volume = a.volume;
+          b.play().catch(() => {});
+        } catch (_) {}
+      });
     } catch (e) {}
   }
 
@@ -650,7 +703,7 @@
     if (name === 'bad') { freqs = [170, 130]; dur = .09; type = 'sawtooth'; vol = .34; }
     if (name === 'over') { freqs = [620, 500, 380, 250]; dur = .16; type = 'triangle'; vol = .55; }
 
-    gain.gain.linearRampToValueAtTime(.22 * vol * intensity, now + .01);
+    gain.gain.linearRampToValueAtTime(.42 * vol * intensity, now + .01);
     gain.gain.exponentialRampToValueAtTime(.0001, now + dur * freqs.length + .12);
     freqs.forEach((f, i) => {
       const osc = ac.createOscillator();
@@ -775,6 +828,7 @@
   function onPointerDown(ev) {
     ev.preventDefault();
     initAudio();
+    initMediaAudio();
     activePointerId = ev.pointerId;
     canvas.setPointerCapture?.(ev.pointerId);
     const p = getCanvasPoint(ev);
