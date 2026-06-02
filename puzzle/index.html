@@ -557,7 +557,7 @@
       const Ctx = window.AudioContext || window.webkitAudioContext;
       const ac = new Ctx();
       const master = ac.createGain();
-      master.gain.value = .32;
+      master.gain.value = .58;
       master.connect(ac.destination);
       audio = { ac, master };
     } catch (e) { muted = true; }
@@ -581,20 +581,20 @@
         });
         return a;
       };
-      const intro = make('intro', .90, false);
-      const loop = make('loop', .80, true);
+      const intro = make('intro', .95, false);
+      const loop = make('loop', .86, true);
       mediaAudio = {
         intro,
         loop,
         introDone: false,
         sfx: {
-          combo1: make('combo1', .98, false),
+          combo1: make('combo1', 1.0, false),
           combo2: make('combo2', 1.00, false),
           combo3: make('combo3', 1.00, false),
           combo4: make('combo4', 1.00, false),
           gameover: make('gameover', 1.00, false),
-          score: make('score', .95, false),
-          cutin: make('cutin', .95, false),
+          score: make('score', 1.0, false),
+          cutin: make('cutin', 1.0, false),
         }
       };
       intro.addEventListener('ended', () => {
@@ -659,31 +659,24 @@
   function playFileSfx(key, volumeScale = 1) {
     if (muted) return;
     initMediaAudio();
-    if (!mediaAudio || !mediaAudio.sfx || !mediaAudio.sfx[key]) return;
+    if (!mediaAudio || !mediaAudio.sfx) return;
     try {
-      const base = mediaAudio.sfx[key];
-      // gameover/score はiPhoneでcloneNode再生が失敗することがあるため、元Audioを直接鳴らす。
-      if (key === 'gameover' || key === 'score') {
-        base.pause();
-        base.currentTime = 0;
-        base.volume = clamp((base.volume || 1) * volumeScale, 0, 1);
-        base.play().catch(() => {
-          const fallback = AUDIO_FALLBACK_URLS[key];
-          if (fallback && base.src !== fallback) {
-            base.src = fallback;
-            base.load();
-            base.play().catch(() => {});
-          }
-        });
-        return;
+      let a = null;
+      const pool = mediaAudio.sfxPool && mediaAudio.sfxPool[key];
+      if (pool && pool.length) {
+        const idx = mediaAudio.poolIndex[key] || 0;
+        a = pool[idx];
+        mediaAudio.poolIndex[key] = (idx + 1) % pool.length;
+      } else {
+        a = mediaAudio.sfx[key];
       }
-      const a = base.cloneNode(true);
-      a.volume = clamp((base.volume || .95) * volumeScale, 0, 1);
+      if (!a) return;
+      a.pause();
+      a.currentTime = 0;
+      a.volume = clamp((mediaAudio.sfx[key]?.volume || 1) * volumeScale, 0, 1);
       a.play().catch(() => {
-        const fallback = AUDIO_FALLBACK_URLS[key];
-        if (!fallback) return;
         try {
-          const b = new Audio(fallback);
+          const b = new Audio(AUDIO_FALLBACK_URLS[key] || AUDIO_FILES[key]);
           b.volume = a.volume;
           b.play().catch(() => {});
         } catch (_) {}
@@ -709,15 +702,15 @@
     gain.gain.setValueAtTime(.0001, now);
 
     let freqs = [440], dur = .08, type = 'sine', vol = 1;
-    if (name === 'swap') { freqs = [520, 660]; dur = .045; type = 'triangle'; vol = .38; }
-    if (name === 'ignite') { freqs = [360, 520, 780]; dur = .075; type = 'sawtooth'; vol = .55; }
-    if (name === 'air') { freqs = [760, 960, 1280, 1580]; dur = .055; type = 'square'; vol = .48; }
-    if (name === 'launch') { freqs = [170, 230, 320, 510]; dur = .13; type = 'sawtooth'; vol = .75; }
+    if (name === 'swap') { freqs = [520, 700]; dur = .055; type = 'triangle'; vol = 1.0; }
+    if (name === 'ignite') { freqs = [360, 520, 780]; dur = .075; type = 'sawtooth'; vol = .85; }
+    if (name === 'air') { freqs = [760, 960, 1280, 1580]; dur = .055; type = 'square'; vol = .78; }
+    if (name === 'launch') { freqs = [170, 230, 320, 510]; dur = .13; type = 'sawtooth'; vol = 1.0; }
     if (name === 'fever') { freqs = [360, 540, 720, 960, 1320]; dur = .09; type = 'sine'; vol = .9; }
-    if (name === 'bad') { freqs = [170, 130]; dur = .09; type = 'sawtooth'; vol = .34; }
+    if (name === 'bad') { freqs = [170, 130]; dur = .09; type = 'sawtooth'; vol = .55; }
     if (name === 'over') { freqs = [620, 500, 380, 250]; dur = .16; type = 'triangle'; vol = .55; }
 
-    gain.gain.linearRampToValueAtTime(.42 * vol * intensity, now + .01);
+    gain.gain.linearRampToValueAtTime(.78 * vol * intensity, now + .006);
     gain.gain.exponentialRampToValueAtTime(.0001, now + dur * freqs.length + .12);
     freqs.forEach((f, i) => {
       const osc = ac.createOscillator();
@@ -909,7 +902,7 @@
     selectedHint = { layer: hit.layer, group: hit.group || null, r: hit.r, c: hit.c };
     hit.tile.targetScale = 1.1;
     hit.tile.flash = .12;
-    playTone('swap', .25);
+    playTone('swap', .80);
   }
 
   function onPointerMove(ev) {
@@ -947,7 +940,7 @@
     drag.path.push({ r, c });
     drag.touched.add(dragCellKey('ground', null, r, c));
     selectedHint = { layer: 'ground', r, c };
-    playTone('swap', .32);
+    playTone('swap', .95);
   }
 
   function maybeMoveFloatDrag(r, c) {
@@ -975,7 +968,7 @@
     drag.path.push({ r, c });
     drag.touched.add(dragCellKey('float', g, r, c));
     selectedHint = { layer: 'float', group: g, r, c };
-    playTone('swap', .38);
+    playTone('swap', 1.05);
   }
 
   function onPointerUp(ev) {
