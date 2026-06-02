@@ -1385,6 +1385,50 @@
             #game-over-content .result-character img { width: 36px !important; height: 36px !important; }
         }
 
+
+        /* 2026-06 v14: TOPキャラ説明を復活・タイトルを少し拡大 */
+        #start-content .game-logo .logo-line-top {
+            font-size: clamp(.92rem, 4.15vw, 1.28rem) !important;
+        }
+        #start-content .game-logo .logo-line-main {
+            font-size: clamp(1.22rem, 5.55vw, 1.96rem) !important;
+            letter-spacing: -.07em !important;
+        }
+        #start-content .start-lead {
+            margin-bottom: 6px !important;
+        }
+        #start-content .character-select {
+            margin-top: 5px !important;
+            margin-bottom: 8px !important;
+        }
+        #start-content .character-card small {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-width: 118px !important;
+            padding: 3px 7px !important;
+            font-size: clamp(.56rem, 2.25vw, .68rem) !important;
+            line-height: 1.12 !important;
+            white-space: nowrap !important;
+        }
+        @media (max-height: 690px) {
+            #start-content .game-logo .logo-line-top {
+                font-size: clamp(.86rem, 3.85vw, 1.1rem) !important;
+            }
+            #start-content .game-logo .logo-line-main {
+                font-size: clamp(1.05rem, 5.0vw, 1.46rem) !important;
+            }
+            #start-content .character-card small {
+                display: flex !important;
+                min-width: 108px !important;
+                padding: 3px 5px !important;
+                font-size: .56rem !important;
+            }
+            #start-content .character-select {
+                margin-bottom: 7px !important;
+            }
+        }
+
     </style>
 </head>
 <body>
