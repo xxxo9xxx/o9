@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-  <title>サニーメテオ！ float combo risk</title>
+  <title>さんさんロケットパズル</title>
   <style>
     :root { color-scheme: dark; }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -32,8 +32,10 @@
   </style>
 </head>
 <body>
-  <div id="wrap"><canvas id="game" width="390" height="844" aria-label="サニーメテオ float combo risk"></canvas></div>
-  <div class="note">prototype / drag one block like PAD / aerial combo = high score</div>
+  <div id="wrap"><canvas id="game" width="390" height="844" aria-label="さんさんロケットパズル"></canvas></div>
+  <div class="note" style="display:none"></div>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <script>
 (() => {
   'use strict';
@@ -43,14 +45,19 @@
 
   const W = 390;
   const H = 844;
+  const DPR = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+  canvas.width = Math.round(W * DPR);
+  canvas.height = Math.round(H * DPR);
+  function resetCanvasTransform() { ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+  resetCanvasTransform();
   const COLS = 7;
-  const ROWS = 10;
-  const CELL = 48;
+  const ROWS = 11;
+  const CELL = 51;
   const GAP = 4;
   const TILE = CELL - GAP;
   const ROUND = 13;
   const BOARD_X = Math.round((W - COLS * CELL) / 2);
-  const BOARD_Y = 220;
+  const BOARD_Y = 172;
   const BOARD_W = COLS * CELL;
   const BOARD_H = ROWS * CELL;
   const GAME_SECONDS = 120;
@@ -77,6 +84,18 @@
     return [k, img];
   }));
 
+  const firebaseConfig = {
+    apiKey: "AIzaSyAIdqo702qf85A4KU29lKhxMbvdSrGP5TE",
+    authDomain: "sansan-rocket-puzzle.firebaseapp.com",
+    projectId: "sansan-rocket-puzzle",
+    storageBucket: "sansan-rocket-puzzle.firebasestorage.app",
+    messagingSenderId: "433862048120",
+    appId: "1:433862048120:web:51a21623c6e462a338708d"
+  };
+
+  let firebaseDb = null;
+  const SCORE_COLLECTION = 'rocket_scores';
+
   const State = { TITLE: 'title', PLAY: 'play', OVER: 'over' };
 
   let gameState = State.TITLE;
@@ -97,7 +116,7 @@
   let maxCombo = 0;
   let comboHold = 0;
   let comboHoldMax = 0;
-  let sunGauge = 18;
+  let sunGauge = 0;
   let fever = 0;
   let timeLeft = GAME_SECONDS;
   let danger = 0;
@@ -106,15 +125,25 @@
   let dangerStage = 0;
   let crashActive = false;
   let crashTimer = 0;
-  const CRASH_GRACE = 6.6;
+  const CRASH_GRACE = 8.0;
+  const FEVER_SECONDS = 30.0;
   let crashStage = 0;
   let crashWarningColumns = [];
+  let gameOverTimer = 0;
+  let gameOverScoreReady = false;
   let forcedCrashColumns = [];
   let softWarningCooldown = 0;
   let totalLaunched = 0;
   let totalIgnited = 0;
   let totalAerial = 0;
   let activeColors = 5;
+
+  let ranking = [];
+  let rankingStatus = 'ランキング読込中...';
+  let rankingLoading = false;
+  let scoreSubmitted = false;
+  let submittingScore = false;
+  let playerName = localStorage.getItem('sansanRocketPlayerName') || '';
 
   let spawnTimer = 0;
   let spawnInterval = 0.9;
@@ -249,6 +278,107 @@
     }
   }
 
+
+  function setupFirebaseRanking() {
+    try {
+      if (!window.firebase || !window.firebase.initializeApp || !window.firebase.firestore) {
+        rankingStatus = 'Firebase未読込';
+        return;
+      }
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      firebaseDb = firebase.firestore();
+      rankingStatus = 'ランキング読込中...';
+      loadRanking();
+    } catch (err) {
+      console.warn('Firebase init failed', err);
+      rankingStatus = 'ランキング未接続';
+      firebaseDb = null;
+    }
+  }
+
+  async function loadRanking() {
+    if (!firebaseDb || rankingLoading) return;
+    rankingLoading = true;
+    rankingStatus = 'ランキング読込中...';
+    try {
+      const snap = await firebaseDb.collection(SCORE_COLLECTION)
+        .orderBy('score', 'desc')
+        .limit(10)
+        .get();
+      ranking = snap.docs.map(doc => {
+        const d = doc.data() || {};
+        return {
+          name: String(d.name || 'ななし').slice(0, 14),
+          score: Number(d.score || 0),
+          maxCombo: Number(d.maxCombo || 0),
+          launch: Number(d.launch || 0),
+          aerial: Number(d.aerial || 0),
+        };
+      });
+      rankingStatus = ranking.length ? '' : 'まだランキングがありません';
+    } catch (err) {
+      console.warn('Ranking load failed', err);
+      rankingStatus = 'ランキング読込エラー';
+    } finally {
+      rankingLoading = false;
+    }
+  }
+
+  function sanitizePlayerName(name) {
+    return String(name || '')
+      .replace(/[\r\n\t]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 14);
+  }
+
+  async function submitScoreToRanking(name) {
+    if (!firebaseDb || submittingScore || scoreSubmitted || score <= 0) return;
+    const cleanName = sanitizePlayerName(name);
+    if (!cleanName) {
+      addFloatText(W / 2, 520, '名前を入力してね', 16, '#ffccd2', .8);
+      return;
+    }
+    submittingScore = true;
+    rankingStatus = 'スコア送信中...';
+    try {
+      await firebaseDb.collection(SCORE_COLLECTION).add({
+        name: cleanName,
+        score: Math.floor(score),
+        maxCombo: Math.floor(maxCombo),
+        launch: Math.floor(totalLaunched),
+        aerial: Math.floor(totalAerial),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        version: 'sansan-rocket-puzzle-v1'
+      });
+      playerName = cleanName;
+      localStorage.setItem('sansanRocketPlayerName', cleanName);
+      scoreSubmitted = true;
+      rankingStatus = '送信しました!';
+      addFloatText(W / 2, 518, 'ランキング送信OK!', 17, '#b9f4ff', .9);
+      await loadRanking();
+    } catch (err) {
+      console.warn('Score submit failed', err);
+      rankingStatus = '送信エラー';
+      addFloatText(W / 2, 518, '送信できませんでした', 16, '#ffccd2', .9);
+    } finally {
+      submittingScore = false;
+    }
+  }
+
+  function promptAndSubmitScore() {
+    if (scoreSubmitted || submittingScore || !gameOverScoreReady) return;
+    const initial = playerName || '';
+    const entered = window.prompt('ランキングにのせる名前を入力してください（14文字まで）', initial);
+    if (entered == null) return;
+    const clean = sanitizePlayerName(entered);
+    if (!clean) {
+      addFloatText(W / 2, 520, '名前を入力してね', 16, '#ffccd2', .8);
+      return;
+    }
+    submitScoreToRanking(clean);
+  }
+
   function resetGame() {
     score = 0;
     displayedScore = 0;
@@ -256,7 +386,7 @@
     comboHold = 0;
     comboHoldMax = 0;
     maxCombo = 0;
-    sunGauge = 18;
+    sunGauge = 0;
     fever = 0;
     timeLeft = GAME_SECONDS;
     danger = 8;
@@ -267,6 +397,9 @@
     crashTimer = 0;
     crashStage = 0;
     crashWarningColumns = [];
+    gameOverTimer = 0;
+    gameOverScoreReady = false;
+    scoreSubmitted = false;
     forcedCrashColumns = [];
     softWarningCooldown = 0;
     totalLaunched = 0;
@@ -284,17 +417,57 @@
   }
 
   function endGame() {
+    if (gameState === State.OVER) return;
     gameState = State.OVER;
     drag = null;
     pointer = null;
     selectedHint = null;
+    gameOverTimer = 5.0;
+    gameOverScoreReady = false;
     if (score > bestScore) {
       bestScore = score;
       localStorage.setItem('sunnyMeteorFloatBest', String(bestScore));
     }
-    showCutin('CRASH!', 'メテオがあふれた!', '#ff6b75', 'crash', .92, false);
-    addFloatText(W / 2, H / 2 + 110, 'GAME OVER', 30, '#fff', 1.2);
-    playTone('over', .9);
+    cutins = [];
+    triggerGameOverBurst();
+    flash = Math.max(flash, .62);
+    shake += 1.55;
+    playTone('over', 1.05);
+    vibrate(60);
+  }
+
+  function triggerGameOverBurst() {
+    const debris = [];
+    const pushDebris = (tile, x = tile.x, y = tile.y) => {
+      const dx = (x + TILE / 2) - W / 2;
+      const dy = (y + TILE / 2) - (BOARD_Y + BOARD_H * .42);
+      const a = Math.atan2(dy, dx) + rand(.55, -.55);
+      const p = 240 + rand(260);
+      debris.push({
+        tile, x, y,
+        vx: Math.cos(a) * p,
+        vy: Math.sin(a) * p - 520 - rand(220),
+        rot: tile.rot, spin: rand(11, -11)
+      });
+    };
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const t = ground?.[r]?.[c];
+        if (t) { pushDebris(t); ground[r][c] = null; }
+      }
+    }
+    for (const t of falling) pushDebris(t);
+    falling = [];
+    for (const g of floatGroups) {
+      for (const t of g.tiles) pushDebris(t, t.x, t.y);
+    }
+    floatGroups = [];
+    if (debris.length) {
+      launchers.push({ tiles: debris, age: 0, color: '#ff6b75', fever: false, mass: debris.length, gameOver: true });
+    }
+    addShockwave(W / 2, BOARD_Y + BOARD_H * .36, 320, 'rgba(255,83,98,.92)', .9);
+    addShockwave(W / 2, BOARD_Y + BOARD_H * .58, 230, 'rgba(255,235,150,.70)', .62);
+    for (let i = 0; i < 70; i++) addParticle(W / 2 + rand(150, -150), BOARD_Y + rand(BOARD_H * .75, 30), i % 3 ? '#ff6b75' : '#fff58c', 1, 320, 'spark');
   }
 
   function initAudio() {
@@ -457,12 +630,24 @@
     pointer = { id: ev.pointerId, x: p.x, y: p.y, startX: p.x, startY: p.y, moved: false };
 
     if (gameState === State.TITLE) {
-      resetGame();
-      playTone('fever', .55);
+      if (pointInRect(p.x, p.y, 70, 572, 250, 66)) {
+        resetGame();
+        playTone('fever', .55);
+      } else {
+        addFloatText(W / 2, 612, 'STARTボタンを押してね', 14, '#fff', .5);
+      }
       return;
     }
     if (gameState === State.OVER) {
-      resetGame();
+      if (!gameOverScoreReady) return;
+      if (pointInRect(p.x, p.y, 70, 486, 250, 52)) {
+        promptAndSubmitScore();
+        return;
+      }
+      if (pointInRect(p.x, p.y, 76, 744, 238, 54)) {
+        resetGame();
+        return;
+      }
       return;
     }
     if (gameState !== State.PLAY) return;
@@ -577,6 +762,10 @@
     activePointerId = null;
     pointer = null;
     drag = null;
+  }
+
+  function pointInRect(x, y, rx, ry, rw, rh) {
+    return x >= rx && x <= rx + rw && y >= ry && y <= ry + rh;
   }
 
   function pointInCircle(x, y, cx, cy, r) {
@@ -788,12 +977,18 @@
         label: quickLaunch ? '即発射' : tier === 'stock' ? 'ため発射' : tier === 'big' ? '大ため' : '超ため',
         launched: false,
         hot: 1,
+        slowFall: 0,
+        topReached: false,
         warning: 0,
       };
       updateGroupTileTargets(g, true);
       floatGroups.push(g);
       ignited++;
       totalIgnited++;
+      if (!quickLaunch) {
+        const tMultIgnite = registerTempoCombo(true, chainDuration('air'));
+        addFloatText(groupCenter(g).x, groupCenter(g).y - 48, `${combo} COMBO 点火! ×${tMultIgnite.toFixed(2)}`, 16, '#b9f4ff', .78);
+      }
       const center = groupCenter(g);
       const mult = weightMultiplier(rideCount);
       const quickMsg = '軽い! 即発射!';
@@ -885,13 +1080,13 @@
     lastLionAwardCombo = currentCombo;
     const added = spawnLionBlock();
     showCutin('さんさんライオン!', `${currentCombo} COMBO ライオンブロックGET!`, '#ffe17a', 'lion', .72, false);
-    if (!added) addFloatText(W / 2, BOARD_Y - 18, 'ライオン3つ! そろえてがおー!', 16, '#ffe17a', .9);
+    if (!added) addFloatText(W / 2, BOARD_Y - 18, '特殊ブロックをそろえてがおー!', 16, '#ffe17a', .9);
     playTone('combo', .78);
     vibrate(22);
   }
 
   function spawnLionBlock() {
-    if (countLionBlocks() >= 3) return false;
+    if (countLionBlocks() >= 5) return false;
     const cols = [...Array(COLS).keys()].sort(() => Math.random() - .5);
     for (const c of cols) {
       if (columnHasFalling(c)) continue;
@@ -940,32 +1135,96 @@
     return tiles;
   }
 
-  function triggerLionSpecial(runs = [], group = null) {
-    const center = group ? groupCenter(group) : matchCenterFromRuns(runs);
-    const tiles = collectAllTilesForBlast();
-    const tMult = registerTempoCombo(false, chainDuration('lion'));
-    const finalScore = Math.round((tiles.length * 260 + 3200) * tMult * (fever > 0 ? 1.8 : 1));
-    addScore(finalScore);
-    totalLaunched += tiles.length;
-    danger = clamp(danger - 55, 0, 100);
-    showCutin('さんさんライオン!', 'がおー! 全破壊!', '#ffe17a', 'lion', 1.18, true);
+  function lionMatchCellsFromRuns(runs) {
+    const map = new Map();
+    for (const run of runs) {
+      if (run.type !== 'lion') continue;
+      for (const cell of run.cells) map.set(keyOf(cell.r, cell.c), { ...cell });
+    }
+    return [...map.values()];
+  }
+
+  function blastGroundCells(cellList, center, color = '#ffe17a') {
+    const tiles = [];
+    const seen = new Set();
+    for (const cell of cellList) {
+      if (cell.r < 0 || cell.r >= ROWS || cell.c < 0 || cell.c >= COLS) continue;
+      const k = keyOf(cell.r, cell.c);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      const t = ground[cell.r]?.[cell.c];
+      if (!t) continue;
+      ground[cell.r][cell.c] = null;
+      tiles.push({ tile: t, x: t.x, y: t.y });
+    }
     if (tiles.length) {
       launchers.push({
         tiles: tiles.map(({ tile, x, y }) => {
           const a = Math.atan2(y - center.y, x - center.x) + rand(.7, -.7);
-          const p = 260 + rand(180);
-          return { tile, x, y, vx: Math.cos(a) * p, vy: -760 - rand(360), rot: tile.rot, spin: rand(10, -10) };
+          const p = 220 + rand(170);
+          return { tile, x, y, vx: Math.cos(a) * p, vy: -620 - rand(280), rot: tile.rot, spin: rand(10, -10) };
         }),
-        age: 0, color: '#ffe17a', fever: true, mass: tiles.length
+        age: 0, color, fever: true, mass: tiles.length
       });
     }
-    addFloatText(W / 2, BOARD_Y + BOARD_H * .36, `全破壊! +${finalScore}`, 28, '#ffe17a', 1.25);
-    addShockwave(W / 2, BOARD_Y + BOARD_H * .45, 310, 'rgba(255,225,122,.92)', .78);
-    for (let i = 0; i < 70; i++) addParticle(W / 2 + rand(160, -160), BOARD_Y + BOARD_H * .45 + rand(120, -120), '#ffe17a', 1, 320, 'spark');
-    flash = Math.max(flash, .55);
-    shake += 1.45;
-    playTone('fever', 1.25);
-    vibrate(60);
+    packGroundColumns();
+    return tiles.length;
+  }
+
+  function triggerLionSpecial(runs = [], group = null) {
+    const lionCells = lionMatchCellsFromRuns(runs);
+    const matchCount = Math.max(3, lionCells.length);
+    const center = group ? groupCenter(group) : matchCenterFromRuns(runs);
+    const tMult = registerTempoCombo(false, chainDuration('lion'));
+
+    if (matchCount >= 5) {
+      const tiles = collectAllTilesForBlast();
+      const finalScore = Math.round((tiles.length * 280 + 5200) * tMult * (fever > 0 ? 1.8 : 1));
+      addScore(finalScore);
+      totalLaunched += tiles.length;
+      danger = clamp(danger - 70, 0, 100);
+      showCutin('さんさんライオン!', 'がおー! 全消し!', '#ffe17a', 'lion', 1.20, true);
+      if (tiles.length) {
+        launchers.push({
+          tiles: tiles.map(({ tile, x, y }) => {
+            const a = Math.atan2(y - center.y, x - center.x) + rand(.7, -.7);
+            const p = 280 + rand(220);
+            return { tile, x, y, vx: Math.cos(a) * p, vy: -800 - rand(390), rot: tile.rot, spin: rand(11, -11) };
+          }),
+          age: 0, color: '#ffe17a', fever: true, mass: tiles.length
+        });
+      }
+      addFloatText(W / 2, BOARD_Y + BOARD_H * .36, `全消し! +${finalScore}`, 30, '#ffe17a', 1.25);
+      addShockwave(W / 2, BOARD_Y + BOARD_H * .45, 330, 'rgba(255,225,122,.94)', .80);
+      for (let i = 0; i < 82; i++) addParticle(W / 2 + rand(170, -170), BOARD_Y + BOARD_H * .45 + rand(130, -130), '#ffe17a', 1, 340, 'spark');
+      flash = Math.max(flash, .60); shake += 1.55; playTone('fever', 1.25); vibrate(64);
+      return;
+    }
+
+    let cells = [];
+    if (matchCount >= 4) {
+      const rows = new Set(lionCells.map(c => c.r));
+      const cols = new Set(lionCells.map(c => c.c));
+      for (const r of rows) for (let c = 0; c < COLS; c++) cells.push({ r, c });
+      for (const c of cols) for (let r = 0; r < ROWS; r++) cells.push({ r, c });
+    } else {
+      for (const cell of lionCells) {
+        for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) cells.push({ r: cell.r + dr, c: cell.c + dc });
+      }
+    }
+    const blasted = blastGroundCells(cells, center, '#ffe17a');
+    const finalScore = Math.round((blasted * (matchCount >= 4 ? 190 : 125) + matchCount * 650) * tMult * (fever > 0 ? 1.5 : 1));
+    addScore(finalScore);
+    totalLaunched += blasted;
+    danger = clamp(danger - (matchCount >= 4 ? 32 : 20), 0, 100);
+    showCutin('さんさんライオン!', matchCount >= 4 ? '大がおー! 十字破壊!' : 'がおー! 周囲破壊!', '#ffe17a', 'lion', matchCount >= 4 ? .98 : .82, false);
+    addFloatText(center.x, center.y - 26, `${matchCount}個消し! +${finalScore}`, 24, '#ffe17a', 1.0);
+    addShockwave(center.x, center.y, matchCount >= 4 ? 230 : 150, 'rgba(255,225,122,.88)', .56);
+    for (let i = 0; i < (matchCount >= 4 ? 44 : 26); i++) addParticle(center.x + rand(70, -70), center.y + rand(60, -60), '#ffe17a', 1, matchCount >= 4 ? 260 : 210, 'spark');
+    flash = Math.max(flash, matchCount >= 4 ? .34 : .22);
+    shake += matchCount >= 4 ? .90 : .55;
+    playTone(matchCount >= 4 ? 'fever' : 'combo', .95);
+    vibrate(matchCount >= 4 ? 46 : 30);
   }
 
   function matchCenterFromRuns(runs) {
@@ -999,14 +1258,20 @@
 
     if (!isQuick && (g.ignitesNeeded || 1) > 1 && (g.ignitesDone || 0) < (g.ignitesNeeded - 1)) {
       g.ignitesDone = (g.ignitesDone || 0) + 1;
-      g.vy = Math.min(g.vy, -210);
-      g.offset = Math.min(g.offset, -Math.max(42, g.lift * .62));
-      g.hoverTime = Math.max(g.hoverTime, fever > 0 ? 1.65 : 1.15);
+      g.vy = Math.min(g.vy, -178);
+      g.offset = Math.min(g.offset, -Math.max(48, g.lift * .70));
+      g.hoverTime = Math.max(g.hoverTime, fever > 0 ? 1.45 : 1.05);
+      g.slowFall = Math.max(g.slowFall || 0, fever > 0 ? 1.45 : 1.20);
+      g.topReached = false;
       g.hot = 1.55;
       danger = clamp(danger - 8, 0, 100);
       const tMult = registerTempoCombo(true, chainDuration('partial'));
-      const partial = Math.round((payload * 22 + weight * 65 + matchCount * 90) * tMult * (fever > 0 ? 1.5 : 1));
+      const partial = Math.round((payload * 22 + weight * 65 + matchCount * 90) * tMult * (fever > 0 ? 1.7 : 1));
       addScore(partial);
+      if (fever <= 0) {
+        sunGauge = clamp(sunGauge + 8 + weight * .75 + matchCount * 1.2, 0, 100);
+        if (sunGauge >= 100) triggerFever();
+      }
       addFloatText(center.x, center.y - 24, `追い点火 ${g.ignitesDone}/${g.ignitesNeeded}! +${partial}`, 21, '#fff58c', .95);
       addFloatText(center.x, center.y + 6, 'もう1回空中でそろえて超発射!', 14, '#b9f4ff', .85);
       addShockwave(center.x, center.y, 110 + Math.min(90, payload * 3), 'rgba(255,245,140,.82)', .42);
@@ -1023,14 +1288,16 @@
     const base = payload * (isQuick ? 54 : 72) + matchedCells.size * (isQuick ? 88 : 145) + Math.max(0, longest - 3) * (isQuick ? 90 : 160) + weight * (isQuick ? 30 : 110);
     const wMult = weightMultiplier(weight);
     const giriMult = isQuick ? 1 : (g.offset > -26 ? 1.55 : 1);
-    const feverMult = fever > 0 ? 2 : 1;
+    const feverMult = fever > 0 ? 2.2 : 1;
     const styleMult = isQuick ? .82 : 1;
     const hugeMult = (!isQuick && (g.ignitesNeeded || 1) > 1) ? 1.35 : 1;
     const finalScore = Math.round(base * wMult * giriMult * feverMult * styleMult * tMult * hugeMult);
     addScore(finalScore);
     totalLaunched += payload;
-    sunGauge = clamp(sunGauge + (isQuick ? 6 : 12) + payload * (isQuick ? .55 : 1.2) + combo * 1.1 + (giriMult > 1 ? 8 : 0), 0, 100);
-    if (sunGauge >= 100 && fever <= 0) triggerFever();
+    if (!isQuick && fever <= 0) {
+      sunGauge = clamp(sunGauge + 14 + payload * 1.25 + weight * .9 + combo * .8 + (giriMult > 1 ? 8 : 0), 0, 100);
+      if (sunGauge >= 100) triggerFever();
+    }
 
     floatGroups = floatGroups.filter(x => x !== g);
     launchers.push({
@@ -1057,7 +1324,7 @@
   }
 
   function triggerFever() {
-    fever = 9.5;
+    fever = FEVER_SECONDS;
     sunGauge = 0;
     flash = .42;
     shake += .7;
@@ -1066,7 +1333,7 @@
       g.vy -= 80;
       g.hot = Math.max(g.hot, 1.2);
     }
-    showCutin('SUNNY FEVER!', 'ういてる時間UP! 追い点火スコア×2!', '#fff58c', 'sun', 1.12, true);
+    showCutin('SUNNY FEVER!', 'ういてる時間UP! 発射スコアUP!', '#fff58c', 'sun', 1.12, true);
     addShockwave(W / 2, 130, 280, 'rgba(255,244,109,.9)', .72);
     for (let i = 0; i < 42; i++) addParticle(330, 82, '#fff58c', 1, 245, 'spark');
     playTone('fever', 1.15);
@@ -1142,8 +1409,12 @@
       playTone('bad', .42);
       vibrate(18);
     } else {
-      crashTimer = Math.min(CRASH_GRACE, crashTimer + .75);
-      showMiniNotice(reason, '#ffb0b4');
+      // CRASH中に追加の警告が来ても、カウントは戻さない。
+      // ここでタイマーを延長すると「5に戻って進まない」ように見える。
+      if (softWarningCooldown <= 0) {
+        softWarningCooldown = .85;
+        showMiniNotice(reason, '#ffb0b4');
+      }
     }
   }
 
@@ -1209,19 +1480,32 @@
       g.age += dt;
       g.hot = Math.max(0, g.hot - dt * .7);
       g.offset += g.vy * dt;
-      const reachedTop = g.offset <= -g.lift + .5;
-      if (reachedTop) {
+
+      // 上に到達したら、止まらずに「すぐ低速で落ち始める」。
+      // hoverTimeは停止時間ではなく、低速落下の時間として使う。
+      if (!g.topReached && g.offset <= -g.lift) {
         g.offset = -g.lift;
+        g.topReached = true;
+        if (g.vy < 12) g.vy = 12;
+      }
+
+      if (g.topReached) {
         if (g.hoverTime > 0) {
           g.hoverTime = Math.max(0, g.hoverTime - dt);
-          g.vy = lerp(g.vy, 0, 1 - Math.pow(.0005, dt));
+          g.vy += g.gravity * dt * .10;
+          g.vy = Math.min(g.vy, fever > 0 ? 16 : 20);
+        } else if ((g.slowFall || 0) > 0) {
+          g.slowFall = Math.max(0, g.slowFall - dt);
+          g.vy += g.gravity * dt * .28;
+          g.vy = Math.min(g.vy, fever > 0 ? 30 : 38);
         } else {
-          if (g.vy < 10) g.vy = 10;
-          g.vy += g.gravity * dt;
+          if (g.vy < 16) g.vy = 16;
+          g.vy += g.gravity * dt * 1.10;
         }
       } else {
         g.vy += g.gravity * dt * .72;
       }
+
       g.warning = clamp((g.offset + 40) / 40, 0, 1);
       if (g.warning > .02) {
         danger = clamp(danger + g.warning * dt * (g.heavy ? 13 : 7), 0, 100);
@@ -1289,6 +1573,10 @@
     return { overflow, columns, topMost };
   }
 
+  function crashDisplayCount() {
+    return clamp(Math.ceil((crashTimer / CRASH_GRACE) * 5), 1, 5);
+  }
+
   function warningStageFromTimer(timer, overflow) {
     if (!crashActive) return 0;
     const progress = clamp(1 - timer / CRASH_GRACE, 0, 1);
@@ -1343,13 +1631,13 @@
           showMiniNotice('まだ間に合う!', '#ffb0b4');
           addFloatText(W / 2, BOARD_Y + 42, '発射すれば戻せる!', 15, '#ffb0b4', .75);
         } else if (nextStage === 3) {
-          showCutin('CRASH WARNING', '発射すれば助かる!', '#ff6b75', 'crash', .78, false);
+          addFloatText(W / 2, BOARD_Y + 48, 'CRASH WARNING!', 18, '#ffccd2', .85);
           shake += .45;
-          flash = Math.max(flash, .16);
+          flash = Math.max(flash, .12);
         } else if (nextStage === 4) {
-          showCutin('LAST CHANCE!', '時間切れでCRASH!', '#ff6b75', 'crash', .88, false);
+          addFloatText(W / 2, BOARD_Y + 58, 'LAST CHANCE!', 22, '#ffccd2', .95);
           shake += .75;
-          flash = Math.max(flash, .25);
+          flash = Math.max(flash, .18);
         }
         playTone('bad', .36 + nextStage * .12);
         vibrate(10 + nextStage * 9);
@@ -1417,6 +1705,10 @@
     updateLaunchers(dt);
 
     if (gameState !== State.PLAY || paused) {
+      if (gameState === State.OVER && gameOverTimer > 0) {
+        gameOverTimer = Math.max(0, gameOverTimer - dt);
+        if (gameOverTimer <= 0) gameOverScoreReady = true;
+      }
       updateTiles(dt);
       return;
     }
@@ -1543,8 +1835,9 @@
   }
 
   function render() {
-    ctx.save();
+    resetCanvasTransform();
     ctx.clearRect(0, 0, W, H);
+    ctx.save();
     drawBackground();
 
     let sx = 0, sy = 0;
@@ -1571,7 +1864,7 @@
     drawParticles();
     drawShockwaves();
     drawSparkLines();
-    drawFooter();
+    // footer removed for larger 11-row board
     drawFloatTexts();
 
     ctx.restore();
@@ -1583,6 +1876,7 @@
       ctx.fillRect(0, 0, W, H);
       ctx.restore();
     }
+    drawCrashCountdownOverlay();
     drawCutins();
     if (gameState === State.TITLE) drawTitleOverlay();
     if (gameState === State.OVER) drawGameOverOverlay();
@@ -1711,11 +2005,11 @@
     ctx.fillStyle = '#fff58c'; ctx.font = '900 14px system-ui, sans-serif';
     ctx.fillText(fever > 0 ? 'FEVER中!' : 'サニーゲージ', x + 62, y + 22);
     ctx.fillStyle = 'rgba(255,255,255,.65)'; ctx.font = '800 10px system-ui, sans-serif';
-    ctx.fillText(fever > 0 ? 'リング高速回転 / 浮遊長め / 点数×2' : '通常はゆっくり回転', x + 62, y + 38);
-    ctx.fillText(fever > 0 ? 'フィーバー中は浮遊が少し長い' : '空中発射でゲージUP', x + 62, y + 50);
+    ctx.fillText(fever > 0 ? 'リング高速回転 / 浮遊長め / 点数UP' : '空中発射だけでたまる', x + 62, y + 38);
+    ctx.fillText(fever > 0 ? '約30秒! ゲージ増加なし' : '即発射ではたまらない', x + 62, y + 50);
     const gx = x + 62, gy = y + 58, gw = 94, gh = 7;
     roundedRect(gx, gy, gw, gh, 4); ctx.fillStyle = 'rgba(255,255,255,.14)'; ctx.fill();
-    const fill = fever > 0 ? gw * (fever / 9.5) : gw * (sunGauge / 100);
+    const fill = fever > 0 ? gw * (fever / FEVER_SECONDS) : gw * (sunGauge / 100);
     roundedRect(gx, gy, Math.max(gh, fill), gh, 4);
     const gg = ctx.createLinearGradient(gx, gy, gx + gw, gy);
     gg.addColorStop(0, '#ff914d'); gg.addColorStop(.6, '#fff36a'); gg.addColorStop(1, '#ffffff');
@@ -1761,7 +2055,7 @@
       ctx.textAlign = 'left';
       ctx.fillStyle = '#ffd0d3';
       ctx.font = '900 10px system-ui, sans-serif';
-      ctx.fillText(crashStage >= 4 ? 'LAST CHANCE!' : `WARNING Lv${Math.max(1, crashStage)}`, gx, gy + 4);
+      ctx.fillText(crashStage >= 4 ? `LAST CHANCE! ${crashDisplayCount()}` : `CRASHまで ${crashDisplayCount()}`, gx, gy + 4);
       const ratio = clamp(crashTimer / CRASH_GRACE, 0, 1);
       roundedRect(gx + 100, gy - 2, gw - 110, gh, 7);
       ctx.fillStyle = 'rgba(255,255,255,.16)';
@@ -1972,7 +2266,7 @@
     ctx.globalAlpha = 1;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     if (isLion) {
-      drawLion(0, 1, 13.5);
+      drawLionSilhouetteMark(0, 1, TILE * .34);
       ctx.fillStyle = '#fff8c9';
       ctx.font = '900 8px system-ui, sans-serif';
       ctx.fillText('SPECIAL', 0, TILE / 2 - 7);
@@ -1986,6 +2280,30 @@
       ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
       roundedRect(-TILE / 2 - 2, -TILE / 2 - 2, TILE + 4, TILE + 4, ROUND + 3); ctx.stroke();
     }
+    ctx.restore();
+  }
+
+
+  function drawLionSilhouetteMark(x, y, r) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = 'rgba(32,20,12,.92)';
+    for (let i = 0; i < 12; i++) {
+      const a = i * Math.PI * 2 / 12;
+      ctx.beginPath();
+      ctx.arc(Math.cos(a) * r * .46, Math.sin(a) * r * .46, r * .25, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.arc(0, 0, r * .62, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,236,150,.95)';
+    ctx.beginPath(); ctx.arc(-r * .20, -r * .08, r * .06, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(r * .20, -r * .08, r * .06, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,236,150,.95)';
+    ctx.lineWidth = Math.max(1.5, r * .08);
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(0, r * .08, r * .24, .12, Math.PI - .12); ctx.stroke();
     ctx.restore();
   }
 
@@ -2003,7 +2321,7 @@
       } else {
         ctx.fillStyle = p.color; ctx.beginPath(); ctx.moveTo(0, -p.size); ctx.lineTo(p.size * .55, 0); ctx.lineTo(0, p.size); ctx.lineTo(-p.size * .55, 0); ctx.closePath(); ctx.fill();
       }
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      resetCanvasTransform();
     }
     ctx.restore();
   }
@@ -2042,33 +2360,35 @@
       ctx.lineWidth = Math.max(4, f.size * .16);
       ctx.strokeStyle = 'rgba(23,18,35,.75)'; ctx.strokeText(f.text, 0, 0);
       ctx.fillStyle = f.color; ctx.fillText(f.text, 0, 0);
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      resetCanvasTransform();
     }
     ctx.restore();
   }
 
-  function drawFooter() {
+  function drawFooter() {}
+
+
+  function drawCrashCountdownOverlay() {
+    if (gameState !== State.PLAY || !crashActive) return;
+    const count = crashDisplayCount();
+    const pulse = Math.sin(performance.now() * .026) * .5 + .5;
     ctx.save();
-    const y = BOARD_Y + BOARD_H + 20;
-    roundedRect(22, y, 346, 76, 22);
-    ctx.fillStyle = 'rgba(9,18,43,.72)'; ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.stroke();
-
-    ctx.textAlign = 'left';
-    ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = '800 10px system-ui, sans-serif';
-    ctx.fillText('BEST', 42, y + 21);
-    ctx.fillStyle = '#fff'; ctx.font = '900 17px system-ui, sans-serif'; ctx.fillText(String(bestScore), 42, y + 43);
-
     ctx.textAlign = 'center';
-    ctx.fillStyle = combo > 1 ? '#fff58c' : '#ffffff';
-    ctx.font = combo > 1 ? '900 24px system-ui, sans-serif' : '900 17px system-ui, sans-serif';
-    let msg = '地上3つで点火 → 空中3つで大発射';
-    if (floatGroups.length) msg = '浮いてる中で3つ! 20以上は2点火!';
-    if (danger > 72) msg = '危険! でも発射できれば高得点!';
-    if (combo > 1) msg = `${combo} COMBO`;
-    ctx.fillText(msg, W / 2, y + 37);
-    ctx.fillStyle = 'rgba(255,255,255,.56)'; ctx.font = '800 11px system-ui, sans-serif';
-    ctx.fillText(`LAUNCH ${totalLaunched}   AERIAL ${totalAerial}   COMBO×${tempoMultiplier(combo).toFixed(2)}   LION BLOCK ${countLionBlocks()}/3`, W / 2, y + 60);
+    ctx.textBaseline = 'middle';
+    const y = BOARD_Y + 92;
+    ctx.globalAlpha = .18 + pulse * .12;
+    ctx.fillStyle = '#ff4052';
+    ctx.beginPath(); ctx.arc(W / 2, y, 62 + pulse * 8, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.font = '900 78px system-ui, sans-serif';
+    ctx.lineWidth = 13;
+    ctx.strokeStyle = 'rgba(30,0,8,.88)'; ctx.strokeText(String(count), W / 2, y);
+    ctx.fillStyle = count <= 2 ? '#ffccd2' : '#fff'; ctx.fillText(String(count), W / 2, y);
+    ctx.font = '900 17px system-ui, sans-serif';
+    ctx.lineWidth = 6;
+    const label = count <= 1 ? 'LAST CHANCE!' : 'CRASHまで';
+    ctx.strokeText(label, W / 2, y + 62);
+    ctx.fillStyle = '#ffccd2'; ctx.fillText(label, W / 2, y + 62);
     ctx.restore();
   }
 
@@ -2126,72 +2446,202 @@
 
   function drawTitleOverlay() {
     ctx.save();
-    ctx.fillStyle = 'rgba(3,6,18,.79)'; ctx.fillRect(0, 0, W, H);
-    const g = ctx.createRadialGradient(W / 2, 250, 10, W / 2, 250, 265);
-    g.addColorStop(0, 'rgba(255,230,108,.23)'); g.addColorStop(1, 'rgba(255,230,108,0)');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#050817';
+    ctx.fillRect(0, 0, W, H);
+    const bg = ctx.createRadialGradient(W / 2, 180, 10, W / 2, 180, 360);
+    bg.addColorStop(0, 'rgba(255,221,95,.22)');
+    bg.addColorStop(.55, 'rgba(60,115,205,.13)');
+    bg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
 
-    drawLion(118, 164, 44);
-    drawSun(270, 164, 43, true);
+    drawLion(92, 104, 34);
+    drawSun(298, 104, 35, true);
+
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#fff58c'; ctx.font = '900 20px system-ui, sans-serif';
-    ctx.fillText('重く浮かせて、空中でそろえる', W / 2, 242);
-    ctx.fillStyle = '#fff'; ctx.font = '900 43px system-ui, sans-serif'; ctx.lineWidth = 8; ctx.strokeStyle = 'rgba(21,19,38,.85)';
-    ctx.strokeText('サニーメテオ!', W / 2, 296); ctx.fillText('サニーメテオ!', W / 2, 296);
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.fillStyle = '#fff58c';
+    ctx.font = '900 24px system-ui, sans-serif';
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = 'rgba(3,6,18,.92)';
+    ctx.strokeText('さんさん', W / 2, 158);
+    ctx.fillText('さんさん', W / 2, 158);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '900 37px system-ui, sans-serif';
+    ctx.lineWidth = 8;
+    ctx.strokeText('ロケットパズル', W / 2, 198);
+    ctx.fillText('ロケットパズル', W / 2, 198);
 
-    drawRuleCard(34, 330, 322, 184);
+    ctx.fillStyle = '#b9f4ff';
+    ctx.font = '900 15px system-ui, sans-serif';
+    ctx.lineWidth = 5;
+    ctx.strokeText('そろえて、うかせて、空中で大発射!', W / 2, 232);
+    ctx.fillText('そろえて、うかせて、空中で大発射!', W / 2, 232);
 
-    roundedRect(70, 542, 250, 64, 24);
-    const bg = ctx.createLinearGradient(70, 542, 320, 606); bg.addColorStop(0, '#ffcf4e'); bg.addColorStop(1, '#ff874d');
-    ctx.fillStyle = bg; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = '#fff'; ctx.font = '900 24px system-ui, sans-serif'; ctx.fillText('タップしてスタート', W / 2, 582);
+    drawRuleCard(28, 260, 334, 270);
 
-    ctx.fillStyle = 'rgba(255,255,255,.70)'; ctx.font = '800 12px system-ui, sans-serif';
-    ctx.fillText('サニーはFEVER、ライオンは5COMBOごとの特殊ブロック。', W / 2, 644);
-    ctx.fillText('赤線をこえたら警告開始。発射してCRASHを回避。', W / 2, 666);
+    roundedRect(70, 572, 250, 66, 24);
+    const grad = ctx.createLinearGradient(70, 572, 320, 638);
+    grad.addColorStop(0, '#ffe269'); grad.addColorStop(1, '#ff874d');
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.82)'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = '900 29px system-ui, sans-serif'; ctx.lineWidth = 7;
+    ctx.strokeStyle = 'rgba(118,52,12,.52)';
+    ctx.strokeText('START', W / 2, 606);
+    ctx.fillText('START', W / 2, 606);
+
+    ctx.fillStyle = 'rgba(255,255,255,.86)'; ctx.font = '800 12px system-ui, sans-serif';
+    ctx.fillText('STARTボタンで開始', W / 2, 660);
     ctx.restore();
   }
 
   function drawRuleCard(x, y, w, h) {
     ctx.save();
     roundedRect(x, y, w, h, 24);
-    ctx.fillStyle = 'rgba(9,18,43,.76)'; ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.stroke();
+    ctx.fillStyle = 'rgba(7,15,36,.97)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.38)'; ctx.lineWidth = 2; ctx.stroke();
     ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff58c'; ctx.font = '900 20px system-ui, sans-serif';
+    ctx.fillText('あそびかた', x + 22, y + 32);
     const lines = [
-      ['1', '即発射上限は「つなげた数×2+1」'],
-      ['2', '上限を超えたら浮く → 空中3つで大発射'],
-      ['3', '20以上は2点火で超発射。重いほど高得点'],
-      ['4', '落ちるとドスン! 上まで詰まるとCRASH'],
-      ['5', '5COMBOごとにライオン。3つそろえると全破壊'],
+      ['1', '同じ色3つ以上をなぞってそろえる'],
+      ['2', '軽いと即発射。重いとふわっと浮く'],
+      ['3', '浮いている間に3つで大発射'],
+      ['4', '超おもい塊は2回点火で超発射'],
+      ['5', '5COMBOごとに特殊ブロックGET'],
+      ['6', 'サニーゲージは空中発射だけでUP'],
     ];
     for (let i = 0; i < lines.length; i++) {
-      const yy = y + 28 + i * 30;
+      const yy = y + 66 + i * 31;
+      roundedRect(x + 18, yy - 12, 24, 24, 8);
+      ctx.fillStyle = 'rgba(255,245,140,.22)'; ctx.fill();
       ctx.fillStyle = '#fff58c'; ctx.font = '900 15px system-ui, sans-serif';
-      ctx.fillText(lines[i][0], x + 20, yy);
-      ctx.fillStyle = 'rgba(255,255,255,.84)'; ctx.font = '800 12px system-ui, sans-serif';
-      ctx.fillText(lines[i][1], x + 44, yy);
+      ctx.fillText(lines[i][0], x + 27, yy + 1);
+      ctx.fillStyle = '#ffffff'; ctx.font = '900 13.5px system-ui, sans-serif';
+      ctx.fillText(lines[i][1], x + 52, yy + 1);
     }
     ctx.restore();
   }
 
   function drawGameOverOverlay() {
     ctx.save();
-    ctx.fillStyle = 'rgba(3,6,18,.72)'; ctx.fillRect(0, 0, W, H);
-    roundedRect(42, 188, 306, 494, 32);
+    ctx.fillStyle = 'rgba(3,6,18,.78)';
+    ctx.fillRect(0, 0, W, H);
+
+    if (!gameOverScoreReady) {
+      const t = clamp(1 - gameOverTimer / 5.0, 0, 1);
+      const pulse = Math.sin(performance.now() * .024) * .5 + .5;
+      ctx.save();
+      ctx.globalAlpha = .30 + pulse * .16;
+      ctx.fillStyle = '#ff4052';
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = .22 + pulse * .18;
+      ctx.translate(W / 2, BOARD_Y + BOARD_H * .43);
+      for (let i = 0; i < 18; i++) {
+        const a = i * Math.PI * 2 / 18 + t * .8;
+        ctx.rotate(a);
+        ctx.fillStyle = i % 2 ? '#ff6b75' : '#fff58c';
+        ctx.beginPath();
+        ctx.moveTo(0, -8);
+        ctx.lineTo(340, -20);
+        ctx.lineTo(340, 20);
+        ctx.closePath();
+        ctx.fill();
+        ctx.rotate(-a);
+      }
+      ctx.restore();
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,.30)';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      const crackSeed = [
+        [48, 126, 105, 188, 86, 250, 132, 312],
+        [336, 118, 278, 190, 304, 250, 250, 332],
+        [36, 575, 108, 520, 128, 590, 188, 540],
+        [358, 612, 292, 538, 312, 492, 242, 450]
+      ];
+      for (const c of crackSeed) {
+        ctx.beginPath();
+        ctx.moveTo(c[0], c[1]);
+        for (let i = 2; i < c.length; i += 2) ctx.lineTo(c[i] + Math.sin(performance.now() * .01 + i) * 2, c[i+1]);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      drawSunnyBadge(W / 2, 216 + Math.sin(performance.now() * .015) * 3, 76 + pulse * 5, { damage: true, feverMode: false });
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '900 60px system-ui, sans-serif';
+      ctx.lineWidth = 12;
+      ctx.strokeStyle = 'rgba(10,0,10,.9)';
+      ctx.strokeText('GAME OVER', W / 2, 348);
+      ctx.fillStyle = '#fff';
+      ctx.fillText('GAME OVER', W / 2, 348);
+      ctx.fillStyle = '#ffccd2';
+      ctx.font = '900 21px system-ui, sans-serif';
+      ctx.lineWidth = 7;
+      ctx.strokeText('ロケットがあふれた!', W / 2, 410);
+      ctx.fillText('ロケットがあふれた!', W / 2, 410);
+
+      const wait = Math.max(1, Math.ceil(gameOverTimer));
+      roundedRect(96, 450, 198, 36, 16);
+      ctx.fillStyle = 'rgba(4,8,22,.72)'; ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,.88)';
+      ctx.font = '900 13px system-ui, sans-serif';
+      ctx.fillText(`${wait}秒後にスコア`, W / 2, 469);
+      ctx.restore();
+      return;
+    }
+
+    roundedRect(28, 150, 334, 660, 30);
     ctx.fillStyle = 'rgba(13,24,54,.95)'; ctx.fill();
-    ctx.strokeStyle = score >= bestScore ? 'rgba(255,245,140,.74)' : 'rgba(255,255,255,.18)'; ctx.lineWidth = 2; ctx.stroke();
-    drawLion(118, 254, 39); drawSun(270, 254, 38, true);
-    ctx.textAlign = 'center'; ctx.fillStyle = '#fff58c'; ctx.font = '900 32px system-ui, sans-serif'; ctx.fillText('スコア', W / 2, 338);
-    ctx.fillStyle = '#fff'; ctx.font = '900 43px system-ui, sans-serif'; ctx.fillText(String(score), W / 2, 390);
-    ctx.fillStyle = 'rgba(255,255,255,.72)'; ctx.font = '800 15px system-ui, sans-serif';
-    ctx.fillText(`BEST ${bestScore}`, W / 2, 431);
-    ctx.fillText(`MAX COMBO ${maxCombo}   LAUNCH ${totalLaunched}`, W / 2, 459);
-    if (score >= bestScore && score > 0) { ctx.fillStyle = '#fff58c'; ctx.font = '900 18px system-ui, sans-serif'; ctx.fillText('NEW BEST!', W / 2, 494); }
-    roundedRect(76, 558, 238, 64, 24);
-    const bg = ctx.createLinearGradient(76, 558, 314, 622); bg.addColorStop(0, '#ffcf4e'); bg.addColorStop(1, '#ff874d');
+    ctx.strokeStyle = 'rgba(255,245,140,.42)'; ctx.lineWidth = 2; ctx.stroke();
+    drawSunnyBadge(W / 2, 220, 54, { damage: false, feverMode: false });
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fff58c'; ctx.font = '900 28px system-ui, sans-serif'; ctx.fillText('スコア', W / 2, 296);
+    ctx.fillStyle = '#fff'; ctx.font = '900 43px system-ui, sans-serif'; ctx.fillText(String(score), W / 2, 344);
+    ctx.fillStyle = 'rgba(255,255,255,.70)'; ctx.font = '800 14px system-ui, sans-serif';
+    ctx.fillText(`MAX COMBO ${maxCombo}`, W / 2, 378);
+
+    roundedRect(70, 486, 250, 52, 20);
+    ctx.fillStyle = scoreSubmitted ? 'rgba(90,210,150,.35)' : submittingScore ? 'rgba(255,245,140,.22)' : 'rgba(80,180,255,.24)';
+    ctx.fill();
+    ctx.strokeStyle = scoreSubmitted ? 'rgba(135,255,190,.65)' : 'rgba(255,255,255,.34)';
+    ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#ffffff'; ctx.font = '900 18px system-ui, sans-serif';
+    ctx.fillText(scoreSubmitted ? '送信済み' : submittingScore ? '送信中...' : 'ランキングに送信', W / 2, 518);
+
+    ctx.fillStyle = '#b9f4ff'; ctx.font = '900 18px system-ui, sans-serif';
+    ctx.fillText('ランキング TOP10', W / 2, 574);
+    ctx.fillStyle = 'rgba(255,255,255,.72)'; ctx.font = '800 12px system-ui, sans-serif';
+    if (rankingStatus) ctx.fillText(rankingStatus, W / 2, 600);
+
+    ctx.textAlign = 'left';
+    const startY = 614;
+    const rows = ranking.slice(0, 10);
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const y = startY + i * 22;
+      ctx.fillStyle = i < 3 ? '#fff58c' : 'rgba(255,255,255,.86)';
+      ctx.font = '900 13px system-ui, sans-serif';
+      ctx.fillText(`${i + 1}. ${r.name}`, 58, y);
+      ctx.textAlign = 'right';
+      ctx.fillText(String(r.score), 318, y);
+      ctx.textAlign = 'left';
+    }
+
+    roundedRect(76, 744, 238, 54, 22);
+    const bg = ctx.createLinearGradient(76, 744, 314, 798); bg.addColorStop(0, '#ffcf4e'); bg.addColorStop(1, '#ff874d');
     ctx.fillStyle = bg; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.52)'; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = '#fff'; ctx.font = '900 24px system-ui, sans-serif'; ctx.fillText('もう一回', W / 2, 598);
+    ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.font = '900 22px system-ui, sans-serif'; ctx.fillText('もう一回', W / 2, 776);
     ctx.restore();
   }
 
@@ -2359,6 +2809,7 @@
   window.addEventListener('focus', () => { paused = false; lastTime = performance.now(); });
   document.addEventListener('gesturestart', e => e.preventDefault());
 
+  setupFirebaseRanking();
   initBoard();
   for (let i = 0; i < 4; i++) spawnMeteor(1);
   requestAnimationFrame(gameLoop);
