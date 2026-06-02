@@ -52,12 +52,12 @@
   resetCanvasTransform();
   const COLS = 7;
   const ROWS = 11;
-  const CELL = 53;
+  const CELL = 55;
   const GAP = 4;
   const TILE = CELL - GAP;
   const ROUND = 13;
   const BOARD_X = Math.round((W - COLS * CELL) / 2);
-  const BOARD_Y = 172;
+  const BOARD_Y = 184;
   const BOARD_W = COLS * CELL;
   const BOARD_H = ROWS * CELL;
   const GAME_SECONDS = 120;
@@ -95,6 +95,17 @@
 
   let firebaseDb = null;
   const SCORE_COLLECTION = 'rocket_scores';
+  const AUDIO_FILES = {
+    intro: 'intro.mp3',
+    loop: 'loop.mp3',
+    combo1: 'break_and_chain_03_1_demo.mp3',
+    combo2: 'break_and_chain_03_2_demo.mp3',
+    combo3: 'break_and_chain_03_3_demo.mp3',
+    combo4: 'break_and_chain_03_4_demo.mp3',
+    gameover: 'game_over_05_demo.mp3',
+    score: 'score_02_1_demo.mp3',
+    cutin: 'cutin.mp3'
+  };
 
   const State = { TITLE: 'title', PLAY: 'play', OVER: 'over' };
 
@@ -159,6 +170,8 @@
   let paused = false;
   let muted = false;
   let audio = null;
+  let mediaAudio = null;
+  let scoreSfxPlayed = false;
   let rumbleCooldown = 0;
   let tileId = 1;
   let groupId = 1;
@@ -207,6 +220,21 @@
 
   function isLionTile(t) {
     return t && t.kind === 'lion';
+  }
+
+  function compactLiftedTilesByColumn(tiles) {
+    const byCol = new Map();
+    for (const t of tiles) {
+      if (!byCol.has(t.col)) byCol.set(t.col, []);
+      byCol.get(t.col).push(t);
+    }
+    for (const colTiles of byCol.values()) {
+      colTiles.sort((a, b) => b.row - a.row);
+      let r = Math.max(...colTiles.map(t => t.row));
+      for (const t of colTiles) {
+        t.row = r--;
+      }
+    }
   }
 
   function placeGround(t, r, c, instant = false) {
@@ -379,6 +407,20 @@
     submitScoreToRanking(clean);
   }
 
+  function promptRegisterName() {
+    const initial = playerName || '';
+    const entered = window.prompt('ランキング用の名前を登録してください（14文字まで）', initial);
+    if (entered == null) return;
+    const clean = sanitizePlayerName(entered);
+    if (!clean) {
+      addFloatText(W / 2, 666, '名前を入力してね', 15, '#ffccd2', .7);
+      return;
+    }
+    playerName = clean;
+    localStorage.setItem('sansanRocketPlayerName', clean);
+    addFloatText(W / 2, 666, `名前: ${clean}`, 15, '#b9f4ff', .75);
+  }
+
   function resetGame() {
     score = 0;
     displayedScore = 0;
@@ -399,6 +441,7 @@
     crashWarningColumns = [];
     gameOverTimer = 0;
     gameOverScoreReady = false;
+    scoreSfxPlayed = false;
     scoreSubmitted = false;
     forcedCrashColumns = [];
     softWarningCooldown = 0;
@@ -414,6 +457,7 @@
     paused = false;
     initBoard();
     gameState = State.PLAY;
+    startBgm();
   }
 
   function endGame() {
@@ -429,9 +473,11 @@
       localStorage.setItem('sunnyMeteorFloatBest', String(bestScore));
     }
     cutins = [];
+    stopBgm();
     triggerGameOverBurst();
     flash = Math.max(flash, .62);
     shake += 1.55;
+    playFileSfx('gameover', 1);
     playTone('over', 1.05);
     vibrate(60);
   }
@@ -481,6 +527,110 @@
       audio = { ac, master };
     } catch (e) { muted = true; }
   }
+  function initMediaAudio() {
+    if (mediaAudio) return;
+    try {
+      const make = (src, volume = .8, loop = false) => {
+        const a = new Audio(src);
+        a.preload = 'auto';
+        a.loop = loop;
+        a.volume = volume;
+        return a;
+      };
+      const intro = make(AUDIO_FILES.intro, .72, false);
+      const loop = make(AUDIO_FILES.loop, .62, true);
+      mediaAudio = {
+        intro,
+        loop,
+        introDone: false,
+        sfx: {
+          combo1: make(AUDIO_FILES.combo1, .80, false),
+          combo2: make(AUDIO_FILES.combo2, .82, false),
+          combo3: make(AUDIO_FILES.combo3, .84, false),
+          combo4: make(AUDIO_FILES.combo4, .86, false),
+          gameover: make(AUDIO_FILES.gameover, .88, false),
+          score: make(AUDIO_FILES.score, .82, false),
+          cutin: make(AUDIO_FILES.cutin, .78, false),
+        }
+      };
+      intro.addEventListener('ended', () => {
+        if (!mediaAudio) return;
+        mediaAudio.introDone = true;
+        if (!muted && gameState === State.PLAY) {
+          mediaAudio.loop.currentTime = 0;
+          mediaAudio.loop.play().catch(() => {});
+        }
+      });
+    } catch (e) {
+      console.warn('Audio file setup failed', e);
+      mediaAudio = null;
+    }
+  }
+
+  function startBgm() {
+    if (muted) return;
+    initMediaAudio();
+    if (!mediaAudio) return;
+    try {
+      mediaAudio.introDone = false;
+      mediaAudio.loop.pause();
+      mediaAudio.loop.currentTime = 0;
+      mediaAudio.intro.pause();
+      mediaAudio.intro.currentTime = 0;
+      mediaAudio.intro.play().catch(() => {});
+    } catch (e) {}
+  }
+
+  function pauseBgm() {
+    if (!mediaAudio) return;
+    try {
+      mediaAudio.intro.pause();
+      mediaAudio.loop.pause();
+    } catch (e) {}
+  }
+
+  function resumeBgm() {
+    if (muted || gameState !== State.PLAY) return;
+    initMediaAudio();
+    if (!mediaAudio) return;
+    try {
+      if (!mediaAudio.introDone && mediaAudio.intro.currentTime > 0 && !mediaAudio.intro.ended) {
+        mediaAudio.intro.play().catch(() => {});
+      } else {
+        mediaAudio.loop.play().catch(() => {});
+      }
+    } catch (e) {}
+  }
+
+  function stopBgm() {
+    if (!mediaAudio) return;
+    try {
+      mediaAudio.intro.pause();
+      mediaAudio.loop.pause();
+      mediaAudio.intro.currentTime = 0;
+      mediaAudio.loop.currentTime = 0;
+    } catch (e) {}
+  }
+
+  function playFileSfx(key, volumeScale = 1) {
+    if (muted) return;
+    initMediaAudio();
+    if (!mediaAudio || !mediaAudio.sfx || !mediaAudio.sfx[key]) return;
+    try {
+      const base = mediaAudio.sfx[key];
+      const a = base.cloneNode();
+      a.volume = clamp((base.volume || .8) * volumeScale, 0, 1);
+      a.play().catch(() => {});
+    } catch (e) {}
+  }
+
+  function playComboSfx(n) {
+    if (n <= 1) playFileSfx('combo1');
+    else if (n === 2) playFileSfx('combo2');
+    else if (n === 3) playFileSfx('combo3');
+    else playFileSfx('combo4');
+  }
+
 
   function playTone(name, intensity = 1) {
     if (!audio || muted) return;
@@ -554,6 +704,7 @@
   function showCutin(title, subtitle, color = '#fff58c', kind = 'sun', duration = 1.02, freeze = true) {
     cutins = cutins.filter(c => c.life > .18);
     cutins.push({ title, subtitle, color, kind, life: duration, maxLife: duration });
+    playFileSfx('cutin', kind === 'lion' ? .95 : .78);
     if (freeze && gameState === State.PLAY) cutinFreeze = Math.max(cutinFreeze, .48);
   }
 
@@ -633,6 +784,8 @@
       if (pointInRect(p.x, p.y, 70, 572, 250, 66)) {
         resetGame();
         playTone('fever', .55);
+      } else if (pointInRect(p.x, p.y, 94, 650, 202, 42)) {
+        promptRegisterName();
       } else {
         addFloatText(W / 2, 612, 'STARTボタンを押してね', 14, '#fff', .5);
       }
@@ -654,7 +807,12 @@
 
     if (pointInCircle(p.x, p.y, 348, 66, 24)) {
       muted = !muted;
-      if (!muted) initAudio();
+      if (!muted) {
+        initAudio();
+        resumeBgm();
+      } else {
+        pauseBgm();
+      }
       addFloatText(348, 66, muted ? '音OFF' : '音ON', 15, '#fff', .45);
       return;
     }
@@ -919,7 +1077,11 @@
       for (const cell of run.cells) {
         for (let r = cell.r; r >= 0; r--) {
           const t = ground[r][cell.c];
-          if (t && !used.has(t.id)) {
+          if (!t) continue;
+          // スペシャルは通常点火では持ち上げない。
+          // ただし、その上の通常ブロックは持ち上げて、あとで重力に従って1マス分詰める。
+          if (isLionTile(t)) continue;
+          if (!used.has(t.id)) {
             used.add(t.id);
             cellsToLift.push(t);
           }
@@ -927,6 +1089,7 @@
       }
       if (cellsToLift.length < 3) continue;
       for (const t of cellsToLift) ground[t.row][t.col] = null;
+      compactLiftedTilesByColumn(cellsToLift);
 
       const payload = cellsToLift.length;
       const rideCount = Math.max(0, payload - matchCount);
@@ -1063,6 +1226,7 @@
     comboHoldMax = Math.max(.1, holdSeconds ?? chainDuration('quick'));
     comboHold = comboHoldMax;
     maxCombo = Math.max(maxCombo, combo);
+    playComboSfx(combo);
     if (awardLion) awardLionBlockForCombo(combo);
     return tempoMultiplier(combo);
   }
@@ -1763,7 +1927,13 @@
     if (gameState !== State.PLAY || paused) {
       if (gameState === State.OVER && gameOverTimer > 0) {
         gameOverTimer = Math.max(0, gameOverTimer - dt);
-        if (gameOverTimer <= 0) gameOverScoreReady = true;
+        if (gameOverTimer <= 0) {
+          gameOverScoreReady = true;
+          if (!scoreSfxPlayed) {
+            scoreSfxPlayed = true;
+            playFileSfx('score', 1);
+          }
+        }
       }
       updateTiles(dt);
       return;
@@ -2580,8 +2750,11 @@
     ctx.strokeText('START', W / 2, 606);
     ctx.fillText('START', W / 2, 606);
 
-    ctx.fillStyle = 'rgba(255,255,255,.86)'; ctx.font = '800 12px system-ui, sans-serif';
-    ctx.fillText('STARTボタンで開始', W / 2, 660);
+    roundedRect(94, 650, 202, 42, 18);
+    ctx.fillStyle = 'rgba(80,180,255,.20)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.42)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#ffffff'; ctx.font = '900 15px system-ui, sans-serif';
+    ctx.fillText(playerName ? `名前: ${playerName}` : 'ランキング名前登録', W / 2, 672);
     ctx.restore();
   }
 
@@ -2699,6 +2872,8 @@
     ctx.fillStyle = '#fff'; ctx.font = '900 43px system-ui, sans-serif'; ctx.fillText(String(score), W / 2, 344);
     ctx.fillStyle = 'rgba(255,255,255,.70)'; ctx.font = '800 14px system-ui, sans-serif';
     ctx.fillText(`MAX COMBO ${maxCombo}`, W / 2, 378);
+    ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = '800 12px system-ui, sans-serif';
+    ctx.fillText(playerName ? `登録名: ${playerName}` : 'ランキング送信時に名前を登録できます', W / 2, 405);
 
     roundedRect(70, 486, 250, 52, 20);
     ctx.fillStyle = scoreSubmitted ? 'rgba(90,210,150,.35)' : submittingScore ? 'rgba(255,245,140,.22)' : 'rgba(80,180,255,.24)';
@@ -2706,7 +2881,7 @@
     ctx.strokeStyle = scoreSubmitted ? 'rgba(135,255,190,.65)' : 'rgba(255,255,255,.34)';
     ctx.lineWidth = 2; ctx.stroke();
     ctx.fillStyle = '#ffffff'; ctx.font = '900 18px system-ui, sans-serif';
-    ctx.fillText(scoreSubmitted ? '送信済み' : submittingScore ? '送信中...' : 'ランキングに送信', W / 2, 518);
+    ctx.fillText(scoreSubmitted ? '送信済み' : submittingScore ? '送信中...' : (playerName ? 'ランキングに送信' : '名前登録して送信'), W / 2, 518);
 
     ctx.fillStyle = '#b9f4ff'; ctx.font = '900 18px system-ui, sans-serif';
     ctx.fillText('ランキング TOP10', W / 2, 574);
