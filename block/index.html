@@ -1585,12 +1585,20 @@ window.donguriAddScore = async function(scoreData) {
 };
 
 window.donguriGetRanking = async function(rankingType = "elementary") {
-    const base = [where("hidden", "==", false)];
-    if (rankingType === "elementary") base.push(where("category", "==", "elementary"));
-    if (rankingType === "junior_plus") base.push(where("category", "==", "junior_plus"));
-    const q = query(collection(db, SCORES_COLLECTION), ...base, orderBy("score", "desc"), limit(60));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Firestoreの複合インデックス未作成でも止まらないよう、
+    // まず単純読み込み→画面側で絞り込み・並び替えに変更。
+    // ランキング件数が増えても同名整理用に多めに返す。
+    const snapshot = await getDocs(collection(db, SCORES_COLLECTION));
+    return snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(player => player.hidden !== true)
+        .filter(player => {
+            if (rankingType === "elementary") return player.category === "elementary";
+            if (rankingType === "junior_plus") return player.category === "junior_plus";
+            return true;
+        })
+        .sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
+        .slice(0, 80);
 };
 </script>
 <script>
@@ -3291,6 +3299,15 @@ function getBestScoresByName(rankingData) {
         .sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
 }
 
+function withTimeout(promise, ms = 9000) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('ランキング読み込みがタイムアウトしました')), ms);
+        })
+    ]);
+}
+
 async function getRanking(rankingType = activeRankingType) {
     activeRankingType = rankingType;
     const rankingList = document.getElementById('ranking-list');
@@ -3302,7 +3319,7 @@ async function getRanking(rankingType = activeRankingType) {
     rankingList.innerHTML = '<li>森の掲示板を読み込み中...</li>';
     try {
         if (!window.donguriGetRanking) throw new Error('Firebaseの準備ができていません');
-        const rawRankingData = await window.donguriGetRanking(activeRankingType);
+        const rawRankingData = await withTimeout(window.donguriGetRanking(activeRankingType));
         const rankingData = getBestScoresByName(rawRankingData).slice(0, 10);
         rankingList.innerHTML = '';
         if (rankingData.length === 0) {
@@ -3349,7 +3366,7 @@ async function getRanking(rankingType = activeRankingType) {
         });
     } catch (error) {
         console.error('ランキングの取得に失敗しました:', error);
-        rankingList.innerHTML = '<li>森の掲示板を読み込めませんでした。Firestoreのルールやインデックスを確認してください。</li>';
+        rankingList.innerHTML = '<li>森の掲示板を読み込めませんでした。通信状態を確認して、もう一度「みんなのきろく」を開いてください。</li>';
     }
 }
 
