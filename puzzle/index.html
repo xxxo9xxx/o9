@@ -52,6 +52,7 @@
   <div class="note" style="display:none"></div>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script>
 (() => {
   'use strict';
@@ -87,6 +88,13 @@
   // 制限時間なし。経過秒は表示用だけに使う。
   const GAME_SECONDS = Infinity;
 
+  // 見た目を大きく変えず、重い場面だけ描画量を抑えるための上限。
+  const MAX_PARTICLES = 140;
+  const PARTICLE_SCREEN_MARGIN = 120;
+  const LAUNCHER_SCREEN_MARGIN = 150;
+  const FEVER_SPARK_KEEP_RATE = 0.70;
+  const FEVER_FLAME_KEEP_RATE = 0.62;
+
   const COLORS = [
     { name: 'あか', fill: '#ff5a62', edge: '#ffb0b4', dark: '#8c1f31', mark: '●' },
     { name: 'あお', fill: '#3eb4ff', edge: '#b9e7ff', dark: '#126098', mark: '◆' },
@@ -119,6 +127,9 @@
   };
 
   let firebaseDb = null;
+  let rankingAuthReady = Promise.resolve(null);
+  let rankingAuthEnabled = false;
+  let rankingLastError = '';
   const SCORE_COLLECTION = 'rocket_scores';
   const AUDIO_FILES = {
     intro: 'intro.mp3',
@@ -354,6 +365,41 @@
       if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
       firebaseDb = firebase.firestore();
       rankingStatus = 'ランキング読込中...';
+
+      // Firestore Rules が request.auth != null を要求する場合に備えて、匿名ログインを試す。
+      // Firebase Console 側で Anonymous provider が未有効でも、公開ルールならそのまま動くように書き込み自体は試す。
+      if (window.firebase.auth) {
+        const auth = firebase.auth();
+        rankingAuthReady = new Promise((resolve) => {
+          const unsub = auth.onAuthStateChanged((user) => {
+            unsub();
+            if (user) {
+              rankingAuthEnabled = true;
+              resolve(user);
+              return;
+            }
+            auth.signInAnonymously()
+              .then((cred) => {
+                rankingAuthEnabled = true;
+                resolve(cred.user || cred);
+              })
+              .catch((err) => {
+                rankingAuthEnabled = false;
+                rankingLastError = rankingErrorMessage(err);
+                console.warn('Anonymous auth failed; ranking write may still work if rules allow public writes', err);
+                resolve(null);
+              });
+          }, (err) => {
+            rankingAuthEnabled = false;
+            rankingLastError = rankingErrorMessage(err);
+            console.warn('Auth state failed', err);
+            resolve(null);
+          });
+        });
+      } else {
+        rankingAuthReady = Promise.resolve(null);
+      }
+
       loadRanking();
     } catch (err) {
       console.warn('Firebase init failed', err);
@@ -362,13 +408,23 @@
     }
   }
 
+  async function ensureRankingAuth() {
+    try {
+      await rankingAuthReady;
+    } catch (_) {}
+    try {
+      rankingAuthEnabled = !!(window.firebase && firebase.auth && firebase.auth().currentUser);
+    } catch (_) {
+      rankingAuthEnabled = false;
+    }
+    return rankingAuthEnabled;
+  }
+
   async function loadRanking() {
     if (!firebaseDb || rankingLoading) return;
     rankingLoading = true;
     rankingStatus = 'ランキング読込中...';
     try {
-      // 同じ名前が複数ある場合は、表示上も最高点だけにする。
-      // 既存の重複データも拾えるように少し多めに読んでからTOP10へ絞る。
       const snap = await firebaseDb.collection(SCORE_COLLECTION)
         .orderBy('score', 'desc')
         .limit(80)
@@ -396,7 +452,7 @@
       rankingStatus = ranking.length ? '' : 'まだランキングがありません';
     } catch (err) {
       console.warn('Ranking load failed', err);
-      rankingStatus = 'ランキング読込エラー';
+      rankingStatus = rankingErrorMessage(err).replace('送信', '読込');
     } finally {
       rankingLoading = false;
     }
@@ -411,8 +467,11 @@
   }
 
   function rankingErrorMessage(err) {
-    const code = String(err?.code || '');
-    if (code.includes('permission-denied')) return 'ランキング権限エラー';
+    const code = String(err?.code || '').toLowerCase();
+    const msg = String(err?.message || '').toLowerCase();
+    if (code.includes('permission-denied') || msg.includes('permission')) return '権限エラー: Firestore Rules要確認';
+    if (code.includes('unauthenticated')) return '認証エラー: 匿名ログイン要確認';
+    if (code.includes('operation-not-allowed')) return '匿名ログイン未有効';
     if (code.includes('unavailable') || code.includes('deadline') || code.includes('network')) return '通信エラー';
     if (code.includes('failed-precondition')) return 'ランキング設定エラー';
     return '送信エラー';
@@ -499,10 +558,32 @@
     playerName = cleanName;
     localStorage.setItem('sansanRocketPlayerName', cleanName);
 
-    const targetRef = firebaseDb.collection(SCORE_COLLECTION).doc(rankingDocIdForName(cleanName));
-    let saveResult = 'saved';
+    try {
+      await ensureRankingAuth();
+      const targetRef = firebaseDb.collection(SCORE_COLLECTION).doc(rankingDocIdForName(cleanName));
 
-    const makeRecord = (includeCreatedAt = false) => {
+      // ルールに引っかかりやすい transaction / 同名検索 / delete は使わない。
+      // まず自分の固定IDだけを読める場合は自己ベスト未更新を判定し、読めない場合も書き込み自体は試す。
+      let prevSnap = null;
+      try {
+        prevSnap = await targetRef.get();
+      } catch (readErr) {
+        console.warn('Ranking self-score read skipped', readErr);
+      }
+
+      if (prevSnap && prevSnap.exists) {
+        const prev = prevSnap.data() || {};
+        const prevScore = Number(prev.score || 0);
+        const prevCombo = Number(prev.maxCombo || 0);
+        if (prevScore > currentScore || (prevScore === currentScore && prevCombo >= Math.floor(maxCombo))) {
+          scoreSubmitted = true;
+          rankingStatus = `自己ベスト未更新 (${prevScore}点)`;
+          addFloatText(W / 2, 518, '同じ名前は最高点だけ残します', 15, '#fff58c', 1.0);
+          await loadRanking();
+          return;
+        }
+      }
+
       const record = {
         name: cleanName,
         nameKey: rankingNameKey(cleanName),
@@ -510,63 +591,15 @@
         maxCombo: Math.floor(maxCombo),
         launch: Math.floor(totalLaunched),
         aerial: Math.floor(totalAerial),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        version: 'sansan-rocket-puzzle-v3'
+        version: 'sansan-rocket-puzzle-v4'
       };
-      if (includeCreatedAt) record.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-      return record;
-    };
-
-    try {
-      try {
-        await firebaseDb.runTransaction(async (transaction) => {
-          const snap = await transaction.get(targetRef);
-          if (snap.exists) {
-            const prev = snap.data() || {};
-            const prevScore = Number(prev.score || 0);
-            const prevCombo = Number(prev.maxCombo || 0);
-            if (prevScore > currentScore || (prevScore === currentScore && prevCombo >= Math.floor(maxCombo))) {
-              saveResult = 'notUpdated';
-              return;
-            }
-            transaction.set(targetRef, makeRecord(false), { merge: true });
-            saveResult = 'updated';
-          } else {
-            transaction.set(targetRef, makeRecord(true), { merge: true });
-            saveResult = 'created';
-          }
-        });
-      } catch (txErr) {
-        // Transactionが使えない環境・一時的な失敗に備えて、通常の読み書きでも再試行する。
-        console.warn('Ranking transaction failed; retrying with direct save', txErr);
-        const snap = await targetRef.get();
-        if (snap.exists) {
-          const prev = snap.data() || {};
-          const prevScore = Number(prev.score || 0);
-          const prevCombo = Number(prev.maxCombo || 0);
-          if (prevScore > currentScore || (prevScore === currentScore && prevCombo >= Math.floor(maxCombo))) {
-            saveResult = 'notUpdated';
-          } else {
-            await targetRef.set(makeRecord(false), { merge: true });
-            saveResult = 'updated';
-          }
-        } else {
-          await targetRef.set(makeRecord(true), { merge: true });
-          saveResult = 'created';
-        }
-      }
+      await targetRef.set(record, { merge: true });
 
       scoreSubmitted = true;
-      if (saveResult === 'notUpdated') {
-        rankingStatus = '自己ベスト未更新';
-        addFloatText(W / 2, 518, '同じ名前は最高点だけ残します', 15, '#fff58c', 1.0);
-      } else {
-        rankingStatus = saveResult === 'updated' ? '自己ベスト更新!' : '送信しました!';
-        addFloatText(W / 2, 518, saveResult === 'updated' ? '自己ベスト更新!' : 'ランキング送信OK!', 17, '#b9f4ff', .9);
-      }
-
-      // 古いバージョンで作られた同名重複があれば掃除する。失敗しても送信成功扱いは維持する。
-      await cleanupSameNameLowerScores(cleanName);
+      rankingStatus = prevSnap && prevSnap.exists ? '自己ベスト更新!' : '送信しました!';
+      addFloatText(W / 2, 518, prevSnap && prevSnap.exists ? '自己ベスト更新!' : 'ランキング送信OK!', 17, '#b9f4ff', .9);
       await loadRanking();
     } catch (err) {
       console.warn('Score submit failed', err);
@@ -892,8 +925,43 @@
     floatTexts.push({ x, y, vx: rand(24, -24), vy: -72 - rand(28), text, size, color, life, maxLife: life, rot: rand(.18, -.18) });
   }
 
+  function isOutsideEffectArea(x, y, margin = PARTICLE_SCREEN_MARGIN) {
+    return x < -margin || x > W + margin || y < -margin || y > H + margin;
+  }
+
+  function particleKeepRate(kind) {
+    if (fever <= 0) return 1;
+    if (kind === 'flame') return FEVER_FLAME_KEEP_RATE;
+    if (kind === 'spark') return FEVER_SPARK_KEEP_RATE;
+    if (kind === 'dust') return .82;
+    return .78;
+  }
+
+  function trimParticlesForRoom(addCount = 0) {
+    const overflow = particles.length + addCount - MAX_PARTICLES;
+    if (overflow > 0) particles.splice(0, Math.min(overflow, particles.length));
+  }
+
   function addParticle(x, y, color = '#fff', count = 8, power = 120, kind = 'dot') {
-    for (let i = 0; i < count; i++) {
+    if (isOutsideEffectArea(x, y)) return;
+
+    let n = Math.max(0, Math.floor(count));
+    if (!n) return;
+
+    const keepRate = particleKeepRate(kind);
+    if (keepRate < 1) {
+      if (n <= 1) {
+        if (Math.random() > keepRate) return;
+      } else {
+        n = Math.max(1, Math.ceil(n * keepRate));
+      }
+    }
+
+    trimParticlesForRoom(n);
+    n = Math.min(n, Math.max(0, MAX_PARTICLES - particles.length));
+    if (!n) return;
+
+    for (let i = 0; i < n; i++) {
       const a = rand(Math.PI * 2, 0);
       const s = rand(power, power * .18);
       const life = rand(.68, .28);
@@ -2259,11 +2327,13 @@
         it.rot += it.spin * dt;
         if (Math.random() < dt * 20) addParticle(it.x + TILE / 2, it.y + TILE / 2, l.fever ? '#fff58c' : l.color, 1, 110, 'flame');
       }
-      if (l.tiles.every(it => it.y < BOARD_Y - CELL * 2.2)) launchers.splice(i, 1);
+      l.tiles = l.tiles.filter(it => !isOutsideEffectArea(it.x + TILE / 2, it.y + TILE / 2, LAUNCHER_SCREEN_MARGIN));
+      if (!l.tiles.length || l.tiles.every(it => it.y < BOARD_Y - CELL * 2.2)) launchers.splice(i, 1);
     }
   }
 
   function updateParticles(dt) {
+    trimParticlesForRoom(0);
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
       p.life -= dt;
@@ -2273,6 +2343,7 @@
       p.vy += (p.kind === 'dust' ? 180 : 260) * dt;
       p.vx *= Math.pow(.16, dt);
       p.rot += p.spin * dt;
+      if (isOutsideEffectArea(p.x, p.y)) { particles.splice(i, 1); continue; }
     }
   }
 
@@ -3148,7 +3219,11 @@
     const submitLabel = scoreSubmitted ? '送信済み' : submittingScore ? '送信中...' : firebaseDb ? (playerName ? 'ランキングに送信' : '名前を入力して送信') : 'ランキング未接続';
     ctx.fillText(submitLabel, W / 2, ui.submit.y + 30);
     ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = '800 10.5px system-ui, sans-serif';
-    ctx.fillText('名前入力・送信はこのボタンだけ', W / 2, ui.submit.y + 64);
+    ctx.fillText('名前入力・送信はこのボタンだけ', W / 2, ui.submit.y + 62);
+    if (rankingLastError && !rankingAuthEnabled) {
+      ctx.fillStyle = 'rgba(255,205,210,.82)'; ctx.font = '800 10px system-ui, sans-serif';
+      ctx.fillText(`認証: ${rankingLastError}`, W / 2, ui.submit.y + 76);
+    }
 
     ctx.fillStyle = '#b9f4ff'; ctx.font = '900 18px system-ui, sans-serif';
     ctx.fillText('ランキング TOP10', W / 2, panelY + 328);
