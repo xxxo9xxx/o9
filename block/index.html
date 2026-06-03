@@ -1429,6 +1429,34 @@
             }
         }
 
+    
+
+        /* 2026-06 v16: 同名ランキングは最高得点のみ表示 */
+        .ranking-rule-note {
+            margin: -4px 0 6px;
+            font-size: clamp(.68rem, 2.8vw, .8rem);
+            font-weight: 800;
+            line-height: 1.25;
+            color: #7a552b;
+            background: rgba(255, 255, 255, .52);
+            border: 1px solid rgba(139, 90, 43, .18);
+            border-radius: 999px;
+            padding: 5px 9px;
+            display: inline-block;
+        }
+        .ranking-note {
+            display: block !important;
+            padding: 6px 9px !important;
+            margin: 0 0 5px !important;
+            font-size: clamp(.66rem, 2.45vw, .76rem) !important;
+            font-weight: 900 !important;
+            line-height: 1.22 !important;
+            color: #7a552b !important;
+            background: rgba(255, 248, 217, .82) !important;
+            border: 1px solid rgba(139, 90, 43, .18) !important;
+            border-radius: 12px !important;
+        }
+
     </style>
 </head>
 <body>
@@ -1470,6 +1498,7 @@
 <p class="result-score-line">あつめたどんぐり: <span id="final-score">0</span>こ</p>
 <p class="name-guide">名前をいれてきろくを残してね。</p>
 <input id="player-name" maxlength="14" placeholder="なまえ（14文字まで）" type="text"/>
+<p class="ranking-rule-note">同じ名前はランキングに最高得点だけ表示されます。</p>
 <p class="category-guide">のせるランキングをえらんでね。</p>
 <div aria-label="のせるランキングをえらぶ" class="category-select">
 <button aria-pressed="true" class="category-choice selected" data-category="elementary" type="button">小学生</button>
@@ -1559,7 +1588,7 @@ window.donguriGetRanking = async function(rankingType = "elementary") {
     const base = [where("hidden", "==", false)];
     if (rankingType === "elementary") base.push(where("category", "==", "elementary"));
     if (rankingType === "junior_plus") base.push(where("category", "==", "junior_plus"));
-    const q = query(collection(db, SCORES_COLLECTION), ...base, orderBy("score", "desc"), limit(10));
+    const q = query(collection(db, SCORES_COLLECTION), ...base, orderBy("score", "desc"), limit(60));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
@@ -3176,6 +3205,27 @@ function getClearedStages(player) {
     return Number.isFinite(value) ? Math.max(0, value) : 0;
 }
 
+function getRankingNameKey(player) {
+    const rawName = String(player && player.name ? player.name : '').trim();
+    if (!rawName) return `__no_name_${player && player.id ? player.id : Math.random()}`;
+    return rawName.normalize('NFKC').replace(/\s+/g, ' ').toLocaleLowerCase('ja-JP');
+}
+
+function getBestScoresByName(rankingData) {
+    const bestByName = new Map();
+    for (const player of rankingData) {
+        const key = getRankingNameKey(player);
+        const current = bestByName.get(key);
+        const score = Number(player.score || 0);
+        const currentScore = current ? Number(current.score || 0) : -Infinity;
+        if (!current || score > currentScore) {
+            bestByName.set(key, player);
+        }
+    }
+    return Array.from(bestByName.values())
+        .sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
+}
+
 async function getRanking(rankingType = activeRankingType) {
     activeRankingType = rankingType;
     const rankingList = document.getElementById('ranking-list');
@@ -3187,12 +3237,18 @@ async function getRanking(rankingType = activeRankingType) {
     rankingList.innerHTML = '<li>森の掲示板を読み込み中...</li>';
     try {
         if (!window.donguriGetRanking) throw new Error('Firebaseの準備ができていません');
-        const rankingData = await window.donguriGetRanking(activeRankingType);
+        const rawRankingData = await window.donguriGetRanking(activeRankingType);
+        const rankingData = getBestScoresByName(rawRankingData).slice(0, 10);
         rankingList.innerHTML = '';
         if (rankingData.length === 0) {
             rankingList.innerHTML = '<li>まだ誰も収穫していません。一番乗りを目指そう！</li>';
             return;
         }
+
+        const note = document.createElement('li');
+        note.className = 'ranking-note';
+        note.textContent = '同じ名前は最高得点だけ表示しています。';
+        rankingList.appendChild(note);
 
         const head = document.createElement('li');
         head.className = 'ranking-head';
