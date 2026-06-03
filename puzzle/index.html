@@ -84,7 +84,8 @@
   const BOARD_Y = 184;
   const BOARD_W = COLS * CELL;
   const BOARD_H = ROWS * CELL;
-  const GAME_SECONDS = 120;
+  // 制限時間なし。経過秒は表示用だけに使う。
+  const GAME_SECONDS = Infinity;
 
   const COLORS = [
     { name: 'あか', fill: '#ff5a62', edge: '#ffb0b4', dark: '#8c1f31', mark: '●' },
@@ -164,7 +165,7 @@
   let comboHoldMax = 0;
   let sunGauge = 0;
   let fever = 0;
-  let timeLeft = GAME_SECONDS;
+  let timeLeft = GAME_SECONDS; // legacy display variable; no time-limit game over
   let danger = 0;
   let lastRoarReady = false; // legacy flag; rescue is intentionally disabled.
   let lastLionAwardCombo = 0;
@@ -178,6 +179,7 @@
   let crashWarningColumns = [];
   let gameOverTimer = 0;
   let gameOverScoreReady = false;
+  let gameOverReason = 'overflow';
   let forcedCrashColumns = [];
   let softWarningCooldown = 0;
   let totalLaunched = 0;
@@ -589,6 +591,7 @@
     crashWarningColumns = [];
     gameOverTimer = 0;
     gameOverScoreReady = false;
+    gameOverReason = 'overflow';
     scoreSfxPlayed = false;
     scoreSubmitted = false;
     forcedCrashColumns = [];
@@ -608,8 +611,9 @@
     startBgm();
   }
 
-  function endGame() {
+  function endGame(reason = 'overflow') {
     if (gameState === State.OVER) return;
+    gameOverReason = reason;
     gameState = State.OVER;
     drag = null;
     pointer = null;
@@ -1829,17 +1833,20 @@
 
   function hasActiveCrashThreat() {
     const info = getCrashOverflowInfo();
-    const redCols = info.columns.map(v => v.c);
-    forcedCrashColumns = forcedCrashColumns.filter(c => redCols.includes(c));
-    crashWarningColumns = redCols;
-    return info.columns.length >= 2 || forcedCrashColumns.length > 0;
+    const warningCols = info.columns.map(v => v.c);
+    const fullCols = info.fullColumns.map(v => v.c);
+    forcedCrashColumns = forcedCrashColumns.filter(c => fullCols.includes(c));
+    crashWarningColumns = warningCols;
+    // 最終判定でも再確認する。危険ライン内だけ、または古い警告だけではGAME OVERにしない。
+    return fullCols.length > 0 || forcedCrashColumns.length > 0;
   }
 
   function spawnMeteor(forceCount = null) {
     if (gameState !== State.PLAY) return;
     let count = forceCount ?? (Math.random() < (fever > 0 ? .55 : .30) ? 2 : 1);
-    if (timeLeft < 42 && Math.random() < .24) count++;
-    if (timeLeft < 22 && Math.random() < .18) count++;
+    const elapsed = elapsedSeconds();
+    if (elapsed > 78 && Math.random() < .24) count++;
+    if (elapsed > 98 && Math.random() < .18) count++;
     const cols = [...Array(COLS).keys()].sort(() => Math.random() - .5);
     let spawned = 0;
     for (const c of cols) {
@@ -1972,7 +1979,8 @@
   }
 
   function getCrashOverflowInfo() {
-    const columns = [];
+    const columns = [];       // 危険ライン内: まだ警告のみ。
+    const fullColumns = [];   // 最上段まで詰まった列: GAME OVER候補。
     let overflow = 0;
     let topMost = ROWS;
     for (let c = 0; c < COLS; c++) {
@@ -1984,10 +1992,12 @@
         const amount = 2 - topRow;
         overflow += amount;
         topMost = Math.min(topMost, topRow);
-        columns.push({ c, amount, topRow });
+        const item = { c, amount, topRow, full: topRow <= 0 };
+        columns.push(item);
+        if (item.full) fullColumns.push(item);
       }
     }
-    return { overflow, columns, topMost };
+    return { overflow, columns, fullColumns, topMost };
   }
 
   function crashDisplayCount() {
@@ -2006,22 +2016,26 @@
   function updateCrashPressure(dt) {
     if (gameState !== State.PLAY) return;
     const info = getCrashOverflowInfo();
-    const redCols = info.columns.map(v => v.c);
-    forcedCrashColumns = forcedCrashColumns.filter(c => redCols.includes(c));
+    const warningCols = info.columns.map(v => v.c);
+    const fullCols = info.fullColumns.map(v => v.c);
 
-    const multiColumnThreat = info.columns.length >= 2;
-    const forcedThreat = forcedCrashColumns.length > 0;
-    const softOneColumnWarning = info.columns.length === 1 && !multiColumnThreat && !forcedThreat;
-    const activeThreat = multiColumnThreat || forcedThreat;
+    // 以前は「一度あふれかけた列」が危険ライン内に残るだけで、
+    // カウントが最後まで進み続けることがあった。
+    // GAME OVER候補は、最上段まで本当に詰まっている列だけに絞る。
+    forcedCrashColumns = forcedCrashColumns.filter(c => fullCols.includes(c));
+    crashWarningColumns = warningCols;
 
-    crashWarningColumns = info.columns.map(v => v.c);
+    const activeThreat = fullCols.length > 0 || forcedCrashColumns.length > 0;
+    const softWarning = warningCols.length > 0 && !activeThreat;
 
-    if (softOneColumnWarning && !crashActive) {
-      danger = clamp(Math.max(danger, 48), 0, 100);
+    if (softWarning) {
+      if (crashActive) resetCrashWarning(true, warningCols);
+      danger = clamp(Math.max(danger, warningCols.length >= 2 ? 56 : 48), 0, 100);
       if (softWarningCooldown <= 0) {
-        softWarningCooldown = 2.2;
-        showMiniNotice('1列あぶない!', '#ffb0b4');
-        addFloatText(centerX(info.columns[0].c), BOARD_Y + 26, 'ここが高い! まだ死なない!', 14, '#ffb0b4', .85);
+        softWarningCooldown = warningCols.length >= 2 ? 1.55 : 2.2;
+        showMiniNotice(warningCols.length >= 2 ? '高い列に注意!' : '1列あぶない!', '#ffb0b4');
+        const c = warningCols[0];
+        addFloatText(centerX(c), BOARD_Y + 26, warningCols.length >= 2 ? 'まだ満杯ではない! 落ち着いて発射!' : 'ここが高い! まだ死なない!', 14, '#ffb0b4', .85);
         playTone('bad', .22);
         vibrate(8);
       }
@@ -2030,23 +2044,23 @@
     }
 
     if (activeThreat) {
+      const dangerCols = [...new Set([...fullCols, ...forcedCrashColumns])];
+      forcedCrashColumns = dangerCols;
       if (!crashActive) {
-        const msg = multiColumnThreat ? '2列あぶない!' : 'あふれそう!';
-        startCrashWarning(msg, multiColumnThreat ? redCols : forcedCrashColumns);
+        const msg = dangerCols.length >= 2 ? '満杯列あり!' : 'ブロック満杯!';
+        startCrashWarning(msg, dangerCols);
       }
-      const threatWeight = multiColumnThreat
-        ? info.columns.length + Math.max(0, info.overflow - info.columns.length) * .25
-        : 1.45;
-      const drain = dt * (0.82 + Math.min(1.55, Math.max(0, threatWeight - 1) * .22));
+      const threatWeight = Math.max(1, dangerCols.length) + Math.max(0, info.overflow - dangerCols.length) * .20;
+      const drain = dt * (0.72 + Math.min(1.20, Math.max(0, threatWeight - 1) * .18));
       crashTimer = Math.max(-CRASH_ZERO_GRACE, crashTimer - drain);
       danger = clamp(Math.max(danger, 52 + (1 - crashTimer / CRASH_GRACE) * 48), 0, 100);
-      const nextStage = warningStageFromTimer(crashTimer, multiColumnThreat ? info.overflow : Math.max(2, forcedCrashColumns.length + 1));
+      const nextStage = warningStageFromTimer(crashTimer, Math.max(2, dangerCols.length + Math.max(0, info.overflow - dangerCols.length)));
       if (nextStage > crashStage) {
         if (nextStage === 1) {
           showMiniNotice('あぶない!', '#ffb0b4');
         } else if (nextStage === 2) {
           showMiniNotice('まだ間に合う!', '#ffb0b4');
-          addFloatText(W / 2, BOARD_Y + 42, '発射すれば戻せる!', 15, '#ffb0b4', .75);
+          addFloatText(W / 2, BOARD_Y + 42, '満杯列を発射・破壊すればセーフ!', 15, '#ffb0b4', .75);
         } else if (nextStage === 3) {
           addFloatText(W / 2, BOARD_Y + 48, 'CRASH WARNING!', 18, '#ffccd2', .85);
           shake += .45;
@@ -2062,14 +2076,14 @@
       crashStage = nextStage;
       if (crashTimer <= -CRASH_ZERO_GRACE) checkCrash();
     } else {
-      resetCrashWarning(true, info.columns.map(v => v.c));
+      resetCrashWarning(true, warningCols);
     }
   }
 
   function checkCrash() {
     if (gameState !== State.PLAY) return;
     if (!crashActive || crashTimer > -CRASH_ZERO_GRACE) return;
-    if (hasActiveCrashThreat()) endGame();
+    if (hasActiveCrashThreat()) endGame('overflow');
     else resetCrashWarning(true);
   }
 
@@ -2135,8 +2149,7 @@
       return;
     }
 
-    timeLeft -= dt;
-    if (timeLeft <= 0) { timeLeft = 0; endGame(); }
+    // 制限時間はなし。GAME OVERはブロックあふれ判定のみ。
 
     const elapsed = elapsedSeconds();
     spawnInterval = clamp(.92 - elapsed * .0032, .42, .92);
@@ -2354,12 +2367,12 @@
 
     // time
     roundedRect(224, 18, 74, 60, 19);
-    ctx.fillStyle = timeLeft < 16 && gameState === State.PLAY ? 'rgba(130,27,35,.76)' : 'rgba(9,18,43,.74)'; ctx.fill();
+    ctx.fillStyle = 'rgba(9,18,43,.74)'; ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,.13)'; ctx.stroke();
     ctx.fillStyle = 'rgba(255,255,255,.64)'; ctx.font = '800 10px system-ui, sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('TIME', 261, 39);
+    ctx.fillText('PLAY', 261, 39);
     ctx.fillStyle = '#fff'; ctx.font = '900 25px system-ui, sans-serif';
-    ctx.fillText(String(Math.ceil(timeLeft)), 261, 68);
+    ctx.fillText(String(Math.floor(elapsedSeconds())), 261, 68);
 
     // sound
     roundedRect(326, 42, 44, 44, 17);
@@ -2991,9 +3004,10 @@
     if (!gameOverScoreReady) {
       const t = clamp(1 - gameOverTimer / 5.0, 0, 1);
       const pulse = Math.sin(performance.now() * .024) * .5 + .5;
+      const timeUp = gameOverReason === 'timeup';
       ctx.save();
-      ctx.globalAlpha = .30 + pulse * .16;
-      ctx.fillStyle = '#ff4052';
+      ctx.globalAlpha = .24 + pulse * .12;
+      ctx.fillStyle = timeUp ? '#fff58c' : '#ff4052';
       ctx.fillRect(0, 0, W, H);
       ctx.restore();
 
@@ -3004,7 +3018,7 @@
       for (let i = 0; i < 18; i++) {
         const a = i * Math.PI * 2 / 18 + t * .8;
         ctx.rotate(a);
-        ctx.fillStyle = i % 2 ? '#ff6b75' : '#fff58c';
+        ctx.fillStyle = timeUp ? (i % 2 ? '#fff58c' : '#b9f4ff') : (i % 2 ? '#ff6b75' : '#fff58c');
         ctx.beginPath();
         ctx.moveTo(0, -8);
         ctx.lineTo(340, -20);
@@ -3015,38 +3029,42 @@
       }
       ctx.restore();
 
-      ctx.save();
-      ctx.strokeStyle = 'rgba(255,255,255,.30)';
-      ctx.lineWidth = 3;
-      ctx.lineCap = 'round';
-      const crackSeed = [
-        [48, 126, 105, 188, 86, 250, 132, 312],
-        [336, 118, 278, 190, 304, 250, 250, 332],
-        [36, 575, 108, 520, 128, 590, 188, 540],
-        [358, 612, 292, 538, 312, 492, 242, 450]
-      ];
-      for (const c of crackSeed) {
-        ctx.beginPath();
-        ctx.moveTo(c[0], c[1]);
-        for (let i = 2; i < c.length; i += 2) ctx.lineTo(c[i] + Math.sin(performance.now() * .01 + i) * 2, c[i+1]);
-        ctx.stroke();
+      if (!timeUp) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,.30)';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        const crackSeed = [
+          [48, 126, 105, 188, 86, 250, 132, 312],
+          [336, 118, 278, 190, 304, 250, 250, 332],
+          [36, 575, 108, 520, 128, 590, 188, 540],
+          [358, 612, 292, 538, 312, 492, 242, 450]
+        ];
+        for (const c of crackSeed) {
+          ctx.beginPath();
+          ctx.moveTo(c[0], c[1]);
+          for (let i = 2; i < c.length; i += 2) ctx.lineTo(c[i] + Math.sin(performance.now() * .01 + i) * 2, c[i+1]);
+          ctx.stroke();
+        }
+        ctx.restore();
       }
-      ctx.restore();
 
-      drawSunnyBadge(W / 2, 216 + Math.sin(performance.now() * .015) * 3, 76 + pulse * 5, { damage: true, feverMode: false });
+      const overTitle = 'GAME OVER';
+      const overMessage = 'ブロックがあふれた!';
+      drawSunnyBadge(W / 2, 216 + Math.sin(performance.now() * .015) * 3, 76 + pulse * 5, { damage: gameOverReason !== 'timeup', feverMode: false });
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.font = '900 60px system-ui, sans-serif';
+      ctx.font = gameOverReason === 'timeup' ? '900 62px system-ui, sans-serif' : '900 60px system-ui, sans-serif';
       ctx.lineWidth = 12;
       ctx.strokeStyle = 'rgba(10,0,10,.9)';
-      ctx.strokeText('GAME OVER', W / 2, 348);
+      ctx.strokeText(overTitle, W / 2, 348);
       ctx.fillStyle = '#fff';
-      ctx.fillText('GAME OVER', W / 2, 348);
-      ctx.fillStyle = '#ffccd2';
+      ctx.fillText(overTitle, W / 2, 348);
+      ctx.fillStyle = gameOverReason === 'timeup' ? '#fff58c' : '#ffccd2';
       ctx.font = '900 21px system-ui, sans-serif';
       ctx.lineWidth = 7;
-      ctx.strokeText('ブロックがあふれた!', W / 2, 410);
-      ctx.fillText('ブロックがあふれた!', W / 2, 410);
+      ctx.strokeText(overMessage, W / 2, 410);
+      ctx.fillText(overMessage, W / 2, 410);
 
       const wait = Math.max(1, Math.ceil(gameOverTimer));
       roundedRect(96, 450, 198, 36, 16);
