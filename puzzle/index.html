@@ -70,11 +70,23 @@
 
   const W = 390;
   const H = 820;
-  const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-  canvas.width = Math.round(W * DPR);
-  canvas.height = Math.round(H * DPR);
+  let lowPowerMode = localStorage.getItem('sansanRocketLowPowerMode') === '1';
+  let settingsOpen = false;
+  let titleRankingOpen = localStorage.getItem('sansanRocketTitleRankingOpen') === '1';
+  function getTargetDpr() {
+    const raw = window.devicePixelRatio || 1;
+    return Math.max(1, Math.min(lowPowerMode ? 1.5 : 2, raw));
+  }
+  let DPR = getTargetDpr();
   function resetCanvasTransform() { ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
-  resetCanvasTransform();
+  function applyCanvasDpr() {
+    DPR = getTargetDpr();
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    ctx.imageSmoothingEnabled = true;
+    resetCanvasTransform();
+  }
+  applyCanvasDpr();
   const COLS = 7;
   const ROWS = 11;
   const CELL = 55;
@@ -89,11 +101,16 @@
   const GAME_SECONDS = Infinity;
 
   // 見た目を大きく変えず、重い場面だけ描画量を抑えるための上限。
-  const MAX_PARTICLES = 140;
+  const NORMAL_MAX_PARTICLES = 140;
+  const LOW_POWER_MAX_PARTICLES = 82;
   const PARTICLE_SCREEN_MARGIN = 120;
   const LAUNCHER_SCREEN_MARGIN = 150;
   const FEVER_SPARK_KEEP_RATE = 0.70;
   const FEVER_FLAME_KEEP_RATE = 0.62;
+  function currentMaxParticles() { return lowPowerMode ? LOW_POWER_MAX_PARTICLES : NORMAL_MAX_PARTICLES; }
+  function effectQuality() { return lowPowerMode ? 0.55 : 1; }
+  function starFieldCount() { return lowPowerMode ? 28 : 48; }
+  function launcherFlameRate() { return lowPowerMode ? 8 : 20; }
 
   const COLORS = [
     { name: 'あか', fill: '#ff5a62', edge: '#ffb0b4', dark: '#8c1f31', mark: '●' },
@@ -155,6 +172,22 @@
   };
 
   const State = { TITLE: 'title', PLAY: 'play', OVER: 'over' };
+  function settingsLayout() {
+    if (gameState === State.TITLE) {
+      return {
+        button: { x: 304, y: 650, w: 42, h: 42 },
+        menu: { x: 158, y: 490, w: 198, h: 154 },
+        light: { x: 172, y: 530, w: 170, h: 42 },
+        mute: { x: 172, y: 580, w: 170, h: 42 }
+      };
+    }
+    return {
+      button: { x: 310, y: 26, w: 44, h: 44 },
+      menu: { x: 174, y: 82, w: 198, h: 154 },
+      light: { x: 188, y: 122, w: 170, h: 42 },
+      mute: { x: 188, y: 172, w: 170, h: 42 }
+    };
+  }
 
   let gameState = State.TITLE;
   let ground;
@@ -678,6 +711,7 @@
     cutinFreeze = 0;
     paused = false;
     initBoard();
+    settingsOpen = false;
     gameState = State.PLAY;
     startBgm();
   }
@@ -686,6 +720,7 @@
     if (gameState === State.OVER) return;
     gameOverReason = reason;
     gameState = State.OVER;
+    settingsOpen = false;
     drag = null;
     pointer = null;
     selectedHint = null;
@@ -736,7 +771,7 @@
     }
     addShockwave(W / 2, BOARD_Y + BOARD_H * .36, 320, 'rgba(255,83,98,.92)', .9);
     addShockwave(W / 2, BOARD_Y + BOARD_H * .58, 230, 'rgba(255,235,150,.70)', .62);
-    for (let i = 0; i < 70; i++) addParticle(W / 2 + rand(150, -150), BOARD_Y + rand(BOARD_H * .75, 30), i % 3 ? '#ff6b75' : '#fff58c', 1, 320, 'spark');
+    for (let i = 0, n = lowPowerMode ? 34 : 70; i < n; i++) addParticle(W / 2 + rand(150, -150), BOARD_Y + rand(BOARD_H * .75, 30), i % 3 ? '#ff6b75' : '#fff58c', 1, lowPowerMode ? 230 : 320, 'spark');
   }
 
   function initAudio() {
@@ -930,6 +965,12 @@
   }
 
   function particleKeepRate(kind) {
+    if (lowPowerMode) {
+      if (kind === 'flame') return fever > 0 ? .24 : .34;
+      if (kind === 'spark') return fever > 0 ? .38 : .52;
+      if (kind === 'dust') return .55;
+      return .62;
+    }
     if (fever <= 0) return 1;
     if (kind === 'flame') return FEVER_FLAME_KEEP_RATE;
     if (kind === 'spark') return FEVER_SPARK_KEEP_RATE;
@@ -938,7 +979,8 @@
   }
 
   function trimParticlesForRoom(addCount = 0) {
-    const overflow = particles.length + addCount - MAX_PARTICLES;
+    const limit = currentMaxParticles();
+    const overflow = particles.length + addCount - limit;
     if (overflow > 0) particles.splice(0, Math.min(overflow, particles.length));
   }
 
@@ -958,30 +1000,39 @@
     }
 
     trimParticlesForRoom(n);
-    n = Math.min(n, Math.max(0, MAX_PARTICLES - particles.length));
+    n = Math.min(n, Math.max(0, currentMaxParticles() - particles.length));
     if (!n) return;
 
+    const powerScale = lowPowerMode ? .86 : 1;
+    const maxLife = lowPowerMode ? .50 : .68;
+    const minLife = lowPowerMode ? .20 : .28;
+    const maxSize = lowPowerMode ? 4.0 : 5;
+    const minSize = lowPowerMode ? 1.6 : 2;
     for (let i = 0; i < n; i++) {
       const a = rand(Math.PI * 2, 0);
-      const s = rand(power, power * .18);
-      const life = rand(.68, .28);
+      const s = rand(power * powerScale, power * powerScale * .18);
+      const life = rand(maxLife, minLife);
       particles.push({
         x, y,
         vx: Math.cos(a) * s,
-        vy: Math.sin(a) * s - rand(45),
+        vy: Math.sin(a) * s - rand(45 * powerScale),
         life, maxLife: life,
-        size: rand(5, 2), color, kind,
-        spin: rand(6, -6), rot: rand(Math.PI * 2, 0)
+        size: rand(maxSize, minSize), color, kind,
+        spin: rand(lowPowerMode ? 4 : 6, lowPowerMode ? -4 : -6), rot: rand(Math.PI * 2, 0)
       });
     }
   }
 
   function addShockwave(x, y, radius = 80, color = 'rgba(255,255,255,.75)', life = .4) {
-    shockwaves.push({ x, y, radius, color, life, maxLife: life });
+    const maxWaves = lowPowerMode ? 6 : 12;
+    while (shockwaves.length >= maxWaves) shockwaves.shift();
+    shockwaves.push({ x, y, radius: lowPowerMode ? radius * .88 : radius, color, life: lowPowerMode ? life * .82 : life, maxLife: lowPowerMode ? life * .82 : life });
   }
 
   function addSparkLine(x1, y1, x2, y2, color = '#fff58c', life = .22) {
-    sparkLines.push({ x1, y1, x2, y2, color, life, maxLife: life });
+    const maxLines = lowPowerMode ? 18 : 36;
+    while (sparkLines.length >= maxLines) sparkLines.shift();
+    sparkLines.push({ x1, y1, x2, y2, color, life: lowPowerMode ? life * .72 : life, maxLife: lowPowerMode ? life * .72 : life });
   }
 
   function showCutin(title, subtitle, color = '#fff58c', kind = 'sun', duration = 1.02, freeze = true) {
@@ -1055,6 +1106,94 @@
     return (layer === 'float' ? 'f' + group.id + ':' : 'g:') + r + ':' + c;
   }
 
+  function toggleMuteSetting() {
+    muted = !muted;
+    if (!muted) {
+      initAudio();
+      resumeBgm();
+    } else {
+      pauseBgm();
+    }
+    const b = settingsLayout().button;
+    addFloatText(b.x + b.w / 2, b.y + b.h + 12, muted ? '音OFF' : '音ON', 15, '#fff', .45);
+  }
+
+  function setLowPowerMode(enabled) {
+    const next = !!enabled;
+    if (lowPowerMode === next) return;
+    lowPowerMode = next;
+    localStorage.setItem('sansanRocketLowPowerMode', lowPowerMode ? '1' : '0');
+    applyCanvasDpr();
+    trimParticlesForRoom(0);
+    if (lowPowerMode) {
+      particles.splice(0, Math.max(0, particles.length - currentMaxParticles()));
+      addFloatText(W / 2, 118, '軽量モード ON', 17, '#b9f4ff', .72);
+    } else {
+      addFloatText(W / 2, 118, '標準モード', 17, '#fff58c', .72);
+    }
+  }
+
+  function handleSettingsPointer(p) {
+    if (gameState !== State.TITLE && gameState !== State.PLAY) {
+      settingsOpen = false;
+      return false;
+    }
+    const ui = settingsLayout();
+    const b = ui.button;
+    if (pointInRect(p.x, p.y, b.x, b.y, b.w, b.h)) {
+      settingsOpen = !settingsOpen;
+      if (settingsOpen && gameState === State.TITLE) setTitleRankingOpen(false);
+      return true;
+    }
+    if (!settingsOpen) return false;
+    const m = ui.menu;
+    const light = ui.light;
+    const mute = ui.mute;
+    if (pointInRect(p.x, p.y, light.x, light.y, light.w, light.h)) {
+      setLowPowerMode(!lowPowerMode);
+      return true;
+    }
+    if (pointInRect(p.x, p.y, mute.x, mute.y, mute.w, mute.h)) {
+      toggleMuteSetting();
+      return true;
+    }
+    if (pointInRect(p.x, p.y, m.x, m.y, m.w, m.h)) return true;
+    settingsOpen = false;
+    return true;
+  }
+
+  function titleRankingLayout() {
+    return {
+      collapsed: { x: 28, y: H - 66, w: 334, h: 48 },
+      panel: { x: 26, y: H - 254, w: 338, h: 236 },
+      headerH: 44
+    };
+  }
+
+  function setTitleRankingOpen(open) {
+    titleRankingOpen = !!open;
+    localStorage.setItem('sansanRocketTitleRankingOpen', titleRankingOpen ? '1' : '0');
+  }
+
+  function handleTitleRankingPointer(p) {
+    const ui = titleRankingLayout();
+    if (titleRankingOpen) {
+      if (pointInRect(p.x, p.y, ui.panel.x, ui.panel.y, ui.panel.w, ui.panel.h)) {
+        if (p.y <= ui.panel.y + ui.headerH) setTitleRankingOpen(false);
+        return true;
+      }
+      setTitleRankingOpen(false);
+      return true;
+    }
+    const c = ui.collapsed;
+    if (pointInRect(p.x, p.y, c.x, c.y, c.w, c.h)) {
+      setTitleRankingOpen(true);
+      if (firebaseDb && !rankingLoading && !ranking.length) loadRanking();
+      return true;
+    }
+    return false;
+  }
+
   function onPointerDown(ev) {
     ev.preventDefault();
     initAudio();
@@ -1064,7 +1203,10 @@
     const p = getCanvasPoint(ev);
     pointer = { id: ev.pointerId, x: p.x, y: p.y, startX: p.x, startY: p.y, moved: false };
 
+    if (handleSettingsPointer(p)) return;
+
     if (gameState === State.TITLE) {
+      if (handleTitleRankingPointer(p)) return;
       if (pointInRect(p.x, p.y, 70, 572, 250, 66)) {
         resetGame();
         playTone('fever', .55);
@@ -1089,18 +1231,6 @@
       return;
     }
     if (gameState !== State.PLAY) return;
-
-    if (pointInCircle(p.x, p.y, 348, 66, 24)) {
-      muted = !muted;
-      if (!muted) {
-        initAudio();
-        resumeBgm();
-      } else {
-        pauseBgm();
-      }
-      addFloatText(348, 66, muted ? '音OFF' : '音ON', 15, '#fff', .45);
-      return;
-    }
 
     const hit = hitTestTile(p.x, p.y);
     if (!hit) {
@@ -2325,7 +2455,7 @@
         it.y += it.vy * dt;
         it.vy -= 430 * dt;
         it.rot += it.spin * dt;
-        if (Math.random() < dt * 20) addParticle(it.x + TILE / 2, it.y + TILE / 2, l.fever ? '#fff58c' : l.color, 1, 110, 'flame');
+        if (Math.random() < dt * launcherFlameRate()) addParticle(it.x + TILE / 2, it.y + TILE / 2, l.fever ? '#fff58c' : l.color, 1, lowPowerMode ? 82 : 110, 'flame');
       }
       l.tiles = l.tiles.filter(it => !isOutsideEffectArea(it.x + TILE / 2, it.y + TILE / 2, LAUNCHER_SCREEN_MARGIN));
       if (!l.tiles.length || l.tiles.every(it => it.y < BOARD_Y - CELL * 2.2)) launchers.splice(i, 1);
@@ -2451,8 +2581,8 @@
     ctx.fillRect(0, 0, W, H);
 
     ctx.save();
-    ctx.globalAlpha = .17 + (fever > 0 ? .16 : 0);
-    for (let i = 0; i < 48; i++) {
+    ctx.globalAlpha = (.17 + (fever > 0 ? .16 : 0)) * (lowPowerMode ? .76 : 1);
+    for (let i = 0, stars = starFieldCount(); i < stars; i++) {
       const x = (i * 83 + 19) % W;
       const y = (i * 157 + 35 + performance.now() * .006 * (i % 3 + 1)) % H;
       ctx.fillStyle = i % 7 === 0 ? '#ffe69a' : '#ffffff';
@@ -2493,11 +2623,7 @@
     ctx.fillStyle = '#fff'; ctx.font = '900 25px system-ui, sans-serif';
     ctx.fillText(String(Math.floor(elapsedSeconds())), 261, 68);
 
-    // sound
-    roundedRect(326, 42, 44, 44, 17);
-    ctx.fillStyle = 'rgba(255,255,255,.11)'; ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.font = '19px system-ui, sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText(muted ? '×' : '♪', 348, 69);
+    if (gameState === State.PLAY) drawSettingsButtonAndMenu();
 
     drawComboPanel();
     drawSunGauge();
@@ -2768,13 +2894,13 @@
 
   function drawLaunchers() {
     ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalCompositeOperation = lowPowerMode ? 'source-over' : 'lighter';
     for (const l of launchers) {
       for (const it of l.tiles) {
         const grad = ctx.createLinearGradient(it.x, it.y + 72, it.x, it.y - 10);
         grad.addColorStop(0, l.fever ? 'rgba(255,246,120,.74)' : hexToRgba(l.color, .58));
         grad.addColorStop(1, 'rgba(255,255,255,0)');
-        ctx.strokeStyle = grad; ctx.lineWidth = 14; ctx.lineCap = 'round';
+        ctx.strokeStyle = grad; ctx.lineWidth = lowPowerMode ? 9 : 14; ctx.lineCap = 'round';
         ctx.beginPath(); ctx.moveTo(it.x + TILE / 2, it.y + TILE + 54); ctx.lineTo(it.x + TILE / 2 + Math.sin(l.age * 14 + it.tile.id) * 7, it.y + 12); ctx.stroke();
       }
     }
@@ -2801,7 +2927,7 @@
     ctx.rotate(t.rot);
     ctx.scale(scale, scale);
     ctx.shadowColor = col.fill;
-    ctx.shadowBlur = 16 * (.12 + extraGlow + t.flash * .6 + (isLion ? .18 : 0));
+    ctx.shadowBlur = 16 * (.12 + extraGlow + t.flash * .6 + (isLion ? .18 : 0)) * effectQuality();
     roundedRect(-TILE / 2, -TILE / 2, TILE, TILE, ROUND);
     const g = ctx.createLinearGradient(-TILE / 2, -TILE / 2, TILE / 2, TILE / 2);
     if (isLion) {
@@ -2827,8 +2953,9 @@
       roundedRect(-TILE / 2 + 2, -TILE / 2 + 2, TILE - 4, TILE - 4, ROUND - 1);
       ctx.stroke();
       ctx.rotate(tnow * 1.8 + t.id);
-      for (let i = 0; i < 4; i++) {
-        const a = i * Math.PI / 2;
+      const specialSparkles = lowPowerMode ? 2 : 4;
+      for (let i = 0; i < specialSparkles; i++) {
+        const a = i * Math.PI * 2 / specialSparkles;
         const sx = Math.cos(a) * TILE * .34;
         const sy = Math.sin(a) * TILE * .34;
         ctx.fillStyle = i % 2 ? '#b9f4ff' : '#fff58c';
@@ -2893,16 +3020,17 @@
   }
 
   function drawParticles() {
-    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    ctx.save(); ctx.globalCompositeOperation = lowPowerMode ? 'source-over' : 'lighter';
     for (const p of particles) {
       const a = clamp(p.life / p.maxLife, 0, 1);
       ctx.globalAlpha = a;
       ctx.translate(p.x, p.y); ctx.rotate(p.rot);
       if (p.kind === 'flame' || p.kind === 'dust') {
-        const g = ctx.createRadialGradient(0, 0, 1, 0, 0, p.size * 2.3);
+        const glowSize = p.size * (lowPowerMode ? 1.75 : 2.3);
+        const g = ctx.createRadialGradient(0, 0, 1, 0, 0, glowSize);
         g.addColorStop(0, p.kind === 'dust' ? p.color : '#fff');
         g.addColorStop(.45, p.color); g.addColorStop(1, 'rgba(255,255,255,0)');
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, p.size * 2.3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, glowSize, 0, Math.PI * 2); ctx.fill();
       } else {
         ctx.fillStyle = p.color; ctx.beginPath(); ctx.moveTo(0, -p.size); ctx.lineTo(p.size * .55, 0); ctx.lineTo(0, p.size); ctx.lineTo(-p.size * .55, 0); ctx.closePath(); ctx.fill();
       }
@@ -3029,6 +3157,187 @@
     }
   }
 
+  function drawTogglePill(x, y, on, label, sub) {
+    roundedRect(x, y, 170, 42, 16);
+    ctx.fillStyle = on ? 'rgba(85,223,128,.24)' : 'rgba(255,255,255,.10)';
+    ctx.fill();
+    ctx.strokeStyle = on ? 'rgba(160,255,190,.70)' : 'rgba(255,255,255,.22)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#fff';
+    ctx.font = '900 13px system-ui, sans-serif';
+    ctx.fillText(label, x + 13, y + 17);
+    ctx.fillStyle = 'rgba(255,255,255,.62)';
+    ctx.font = '800 9.5px system-ui, sans-serif';
+    ctx.fillText(sub, x + 13, y + 31);
+    const sx = x + 124, sy = y + 11;
+    roundedRect(sx, sy, 34, 20, 10);
+    ctx.fillStyle = on ? '#55df80' : 'rgba(255,255,255,.20)';
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(sx + (on ? 23 : 11), sy + 10, 7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawSettingsButtonAndMenu() {
+    if (gameState !== State.TITLE && gameState !== State.PLAY) return;
+    ctx.save();
+    const ui = settingsLayout();
+    const b = ui.button;
+    roundedRect(b.x, b.y, b.w, b.h, 17);
+    ctx.fillStyle = settingsOpen ? 'rgba(185,244,255,.25)' : 'rgba(255,255,255,.12)';
+    ctx.fill();
+    ctx.strokeStyle = settingsOpen ? 'rgba(185,244,255,.68)' : 'rgba(255,255,255,.22)';
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+    ctx.font = '900 22px system-ui, sans-serif';
+    ctx.fillText('⚙', b.x + b.w / 2, b.y + b.h / 2 + 1);
+    if (lowPowerMode) {
+      roundedRect(b.x - 2, b.y + b.h - 10, 28, 14, 7);
+      ctx.fillStyle = 'rgba(85,223,128,.92)';
+      ctx.fill();
+      ctx.fillStyle = '#092414';
+      ctx.font = '900 8px system-ui, sans-serif';
+      ctx.fillText('軽量', b.x + 12, b.y + b.h - 3);
+    }
+
+    if (settingsOpen) {
+      const m = ui.menu;
+      roundedRect(m.x, m.y, m.w, m.h, 20);
+      ctx.fillStyle = 'rgba(7,15,36,.96)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(185,244,255,.46)';
+      ctx.lineWidth = 1.7;
+      ctx.stroke();
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#b9f4ff';
+      ctx.font = '900 15px system-ui, sans-serif';
+      ctx.fillText('設定', m.x + 16, m.y + 24);
+      ctx.fillStyle = 'rgba(255,255,255,.58)';
+      ctx.font = '800 9.5px system-ui, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(`DPR ${DPR.toFixed(1)}`, m.x + m.w - 14, m.y + 24);
+      drawTogglePill(ui.light.x, ui.light.y, lowPowerMode, '軽量モード', 'DPR1.5 / 演出控えめ');
+      drawTogglePill(ui.mute.x, ui.mute.y, muted, '消音', muted ? '音を鳴らさない' : '音を鳴らす');
+    }
+    ctx.restore();
+  }
+
+  function rankingMedal(i) {
+    if (i === 0) return '🥇';
+    if (i === 1) return '🥈';
+    if (i === 2) return '🥉';
+    return String(i + 1).padStart(2, '0');
+  }
+
+  function drawRankingRows(x, y, w, limit = 10, rowH = 18, compact = false) {
+    const rows = ranking.slice(0, limit);
+    ctx.save();
+    ctx.textBaseline = 'middle';
+    if (!rows.length) {
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,255,255,.72)';
+      ctx.font = '800 12px system-ui, sans-serif';
+      ctx.fillText(rankingStatus || 'まだランキングがありません', x + w / 2, y + 28);
+      ctx.restore();
+      return;
+    }
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const yy = y + i * rowH;
+      roundedRect(x, yy, w, rowH - 2, 8);
+      ctx.fillStyle = i < 3 ? 'rgba(255,245,140,.13)' : (i % 2 ? 'rgba(255,255,255,.055)' : 'rgba(255,255,255,.035)');
+      ctx.fill();
+      if (i < 3) {
+        ctx.strokeStyle = 'rgba(255,245,140,.18)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      ctx.textAlign = 'left';
+      ctx.fillStyle = i < 3 ? '#fff58c' : 'rgba(255,255,255,.82)';
+      ctx.font = compact ? '900 10.5px system-ui, sans-serif' : '900 11.5px system-ui, sans-serif';
+      ctx.fillText(rankingMedal(i), x + 8, yy + rowH / 2 - 1);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = compact ? '900 11px system-ui, sans-serif' : '900 12px system-ui, sans-serif';
+      const name = String(r.name || 'ななし').slice(0, compact ? 9 : 11);
+      ctx.fillText(name, x + (compact ? 38 : 44), yy + rowH / 2 - 1);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = i < 3 ? '#fff58c' : '#b9f4ff';
+      ctx.font = compact ? '900 11px system-ui, sans-serif' : '900 12px system-ui, sans-serif';
+      ctx.fillText(String(r.score), x + w - 10, yy + rowH / 2 - 1);
+      if (!compact) {
+        ctx.fillStyle = 'rgba(255,255,255,.48)';
+        ctx.font = '800 8.5px system-ui, sans-serif';
+        ctx.fillText(`MAX ${r.maxCombo || 0}`, x + w - 78, yy + rowH / 2 - 1);
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawTitleRankingPanel() {
+    const ui = titleRankingLayout();
+    ctx.save();
+    if (!titleRankingOpen) {
+      const c = ui.collapsed;
+      roundedRect(c.x, c.y, c.w, c.h, 18);
+      ctx.fillStyle = 'rgba(7,15,36,.86)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(185,244,255,.34)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#b9f4ff';
+      ctx.font = '900 15px system-ui, sans-serif';
+      ctx.fillText('ランキング TOP10', c.x + 16, c.y + 19);
+      ctx.fillStyle = 'rgba(255,255,255,.58)';
+      ctx.font = '800 10px system-ui, sans-serif';
+      const top = ranking[0] ? `1位 ${ranking[0].name}  ${ranking[0].score}` : (rankingStatus || 'タップで表示');
+      ctx.fillText(top, c.x + 16, c.y + 36);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#fff58c';
+      ctx.font = '900 18px system-ui, sans-serif';
+      ctx.fillText('▲', c.x + c.w - 18, c.y + 25);
+    } else {
+      const p = ui.panel;
+      roundedRect(p.x, p.y, p.w, p.h, 22);
+      ctx.fillStyle = 'rgba(7,15,36,.97)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,245,140,.42)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#fff58c';
+      ctx.font = '900 17px system-ui, sans-serif';
+      ctx.fillText('ランキング TOP10', p.x + 18, p.y + 24);
+      ctx.fillStyle = 'rgba(255,255,255,.58)';
+      ctx.font = '800 10px system-ui, sans-serif';
+      ctx.fillText('タップで閉じる / 同じ名前は最高点のみ', p.x + 18, p.y + 42);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#fff58c';
+      ctx.font = '900 18px system-ui, sans-serif';
+      ctx.fillText('▼', p.x + p.w - 18, p.y + 26);
+      roundedRect(p.x + 14, p.y + 56, p.w - 28, p.h - 70, 14);
+      ctx.fillStyle = 'rgba(2,8,24,.30)';
+      ctx.fill();
+      drawRankingRows(p.x + 22, p.y + 66, p.w - 44, 8, 18, true);
+      if (rankingStatus) {
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255,255,255,.62)';
+        ctx.font = '800 10px system-ui, sans-serif';
+        ctx.fillText(rankingStatus, p.x + p.w / 2, p.y + p.h - 12);
+      }
+    }
+    ctx.restore();
+  }
+
   function drawTitleOverlay() {
     ctx.save();
     ctx.fillStyle = '#050817';
@@ -3083,6 +3392,8 @@
     ctx.fillText(playerName ? `名前: ${playerName}` : 'ランキング名前登録', W / 2, 672);
     ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.font = '800 10.5px system-ui, sans-serif';
     ctx.fillText('同じ名前は最高点だけランキングに残ります', W / 2, 706);
+    drawTitleRankingPanel();
+    drawSettingsButtonAndMenu();
     ctx.restore();
   }
 
@@ -3235,21 +3546,7 @@
     roundedRect(46, panelY + 386, 298, 190, 16);
     ctx.fillStyle = 'rgba(2,8,24,.28)'; ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,.10)'; ctx.lineWidth = 1; ctx.stroke();
-
-    ctx.textAlign = 'left';
-    const startY = panelY + 410;
-    const rowGap = 17;
-    const rows = ranking.slice(0, 10);
-    for (let i = 0; i < rows.length; i++) {
-      const r = rows[i];
-      const y = startY + i * rowGap;
-      ctx.fillStyle = i < 3 ? '#fff58c' : 'rgba(255,255,255,.86)';
-      ctx.font = '900 12px system-ui, sans-serif';
-      ctx.fillText(`${i + 1}. ${r.name}`, 58, y);
-      ctx.textAlign = 'right';
-      ctx.fillText(String(r.score), 318, y);
-      ctx.textAlign = 'left';
-    }
+    drawRankingRows(56, panelY + 401, 278, 10, 17, false);
 
     roundedRect(ui.retry.x, ui.retry.y, ui.retry.w, ui.retry.h, 22);
     const bg = ctx.createLinearGradient(ui.retry.x, ui.retry.y, ui.retry.x + ui.retry.w, ui.retry.y + ui.retry.h); bg.addColorStop(0, '#ffcf4e'); bg.addColorStop(1, '#ff874d');
