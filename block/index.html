@@ -1647,6 +1647,34 @@ const FEVER_THRESHOLD = 25;
 const FEVER_DURATION = 30000;
 const PADDLE_TOUCH_TIMEOUT = 10000;
 
+// 2026-06 v18: 見た目を大きく変えずにスマホ描画を軽量化するための内部設定
+const LOW_PERF_MODE = (() => {
+    const ua = navigator.userAgent || '';
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+    const shortSide = Math.min(window.innerWidth || 400, window.innerHeight || 600);
+    return isMobile || shortSide <= 520;
+})();
+const PERF = {
+    pixelDensity: LOW_PERF_MODE ? 1 : Math.min(2, window.devicePixelRatio || 1),
+    leafCount: LOW_PERF_MODE ? 22 : 32,
+    particleScale: LOW_PERF_MODE ? 0.62 : 1,
+    maxParticles: LOW_PERF_MODE ? 90 : 180,
+    maxPopups: LOW_PERF_MODE ? 14 : 28,
+    gradientStep: LOW_PERF_MODE ? 8 : 4,
+    feverStarCount: LOW_PERF_MODE ? 9 : 18,
+    shadowScale: LOW_PERF_MODE ? 0.38 : 1
+};
+function perfCount(count) {
+    return Math.max(1, Math.round(count * PERF.particleScale));
+}
+function perfShadow(value) {
+    return value === 0 ? 0 : Math.max(0, value * PERF.shadowScale);
+}
+function addParticle(particle) {
+    particles.push(particle);
+    if (particles.length > PERF.maxParticles) particles.splice(0, particles.length - PERF.maxParticles);
+}
+
 const ITEM_TYPES = {
     RED:    { color: [232, 91, 68],  effect: 'bullet',      label: '小枝+5', icon: 'twig' },
     BLUE:   { color: [58, 160, 227],  effect: 'paddle_size', label: '大きなはっぱトレー',   icon: 'leaf' },
@@ -1905,7 +1933,7 @@ function preload() {
 function setup() {
     let canvas = createCanvas(400, 600);
     canvas.parent('canvas-holder');
-    pixelDensity(Math.min(2, window.devicePixelRatio || 1));
+    pixelDensity(PERF.pixelDensity);
     textFont("'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif");
     initializeForestLeaves();
     noLoop();
@@ -2227,22 +2255,22 @@ function drawForestBackground() {
     const topColor = isFeverTime ? color(22, 35, 72) : color(214, 238, 198);
     const bottomColor = isFeverTime ? color(29, 67, 58) : color(157, 203, 148);
     noStroke();
-    for (let y = 0; y < height; y += 4) {
+    for (let y = 0; y < height; y += PERF.gradientStep) {
         const c = lerpColor(topColor, bottomColor, y / height);
         fill(c);
-        rect(0, y, width, 4);
+        rect(0, y, width, PERF.gradientStep);
     }
 
     push();
     const sunPulse = 1 + sin(frameCount * 0.04) * 0.04;
     if (isFeverTime) {
         drawingContext.shadowColor = 'rgba(170, 215, 255, .55)';
-        drawingContext.shadowBlur = 22;
+        drawingContext.shadowBlur = perfShadow(22);
         fill(207, 232, 255, 155);
         ellipse(width - 72, 68, 72 * sunPulse, 72 * sunPulse);
-        drawingContext.shadowBlur = 0;
+        drawingContext.shadowBlur = perfShadow(0);
         fill(255, 255, 210, 90);
-        for (let i = 0; i < 18; i++) {
+        for (let i = 0; i < PERF.feverStarCount; i++) {
             const sx = (i * 67 + frameCount * .18) % width;
             const sy = 34 + ((i * 41) % 210);
             ellipse(sx, sy, 2.2, 2.2);
@@ -2342,7 +2370,7 @@ function drawTree(x, y, s) {
 function initializeForestLeaves() {
     forestLeaves = [];
     const colors = [[239, 151, 55, 155], [230, 96, 55, 140], [246, 201, 69, 145], [133, 176, 78, 135]];
-    for (let i = 0; i < 32; i++) {
+    for (let i = 0; i < PERF.leafCount; i++) {
         forestLeaves.push({
             x: random(width),
             y: random(-height, height),
@@ -2389,7 +2417,7 @@ function drawPaddle() {
     push();
     const pulse = paddle.isEnlarged ? sin(frameCount * .18) * 2.5 : 0;
     drawingContext.shadowColor = 'rgba(47, 82, 23, 0.34)';
-    drawingContext.shadowBlur = 12;
+    drawingContext.shadowBlur = perfShadow(12);
     drawingContext.shadowOffsetY = 4;
 
     if (isFeverTime) {
@@ -2411,7 +2439,7 @@ function drawPaddle() {
         fill(255, 241, 158, 70);
         rect(paddle.x + 8, paddle.y + 3 - pulse, paddle.w - 16, 4, 999);
     }
-    drawingContext.shadowBlur = 0;
+    drawingContext.shadowBlur = perfShadow(0);
 
     if (paddle.isEnlarged) {
         drawLeafShape(paddle.x + 3, paddle.y + 7, 10, -0.25, [73, 166, 82, 220]);
@@ -2569,13 +2597,13 @@ function drawBlocks() {
         const bob = isFeverTime ? sin(frameCount * .12 + block.wobble) * 1.2 : 0;
         translate(0, bob);
         drawingContext.shadowColor = 'rgba(75, 43, 14, 0.28)';
-        drawingContext.shadowBlur = 5;
+        drawingContext.shadowBlur = perfShadow(5);
         drawingContext.shadowOffsetY = 3;
         fill(block.color[0], block.color[1], block.color[2]);
         stroke(isFeverTime ? color(255, 236, 92) : color(92, 55, 23));
         strokeWeight(isFeverTime ? 2.2 : 1.4);
         rect(0, 0, block.w, block.h, 6);
-        drawingContext.shadowBlur = 0;
+        drawingContext.shadowBlur = perfShadow(0);
         noStroke();
         fill(255, 241, 164, 70);
         rect(4, 3, block.w - 8, 4, 999);
@@ -2624,12 +2652,12 @@ function drawHarvestItem(item) {
     translate(item.x, item.y);
     rotate(sin(frameCount * .08 + item.seed) * .2 + item.angle * .1);
     drawingContext.shadowColor = 'rgba(61, 35, 10, .35)';
-    drawingContext.shadowBlur = 10;
+    drawingContext.shadowBlur = perfShadow(10);
     fill(item.type.color[0], item.type.color[1], item.type.color[2]);
     stroke(255, 248, 203);
     strokeWeight(2.5);
     ellipse(0, 0, 25, 25);
-    drawingContext.shadowBlur = 0;
+    drawingContext.shadowBlur = perfShadow(0);
     noStroke();
     if (item.type.icon === 'twig') {
         drawTwigShot(0, 0, 17, item.angle);
@@ -2688,12 +2716,12 @@ function drawInGameHud() {
     const x = 14;
     const y = 24;
     drawingContext.shadowColor = 'rgba(255,255,255,.75)';
-    drawingContext.shadowBlur = 5;
+    drawingContext.shadowBlur = perfShadow(5);
     push();
     translate(x + 10, y);
     drawTwigShot(0, 0, 13, -0.35);
     pop();
-    drawingContext.shadowBlur = 0;
+    drawingContext.shadowBlur = perfShadow(0);
     fill(86, 55, 24);
     stroke(255, 250, 220, 180);
     strokeWeight(3);
@@ -2812,12 +2840,12 @@ function drawPineconeBall(x, y, s, rotation, fever) {
     rotate(rotation);
     if (fever) {
         drawingContext.shadowColor = 'rgba(255, 236, 78, .95)';
-        drawingContext.shadowBlur = 20;
+        drawingContext.shadowBlur = perfShadow(20);
         stroke(255, 111, 53);
         strokeWeight(max(1.5, s * .12));
     } else {
         drawingContext.shadowColor = 'rgba(50, 30, 8, .35)';
-        drawingContext.shadowBlur = 7;
+        drawingContext.shadowBlur = perfShadow(7);
         stroke(67, 43, 19);
         strokeWeight(max(1, s * .08));
     }
@@ -2832,7 +2860,7 @@ function drawPineconeBall(x, y, s, rotation, fever) {
     noStroke();
     fill(255, 239, 156, fever ? 130 : 70);
     ellipse(-s * .12, -s * .2, s * .16, s * .25);
-    drawingContext.shadowBlur = 0;
+    drawingContext.shadowBlur = perfShadow(0);
     pop();
 }
 
@@ -2858,7 +2886,7 @@ function drawTwigShot(x, y, s, spin) {
         fill(125, 235, 255, 105);
         ellipse(0, 0, s * .95, s * 1.25);
     }
-    drawingContext.shadowBlur = 0;
+    drawingContext.shadowBlur = perfShadow(0);
     pop();
 }
 function drawAcorn(x, y, s, rotation, fever) {
@@ -2867,10 +2895,10 @@ function drawAcorn(x, y, s, rotation, fever) {
     rotate(rotation * .35);
     if (fever) {
         drawingContext.shadowColor = 'rgba(255, 236, 78, .9)';
-        drawingContext.shadowBlur = 18;
+        drawingContext.shadowBlur = perfShadow(18);
     } else {
         drawingContext.shadowColor = 'rgba(62, 35, 10, .32)';
-        drawingContext.shadowBlur = 5;
+        drawingContext.shadowBlur = perfShadow(5);
     }
     stroke(81, 49, 20);
     strokeWeight(max(1, s * .08));
@@ -2884,7 +2912,7 @@ function drawAcorn(x, y, s, rotation, fever) {
     stroke(81, 49, 20);
     strokeWeight(max(1, s * .07));
     line(0, -s * .45, s * .12, -s * .66);
-    drawingContext.shadowBlur = 0;
+    drawingContext.shadowBlur = perfShadow(0);
     pop();
 }
 
@@ -2925,9 +2953,9 @@ function drawFlyingPinecone(x, y, s, spin) {
     translate(x, y);
     rotate(spin);
     drawingContext.shadowColor = 'rgba(50, 30, 8, .35)';
-    drawingContext.shadowBlur = 6;
+    drawingContext.shadowBlur = perfShadow(6);
     drawPinecone(0, 0, s);
-    drawingContext.shadowBlur = 0;
+    drawingContext.shadowBlur = perfShadow(0);
     pop();
 }
 
@@ -2964,9 +2992,9 @@ function drawSparkle(x, y, s, col) {
 }
 
 function spawnHarvestBurst(x, y, block) {
-    const count = isFeverTime ? 18 : 10;
+    const count = perfCount(isFeverTime ? 18 : 10);
     for (let i = 0; i < count; i++) {
-        particles.push({
+        addParticle({
             x, y,
             vx: random(-3.1, 3.1),
             vy: random(-4.0, 1.4),
@@ -2982,8 +3010,8 @@ function spawnHarvestBurst(x, y, block) {
 }
 
 function spawnPickupBurst(x, y, col) {
-    for (let i = 0; i < 14; i++) {
-        particles.push({
+    for (let i = 0; i < perfCount(14); i++) {
+        addParticle({
             x, y,
             vx: random(-2.4, 2.4),
             vy: random(-3.2, .8),
@@ -2999,8 +3027,9 @@ function spawnPickupBurst(x, y, col) {
 }
 
 function spawnFestivalBurst(x, y, count = 24) {
+    count = perfCount(count);
     for (let i = 0; i < count; i++) {
-        particles.push({
+        addParticle({
             x: x + random(-20, 20), y: y + random(-16, 16),
             vx: random(-4.3, 4.3),
             vy: random(-5.0, 2.3),
@@ -3016,8 +3045,8 @@ function spawnFestivalBurst(x, y, count = 24) {
 }
 
 function spawnTinyBounce(x, y) {
-    for (let i = 0; i < 5; i++) {
-        particles.push({
+    for (let i = 0; i < perfCount(5); i++) {
+        addParticle({
             x, y,
             vx: random(-1.6, 1.6),
             vy: random(-1.9, -.4),
@@ -3063,6 +3092,7 @@ function updateAndDrawParticles() {
 
 function spawnScorePopup(x, y, textValue) {
     scorePopups.push({ x, y, text: textValue, life: 46, maxLife: 46, vy: -1.0 });
+    if (scorePopups.length > PERF.maxPopups) scorePopups.splice(0, scorePopups.length - PERF.maxPopups);
 }
 
 function updateAndDrawScorePopups() {
@@ -3121,11 +3151,11 @@ function drawFeverOverlay() {
     // 画面端と波だけを派手にして、中央の弾の視認性は邪魔しない。
     noFill();
     drawingContext.shadowColor = 'rgba(90, 225, 255, .85)';
-    drawingContext.shadowBlur = 14;
+    drawingContext.shadowBlur = perfShadow(14);
     stroke(120, 224, 255, 145 + sin(frameCount * .18) * 55);
     strokeWeight(4 + sin(frameCount * .2) * 1.2);
     rect(7, 7, width - 14, height - 14, 18);
-    drawingContext.shadowBlur = 0;
+    drawingContext.shadowBlur = perfShadow(0);
 
     noStroke();
     fill(255, 232, 92, 24);
