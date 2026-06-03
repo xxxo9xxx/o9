@@ -70,7 +70,7 @@
 
   const W = 390;
   const H = 820;
-  let lowPowerMode = localStorage.getItem('sansanRocketLowPowerMode') === '1';
+  let lowPowerMode = localStorage.getItem('sansanRocketLowPowerMode') === '1' || localStorage.getItem('sansanRocketLightMode') === '1';
   let settingsOpen = false;
   let settingsPauseStartedAt = 0;
   let settingsPausedTotal = 0;
@@ -1059,15 +1059,29 @@
   }
 
   function addShockwave(x, y, radius = 80, color = 'rgba(255,255,255,.75)', life = .4) {
-    const maxWaves = lowPowerMode ? 3 : 12;
-    while (shockwaves.length >= maxWaves) shockwaves.shift();
-    shockwaves.push({ x, y, radius: lowPowerMode ? radius * .72 : radius, color, life: lowPowerMode ? life * .62 : life, maxLife: lowPowerMode ? life * .62 : life });
+    // 軽量成功版と同じく、軽量中は増えすぎたら置き換えずに捨てる。
+    // shiftで毎回配列を詰め直すより安定しやすい。
+    if (lowPowerMode) {
+      if (shockwaves.length >= 5) return;
+      radius *= .78;
+      life *= .72;
+    } else {
+      while (shockwaves.length >= 12) shockwaves.shift();
+    }
+    shockwaves.push({ x, y, radius, color, life, maxLife: life });
   }
 
   function addSparkLine(x1, y1, x2, y2, color = '#fff58c', life = .22) {
-    const maxLines = lowPowerMode ? 8 : 36;
-    while (sparkLines.length >= maxLines) sparkLines.shift();
-    sparkLines.push({ x1, y1, x2, y2, color, life: lowPowerMode ? life * .72 : life, maxLife: lowPowerMode ? life * .72 : life });
+    // 軽量成功版に合わせて、軽量中は火花線を間引き、上限到達時は追加しない。
+    if (lowPowerMode && (sparkLines.length >= 12 || Math.random() > .55)) return;
+    if (!lowPowerMode) {
+      while (sparkLines.length >= 36) sparkLines.shift();
+    }
+    sparkLines.push({
+      x1, y1, x2, y2, color,
+      life: lowPowerMode ? life * .72 : life,
+      maxLife: lowPowerMode ? life * .72 : life
+    });
   }
 
   function showCutin(title, subtitle, color = '#fff58c', kind = 'sun', duration = 1.02, freeze = true) {
@@ -1158,6 +1172,7 @@
     if (lowPowerMode === next) return;
     lowPowerMode = next;
     localStorage.setItem('sansanRocketLowPowerMode', lowPowerMode ? '1' : '0');
+    localStorage.setItem('sansanRocketLightMode', lowPowerMode ? '1' : '0');
     applyCanvasDpr();
     trimParticlesForRoom(0);
     if (lowPowerMode) {
@@ -2618,13 +2633,13 @@
     ctx.fillRect(0, 0, W, H);
 
     ctx.save();
-    ctx.globalAlpha = (.17 + (fever > 0 ? .16 : 0)) * (lowPowerMode ? .76 : 1);
+    ctx.globalAlpha = lowPowerMode && gameState === State.PLAY ? .12 : .17 + (fever > 0 ? .16 : 0);
     for (let i = 0, stars = starFieldCount(); i < stars; i++) {
       const x = (i * 83 + 19) % W;
       const y = (i * 157 + 35 + performance.now() * .006 * (i % 3 + 1)) % H;
       ctx.fillStyle = i % 7 === 0 ? '#ffe69a' : '#ffffff';
       ctx.beginPath();
-      ctx.arc(x, y, i % 7 === 0 ? 1.8 : 1.1, 0, Math.PI * 2);
+      ctx.arc(x, y, lowPowerMode && gameState === State.PLAY ? (i % 7 === 0 ? 1.5 : .9) : (i % 7 === 0 ? 1.8 : 1.1), 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();
@@ -2911,6 +2926,9 @@
   }
 
   function drawFallingTrails() {
+    // うまくいった軽量版に合わせ、プレイ中の軽量モードでは落下トレイルを描かない。
+    // グラデーション線は端末によってかなり重くなるが、ゲーム性には影響しない。
+    if (lowPowerMode && gameState === State.PLAY) return;
     ctx.save();
     for (const t of falling) {
       const x = t.x + TILE / 2;
@@ -2967,7 +2985,7 @@
     ctx.rotate(t.rot);
     ctx.scale(scale, scale);
     ctx.shadowColor = col.fill;
-    ctx.shadowBlur = 16 * (.12 + extraGlow + t.flash * .6 + (isLion ? .18 : 0)) * effectQuality();
+    ctx.shadowBlur = lowPowerMode && gameState === State.PLAY ? (isLion ? 3 : 0) : 16 * (.12 + extraGlow + t.flash * .6 + (isLion ? .18 : 0));
     roundedRect(-TILE / 2, -TILE / 2, TILE, TILE, ROUND);
     const g = ctx.createLinearGradient(-TILE / 2, -TILE / 2, TILE / 2, TILE / 2);
     if (isLion) {
@@ -2986,26 +3004,27 @@
       const tnow = performance.now() * .001;
       const pulse = Math.sin(tnow * 7 + t.id) * .5 + .5;
       ctx.save();
-      ctx.globalCompositeOperation = lowPowerMode ? 'source-over' : 'lighter';
-      ctx.globalAlpha = .45 + pulse * .30;
+      if (!lowPowerMode || gameState !== State.PLAY) ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = lowPowerMode && gameState === State.PLAY ? .40 : .45 + pulse * .30;
       ctx.strokeStyle = '#fff58c';
-      ctx.lineWidth = 2.2 + pulse * 1.2;
+      ctx.lineWidth = lowPowerMode && gameState === State.PLAY ? 2 : 2.2 + pulse * 1.2;
       roundedRect(-TILE / 2 + 2, -TILE / 2 + 2, TILE - 4, TILE - 4, ROUND - 1);
       ctx.stroke();
-      ctx.rotate(tnow * 1.8 + t.id);
-      const specialSparkles = lowPowerMode ? 2 : 4;
-      for (let i = 0; i < specialSparkles; i++) {
-        const a = i * Math.PI * 2 / specialSparkles;
-        const sx = Math.cos(a) * TILE * .34;
-        const sy = Math.sin(a) * TILE * .34;
-        ctx.fillStyle = i % 2 ? '#b9f4ff' : '#fff58c';
-        ctx.beginPath();
-        ctx.moveTo(sx, sy - 4);
-        ctx.lineTo(sx + 2.4, sy);
-        ctx.lineTo(sx, sy + 4);
-        ctx.lineTo(sx - 2.4, sy);
-        ctx.closePath();
-        ctx.fill();
+      if (!lowPowerMode || gameState !== State.PLAY) {
+        ctx.rotate(tnow * 1.8 + t.id);
+        for (let i = 0; i < 4; i++) {
+          const a = i * Math.PI / 2;
+          const sx = Math.cos(a) * TILE * .34;
+          const sy = Math.sin(a) * TILE * .34;
+          ctx.fillStyle = i % 2 ? '#b9f4ff' : '#fff58c';
+          ctx.beginPath();
+          ctx.moveTo(sx, sy - 4);
+          ctx.lineTo(sx + 2.4, sy);
+          ctx.lineTo(sx, sy + 4);
+          ctx.lineTo(sx - 2.4, sy);
+          ctx.closePath();
+          ctx.fill();
+        }
       }
       ctx.restore();
     }
@@ -3060,17 +3079,21 @@
   }
 
   function drawParticles() {
+    // 軽量成功版と同じく、軽量中は全パーティクルを単純な円で描く。
+    // flame/dustのradialGradientを避けるのが特に効く。
     ctx.save(); ctx.globalCompositeOperation = lowPowerMode ? 'source-over' : 'lighter';
     for (const p of particles) {
       const a = clamp(p.life / p.maxLife, 0, 1);
-      ctx.globalAlpha = a;
+      ctx.globalAlpha = lowPowerMode ? a * .78 : a;
       ctx.translate(p.x, p.y); ctx.rotate(p.rot);
-      if (p.kind === 'flame' || p.kind === 'dust') {
-        const glowSize = p.size * (lowPowerMode ? 1.75 : 2.3);
-        const g = ctx.createRadialGradient(0, 0, 1, 0, 0, glowSize);
+      if (lowPowerMode) {
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(0, 0, p.size, 0, Math.PI * 2); ctx.fill();
+      } else if (p.kind === 'flame' || p.kind === 'dust') {
+        const g = ctx.createRadialGradient(0, 0, 1, 0, 0, p.size * 2.3);
         g.addColorStop(0, p.kind === 'dust' ? p.color : '#fff');
         g.addColorStop(.45, p.color); g.addColorStop(1, 'rgba(255,255,255,0)');
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, glowSize, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, p.size * 2.3, 0, Math.PI * 2); ctx.fill();
       } else {
         ctx.fillStyle = p.color; ctx.beginPath(); ctx.moveTo(0, -p.size); ctx.lineTo(p.size * .55, 0); ctx.lineTo(0, p.size); ctx.lineTo(-p.size * .55, 0); ctx.closePath(); ctx.fill();
       }
@@ -3083,18 +3106,18 @@
     ctx.save();
     for (const s of shockwaves) {
       const t = 1 - s.life / s.maxLife;
-      ctx.globalAlpha = (s.life / s.maxLife) * .65;
-      ctx.strokeStyle = s.color; ctx.lineWidth = 8 * (1 - t) + 1;
+      ctx.globalAlpha = (s.life / s.maxLife) * (lowPowerMode ? .38 : .65);
+      ctx.strokeStyle = s.color; ctx.lineWidth = (lowPowerMode ? 4 : 8) * (1 - t) + 1;
       ctx.beginPath(); ctx.arc(s.x, s.y, s.radius * easeOutCubic(t), 0, Math.PI * 2); ctx.stroke();
     }
     ctx.restore();
   }
 
   function drawSparkLines() {
-    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+    ctx.save(); ctx.globalCompositeOperation = lowPowerMode ? 'source-over' : 'lighter'; ctx.lineCap = 'round';
     for (const s of sparkLines) {
       const a = clamp(s.life / s.maxLife, 0, 1);
-      ctx.globalAlpha = a; ctx.strokeStyle = s.color; ctx.lineWidth = 4 * a;
+      ctx.globalAlpha = lowPowerMode ? a * .72 : a; ctx.strokeStyle = s.color; ctx.lineWidth = (lowPowerMode ? 2.2 : 4) * a;
       ctx.beginPath(); ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x2, s.y2); ctx.stroke();
     }
     ctx.restore();
