@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>ごみゼロ分別チャレンジ｜浜松市版 200問</title>
+<style>
+:root{
+  --blue:#2f7df2;--blue2:#9fd9ff;--blueDeep:#1554b7;
+  --green:#28b979;--green2:#b9f0d5;--greenDeep:#167b50;
+  --red:#ef615c;--red2:#ffc2bd;--redDeep:#bd3432;
+  --yellow:#f4ca4f;--yellow2:#fff0a6;--yellowDeep:#7b5a00;
+  --ink:#17323b;--muted:#60747b;--paper:#fffdf7;--panel:rgba(255,255,255,.86);
+  --shadow:0 30px 80px rgba(15,55,65,.25);--soft:0 16px 34px rgba(15,55,65,.14);
+  --font:"M PLUS Rounded 1c","Zen Maru Gothic","Hiragino Maru Gothic ProN","BIZ UDPGothic","Yu Gothic UI","Hiragino Sans","Yu Gothic",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;min-height:100dvh}
+body{margin:0;overflow:hidden;touch-action:none;user-select:none;color:var(--ink);font-family:var(--font);font-feature-settings:"palt" 1;background:radial-gradient(circle at 16% 10%,rgba(255,239,161,.95),transparent 28%),radial-gradient(circle at 88% 20%,rgba(166,226,255,.95),transparent 28%),radial-gradient(circle at 75% 90%,rgba(184,243,207,.92),transparent 34%),linear-gradient(135deg,#fff8d7 0%,#e7f8ff 48%,#e9ffe9 100%);}
+body::before,body::after{content:"";position:fixed;inset:auto;z-index:0;pointer-events:none;border-radius:999px;filter:blur(8px);opacity:.54}
+body::before{width:34vw;height:34vw;left:-10vw;bottom:-12vw;background:radial-gradient(circle,#ffffff 0%,rgba(255,255,255,0) 70%)}
+body::after{width:30vw;height:30vw;right:-8vw;top:-9vw;background:radial-gradient(circle,#ffffff 0%,rgba(255,255,255,0) 70%)}
+.app{position:relative;z-index:1;width:100vw;height:100dvh;padding:94px 132px;display:flex;align-items:center;justify-content:center;transition:padding .24s ease}
+.guide{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:1000;color:white;text-shadow:0 2px 0 rgba(0,0,0,.14);letter-spacing:.02em;z-index:3;border:0;outline:0;overflow:hidden;transition:opacity .22s,filter .22s,width .22s,height .22s,transform .22s}
+.guide::before{content:"";position:absolute;inset:0;background:linear-gradient(140deg,rgba(255,255,255,.32),rgba(255,255,255,0) 46%,rgba(0,0,0,.08));pointer-events:none}
+.guide>div{position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px}
+.guide .big{display:block;font-size:clamp(18px,2.35vw,34px);line-height:1.1}
+.guide .small{display:block;font-size:clamp(11px,1.35vw,17px);font-weight:900;margin-top:4px;line-height:1.25;opacity:.9}
+.guide.up{top:0;left:50%;transform:translateX(-50%);width:min(720px,64vw);height:86px;background:linear-gradient(135deg,var(--blue),var(--blueDeep));border-radius:0 0 26px 26px;box-shadow:var(--soft)}
+.guide.down{bottom:0;left:50%;transform:translateX(-50%);width:min(720px,64vw);height:86px;background:linear-gradient(135deg,var(--green),var(--greenDeep));border-radius:26px 26px 0 0;box-shadow:var(--soft)}
+.guide.left{left:0;top:50%;transform:translateY(-50%);width:156px;height:min(650px,86vh);background:linear-gradient(135deg,var(--red),var(--redDeep));border-radius:0 28px 28px 0;box-shadow:var(--soft)}
+.guide.right{right:0;top:50%;transform:translateY(-50%);width:156px;height:min(650px,86vh);background:linear-gradient(135deg,var(--yellow2),var(--yellow));color:var(--yellowDeep);text-shadow:0 1px 0 rgba(255,255,255,.7);border-radius:28px 0 0 28px;box-shadow:var(--soft)}
+body.playing .guide-example{display:none!important}
+body.playing .guide.left,body.playing .guide.right{height:min(520px,70vh);width:122px}
+body.kids.playing .guide.up,body.kids.playing .guide.down{opacity:0;pointer-events:none}
+body.kids.playing .app{padding-top:36px;padding-bottom:36px}
+body.result .guide{opacity:0;pointer-events:none}
+body.result .app{padding:24px}
+.screen{width:min(850px,78vw);height:min(655px,74vh);background:linear-gradient(180deg,rgba(255,255,255,.93),rgba(255,255,255,.78));backdrop-filter:blur(14px);border-radius:38px;box-shadow:var(--shadow);padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;z-index:2;overflow:hidden}
+.screen::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 18% 15%,rgba(255,255,255,.95),transparent 30%),radial-gradient(circle at 88% 85%,rgba(255,246,177,.38),transparent 34%);pointer-events:none}
+.screen>*{position:relative;z-index:1}
+body.result .screen{width:min(1120px,94vw);height:min(720px,92vh);padding:26px 30px}
+.kicker{margin:0 0 8px;font-size:clamp(13px,1.3vw,17px);font-weight:1000;color:#2d8962;letter-spacing:.14em}
+.title{font-size:clamp(30px,4.6vw,58px);margin:0 0 8px;font-weight:1000;color:#1f6848;line-height:1.05;letter-spacing:-.03em;white-space:nowrap;text-shadow:0 4px 0 rgba(255,255,255,.78)}
+.subtitle{font-size:clamp(15px,1.85vw,23px);font-weight:900;margin:0 0 12px;color:#52656b;line-height:1.3}
+.status-line{height:18px;margin:0 0 8px;font-size:clamp(10px,.95vw,13px);font-weight:900;color:rgba(24,50,59,.34);letter-spacing:.05em}
+.rule-flow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:min(640px,100%);margin:7px 0 15px}
+.step{background:rgba(255,255,255,.75);border-radius:24px;padding:12px 8px;box-shadow:0 10px 20px rgba(15,55,65,.08)}
+.step .icon{font-size:clamp(28px,4vw,42px);line-height:1}
+.step .text{font-size:clamp(13px,1.5vw,18px);font-weight:1000;margin-top:5px}
+.mode-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:min(590px,100%);margin:3px auto 0}
+button{border:0;border-radius:24px;padding:15px 14px;font-size:clamp(16px,1.9vw,24px);font-weight:1000;cursor:pointer;background:linear-gradient(180deg,#fff,#f7fbff);color:var(--ink);box-shadow:0 9px 0 rgba(15,55,65,.12),0 16px 30px rgba(15,55,65,.12);transition:transform .06s,box-shadow .06s,filter .12s;min-height:58px;font-family:var(--font)}
+button .sub{display:block;font-size:clamp(10px,1vw,13px);font-weight:900;color:rgba(24,50,59,.55);margin-top:3px}
+button:active{transform:translateY(5px);box-shadow:0 4px 0 rgba(15,55,65,.12),0 10px 18px rgba(15,55,65,.12)}
+button.menu-selected{filter:saturate(1.08);box-shadow:0 0 0 5px rgba(47,125,242,.28),0 10px 0 rgba(15,55,65,.12),0 16px 30px rgba(15,55,65,.16)}
+.btn-green{background:linear-gradient(180deg,#e8fff1,#ffffff)}.btn-blue{background:linear-gradient(180deg,#e9f5ff,#ffffff)}.btn-yellow{background:linear-gradient(180deg,#fff7c7,#ffffff)}.btn-red{background:linear-gradient(180deg,#fff0ee,#ffffff)}
+.hud{position:absolute;left:24px;top:18px;right:24px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;font-weight:1000;font-size:clamp(14px,1.55vw,22px);z-index:4;color:#31515a}
+.hud-left{text-align:left}.hud-right{text-align:right}
+.timer{width:92px;height:92px;border-radius:50%;background:conic-gradient(#ff5f5b var(--timerAngle),#edf0f0 0deg);display:grid;place-items:center;box-shadow:inset 0 0 0 8px white,0 10px 20px rgba(15,55,65,.14)}
+.timer span{width:62px;height:62px;border-radius:50%;background:white;display:grid;place-items:center;font-size:28px;color:#de4140;font-weight:1000}
+.dots{display:flex;gap:5px;justify-content:center;margin-top:6px}.dot{width:8px;height:8px;border-radius:50%;background:#dce5e8}.dot.done{background:#2fbd7b}.dot.now{background:#ffb84e;transform:scale(1.25)}
+.question-card{margin-top:78px;width:100%;display:grid;place-items:center;gap:10px}
+.garbage-img{width:min(235px,31vw);height:min(235px,31vw);border-radius:34px;background:linear-gradient(180deg,#fffef8,#fff6df);display:grid;place-items:center;font-size:clamp(74px,13vw,142px);line-height:1;box-shadow:inset 0 0 0 4px rgba(255,211,98,.24),0 16px 32px rgba(15,55,65,.12)}
+.garbage-name{font-size:clamp(34px,4.7vw,66px);font-weight:1000;line-height:1.08;letter-spacing:-.035em;color:#203d45;text-shadow:0 4px 0 rgba(255,255,255,.8)}
+.hint{font-size:clamp(14px,1.55vw,20px);font-weight:1000;color:#66777c;min-height:24px}
+.feedback{position:absolute;inset:0;display:none;place-items:center;z-index:10;border-radius:38px;color:white;text-align:center;padding:24px}
+.feedback.show{display:grid;animation:pop .2s ease-out}
+.feedback.correct{background:rgba(40,185,121,.92)}.feedback.wrong{background:rgba(239,97,92,.92)}
+.feedback .main{font-size:clamp(52px,9vw,116px);font-weight:1000;text-shadow:0 5px 0 rgba(0,0,0,.16);line-height:1}
+.feedback .note{font-size:clamp(16px,2vw,25px);font-weight:1000;margin-top:12px;max-width:760px}
+@keyframes pop{from{transform:scale(.98);opacity:.4}to{transform:scale(1);opacity:1}}
+.guide.assist{animation:pulseGuide .68s infinite alternate;filter:brightness(1.18) saturate(1.22)}
+@keyframes pulseGuide{from{box-shadow:0 0 0 0 rgba(255,255,255,.9),var(--soft)}to{box-shadow:0 0 0 18px rgba(255,255,255,.45),var(--soft)}}
+.practice-answer{background:#eef9ff;border-radius:24px;padding:12px 16px;font-size:clamp(16px,1.8vw,23px);font-weight:1000;line-height:1.35;box-shadow:0 10px 22px rgba(15,55,65,.08)}
+.answer-chip{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:5px 12px;font-weight:1000;color:white;line-height:1;min-width:80px;font-size:.95em}
+.answer-chip.up{background:linear-gradient(135deg,var(--blue),var(--blueDeep))}.answer-chip.down{background:linear-gradient(135deg,var(--green),var(--greenDeep))}.answer-chip.left{background:linear-gradient(135deg,var(--red),var(--redDeep))}.answer-chip.right{background:linear-gradient(135deg,var(--yellow2),var(--yellow));color:var(--yellowDeep)}
+.result-top{display:grid;grid-template-columns:205px minmax(280px,430px);gap:18px;align-items:center;justify-content:center;width:100%;max-width:900px;margin:0 auto 8px;text-align:center}
+.rate-circle{width:190px;height:190px;border-radius:50%;background:conic-gradient(#2fbd7b var(--rateAngle),#e8eeee 0deg);display:grid;place-items:center;box-shadow:inset 0 0 0 12px white,0 18px 36px rgba(15,55,65,.16);margin:auto}
+.rate-circle span{width:120px;height:120px;border-radius:50%;background:white;display:grid;place-items:center;font-size:35px;font-weight:1000;color:#1f6848}
+.result-title{font-size:clamp(32px,4.2vw,58px);font-weight:1000;margin:0;color:#1f6848;text-shadow:0 4px 0 rgba(255,255,255,.76)}
+.result-score{font-size:clamp(18px,2.2vw,28px);font-weight:1000;margin:8px 0;color:#405b62}
+.badge{display:inline-block;background:linear-gradient(180deg,#fff6b8,#ffe67a);border-radius:999px;padding:8px 16px;font-size:clamp(18px,2.1vw,28px);font-weight:1000;color:#795600;box-shadow:0 8px 18px rgba(130,92,0,.13)}
+.review-box{width:100%;max-width:1040px;margin:4px auto 0}
+.review-box.endless-last{max-width:640px;text-align:center;margin:6px auto 0}
+.review-box.endless-last .review-list{display:flex;justify-content:center}
+.review-box.endless-last .review-card{width:min(560px,100%);grid-template-columns:54px 1fr;text-align:center;padding:10px 14px}
+.review-box.endless-last .review-card>div:last-child{text-align:center}
+.review-box h2{margin:0 0 8px;font-size:clamp(17px,1.7vw,24px);color:#405b62}
+.review-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.review-card{display:grid;grid-template-columns:44px 1fr;gap:8px;align-items:center;text-align:left;background:rgba(255,255,255,.76);border-radius:17px;padding:6px 9px;box-shadow:0 8px 18px rgba(15,55,65,.07)}
+.review-icon{width:42px;height:42px;border-radius:13px;background:#fff6df;display:grid;place-items:center;font-size:26px}
+.review-name{font-size:clamp(14px,1.25vw,18px);font-weight:1000;line-height:1.15;margin-bottom:3px}
+.review-note{font-size:clamp(11px,1vw,14px);font-weight:900;color:#60747b;line-height:1.25;margin-top:3px}
+.review-empty{font-size:clamp(22px,2.8vw,36px);font-weight:1000;color:#1f6848;background:rgba(255,255,255,.72);border-radius:28px;padding:22px;margin:10px auto;max-width:720px}
+.result-actions,.footer-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.result-actions button,.footer-buttons button{min-width:180px;min-height:52px}
+.endless-card{display:grid;gap:14px;place-items:center;width:100%;max-width:800px;margin:auto}
+.endless-score{font-size:clamp(50px,8vw,110px);font-weight:1000;color:#1f6848;line-height:1;text-shadow:0 5px 0 rgba(255,255,255,.8)}
+.today-ranking{width:min(520px,100%);background:rgba(255,255,255,.76);border-radius:22px;padding:12px 18px;text-align:left;box-shadow:0 10px 22px rgba(15,55,65,.08);font-weight:1000}
+.today-ranking-title{text-align:center;color:#2a687b;margin-bottom:4px}.today-ranking ol{margin:4px 0 0 1.3em;padding:0}
+.demo-tag{position:absolute;top:18px;left:24px;font-weight:1000;color:#2d8962;background:rgba(255,255,255,.72);border-radius:999px;padding:8px 14px;z-index:4}
+.modal{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(15,40,50,.48);padding:18px}
+.modal.show{display:flex}
+.modal-panel{width:min(760px,94vw);max-height:92dvh;overflow:auto;background:linear-gradient(180deg,#ffffff,#f7fbff);border-radius:32px;padding:24px;box-shadow:var(--shadow);text-align:left}
+.modal-panel.wide{width:min(1120px,96vw)}
+.modal h2{margin:0 0 14px;font-size:clamp(24px,3vw,36px)}
+.setting-row{display:grid;gap:8px;margin:14px 0;font-weight:1000;font-size:18px}
+.setting-row input[type=number]{font-size:22px;padding:9px 12px;border-radius:14px;border:2px solid #d6e1e5;font-family:var(--font)}
+input[type=range]{width:100%}input[type=checkbox]{width:24px;height:24px}label.inline{display:flex;align-items:center;gap:10px}
+.admin-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:18px}
+.editor-toolbar{display:grid;grid-template-columns:1fr 160px auto auto;gap:10px;align-items:center;margin-bottom:12px}
+.editor-toolbar input,.editor-toolbar select,.problem-table input,.problem-table select{font-family:var(--font);font-weight:900;border:2px solid #dce7ea;border-radius:12px;padding:8px;background:white;color:var(--ink)}
+.problem-table{display:grid;gap:8px}
+.problem-row{display:grid;grid-template-columns:34px 48px minmax(116px,1fr) minmax(116px,1fr) minmax(92px,.75fr) 104px 128px minmax(138px,1.2fr) minmax(138px,1.2fr) minmax(120px,1fr) 48px;gap:8px;align-items:center;background:rgba(255,255,255,.74);border-radius:16px;padding:8px;box-shadow:0 5px 12px rgba(15,55,65,.06)}
+.problem-row.header{position:sticky;top:-24px;z-index:2;background:#eef8ff;font-size:12px;font-weight:1000;color:#60747b}
+.problem-row input[type=checkbox]{width:22px;height:22px;margin:auto}.problem-row .pid{font-size:12px;font-weight:1000;color:#7b8d93;text-align:center}.problem-row.header{font-size:11px}.problem-row input[data-field="schoolName"],.problem-row input[data-field="schoolNote"]{background:#f0fbff}.problem-row input[data-field="kana"],.problem-row input[data-field="kidNote"]{background:#fffdf0}
+.tiny{font-size:13px;opacity:.7;font-weight:900;line-height:1.5}
+.confetti{position:fixed;top:-30px;z-index:50;font-size:26px;animation:fall 1.8s linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.2}}
+@media(max-width:860px){.app{padding:86px 78px}.guide.up,.guide.down{height:72px;width:70vw}.guide.left,.guide.right{width:76px;height:min(640px,86vh);writing-mode:vertical-rl;text-orientation:upright}.guide.left>div,.guide.right>div,.guide.left .big,.guide.right .big,.guide.left .small,.guide.right .small{writing-mode:vertical-rl;text-orientation:upright}body.playing .guide.left,body.playing .guide.right{width:68px;height:min(480px,68vh)}.screen{width:88vw;height:74vh;padding:20px}.title{font-size:clamp(26px,7vw,42px)}.timer{width:74px;height:74px}.timer span{width:52px;height:52px;font-size:22px}.question-card{margin-top:70px}.result-top{grid-template-columns:1fr;text-align:center}.rate-circle{width:170px;height:170px}.review-list{grid-template-columns:1fr}.problem-row{grid-template-columns:30px 46px 1fr 98px;grid-auto-rows:auto}.problem-row .note-cell,.problem-row .school-note-cell,.problem-row .kid-note-cell{grid-column:3/5}.editor-toolbar{grid-template-columns:1fr 130px}}
+@media(max-width:520px){.app{padding:70px 54px}.guide.up,.guide.down{height:56px}.guide.left,.guide.right{width:54px}body.playing .guide.left,body.playing .guide.right{width:50px}.guide .big{font-size:clamp(11px,3.2vw,16px)}.guide .small{font-size:8px}.screen{width:91vw;height:75vh;border-radius:28px;padding:14px}.mode-grid{gap:9px}button{border-radius:18px;padding:12px 8px;min-height:50px}.rule-flow{gap:7px}.step{border-radius:18px;padding:9px 5px}.garbage-img{width:min(180px,43vw);height:min(180px,43vw)}.garbage-name{font-size:clamp(28px,8vw,42px)}body.result .screen{width:96vw;height:93dvh;padding:16px}.review-card{grid-template-columns:42px 1fr;padding:6px 8px}.review-icon{width:40px;height:40px;font-size:24px}}
+
+
+/* v12: 丸文字寄りフォント + ガラス風4分類ガイド */
+:root{
+  --font-ui:"BIZ UDPGothic","Hiragino Sans","Yu Gothic UI","Yu Gothic","Noto Sans JP",system-ui,-apple-system,sans-serif;
+  --font-round:"M PLUS Rounded 1c","Zen Maru Gothic","Hiragino Maru Gothic ProN","TsukuARdGothic-Regular","UD Digi Kyokasho N-R","BIZ UDPGothic","Yu Gothic UI",system-ui,sans-serif;
+  --font-display:"M PLUS Rounded 1c","Zen Maru Gothic","Hiragino Maru Gothic ProN","TsukuARdGothic-Regular","HG丸ｺﾞｼｯｸM-PRO","HGMaruGothicMPRO","UD Digi Kyokasho NK-R","Arial Rounded MT Bold",var(--font-round);
+  --font:var(--font-round);
+}
+body{font-family:var(--font-ui);letter-spacing:.005em}
+.title,.result-title,.garbage-name,.endless-score,.feedback .main,.mode-grid button,.badge,.guide .big,.kicker{font-family:var(--font-display);font-weight:900;font-variation-settings:"wght" 900}
+.title,.result-title,.endless-score{letter-spacing:-.015em;color:#177955;text-shadow:0 3px 0 rgba(255,255,255,.96),0 12px 28px rgba(14,98,77,.16)}
+.garbage-name{letter-spacing:-.018em;color:#1d4450;text-shadow:0 3px 0 rgba(255,255,255,.94),0 12px 24px rgba(15,55,65,.12)}
+.feedback .main{text-shadow:0 5px 0 rgba(0,0,0,.14),0 14px 30px rgba(0,0,0,.16)}
+button{font-family:var(--font-round)}
+.screen.title-screen{padding-bottom:48px}
+.status-line{display:none!important}
+.assist-status{position:absolute;left:0;right:0;bottom:14px;margin:0;text-align:center;font-size:clamp(10px,.95vw,13px);font-weight:900;color:rgba(23,50,59,.42);letter-spacing:.05em;pointer-events:none}
+
+.guide{backdrop-filter:blur(18px) saturate(1.35);-webkit-backdrop-filter:blur(18px) saturate(1.35);box-shadow:0 20px 48px rgba(15,55,65,.18),inset 0 1px 0 rgba(255,255,255,.58),inset 0 -12px 28px rgba(0,0,0,.08);text-shadow:0 2px 0 rgba(0,0,0,.12)}
+.guide::before{background:linear-gradient(145deg,rgba(255,255,255,.58),rgba(255,255,255,.18) 35%,rgba(255,255,255,0) 56%,rgba(0,0,0,.07));opacity:.9}
+.guide::after{content:"";position:absolute;left:9px;right:9px;top:8px;height:36%;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0));pointer-events:none;opacity:.62;mix-blend-mode:screen}
+.guide.up{background:linear-gradient(135deg,rgba(78,155,255,.76),rgba(21,84,183,.66)),radial-gradient(circle at 25% 15%,rgba(255,255,255,.55),transparent 42%)}
+.guide.down{background:linear-gradient(135deg,rgba(76,211,145,.76),rgba(22,123,80,.66)),radial-gradient(circle at 25% 15%,rgba(255,255,255,.50),transparent 42%)}
+.guide.left{background:linear-gradient(135deg,rgba(255,116,112,.76),rgba(189,52,50,.66)),radial-gradient(circle at 25% 15%,rgba(255,255,255,.50),transparent 42%)}
+.guide.right{background:linear-gradient(135deg,rgba(255,243,158,.82),rgba(244,202,79,.70)),radial-gradient(circle at 25% 15%,rgba(255,255,255,.62),transparent 42%);color:#755100;text-shadow:0 1px 0 rgba(255,255,255,.78)}
+.guide.assist{filter:brightness(1.12) saturate(1.28)}
+@supports (-webkit-background-clip:text){
+  .title,.result-title{background:linear-gradient(180deg,#2eac7b 0%,#167652 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .endless-score{background:linear-gradient(180deg,#33b57e 0%,#126d4d 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+}
+@media(max-width:520px){.screen.title-screen{padding-bottom:38px}.assist-status{bottom:10px}}
+
+
+
+/* v13: コントローラー確認・ハット登録画面 */
+.pad-screen{gap:10px;justify-content:center;padding:22px 26px 24px}
+.pad-title{font-family:var(--font-display);font-size:clamp(25px,3.4vw,44px);font-weight:900;margin:0;color:#177955;letter-spacing:-.02em}
+.pad-note{font-size:clamp(12px,1.25vw,16px);font-weight:850;line-height:1.45;color:#54717a;margin:0;max-width:720px}
+.pad-live{width:100%;max-width:720px;display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left}
+.pad-card{background:rgba(255,255,255,.78);border-radius:20px;padding:12px 14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 10px 24px rgba(18,70,75,.09);font-weight:850;min-height:86px;overflow:hidden}
+.pad-card h3{margin:0 0 6px;font-size:clamp(13px,1.4vw,18px);color:#1c6d56;font-weight:950}
+.pad-dir{font-family:var(--font-display);font-size:clamp(28px,4.2vw,54px);line-height:1;font-weight:950;text-align:center;color:#1d4450;margin:8px 0 4px}
+.pad-dir small{display:block;font-family:var(--font-round);font-size:clamp(11px,1.1vw,15px);color:#697e85;margin-top:6px}
+.pad-raw{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:clamp(10px,.95vw,12px);line-height:1.45;word-break:break-all;color:#344b52;max-height:118px;overflow:hidden}
+.pad-flow{width:100%;max-width:720px;background:rgba(255,248,216,.78);border-radius:20px;padding:12px 14px;text-align:center;font-weight:900;color:#57491f;box-shadow:inset 0 1px 0 rgba(255,255,255,.88)}
+.pad-step{font-family:var(--font-display);font-size:clamp(18px,2.3vw,30px);font-weight:950;color:#167652;margin:3px 0}
+.pad-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px}.pad-actions button{padding:10px 14px;border-radius:16px;font-size:clamp(12px,1.2vw,16px)}
+@media(max-width:820px){.pad-live{grid-template-columns:1fr}.pad-screen{padding:16px 14px 20px}.pad-card{min-height:auto}.pad-raw{max-height:78px}}
+
+
+
+/* v14: 読みやすさ優先の丸文字・リザルト・分類ガイド調整 */
+@property --rateAngle{syntax:'<angle>';initial-value:0deg;inherits:false;}
+.title,.result-title,.endless-score,.garbage-name,.pad-title{
+  color:#1f6848!important;
+  -webkit-text-fill-color:#1f6848!important;
+  background:none!important;
+  text-shadow:none!important;
+  letter-spacing:-.012em;
+}
+.garbage-name{color:#203d45!important;-webkit-text-fill-color:#203d45!important;}
+.result-title{font-size:clamp(30px,4.2vw,58px);margin:0 0 8px;}
+button{letter-spacing:.01em;}
+.mode-grid button{line-height:1.12;padding-top:17px;padding-bottom:17px;}
+.mode-grid button .sub{margin-top:8px;line-height:1.25;}
+.subtitle{margin-bottom:14px;}
+.rule-flow{margin-top:10px;margin-bottom:17px;}
+.assist-status{bottom:12px;color:rgba(23,50,59,.44);}
+
+/* ガラス感を弱めて、会場モニターで読みやすいはっきり色へ戻す */
+.guide{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  box-shadow:var(--soft)!important;
+  text-shadow:0 2px 0 rgba(0,0,0,.14)!important;
+}
+.guide::before{background:linear-gradient(140deg,rgba(255,255,255,.28),rgba(255,255,255,0) 48%,rgba(0,0,0,.06))!important;opacity:1!important;}
+.guide::after{display:none!important;}
+.guide.up{background:linear-gradient(135deg,var(--blue),var(--blueDeep))!important;}
+.guide.down{background:linear-gradient(135deg,var(--green),var(--greenDeep))!important;}
+.guide.left{background:linear-gradient(135deg,var(--red),var(--redDeep))!important;}
+.guide.right{background:linear-gradient(135deg,var(--yellow2),var(--yellow))!important;color:var(--yellowDeep)!important;text-shadow:0 1px 0 rgba(255,255,255,.75)!important;}
+
+.result-top{grid-template-columns:205px minmax(280px,430px);align-items:center;justify-content:center;text-align:center;margin-bottom:10px;}
+.result-summary{display:grid;place-items:center;gap:4px;}
+.rate-circle{--rateAngle:0deg;transition:background .08s linear;}
+.review-box.endless-last{text-align:center;}
+.review-box.endless-last .review-list{display:flex;justify-content:center;}
+.review-box.endless-last .review-card{width:min(560px,100%);grid-template-columns:54px minmax(0,1fr);text-align:center;justify-items:center;}
+.review-box.endless-last .review-card>div:last-child{text-align:center;}
+.result-actions button,.footer-buttons button{min-width:190px;}
+@media(max-width:860px){.result-top{grid-template-columns:1fr;}.mode-grid button .sub{margin-top:7px;}}
+@media(max-width:520px){.assist-status{bottom:8px}.rule-flow{margin-bottom:14px}.mode-grid button .sub{margin-top:6px}}
+
+
+/* v15: スマホ縦画面レスポンシブ + タッチ操作強化 */
+@media (max-width: 720px) and (orientation: portrait){
+  html,body{height:100%;min-height:100dvh;overflow:hidden;}
+  body{overscroll-behavior:none;}
+
+  /* タイトル・結果画面は中央パネルを広く使う */
+  body:not(.playing) .app{padding:10px!important;align-items:center;justify-content:center;}
+  body:not(.playing) .guide{opacity:0!important;pointer-events:none!important;}
+  body:not(.playing) .screen{width:min(96vw,460px)!important;height:min(96dvh,760px)!important;max-height:96dvh!important;padding:14px!important;border-radius:24px;overflow:auto;-webkit-overflow-scrolling:touch;}
+  body.result .screen{height:min(96dvh,780px)!important;padding:14px!important;}
+
+  /* プレイ中は4方向の分別エリアを画面端に固定して、中央に問題を収める */
+  body.playing .app{padding:60px 54px 60px!important;display:flex;align-items:center;justify-content:center;}
+  body.playing .screen{width:calc(100vw - 116px)!important;height:calc(100dvh - 132px)!important;min-height:0!important;padding:10px!important;border-radius:22px;overflow:hidden;}
+
+  body.playing .guide{z-index:8;pointer-events:auto;touch-action:none;}
+  body.playing .guide.up{top:0;left:54px;right:54px;transform:none;width:auto!important;height:58px!important;border-radius:0 0 18px 18px;}
+  body.playing .guide.down{bottom:0;left:54px;right:54px;transform:none;width:auto!important;height:58px!important;border-radius:18px 18px 0 0;}
+  body.playing .guide.left{left:0;top:58px;bottom:58px;transform:none;width:52px!important;height:auto!important;border-radius:0 18px 18px 0;}
+  body.playing .guide.right{right:0;top:58px;bottom:58px;transform:none;width:52px!important;height:auto!important;border-radius:18px 0 0 18px;}
+
+  body.kids.playing .app{padding:18px 56px!important;}
+  body.kids.playing .screen{width:calc(100vw - 122px)!important;height:calc(100dvh - 44px)!important;}
+  body.kids.playing .guide.left,
+  body.kids.playing .guide.right{top:0;bottom:0;width:54px!important;border-radius:0 18px 18px 0;}
+  body.kids.playing .guide.right{border-radius:18px 0 0 18px;}
+  body.kids.playing .guide.up,
+  body.kids.playing .guide.down{display:none!important;}
+
+  .guide .big{font-size:clamp(12px,3.7vw,17px)!important;line-height:1.12;}
+  .guide .small{display:none!important;}
+  .guide>div{padding:4px!important;}
+  .guide.left,.guide.right{writing-mode:vertical-rl;text-orientation:upright;}
+  .guide.left>div,.guide.right>div,.guide.left .big,.guide.right .big{writing-mode:vertical-rl;text-orientation:upright;}
+
+  .hud{left:9px;right:9px;top:8px;grid-template-columns:1fr 58px 1fr;gap:5px;font-size:clamp(10px,3.1vw,13px);}
+  .timer{width:56px!important;height:56px!important;box-shadow:inset 0 0 0 5px white,0 6px 12px rgba(15,55,65,.13);}
+  .timer span{width:40px!important;height:40px!important;font-size:18px!important;}
+  .dots{gap:3px;margin-top:3px}.dot{width:5px;height:5px;}
+
+  .question-card{margin-top:60px!important;gap:7px;}
+  .garbage-img{width:min(44vw,152px)!important;height:min(44vw,152px)!important;border-radius:24px;font-size:clamp(60px,19vw,104px)!important;}
+  .garbage-name{font-size:clamp(24px,8.4vw,39px)!important;line-height:1.08;word-break:keep-all;overflow-wrap:anywhere;}
+  .hint{font-size:clamp(11px,3.4vw,15px)!important;min-height:18px;}
+  .feedback{border-radius:22px;padding:12px;}
+  .feedback .main{font-size:clamp(42px,14vw,72px)!important;}
+  .feedback .note{font-size:clamp(13px,4vw,18px)!important;}
+
+  .title{white-space:normal!important;font-size:clamp(26px,8.4vw,38px)!important;line-height:1.08;margin-bottom:8px;}
+  .subtitle{font-size:clamp(13px,4vw,17px)!important;margin-bottom:10px;}
+  .kicker{font-size:12px;margin-bottom:5px;}
+  .rule-flow{grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 10px;}
+  .step{border-radius:16px;padding:8px 3px;}
+  .step .icon{font-size:26px}.step .text{font-size:12px;line-height:1.15;}
+  .mode-grid{grid-template-columns:1fr 1fr;gap:8px;width:100%;}
+  .mode-grid button{font-size:clamp(14px,4.3vw,18px)!important;min-height:54px;padding:10px 6px;border-radius:17px;}
+  button .sub{font-size:10px!important;line-height:1.15;}
+  .assist-status{bottom:8px;font-size:10px;}
+
+  .result-top{grid-template-columns:1fr!important;gap:8px;margin-bottom:8px;}
+  .rate-circle{width:136px!important;height:136px!important;box-shadow:inset 0 0 0 8px white,0 12px 24px rgba(15,55,65,.14);}
+  .rate-circle span{width:88px!important;height:88px!important;font-size:26px!important;}
+  .result-title{font-size:clamp(28px,8vw,42px)!important;}
+  .result-score,.badge{font-size:clamp(16px,4.4vw,22px)!important;}
+  .review-list{grid-template-columns:1fr!important;gap:6px;}
+  .review-card{border-radius:15px;grid-template-columns:38px 1fr;padding:6px 8px;}
+  .review-icon{width:36px;height:36px;font-size:22px;border-radius:12px;}
+  .review-name{font-size:14px!important;}.review-note{font-size:11px!important;}
+  .result-actions,.footer-buttons{gap:8px;margin-top:8px;}
+  .result-actions button,.footer-buttons button{min-width:128px;min-height:48px;font-size:14px!important;}
+
+  .pad-live{grid-template-columns:1fr!important;}
+  .modal{padding:8px}.modal-panel{border-radius:22px;padding:14px;width:96vw;max-height:92dvh;}
+}
+
+@media (max-width: 380px) and (orientation: portrait){
+  body.playing .app{padding-left:48px!important;padding-right:48px!important;}
+  body.playing .screen{width:calc(100vw - 102px)!important;}
+  body.playing .guide.left,body.playing .guide.right{width:46px!important;}
+  body.playing .guide.up{left:48px;right:48px;}
+  body.playing .guide.down{left:48px;right:48px;}
+  .garbage-img{width:min(42vw,132px)!important;height:min(42vw,132px)!important;}
+  .garbage-name{font-size:clamp(22px,8vw,34px)!important;}
+  .mode-grid{gap:6px}.mode-grid button{min-height:50px;}
+}
+
+
+/* v17: 学習用スタート説明画面 + 選択方向の見える化 + デモゆっくり表示 */
+.ready-screen{gap:14px;justify-content:center;padding:26px 30px 30px;}
+.ready-title{font-family:var(--font-display);font-size:clamp(30px,4.2vw,58px);font-weight:1000;margin:0;color:#1f6848;line-height:1.05;letter-spacing:-.02em;}
+.ready-lead{font-size:clamp(15px,1.8vw,22px);font-weight:1000;line-height:1.45;color:#4f6970;margin:0;max-width:760px;}
+.ready-directions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:min(700px,100%);margin:4px auto;}
+.ready-dir-card{display:grid;grid-template-columns:54px 1fr;align-items:center;gap:10px;text-align:left;background:rgba(255,255,255,.80);border-radius:22px;padding:10px 12px;box-shadow:0 10px 22px rgba(15,55,65,.08);font-weight:1000;}
+.ready-dir-card .arrow{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;color:white;font-family:var(--font-display);font-size:30px;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 8px 16px rgba(15,55,65,.10);}
+.ready-dir-card.up .arrow{background:linear-gradient(135deg,var(--blue),var(--blueDeep));}
+.ready-dir-card.down .arrow{background:linear-gradient(135deg,var(--green),var(--greenDeep));}
+.ready-dir-card.left .arrow{background:linear-gradient(135deg,var(--red),var(--redDeep));}
+.ready-dir-card.right .arrow{background:linear-gradient(135deg,var(--yellow2),var(--yellow));color:var(--yellowDeep);}
+.ready-dir-card .name{font-size:clamp(16px,1.8vw,24px);line-height:1.1;color:#213f47;}
+.ready-dir-card .ex{font-size:clamp(11px,1.05vw,14px);line-height:1.25;color:#60747b;margin-top:4px;font-weight:900;}
+.ready-start{margin-top:4px;min-width:min(520px,92vw);font-size:clamp(24px,3.2vw,42px)!important;border-radius:28px!important;padding:18px 20px!important;background:linear-gradient(180deg,#fff7bc,#ffffff)!important;box-shadow:0 12px 0 rgba(126,90,0,.16),0 18px 36px rgba(15,55,65,.14)!important;}
+.ready-start .sub{font-size:clamp(12px,1.2vw,16px)!important;color:rgba(24,50,59,.62)!important;}
+.ready-tip{font-size:clamp(11px,1.05vw,14px);font-weight:900;color:rgba(24,50,59,.48);margin:0;}
+.guide.choice-picked{outline:8px solid rgba(255,255,255,.95);box-shadow:0 0 0 15px rgba(255,255,255,.38),0 0 36px rgba(255,255,255,.95),var(--soft)!important;animation:choicePulse .76s ease-in-out 1;filter:brightness(1.14) saturate(1.25);}
+.guide.choice-miss{outline-color:rgba(255,255,255,.98);box-shadow:0 0 0 12px rgba(255,255,255,.42),0 0 0 22px rgba(239,97,92,.40),0 0 38px rgba(239,97,92,.65),var(--soft)!important;}
+.guide.choice-answer{outline:8px solid rgba(255,255,255,.98);box-shadow:0 0 0 15px rgba(255,230,122,.70),0 0 46px rgba(255,255,255,.95),var(--soft)!important;animation:choiceAnswerPulse .9s ease-in-out infinite alternate;filter:brightness(1.18) saturate(1.28);}
+@keyframes choicePulse{0%{filter:brightness(1) saturate(1)}45%{filter:brightness(1.24) saturate(1.36)}100%{filter:brightness(1.14) saturate(1.25)}}
+@keyframes choiceAnswerPulse{from{filter:brightness(1.08) saturate(1.16)}to{filter:brightness(1.25) saturate(1.34)}}
+.feedback.learning{padding:18px;color:white;}
+.feedback.learning.correct{background:rgba(40,185,121,.94);}
+.feedback.learning.wrong{background:rgba(239,97,92,.94);}
+.feedback.learning.demo-feedback{background:rgba(47,125,242,.94);}
+.feedback.learning .main{font-size:clamp(34px,6.6vw,78px);line-height:1.05;margin-bottom:12px;}
+.choice-board{width:min(760px,94%);margin:auto;background:rgba(255,255,255,.18);border-radius:30px;padding:16px 18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.34),0 18px 42px rgba(0,0,0,.12);}
+.choice-picked-row{display:grid;grid-template-columns:110px 1fr;gap:16px;align-items:center;text-align:left;margin:0 auto 8px;}
+.choice-arrow{width:100px;height:100px;border-radius:30px;display:grid;place-items:center;background:rgba(255,255,255,.94);font-family:var(--font-display);font-size:72px;font-weight:1000;line-height:1;color:#1f6848;text-shadow:none;box-shadow:0 12px 26px rgba(0,0,0,.18);}
+.choice-arrow.up{color:var(--blueDeep)}.choice-arrow.down{color:var(--greenDeep)}.choice-arrow.left{color:var(--redDeep)}.choice-arrow.right{color:var(--yellowDeep)}
+.choice-picked-text{font-size:clamp(22px,3.2vw,42px);font-weight:1000;line-height:1.18;text-shadow:0 2px 0 rgba(0,0,0,.12);}
+.choice-picked-text small{display:block;font-size:clamp(13px,1.5vw,18px);font-weight:900;opacity:.86;margin-bottom:4px;}
+.choice-answer-line,.choice-note-line{font-size:clamp(16px,2vw,26px);font-weight:1000;line-height:1.35;margin-top:8px;}
+.choice-answer-line{background:rgba(255,255,255,.20);border-radius:18px;padding:9px 12px;display:inline-block;}
+.choice-note-line{opacity:.94;}
+.choice-time{font-size:clamp(24px,4vw,50px);font-weight:1000;margin:8px 0;}
+.demo-answer-card{opacity:0;transform:translateY(8px);transition:opacity .32s ease,transform .32s ease;background:#eef9ff;border-radius:24px;padding:13px 16px;font-size:clamp(16px,1.8vw,24px);font-weight:1000;line-height:1.38;box-shadow:0 10px 22px rgba(15,55,65,.08);}
+.demo-answer-card.show{opacity:1;transform:translateY(0);}
+.demo-slow-hint{font-size:clamp(13px,1.4vw,18px);font-weight:1000;color:#66777c;}
+@media(max-width:720px) and (orientation:portrait){
+  body.playing .ready-screen{padding:12px!important;gap:10px;overflow:auto;justify-content:center;}
+  .ready-title{font-size:clamp(24px,8.2vw,38px);}
+  .ready-lead{font-size:clamp(13px,4vw,17px);line-height:1.36;}
+  .ready-directions{grid-template-columns:1fr;gap:7px;margin:2px auto;}
+  .ready-dir-card{grid-template-columns:42px 1fr;border-radius:17px;padding:8px 9px;}
+  .ready-dir-card .arrow{width:38px;height:38px;border-radius:13px;font-size:24px;}
+  .ready-dir-card .name{font-size:clamp(15px,4.8vw,20px);}
+  .ready-dir-card .ex{font-size:clamp(10px,3.1vw,12px);margin-top:2px;}
+  .ready-start{min-width:100%;font-size:clamp(21px,7vw,31px)!important;padding:14px 10px!important;border-radius:22px!important;}
+  .ready-tip{font-size:11px;}
+  .feedback.learning{border-radius:22px;padding:12px;}
+  .feedback.learning .main{font-size:clamp(29px,9.4vw,46px);margin-bottom:8px;}
+  .choice-board{border-radius:22px;padding:12px;width:96%;}
+  .choice-picked-row{grid-template-columns:72px 1fr;gap:11px;margin-bottom:6px;}
+  .choice-arrow{width:70px;height:70px;border-radius:21px;font-size:52px;}
+  .choice-picked-text{font-size:clamp(20px,6.5vw,30px);}
+  .choice-picked-text small{font-size:clamp(12px,3.5vw,15px);}
+  .choice-answer-line,.choice-note-line{font-size:clamp(14px,4.2vw,18px);}
+  body.kids.playing .ready-directions{grid-template-columns:1fr;}
+}
+
+
+/* v18: 補助モード強調・フィードバック中央揃え・デモ分類表示 */
+body.playing .guide.assist{
+  outline:10px solid rgba(255,255,255,.98)!important;
+  box-shadow:0 0 0 18px rgba(255,246,160,.72),0 0 44px rgba(255,255,255,.98),0 0 72px rgba(255,205,62,.72),var(--soft)!important;
+  animation:assistStrongPulse 1.05s ease-in-out infinite alternate!important;
+  filter:brightness(1.28) saturate(1.38)!important;
+}
+.guide.assist>div::after{
+  content:"ヒント";
+  position:absolute;
+  left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  display:grid;
+  place-items:center;
+  min-width:84px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.96);
+  color:#17323b;
+  font-size:clamp(15px,1.7vw,24px);
+  font-weight:1000;
+  letter-spacing:.04em;
+  text-shadow:none;
+  box-shadow:0 8px 20px rgba(0,0,0,.18);
+  animation:assistBadgePulse .72s ease-in-out infinite alternate;
+  writing-mode:horizontal-tb;
+  text-orientation:mixed;
+  pointer-events:none;
+}
+body.playing .guide.left.assist>div::after,
+body.playing .guide.right.assist>div::after{font-size:clamp(13px,1.35vw,19px);min-width:68px;padding:6px 9px;}
+@keyframes assistStrongPulse{
+  from{opacity:.92;}
+  to{opacity:1;}
+}
+@keyframes assistBadgePulse{
+  from{transform:translate(-50%,-50%) scale(.96);}
+  to{transform:translate(-50%,-50%) scale(1.08);}
+}
+.hint.assist-hint{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(180deg,#fff7b8,#ffffff);
+  border-radius:999px;
+  padding:7px 14px;
+  color:#755100!important;
+  box-shadow:0 8px 18px rgba(126,90,0,.12);
+}
+.feedback.learning{align-items:center;justify-items:center;text-align:center;}
+.choice-board{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  min-height:min(420px,76dvh);
+}
+.choice-picked-row{
+  display:flex!important;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center!important;
+  grid-template-columns:none!important;
+  gap:10px!important;
+  margin:0 auto 10px!important;
+}
+.choice-picked-text{text-align:center!important;}
+.choice-picked-text small{text-align:center!important;}
+.choice-answer-line{display:block!important;text-align:center;margin-left:auto;margin-right:auto;}
+.choice-note-line{text-align:center;max-width:720px;margin-left:auto;margin-right:auto;}
+.choice-time{text-align:center;}
+.demo-answer-card{min-width:min(520px,92%);text-align:center;border-radius:28px;}
+.demo-answer-card.demo-up{background:linear-gradient(135deg,var(--blue),var(--blueDeep));color:white;}
+.demo-answer-card.demo-down{background:linear-gradient(135deg,var(--green),var(--greenDeep));color:white;}
+.demo-answer-card.demo-left{background:linear-gradient(135deg,var(--red),var(--redDeep));color:white;}
+.demo-answer-card.demo-right{background:linear-gradient(135deg,var(--yellow2),var(--yellow));color:var(--yellowDeep);}
+.demo-category-text,.demo-category-main{font-family:var(--font-display);font-weight:1000;line-height:1.05;letter-spacing:-.02em;}
+.demo-category-text{font-size:clamp(30px,4.8vw,66px);}
+.demo-category-main{font-size:clamp(54px,8vw,112px);text-shadow:0 5px 0 rgba(0,0,0,.12);}
+.demo-category-note{font-size:clamp(16px,2vw,28px);font-weight:1000;line-height:1.35;margin-top:12px;max-width:760px;}
+.feedback.learning.demo-feedback .choice-board{background:rgba(255,255,255,.16);}
+.feedback.learning.demo-feedback.demo-up{background:linear-gradient(135deg,rgba(47,125,242,.96),rgba(21,84,183,.96));}
+.feedback.learning.demo-feedback.demo-down{background:linear-gradient(135deg,rgba(40,185,121,.96),rgba(22,123,80,.96));}
+.feedback.learning.demo-feedback.demo-left{background:linear-gradient(135deg,rgba(239,97,92,.96),rgba(189,52,50,.96));}
+.feedback.learning.demo-feedback.demo-right{background:linear-gradient(135deg,rgba(255,240,166,.98),rgba(244,202,79,.98));color:var(--yellowDeep);}
+.feedback.learning.demo-feedback.demo-right .demo-category-main{text-shadow:0 2px 0 rgba(255,255,255,.55);}
+.demo-select-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:min(720px,100%);margin:8px auto 2px;}
+.demo-select-grid button{min-height:76px;font-size:clamp(18px,2.2vw,28px);}
+@media(max-width:720px) and (orientation:portrait){
+  body.playing .guide.assist{outline-width:6px!important;box-shadow:0 0 0 10px rgba(255,246,160,.72),0 0 32px rgba(255,255,255,.95),0 0 54px rgba(255,205,62,.74),var(--soft)!important;}
+  .guide.assist>div::after{min-width:54px;padding:5px 7px;font-size:12px;}
+  .hint.assist-hint{padding:5px 10px;}
+  .choice-board{min-height:min(340px,72dvh);}
+  .choice-picked-row{gap:7px!important;}
+  .demo-answer-card{min-width:100%;border-radius:22px;padding:12px 10px;}
+  .demo-category-text{font-size:clamp(27px,9vw,42px);}
+  .demo-category-main{font-size:clamp(42px,15vw,70px);}
+  .demo-category-note{font-size:clamp(14px,4.4vw,19px);margin-top:9px;}
+  .demo-select-grid{grid-template-columns:1fr;gap:9px;margin-top:6px;}
+  .demo-select-grid button{min-height:58px;}
+}
+
+/* v20: フィードバックをすっきり表示 */
+.choice-correct-clean,.choice-answer-line.clean{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center;font-size:clamp(24px,4.2vw,54px);font-family:var(--font-display);font-weight:1000;line-height:1.15;margin:10px auto 8px;}
+.choice-answer-line.clean{font-size:clamp(22px,3.6vw,46px);}
+.choice-correct-clean .answer-chip,.choice-answer-line.clean .answer-chip{font-size:.72em;padding:.24em .62em;}
+.choice-note-line{max-width:min(760px,92vw);margin-left:auto;margin-right:auto;text-align:center;}
+@media(max-width:520px){.choice-correct-clean,.choice-answer-line.clean{font-size:clamp(24px,9vw,42px);gap:7px;margin-top:8px}.choice-note-line{font-size:clamp(14px,4.6vw,19px)}}
+
+
+
+/* v22: 確認画面の整理・十字配置・キッズ左右修正 */
+.ready-directions.cross-4{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-areas:
+    "up up"
+    "left right"
+    "down down";
+  gap:10px;
+  width:min(640px,100%);
+  margin:6px auto;
+}
+.ready-directions.cross-4 .ready-dir-card.up{grid-area:up;width:min(310px,100%);justify-self:center;}
+.ready-directions.cross-4 .ready-dir-card.left{grid-area:left;}
+.ready-directions.cross-4 .ready-dir-card.right{grid-area:right;}
+.ready-directions.cross-4 .ready-dir-card.down{grid-area:down;width:min(310px,100%);justify-self:center;}
+.ready-directions.kids-confirm{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  width:min(620px,100%);
+  margin:8px auto;
+}
+.ready-directions.kids-confirm .ready-dir-card{min-height:104px;text-align:center;grid-template-columns:54px 1fr;}
+.ready-directions.kids-confirm .ready-dir-card .ex{display:none;}
+.ready-start .sub{display:none!important;}
+.ready-screen .ready-start{margin-top:8px;}
+.ready-screen .ready-tip{display:none!important;}
+body.kids .ready-title, body.kids .ready-lead{letter-spacing:.01em;}
+@media(max-width:720px) and (orientation:portrait){
+  .ready-directions.cross-4{grid-template-columns:1fr 1fr;gap:8px;width:100%;}
+  .ready-directions.cross-4 .ready-dir-card.up,
+  .ready-directions.cross-4 .ready-dir-card.down{width:min(260px,100%);}
+  .ready-directions.kids-confirm{grid-template-columns:1fr 1fr;gap:8px;width:100%;}
+  .ready-directions.kids-confirm .ready-dir-card{grid-template-columns:42px 1fr;min-height:82px;}
+}
+@media(max-width:430px) and (orientation:portrait){
+  .ready-directions.cross-4 .ready-dir-card{grid-template-columns:38px 1fr;padding:7px 8px;}
+  .ready-directions.cross-4 .ready-dir-card .arrow{width:35px;height:35px;font-size:22px;}
+  .ready-directions.cross-4 .ready-dir-card .name{font-size:clamp(14px,4.3vw,18px);}
+  .ready-directions.cross-4 .ready-dir-card .ex{font-size:10px;}
+}
+
+
+
+/* v22: デモラベルを左下へ移動・小学生確認見出しをひらがな化 */
+.demo-tag{top:auto!important;bottom:18px!important;left:24px!important;}
+@media(max-width:520px){.demo-tag{bottom:12px!important;left:14px!important;padding:7px 12px;font-size:12px;}}
+
+
+/* v8: タイトルロゴSVG差し替え */
+.title-logo-wrap{
+  width:min(680px,88%);
+  margin:0 auto 14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.title-logo{
+  display:block;
+  width:100%;
+  max-height:clamp(118px,24vh,230px);
+  object-fit:contain;
+  filter:drop-shadow(0 12px 20px rgba(15,55,65,.13));
+}
+.screen.title-screen{
+  justify-content:center;
+  gap:4px;
+}
+@media(max-width:860px){
+  .title-logo-wrap{width:min(720px,92%);margin-bottom:10px;}
+  .title-logo{max-height:clamp(112px,21vh,190px);}
+}
+@media(max-width:520px){
+  .title-logo-wrap{width:96%;margin-bottom:8px;}
+  .title-logo{max-height:clamp(98px,19vh,160px);}
+}
+
+
+/* v9: 16:9 PCタイトル画面でロゴを大きく表示 */
+.assist-status{
+  z-index:5;
+}
+.assist-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:7px 13px;
+  border-radius:999px;
+  background:rgba(255,255,255,.72);
+  box-shadow:0 8px 18px rgba(15,55,65,.08),inset 0 1px 0 rgba(255,255,255,.9);
+  color:#4a6269;
+  font-weight:1000;
+  letter-spacing:.02em;
+}
+.assist-dot{
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  box-shadow:0 0 0 3px rgba(255,255,255,.72);
+  background:#b7c4c8;
+}
+.assist-pill.assist-on{
+  color:#177955;
+  background:rgba(235,255,243,.84);
+}
+.assist-pill.assist-on .assist-dot{
+  background:#28b979;
+  box-shadow:0 0 0 3px rgba(255,255,255,.78),0 0 16px rgba(40,185,121,.72);
+}
+.assist-pill.assist-off .assist-dot{
+  background:#b8c4c8;
+}
+
+@media (min-width:900px) and (min-aspect-ratio: 14/10){
+  body:not(.playing):not(.result) .app{
+    padding:44px 118px;
+  }
+  .screen.title-screen{
+    width:min(1260px,86vw);
+    height:min(820px,88vh);
+    padding:24px 36px 30px;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .screen.title-screen .title-logo-wrap{
+    width:min(1100px,97%);
+    flex:1 1 auto;
+    min-height:0;
+    margin:0 auto 8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .screen.title-screen .title-logo{
+    width:100%;
+    max-height:min(55vh,500px);
+    object-fit:contain;
+    filter:drop-shadow(0 18px 26px rgba(15,55,65,.14));
+  }
+  .screen.title-screen .rule-flow{
+    display:none;
+  }
+  .screen.title-screen .mode-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    width:min(980px,94%);
+    gap:12px;
+    margin:0 auto 22px;
+  }
+  .screen.title-screen .mode-grid button{
+    min-height:70px;
+    padding:13px 12px;
+    border-radius:22px;
+    font-size:clamp(18px,1.45vw,25px);
+  }
+  .screen.title-screen .mode-grid button .sub{
+    margin-top:5px;
+    font-size:clamp(10px,.82vw,13px);
+    line-height:1.1;
+  }
+  .screen.title-screen .assist-status{
+    left:auto;
+    right:24px;
+    bottom:18px;
+    width:auto;
+    font-size:13px;
+  }
+}
+
+@media (min-width:1200px) and (min-aspect-ratio: 16/10){
+  .screen.title-screen .title-logo-wrap{
+    width:min(1180px,98%);
+  }
+  .screen.title-screen .title-logo{
+    max-height:min(58vh,540px);
+  }
+}
+
+
+/* v10: 新SVG差し替え・説明アイコン復活・補助表示はランプのみ */
+.assist-status{
+  pointer-events:none;
+}
+.assist-lamp{
+  display:inline-block;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:#b8c4c8;
+  border:3px solid rgba(255,255,255,.92);
+  box-shadow:0 8px 18px rgba(15,55,65,.14),inset 0 2px 4px rgba(255,255,255,.75);
+}
+.assist-lamp.assist-on{
+  background:#28b979;
+  box-shadow:0 8px 18px rgba(15,55,65,.14),0 0 0 5px rgba(40,185,121,.16),0 0 20px rgba(40,185,121,.82),inset 0 2px 4px rgba(255,255,255,.76);
+}
+.assist-lamp.assist-off{
+  background:#aebbc0;
+}
+.screen.title-screen .rule-flow{
+  display:grid;
+}
+@media (min-width:900px) and (min-aspect-ratio: 14/10){
+  .screen.title-screen{
+    width:min(1260px,86vw);
+    height:min(820px,88vh);
+    padding:24px 36px 30px;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .screen.title-screen .title-logo-wrap{
+    width:min(1040px,96%);
+    flex:1 1 auto;
+    min-height:0;
+    margin:0 auto 4px;
+  }
+  .screen.title-screen .title-logo{
+    max-height:min(46vh,430px);
+  }
+  .screen.title-screen .rule-flow{
+    display:grid!important;
+    grid-template-columns:repeat(3,1fr);
+    width:min(720px,82%);
+    gap:10px;
+    margin:0 auto 10px;
+  }
+  .screen.title-screen .step{
+    padding:9px 8px;
+    border-radius:20px;
+  }
+  .screen.title-screen .step .icon{
+    font-size:clamp(25px,2.4vw,38px);
+  }
+  .screen.title-screen .step .text{
+    font-size:clamp(13px,1.1vw,17px);
+    margin-top:3px;
+  }
+  .screen.title-screen .mode-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    width:min(980px,94%);
+    gap:12px;
+    margin:0 auto 18px;
+  }
+  .screen.title-screen .assist-status{
+    left:auto;
+    right:26px;
+    bottom:20px;
+    width:auto;
+  }
+}
+@media (min-width:1200px) and (min-aspect-ratio: 16/10){
+  .screen.title-screen .title-logo-wrap{
+    width:min(1100px,98%);
+  }
+  .screen.title-screen .title-logo{
+    max-height:min(48vh,460px);
+  }
+}
+@media(max-width:520px){
+  .assist-lamp{width:18px;height:18px;border-width:2px;}
+}
+
+
+/* v11: タイトルロゴ下の余白を少し詰める */
+.title-logo-wrap{
+  margin-bottom:6px;
+}
+.screen.title-screen{
+  gap:2px;
+}
+@media (min-width:900px) and (min-aspect-ratio: 14/10){
+  .screen.title-screen .title-logo-wrap{
+    margin:0 auto 0;
+  }
+  .screen.title-screen .rule-flow{
+    margin-top:0;
+  }
+}
+@media(max-width:860px){
+  .title-logo-wrap{margin-bottom:5px;}
+}
+@media(max-width:520px){
+  .title-logo-wrap{margin-bottom:4px;}
+}
+
+
+/* v12: 全画面PC時の中央領域を少し低くして上下マージンを圧縮 */
+@media (min-width:900px) and (min-aspect-ratio: 14/10){
+  body:not(.playing):not(.result) .app{
+    padding:28px 118px!important;
+  }
+  .screen.title-screen{
+    height:min(700px,78vh)!important;
+    width:min(1260px,86vw)!important;
+    padding:18px 34px 24px!important;
+    border-radius:34px;
+    gap:4px!important;
+  }
+  .screen.title-screen .title-logo-wrap{
+    width:min(1040px,96%)!important;
+    margin:0 auto -2px!important;
+    flex:1 1 auto;
+  }
+  .screen.title-screen .title-logo{
+    max-height:min(42vh,390px)!important;
+  }
+  .screen.title-screen .rule-flow{
+    width:min(700px,80%)!important;
+    gap:9px!important;
+    margin:0 auto 8px!important;
+  }
+  .screen.title-screen .step{
+    padding:8px 8px!important;
+    border-radius:19px!important;
+  }
+  .screen.title-screen .step .icon{
+    font-size:clamp(24px,2.2vw,34px)!important;
+  }
+  .screen.title-screen .step .text{
+    font-size:clamp(12px,1vw,16px)!important;
+    margin-top:2px!important;
+  }
+  .screen.title-screen .mode-grid{
+    width:min(940px,92%)!important;
+    gap:10px!important;
+    margin:0 auto 12px!important;
+  }
+  .screen.title-screen .mode-grid button{
+    min-height:64px!important;
+    padding:11px 10px!important;
+    border-radius:20px!important;
+  }
+  .screen.title-screen .assist-status{
+    right:24px!important;
+    bottom:16px!important;
+  }
+}
+@media (min-width:1200px) and (min-aspect-ratio: 16/10){
+  .screen.title-screen{
+    height:min(720px,76vh)!important;
+  }
+  .screen.title-screen .title-logo{
+    max-height:min(43vh,410px)!important;
+  }
+}
+
+
+/* v13: タイトル中央領域の横幅を圧縮・スマホロゴを少し大きく */
+@media (min-width:900px) and (min-aspect-ratio: 14/10){
+  .screen.title-screen{
+    width:min(980px,74vw)!important;
+    height:min(700px,78vh)!important;
+    padding:18px 30px 24px!important;
+  }
+  .screen.title-screen .title-logo-wrap{
+    width:min(880px,98%)!important;
+  }
+  .screen.title-screen .rule-flow{
+    width:min(640px,86%)!important;
+  }
+  .screen.title-screen .mode-grid{
+    width:min(840px,96%)!important;
+    gap:9px!important;
+  }
+  .screen.title-screen .mode-grid button{
+    min-height:62px!important;
+    padding:10px 8px!important;
+  }
+}
+@media (min-width:1200px) and (min-aspect-ratio: 16/10){
+  .screen.title-screen{
+    width:min(1020px,72vw)!important;
+  }
+  .screen.title-screen .title-logo-wrap{
+    width:min(910px,98%)!important;
+  }
+}
+@media(max-width:520px){
+  .title-logo-wrap,
+  .screen.title-screen .title-logo-wrap{
+    width:100%!important;
+    margin-bottom:3px!important;
+  }
+  .title-logo,
+  .screen.title-screen .title-logo{
+    max-height:clamp(120px,24vh,190px)!important;
+  }
+}
+@media(max-width:390px){
+  .title-logo,
+  .screen.title-screen .title-logo{
+    max-height:clamp(112px,23vh,176px)!important;
+  }
+}
+
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="guide up" data-dir="up"><div><span class="big">↑ 資源</span><span class="small guide-example">ペットボトル・缶・びん・紙など</span></div></div>
+  <div class="guide down" data-dir="down"><div><span class="big">↓ 連絡ごみ</span><span class="small guide-example">家具・自転車など</span></div></div>
+  <div class="guide left" data-dir="left"><div><span class="big">←<br>もえるごみ</span><span class="small guide-example">生ごみ・紙くず・木や布など</span></div></div>
+  <div class="guide right" data-dir="right"><div><span class="big">→<br>もえないごみ</span><span class="small guide-example">ガラス・せともの・金属など</span></div></div>
+  <main class="screen" id="screen"></main>
+</div>
+
+<div class="modal" id="settingsModal"><div class="modal-panel">
+  <h2>運営設定</h2>
+  <div class="setting-row"><label>1問の時間（秒）</label><input id="cfgTime" type="number" min="3" max="20" step="1"></div>
+  <div class="setting-row"><label>クリア正解数</label><input id="cfgClear" type="number" min="1" max="10" step="1"></div>
+  <div class="setting-row"><label class="inline"><input id="cfgAssist" type="checkbox"> 補助あり（正解方向を光らせる）</label></div>
+  <div class="setting-row"><label>音量</label><input id="cfgVolume" type="range" min="0" max="1" step="0.05"></div>
+  <div class="setting-row"><div>総合ハイスコア：<span id="bestScoreLabel">0</span>問</div></div>
+  <div class="admin-actions"><button onclick="resetScores()">スコアリセット</button><button onclick="closeSettings()">閉じる</button></div>
+</div></div>
+
+<div class="modal" id="editorModal"><div class="modal-panel wide">
+  <h2>問題リスト編集</h2>
+  <div class="editor-toolbar">
+    <input id="editorSearch" placeholder="検索">
+    <select id="editorGroup"><option value="all">すべて</option><option value="kids">キッズ</option><option value="school">小学生</option><option value="normal">チャレンジふつう</option><option value="hard">チャレンジむずかしい</option><option value="enabled">ONのみ</option><option value="disabled">OFFのみ</option></select>
+    <button onclick="resetProblemsToDefault()">標準に戻す</button>
+    <button onclick="closeEditor()">閉じる</button>
+  </div>
+  <p class="tiny" id="editorCount"></p>
+  <div class="problem-table" id="problemTable"></div>
+</div></div>
+
+<script>
+const DEFAULT_PROBLEMS=[{"id":"q001","name":"りんごの芯","emoji":"🍎","ans":"left","note":"食べ物のごみは、もえるごみ。","group":"kids","enabled":true,"kana":"りんごのしん","kidNote":"たべものは、もえるごみ。","schoolName":"りんごのしん","schoolNote":"たべものは、もえるごみ。","kidName":"りんごのしん"},{"id":"q002","name":"バナナの皮","emoji":"🍌","ans":"left","note":"生ごみは水を切って、もえるごみ。","group":"kids","enabled":true,"kana":"ばななのかわ","kidNote":"たべものは、もえるごみ。","schoolName":"バナナのかわ","schoolNote":"たべものは、もえるごみ。","kidName":"ばななのかわ"},{"id":"q003","name":"使用済みティッシュ","emoji":"🧻","ans":"left","note":"汚れた紙は、もえるごみ。","group":"kids","enabled":true,"kana":"つかったてぃっしゅ","kidNote":"よごれたかみは、もえるごみ。","schoolName":"つかったティッシュ","schoolNote":"よごれたかみは、もえるごみ。","kidName":"つかったてぃっしゅ"},{"id":"q004","name":"紙くず","emoji":"📄","ans":"left","note":"汚れた紙は、もえるごみ。","group":"kids","enabled":true,"kana":"かみくず","kidNote":"よごれたかみは、もえるごみ。","schoolName":"かみくず","schoolNote":"よごれたかみは、もえるごみ。","kidName":"かみくず"},{"id":"q005","name":"割り箸","emoji":"🥢","ans":"left","note":"木製のものは、もえるごみ。","group":"kids","enabled":true,"kana":"わりばし","kidNote":"きのものは、もえるごみ。","schoolName":"わりばし","schoolNote":"木のものは、もえるごみ。","kidName":"わりばし"},{"id":"q006","name":"鉛筆","emoji":"✏️","ans":"left","note":"鉛筆は、もえるごみ。","group":"kids","enabled":true,"kana":"えんぴつ","kidNote":"えんぴつは、もえるごみ。","schoolName":"えんぴつ","schoolNote":"えんぴつは、もえるごみ。","kidName":"えんぴつ"},{"id":"q007","name":"落ち葉","emoji":"🍂","ans":"left","note":"少量の落ち葉は、もえるごみ。","group":"kids","enabled":true,"kana":"おちば","kidNote":"はっぱは、もえるごみ。","schoolName":"おちば","schoolNote":"はっぱは、もえるごみ。","kidName":"おちば"},{"id":"q008","name":"ぬいぐるみ","emoji":"🧸","ans":"left","note":"小さいぬいぐるみは、もえるごみ。","group":"kids","enabled":true,"kana":"ぬいぐるみ","kidNote":"ちいさいものは、もえるごみ。","schoolName":"ぬいぐるみ","schoolNote":"小さいものは、もえるごみ。","kidName":"ぬいぐるみ"},{"id":"q009","name":"靴","emoji":"👟","ans":"left","note":"靴は、もえるごみ。","group":"kids","enabled":true,"kana":"くつ","kidNote":"くつは、もえるごみ。","schoolName":"くつ","schoolNote":"くつは、もえるごみ。","kidName":"くつ"},{"id":"q010","name":"紙おむつ","emoji":"👶","ans":"left","note":"汚物を取り除いて、もえるごみ。","group":"kids","enabled":true,"kana":"おむつ","kidNote":"よごれをとって、もえるごみ。","schoolName":"おむつ","schoolNote":"よごれをとって、もえるごみ。","kidName":"おむつ"},{"id":"q011","name":"スポンジ","emoji":"🧽","ans":"left","note":"スポンジは、もえるごみ。","group":"kids","enabled":true,"kana":"すぽんじ","kidNote":"やわらかいぷらは、もえるごみ。","schoolName":"スポンジ","schoolNote":"スポンジは、もえるごみ。","kidName":"すぽんじ"},{"id":"q012","name":"石けん","emoji":"🧼","ans":"left","note":"石けんは、もえるごみ。","group":"kids","enabled":true,"kana":"せっけん","kidNote":"せっけんは、もえるごみ。","schoolName":"せっけん","schoolNote":"せっけんは、もえるごみ。","kidName":"せっけん"},{"id":"q013","name":"毛糸","emoji":"🧶","ans":"left","note":"毛糸は、もえるごみ。","group":"kids","enabled":true,"kana":"けいと","kidNote":"けいとは、もえるごみ。","schoolName":"けいと","schoolNote":"けいとは、もえるごみ。","kidName":"けいと"},{"id":"q014","name":"クレヨン","emoji":"🖍️","ans":"left","note":"クレヨンは、もえるごみ。","group":"kids","enabled":true,"kana":"くれよん","kidNote":"くれよんは、もえるごみ。","schoolName":"クレヨン","schoolNote":"クレヨンは、もえるごみ。","kidName":"くれよん"},{"id":"q015","name":"ストロー","emoji":"🥤","ans":"left","note":"ストローは、もえるごみ。","group":"kids","enabled":true,"kana":"すとろー","kidNote":"すとろーは、もえるごみ。","schoolName":"ストロー","schoolNote":"ストローは、もえるごみ。","kidName":"すとろー"},{"id":"q016","name":"輪ゴム","emoji":"⭕","ans":"left","note":"ゴム製品は、もえるごみ。","group":"kids","enabled":true,"kana":"わごむ","kidNote":"ごむは、もえるごみ。","schoolName":"わゴム","schoolNote":"ゴムは、もえるごみ。","kidName":"わごむ"},{"id":"q017","name":"草履","emoji":"🩴","ans":"left","note":"草履は、もえるごみ。","group":"kids","enabled":true,"kana":"ぞうり","kidNote":"ぞうりは、もえるごみ。","schoolName":"ぞうり","schoolNote":"ぞうりは、もえるごみ。","kidName":"ぞうり"},{"id":"q018","name":"テニスボール","emoji":"🎾","ans":"left","note":"ボールは、もえるごみ。","group":"kids","enabled":true,"kana":"てにすぼーる","kidNote":"ぼーるは、もえるごみ。","schoolName":"テニスボール","schoolNote":"ボールは、もえるごみ。","kidName":"てにすぼーる"},{"id":"q019","name":"歯ブラシ","emoji":"🪥","ans":"left","note":"歯ブラシは、もえるごみ。","group":"kids","enabled":true,"kana":"はぶらし","kidNote":"はぶらしは、もえるごみ。","schoolName":"はブラシ","schoolNote":"はブラシは、もえるごみ。","kidName":"はぶらし"},{"id":"q020","name":"積み木","emoji":"🧱","ans":"left","note":"小さい木製品は、もえるごみ。","group":"kids","enabled":true,"kana":"つみき","kidNote":"きのものは、もえるごみ。","schoolName":"つみ木","schoolNote":"木のものは、もえるごみ。","kidName":"つみき"},{"id":"q021","name":"割れたコップ","emoji":"🥛","ans":"right","note":"ガラスは、もえないごみ。","group":"kids","enabled":true,"kana":"われたこっぷ","kidNote":"がらすは、もえないごみ。","schoolName":"われたコップ","schoolNote":"ガラスは、もえないごみ。","kidName":"われたこっぷ"},{"id":"q022","name":"茶わん","emoji":"🍚","ans":"right","note":"陶器は、もえないごみ。","group":"kids","enabled":true,"kana":"おちゃわん","kidNote":"せとものは、もえないごみ。","schoolName":"おちゃわん","schoolNote":"せとものは、もえないごみ。","kidName":"おちゃわん"},{"id":"q023","name":"皿","emoji":"🍽️","ans":"right","note":"陶器は、もえないごみ。","group":"kids","enabled":true,"kana":"おさら","kidNote":"せとものは、もえないごみ。","schoolName":"おさら","schoolNote":"せとものは、もえないごみ。","kidName":"おさら"},{"id":"q024","name":"鍋","emoji":"🍲","ans":"right","note":"金属製品は、もえないごみ。","group":"kids","enabled":true,"kana":"なべ","kidNote":"きんぞくは、もえないごみ。","schoolName":"なべ","schoolNote":"金ぞくは、もえないごみ。","kidName":"なべ"},{"id":"q025","name":"フライパン","emoji":"🍳","ans":"right","note":"金属製品は、もえないごみ。","group":"kids","enabled":true,"kana":"ふらいぱん","kidNote":"きんぞくは、もえないごみ。","schoolName":"フライパン","schoolNote":"金ぞくは、もえないごみ。","kidName":"ふらいぱん"},{"id":"q026","name":"金属スプーン","emoji":"🥄","ans":"right","note":"金属製品は、もえないごみ。","group":"kids","enabled":true,"kana":"すぷーん","kidNote":"きんぞくは、もえないごみ。","schoolName":"金ぞくスプーン","schoolNote":"金ぞくは、もえないごみ。","kidName":"すぷーん"},{"id":"q027","name":"はさみ","emoji":"✂️","ans":"right","note":"刃物は包んで、もえないごみ。","group":"kids","enabled":true,"kana":"はさみ","kidNote":"きんぞくは、もえないごみ。","schoolName":"はさみ","schoolNote":"あぶなくないように、つつもう。","kidName":"はさみ"},{"id":"q028","name":"鍵","emoji":"🔑","ans":"right","note":"金属製品は、もえないごみ。","group":"kids","enabled":true,"kana":"かぎ","kidNote":"きんぞくは、もえないごみ。","schoolName":"かぎ","schoolNote":"金ぞくは、もえないごみ。","kidName":"かぎ"},{"id":"q029","name":"鏡","emoji":"🪞","ans":"right","note":"鏡は、もえないごみ。","group":"kids","enabled":true,"kana":"かがみ","kidNote":"がらすは、もえないごみ。","schoolName":"かがみ","schoolNote":"ガラスは、もえないごみ。","kidName":"かがみ"},{"id":"q030","name":"電球","emoji":"💡","ans":"right","note":"電球は、もえないごみ。","group":"kids","enabled":true,"kana":"でんきゅう","kidNote":"でんきゅうは、もえないごみ。","schoolName":"でんきゅう","schoolNote":"でんきゅうは、もえないごみ。","kidName":"でんきゅう"},{"id":"q031","group":"school","enabled":true,"name":"ペットボトル","emoji":"🧴","ans":"up","note":"キャップとラベルを外して資源。","schoolName":"ペットボトル","schoolNote":"キャップとラベルをはずして、しげん。"},{"id":"q032","group":"school","enabled":true,"name":"ペットボトルのキャップ","emoji":"🔵","ans":"up","note":"ボトルから外して資源。","schoolName":"ペットボトルのキャップ","schoolNote":"ボトルからはずして、しげん。"},{"id":"q033","group":"school","enabled":true,"name":"ペットボトルのラベル","emoji":"🏷️","ans":"up","note":"ボトルから外して資源。","schoolName":"ペットボトルのラベル","schoolNote":"ボトルからはずして、しげん。"},{"id":"q034","group":"school","enabled":true,"name":"ジュースのアルミ缶","emoji":"🥫","ans":"up","note":"中をすすいで資源。","schoolName":"ジュースのアルミかん","schoolNote":"中をすすいで、しげん。"},{"id":"q035","group":"school","enabled":true,"name":"お茶のスチール缶","emoji":"🥫","ans":"up","note":"中をすすいで資源。","schoolName":"おちゃのスチールかん","schoolNote":"中をすすいで、しげん。"},{"id":"q036","group":"school","enabled":true,"name":"ジュースのびん","emoji":"🍾","ans":"up","note":"キャップを外して資源。","schoolName":"ジュースのびん","schoolNote":"キャップをはずして、しげん。"},{"id":"q037","group":"school","enabled":true,"name":"新聞紙","emoji":"📰","ans":"up","note":"紙の資源にまとめよう。","schoolName":"しんぶんし","schoolNote":"かみのしげん。まとめて出そう。"},{"id":"q038","group":"school","enabled":true,"name":"雑誌","emoji":"📚","ans":"up","note":"紙の資源にまとめよう。","schoolName":"ざっし","schoolNote":"かみのしげん。まとめて出そう。"},{"id":"q039","group":"school","enabled":true,"name":"段ボール","emoji":"📦","ans":"up","note":"たたんで資源。","schoolName":"ダンボール","schoolNote":"たたんで、しげん。"},{"id":"q040","group":"school","enabled":true,"name":"牛乳パック","emoji":"🥛","ans":"up","note":"洗って開いて乾かそう。","schoolName":"ぎゅうにゅうパック","schoolNote":"あらって、ひらいて、かわかそう。"},{"id":"q041","group":"school","enabled":true,"name":"きれいな食品トレー","emoji":"🥩","ans":"up","note":"洗えるトレーは資源。","schoolName":"きれいなトレー","schoolNote":"あらえるものは、しげん。"},{"id":"q042","group":"school","enabled":true,"name":"プラマークの菓子袋","emoji":"🍬","ans":"up","note":"きれいなら資源。","schoolName":"おかしのふくろ（プラマーク）","schoolNote":"きれいなら、しげん。"},{"id":"q043","group":"school","enabled":true,"name":"プラマークのパン袋","emoji":"🍞","ans":"up","note":"汚れがなければ資源。","schoolName":"パンのふくろ（プラマーク）","schoolNote":"きれいなら、しげん。"},{"id":"q044","group":"school","enabled":true,"name":"プラマークのプリンカップ","emoji":"🍮","ans":"up","note":"すすげるなら資源。","schoolName":"プリンのカップ（プラマーク）","schoolNote":"すすいで、しげん。"},{"id":"q045","group":"school","enabled":true,"name":"お菓子の紙箱","emoji":"📦","ans":"up","note":"きれいな紙は資源。","schoolName":"おかしの紙ばこ","schoolNote":"きれいな紙は、しげん。"},{"id":"q046","group":"school","enabled":true,"name":"トイレットペーパーの芯","emoji":"🧻","ans":"up","note":"きれいな紙は資源。","schoolName":"トイレットペーパーのしん","schoolNote":"きれいな紙は、しげん。"},{"id":"q047","group":"school","enabled":true,"name":"ジャムのびん","emoji":"🫙","ans":"up","note":"食べもののびんは資源。","schoolName":"ジャムのびん","schoolNote":"たべもののびんは、しげん。"},{"id":"q048","group":"school","enabled":true,"name":"プラマークのたまごパック","emoji":"🥚","ans":"up","note":"きれいなら資源。","schoolName":"たまごパック（プラマーク）","schoolNote":"きれいなら、しげん。"},{"id":"q049","group":"school","enabled":true,"name":"食品用ラップ","emoji":"🧻","ans":"left","note":"ラップはもえるごみ。","schoolName":"ラップ","schoolNote":"ラップは、もえるごみ。"},{"id":"q050","group":"school","enabled":true,"name":"紙コップ","emoji":"🥤","ans":"left","note":"紙やプラのコップは、もえるごみ。","schoolName":"紙コップ","schoolNote":"紙のコップは、もえるごみ。"},{"id":"q051","group":"school","enabled":true,"name":"汚れた食品トレー","emoji":"🥩","ans":"left","note":"洗えないものは、もえるごみ。","schoolName":"よごれたトレー","schoolNote":"あらえないものは、もえるごみ。"},{"id":"q052","group":"school","enabled":true,"name":"汚れた菓子袋","emoji":"🍬","ans":"left","note":"汚れが落ちないプラは、もえるごみ。","schoolName":"よごれたおかしぶくろ","schoolNote":"よごれがおちないものは、もえるごみ。"},{"id":"q053","group":"school","enabled":true,"name":"ペンのキャップ（金属なし）","emoji":"🖊️","ans":"left","note":"金属でないキャップは、もえるごみ。","schoolName":"ペンのキャップ","schoolNote":"金ぞくでなければ、もえるごみ。"},{"id":"q054","group":"school","enabled":true,"name":"プラスチックの植木鉢","emoji":"🪴","ans":"left","note":"プラスチックの植木鉢は、もえるごみ。","schoolName":"プラスチックのうえきばち","schoolNote":"プラのうえきばちは、もえるごみ。"},{"id":"q055","group":"school","enabled":true,"name":"プラスチックのおもちゃ","emoji":"🧸","ans":"left","note":"金属・ガラスがなければ、もえるごみ。","schoolName":"プラスチックのおもちゃ","schoolNote":"金ぞくやガラスがなければ、もえるごみ。"},{"id":"q056","group":"school","enabled":true,"name":"プラスチックのコップ","emoji":"🥤","ans":"left","note":"プラスチックのコップは、もえるごみ。","schoolName":"プラスチックのコップ","schoolNote":"プラのコップは、もえるごみ。"},{"id":"q057","group":"school","enabled":true,"name":"ストロー","emoji":"🥤","ans":"left","note":"ストローは、もえるごみ。","schoolName":"ストロー","schoolNote":"ストローは、もえるごみ。"},{"id":"q058","group":"school","enabled":true,"name":"消しゴム","emoji":"🧽","ans":"left","note":"消しゴムは、もえるごみ。","schoolName":"けしゴム","schoolNote":"けしゴムは、もえるごみ。"},{"id":"q059","group":"school","enabled":true,"name":"うちわ","emoji":"🪭","ans":"left","note":"うちわは、もえるごみ。","schoolName":"うちわ","schoolNote":"うちわは、もえるごみ。"},{"id":"q060","group":"school","enabled":true,"name":"リコーダー","emoji":"🎵","ans":"left","note":"リコーダーは、もえるごみ。","schoolName":"リコーダー","schoolNote":"リコーダーは、もえるごみ。"},{"id":"q061","group":"school","enabled":true,"name":"ランドセル","emoji":"🎒","ans":"left","note":"ランドセルは、もえるごみ。","schoolName":"ランドセル","schoolNote":"ランドセルは、もえるごみ。"},{"id":"q062","group":"school","enabled":true,"name":"プラスチックのじょうろ","emoji":"🪴","ans":"left","note":"プラスチック製は、もえるごみ。","schoolName":"プラスチックのじょうろ","schoolNote":"プラのじょうろは、もえるごみ。"},{"id":"q063","group":"school","enabled":true,"name":"洗面器","emoji":"🪣","ans":"left","note":"洗面器は、もえるごみ。","schoolName":"せんめんき","schoolNote":"せんめんきは、もえるごみ。"},{"id":"q064","group":"school","enabled":true,"name":"金属のおたま","emoji":"🥄","ans":"right","note":"金属製は、もえないごみ。","schoolName":"金ぞくのおたま","schoolNote":"金ぞくは、もえないごみ。"},{"id":"q065","group":"school","enabled":true,"name":"陶器の皿","emoji":"🍽️","ans":"right","note":"陶器・ガラスは、もえないごみ。","schoolName":"とうきのおさら","schoolNote":"とうきやガラスは、もえないごみ。"},{"id":"q066","group":"school","enabled":true,"name":"金属のバケツ","emoji":"🪣","ans":"right","note":"金属製は、もえないごみ。","schoolName":"金ぞくのバケツ","schoolNote":"金ぞくは、もえないごみ。"},{"id":"q067","group":"school","enabled":true,"name":"虫めがね","emoji":"🔍","ans":"right","note":"虫めがねは、もえないごみ。","schoolName":"むしめがね","schoolNote":"むしめがねは、もえないごみ。"},{"id":"q068","group":"school","enabled":true,"name":"めがね","emoji":"👓","ans":"right","note":"めがねは、もえないごみ。","schoolName":"めがね","schoolNote":"めがねは、もえないごみ。"},{"id":"q069","group":"school","enabled":true,"name":"電卓","emoji":"🧮","ans":"right","note":"電池は外して出そう。","schoolName":"でんたく","schoolNote":"でんちは、はずそう。"},{"id":"q070","group":"school","enabled":true,"name":"懐中電灯","emoji":"🔦","ans":"right","note":"電池は外して出そう。","schoolName":"かいちゅうでんとう","schoolNote":"でんちは、はずそう。"},{"id":"q071","group":"school","enabled":true,"name":"延長コード","emoji":"🔌","ans":"right","note":"コードは、もえないごみ。","schoolName":"えんちょうコード","schoolNote":"コードは、もえないごみ。"},{"id":"q072","group":"school","enabled":true,"name":"オーブントースター","emoji":"🍞","ans":"right","note":"トースターは、もえないごみ。","schoolName":"トースター","schoolNote":"トースターは、もえないごみ。"},{"id":"q073","group":"school","enabled":true,"name":"傘","emoji":"☂️","ans":"right","note":"傘は、もえないごみ。","schoolName":"かさ","schoolNote":"かさは、もえないごみ。"},{"id":"q074","group":"school","enabled":true,"name":"爪切り","emoji":"✂️","ans":"right","note":"爪切りは、もえないごみ。","schoolName":"つめきり","schoolNote":"つめきりは、もえないごみ。"},{"id":"q075","group":"school","enabled":true,"name":"かなづち","emoji":"🔨","ans":"right","note":"金属の工具は、もえないごみ。","schoolName":"かなづち","schoolNote":"金ぞくのどうぐは、もえないごみ。"},{"id":"q076","group":"school","enabled":true,"name":"画鋲","emoji":"📌","ans":"right","note":"危なくないよう包もう。","schoolName":"がびょう","schoolNote":"あぶなくないように、つつもう。"},{"id":"q077","group":"school","enabled":true,"name":"鉛筆削り器","emoji":"✏️","ans":"right","note":"電池は外して出そう。","schoolName":"えんぴつけずりき","schoolNote":"でんちは、はずそう。"},{"id":"q078","group":"school","enabled":true,"name":"ゲーム機","emoji":"🎮","ans":"right","note":"電池は外して出そう。","schoolName":"ゲームき","schoolNote":"でんちは、はずそう。"},{"id":"q079","group":"school","enabled":true,"name":"時計","emoji":"⏰","ans":"right","note":"電池は外して出そう。","schoolName":"とけい","schoolNote":"でんちは、はずそう。"},{"id":"q080","group":"school","enabled":true,"name":"自転車","emoji":"🚲","ans":"down","note":"自転車は連絡ごみ。","schoolName":"じてんしゃ","schoolNote":"じてんしゃは、れんらくごみ。"},{"id":"q081","group":"school","enabled":true,"name":"学習机","emoji":"🧑‍💻","ans":"down","note":"学習机は連絡ごみ。","schoolName":"べんきょうづくえ","schoolNote":"つくえは、れんらくごみ。"},{"id":"q082","group":"school","enabled":true,"name":"ソファー","emoji":"🛋️","ans":"down","note":"ソファーは連絡ごみ。","schoolName":"ソファー","schoolNote":"ソファーは、れんらくごみ。"},{"id":"q083","group":"school","enabled":true,"name":"ベビーカー","emoji":"👶","ans":"down","note":"ベビーカーは連絡ごみ。","schoolName":"ベビーカー","schoolNote":"ベビーカーは、れんらくごみ。"},{"id":"q084","group":"school","enabled":true,"name":"ふとん（切らずに出す）","emoji":"🛏️","ans":"down","note":"切らずに出すと連絡ごみ。","schoolName":"ふとん（きらずに出す）","schoolNote":"きらずに出すと、れんらくごみ。"},{"id":"q085","group":"school","enabled":true,"name":"三輪車","emoji":"🚲","ans":"down","note":"三輪車は連絡ごみ。","schoolName":"さんりんしゃ","schoolNote":"さんりんしゃは、れんらくごみ。"},{"id":"q086","group":"school","enabled":true,"name":"大きな椅子","emoji":"🪑","ans":"down","note":"大きな椅子は連絡ごみ。","schoolName":"大きないす","schoolNote":"大きいいすは、れんらくごみ。"},{"id":"q087","group":"school","enabled":true,"name":"大きな本棚","emoji":"📚","ans":"down","note":"大きな本棚は連絡ごみ。","schoolName":"大きい本だな","schoolNote":"大きい本だなは、れんらくごみ。"},{"id":"q088","group":"school","enabled":true,"name":"カーペット（切らずに出す）","emoji":"🧺","ans":"down","note":"切らずに出すと連絡ごみ。","schoolName":"カーペット（きらずに出す）","schoolNote":"きらずに出すと、れんらくごみ。"},{"id":"q089","group":"school","enabled":true,"name":"ロッカー","emoji":"🗄️","ans":"down","note":"大きな収納は連絡ごみ。","schoolName":"ロッカー","schoolNote":"ロッカーは、れんらくごみ。"},{"id":"q090","group":"school","enabled":true,"name":"大きいテーブル","emoji":"🪑","ans":"down","note":"大きいテーブルは連絡ごみ。","schoolName":"大きいテーブル","schoolNote":"大きいテーブルは、れんらくごみ。"},{"id":"q091","name":"金属のアクセサリー","emoji":"💍","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q092","name":"家電用アダプター","emoji":"🔌","ans":"right","note":"小型家電系はもえない。","group":"normal","enabled":true},{"id":"q093","name":"安全靴","emoji":"🥾","ans":"right","note":"金属入りはもえない。","group":"normal","enabled":true},{"id":"q094","name":"イヤホン","emoji":"🎧","ans":"right","note":"電池は外して出そう。","group":"normal","enabled":true},{"id":"q095","name":"インスタントカメラ","emoji":"📷","ans":"right","note":"カメラ類はもえない。","group":"normal","enabled":true},{"id":"q096","name":"陶器の植木鉢","emoji":"🪴","ans":"right","note":"陶器はもえない。","group":"normal","enabled":true},{"id":"q097","name":"金属のおけ","emoji":"🪣","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q098","name":"金属のお盆","emoji":"🍱","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q099","name":"オルゴール","emoji":"🎵","ans":"right","note":"オルゴールはもえない。","group":"normal","enabled":true},{"id":"q100","name":"金属のおろし金","emoji":"🥕","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q101","name":"小さい加湿器","emoji":"💧","ans":"right","note":"電池は外して出そう。","group":"normal","enabled":true},{"id":"q102","name":"カセットコンロ","emoji":"🍲","ans":"right","note":"ボンベを外して出そう。","group":"normal","enabled":true},{"id":"q103","name":"金だわし","emoji":"🧽","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q104","name":"ガラスの花びん","emoji":"🏺","ans":"right","note":"ガラス・陶器はもえない。","group":"normal","enabled":true},{"id":"q105","name":"カメラ","emoji":"📷","ans":"right","note":"電池は外して出そう。","group":"normal","enabled":true},{"id":"q106","name":"小さいガラス","emoji":"🪟","ans":"right","note":"割れ物は紙で包もう。","group":"normal","enabled":true},{"id":"q107","name":"釘","emoji":"📌","ans":"right","note":"紙で包んで出そう。","group":"normal","enabled":true},{"id":"q108","name":"金属のくし","emoji":"💇","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q109","name":"電飾コード","emoji":"✨","ans":"right","note":"コードはもえない。","group":"normal","enabled":true},{"id":"q110","name":"電気ケーブル","emoji":"🔌","ans":"right","note":"短くしてもえないごみ。","group":"normal","enabled":true},{"id":"q111","name":"コンセント","emoji":"🔌","ans":"right","note":"コードは短く切る。","group":"normal","enabled":true},{"id":"q112","name":"金属の皿","emoji":"🍽️","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q113","name":"CDプレーヤー","emoji":"💿","ans":"right","note":"電池は外して出そう。","group":"normal","enabled":true},{"id":"q114","name":"磁石","emoji":"🧲","ans":"right","note":"磁石はもえない。","group":"normal","enabled":true},{"id":"q115","name":"シャワーヘッド","emoji":"🚿","ans":"right","note":"ヘッドはもえない。","group":"normal","enabled":true},{"id":"q116","name":"充電器","emoji":"🔌","ans":"right","note":"充電器はもえない。","group":"normal","enabled":true},{"id":"q117","name":"ガラスの水槽","emoji":"🐟","ans":"right","note":"ガラス製はもえない。","group":"normal","enabled":true},{"id":"q118","name":"金属の水筒","emoji":"🍶","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q119","name":"ステープラー","emoji":"📎","ans":"right","note":"金属を含むので、もえない。","group":"normal","enabled":true},{"id":"q120","name":"金属のトング","emoji":"🥢","ans":"right","note":"金属製はもえない。","group":"normal","enabled":true},{"id":"q121","name":"ナイフ","emoji":"🔪","ans":"right","note":"刃は紙で包もう。","group":"normal","enabled":true},{"id":"q122","name":"外付けハードディスク","emoji":"💽","ans":"right","note":"小型家電はもえない。","group":"normal","enabled":true},{"id":"q123","name":"刃物","emoji":"🔪","ans":"right","note":"刃は紙で包もう。","group":"normal","enabled":true},{"id":"q124","name":"裁縫の針","emoji":"🪡","ans":"right","note":"紙で包んで出そう。","group":"normal","enabled":true},{"id":"q125","name":"金属のハンガー","emoji":"🧥","ans":"right","note":"金属ありはもえない。","group":"normal","enabled":true},{"id":"q126","name":"乾燥剤","emoji":"📦","ans":"left","note":"表示に従ってもえるごみ。","group":"normal","enabled":true},{"id":"q127","name":"カーボン紙","emoji":"🧾","ans":"left","note":"カーボン紙はもえる。","group":"normal","enabled":true},{"id":"q128","name":"カイロ（使い捨て）","emoji":"♨️","ans":"left","note":"冷ましてもえるごみ。","group":"normal","enabled":true},{"id":"q129","name":"貝殻","emoji":"🐚","ans":"left","note":"貝殻はもえるごみ。","group":"normal","enabled":true},{"id":"q130","name":"カッパ（雨具）","emoji":"☔","ans":"left","note":"小さくしてもえる。","group":"normal","enabled":true},{"id":"q131","name":"かつら","emoji":"💇","ans":"left","note":"かつらはもえるごみ。","group":"normal","enabled":true},{"id":"q132","name":"金属なしのカメラケース","emoji":"📷","ans":"left","note":"金属なしはもえる。","group":"normal","enabled":true},{"id":"q133","name":"プラスチックの空気入れ","emoji":"💨","ans":"left","note":"プラ製で小さいものはもえる。","group":"normal","enabled":true},{"id":"q134","name":"小さいクッション","emoji":"🛋️","ans":"left","note":"60cm未満はもえる。","group":"normal","enabled":true},{"id":"q135","name":"金属なしのクリスマス飾り","emoji":"🎄","ans":"left","note":"プラスチック類はもえる。","group":"normal","enabled":true},{"id":"q136","name":"ゲートボール用ボール","emoji":"⚪","ans":"left","note":"ボールはもえるごみ。","group":"normal","enabled":true},{"id":"q137","name":"プラマークの洗剤容器","emoji":"🧴","ans":"up","note":"中を空にして資源。","group":"normal","enabled":true},{"id":"q138","name":"プラマークのシャンプー容器","emoji":"🧴","ans":"up","note":"中を空にして資源。","group":"normal","enabled":true},{"id":"q139","name":"プラマークのプリン容器","emoji":"🍮","ans":"up","note":"すすげるなら資源。","group":"normal","enabled":true},{"id":"q140","name":"プラマークの肥料袋","emoji":"🪴","ans":"up","note":"汚れを落として資源。","group":"normal","enabled":true},{"id":"q141","name":"プラマークの苗ポット","emoji":"🌱","ans":"up","note":"きれいなら資源。","group":"normal","enabled":true},{"id":"q142","name":"プラマークの化粧品容器","emoji":"💄","ans":"up","note":"中を空にして資源。","group":"normal","enabled":true},{"id":"q143","name":"ビールびん","emoji":"🍺","ans":"up","note":"くり返し使える資源。","group":"normal","enabled":true},{"id":"q144","name":"一升びん","emoji":"🍶","ans":"up","note":"集団回収などの資源。","group":"normal","enabled":true},{"id":"q145","name":"再利用できる服","emoji":"👕","ans":"up","note":"使える衣類は資源回収へ。","group":"normal","enabled":true},{"id":"q146","name":"回転いす","emoji":"🪑","ans":"down","note":"回転いすは連絡ごみ。","group":"normal","enabled":true},{"id":"q147","name":"オーブン","emoji":"🍞","ans":"down","note":"オーブンは連絡ごみ。","group":"normal","enabled":true},{"id":"q148","name":"オーブンレンジ","emoji":"📦","ans":"down","note":"レンジ一体型は連絡ごみ。","group":"normal","enabled":true},{"id":"q149","name":"折りたたみベッド","emoji":"🛏️","ans":"down","note":"ベッドは連絡ごみ。","group":"normal","enabled":true},{"id":"q150","name":"ガスコンロ","emoji":"🔥","ans":"down","note":"ガスコンロは連絡ごみ。","group":"normal","enabled":true},{"id":"q151","name":"ガスストーブ","emoji":"🔥","ans":"down","note":"ストーブは連絡ごみ。","group":"normal","enabled":true},{"id":"q152","name":"ガステーブル","emoji":"🔥","ans":"down","note":"電池は外して連絡ごみ。","group":"normal","enabled":true},{"id":"q153","name":"ホットカーペット","emoji":"♨️","ans":"down","note":"電気カーペットは連絡ごみ。","group":"normal","enabled":true},{"id":"q154","name":"ジューサーミキサー","emoji":"🥤","ans":"down","note":"ミキサーは連絡ごみ。","group":"normal","enabled":true},{"id":"q155","name":"食器洗い乾燥機","emoji":"🍽️","ans":"down","note":"大きさ問わず連絡ごみ。","group":"normal","enabled":true},{"id":"q156","name":"食器乾燥機","emoji":"🍽️","ans":"down","note":"乾燥機は連絡ごみ。","group":"normal","enabled":true},{"id":"q157","name":"炊飯器","emoji":"🍚","ans":"down","note":"炊飯器は連絡ごみ。","group":"normal","enabled":true},{"id":"q158","name":"石油ファンヒーター","emoji":"🔥","ans":"down","note":"燃料を抜いて連絡ごみ。","group":"normal","enabled":true},{"id":"q159","name":"普通の掃除機","emoji":"🧹","ans":"down","note":"ハンド式以外は連絡ごみ。","group":"normal","enabled":true},{"id":"q160","name":"スノーボード","emoji":"🏂","ans":"down","note":"スノーボードは連絡ごみ。","group":"normal","enabled":true},{"id":"q161","name":"アルミはく（薄い）","emoji":"🥡","ans":"left","note":"薄いアルミはくはもえる。","group":"hard","enabled":true},{"id":"q162","name":"アルミはく（厚い）","emoji":"🥡","ans":"right","note":"厚い容器はもえない。","group":"hard","enabled":true},{"id":"q163","name":"アイロン（金属のかけ面）","emoji":"🧺","ans":"down","note":"金属のかけ面は連絡ごみ。","group":"hard","enabled":true},{"id":"q164","name":"アイロン（金属でないかけ面）","emoji":"🧺","ans":"right","note":"金属でないかけ面はもえない。","group":"hard","enabled":true},{"id":"q165","name":"アイロン台（金属なし・小さい）","emoji":"🧺","ans":"left","note":"金属なしで小さいものはもえる。","group":"hard","enabled":true},{"id":"q166","name":"アイロン台（金属あり・小さい）","emoji":"🧺","ans":"right","note":"金属ありで小さいものはもえない。","group":"hard","enabled":true},{"id":"q167","name":"アクリル板（小さい）","emoji":"⬜","ans":"left","note":"60cm未満はもえる。","group":"hard","enabled":true},{"id":"q168","name":"アタッシュケース（小さい）","emoji":"💼","ans":"right","note":"小さいものはもえない。","group":"hard","enabled":true},{"id":"q169","name":"衣装ケース（金属なし・小さい）","emoji":"🧰","ans":"left","note":"金属なしで小さいものはもえる。","group":"hard","enabled":true},{"id":"q170","name":"衣装ケース（金属製・小さい）","emoji":"🧰","ans":"right","note":"金属製で小さいものはもえない。","group":"hard","enabled":true},{"id":"q171","name":"金属なしのいす（小さい）","emoji":"🪑","ans":"left","note":"金属なしで小さいものはもえる。","group":"hard","enabled":true},{"id":"q172","name":"金属製のいす（小さい）","emoji":"🪑","ans":"right","note":"金属製で小さいものはもえない。","group":"hard","enabled":true},{"id":"q173","name":"板（小さい）","emoji":"🪵","ans":"left","note":"60cm未満はもえる。","group":"hard","enabled":true},{"id":"q174","name":"一斗缶","emoji":"🥫","ans":"right","note":"一斗缶はもえない。","group":"hard","enabled":true},{"id":"q175","name":"印鑑（木・プラスチック）","emoji":"🔖","ans":"left","note":"木・プラ製はもえる。","group":"hard","enabled":true},{"id":"q176","name":"印鑑（金属・石）","emoji":"🔖","ans":"right","note":"金属・石製はもえない。","group":"hard","enabled":true},{"id":"q177","name":"印鑑ケース（布・プラ）","emoji":"🔖","ans":"left","note":"布・プラ製はもえる。","group":"hard","enabled":true},{"id":"q178","name":"印鑑ケース（金属）","emoji":"🔖","ans":"right","note":"金属製ケースはもえない。","group":"hard","enabled":true},{"id":"q179","name":"植木鉢（プラスチック）","emoji":"🪴","ans":"left","note":"プラ製はもえる。","group":"hard","enabled":true},{"id":"q180","name":"植木鉢（陶器）","emoji":"🪴","ans":"right","note":"陶器製はもえない。","group":"hard","enabled":true},{"id":"q181","name":"おけ（金属以外）","emoji":"🪣","ans":"left","note":"金属以外はもえる。","group":"hard","enabled":true},{"id":"q182","name":"おけ（金属製）","emoji":"🪣","ans":"right","note":"金属製はもえない。","group":"hard","enabled":true},{"id":"q183","name":"おたま（金属以外）","emoji":"🥄","ans":"left","note":"金属以外はもえる。","group":"hard","enabled":true},{"id":"q184","name":"おたま（金属製）","emoji":"🥄","ans":"right","note":"金属製はもえない。","group":"hard","enabled":true},{"id":"q185","name":"お盆（金属以外）","emoji":"🍱","ans":"left","note":"金属以外はもえる。","group":"hard","enabled":true},{"id":"q186","name":"お盆（金属製）","emoji":"🍱","ans":"right","note":"金属製はもえない。","group":"hard","enabled":true},{"id":"q187","name":"おもちゃ（金属・ガラスなし）","emoji":"🧸","ans":"left","note":"金属・ガラスなしはもえる。","group":"hard","enabled":true},{"id":"q188","name":"おもちゃ（金属・ガラスあり）","emoji":"🧸","ans":"right","note":"金属・ガラスありはもえない。","group":"hard","enabled":true},{"id":"q189","name":"カーテンレール（金属なし・小さい）","emoji":"🪟","ans":"left","note":"金属なしで小さいものはもえる。","group":"hard","enabled":true},{"id":"q190","name":"カーテンレール（金属製・小さい）","emoji":"🪟","ans":"right","note":"金属製で小さいものはもえない。","group":"hard","enabled":true},{"id":"q191","name":"カップ麺容器（紙製）","emoji":"🍜","ans":"left","note":"紙製はもえる。","group":"hard","enabled":true},{"id":"q192","name":"カップ麺容器（プラマーク）","emoji":"🍜","ans":"up","note":"汚れを落として資源。","group":"hard","enabled":true},{"id":"q193","name":"缶切り後の缶のふた","emoji":"🥫","ans":"right","note":"缶切り後のふたはもえない。","group":"hard","enabled":true},{"id":"q194","name":"飲食用でないびん","emoji":"🧴","ans":"right","note":"化粧品などのびんはもえない。","group":"hard","enabled":true},{"id":"q195","name":"割れた飲食用びん","emoji":"🍾","ans":"right","note":"割れたびんはもえない。","group":"hard","enabled":true},{"id":"q196","name":"汚れが落ちないペットボトル","emoji":"🧴","ans":"left","note":"汚れが落ちないものはもえる。","group":"hard","enabled":true},{"id":"q197","name":"汚れが落ちない飲食用缶","emoji":"🥫","ans":"right","note":"汚れの落ちない缶はもえない。","group":"hard","enabled":true},{"id":"q198","name":"食用油のガラス容器","emoji":"🫙","ans":"up","note":"きれいなら資源。","group":"hard","enabled":true},{"id":"q199","name":"食用油のプラマーク容器","emoji":"🧴","ans":"up","note":"きれいならプラ資源。","group":"hard","enabled":true},{"id":"q200","name":"汚れたプラマーク容器","emoji":"🍱","ans":"left","note":"汚れが落ちないプラはもえる。","group":"hard","enabled":true}];
+const QUESTION_COUNT=10;
+const PROBLEM_KEY="gomizeroProblems_v10_school_easy";
+const CONFIG_KEY="gomizeroConfig_v8";
+const BEST_KEY="gomizeroBest_v8";
+const DIRECTION={
+  up:{label:"資源",long:"資源",color:"#2f7df2"},
+  down:{label:"連絡ごみ",long:"連絡ごみ",color:"#28b979"},
+  left:{label:"もえる",long:"もえるごみ",color:"#ef615c"},
+  right:{label:"もえない",long:"もえないごみ",color:"#f4ca4f"}
+};
+const GROUP_LABEL={kids:"キッズ",school:"小学生",normal:"チャレンジふつう",hard:"チャレンジむずかしい"};
+const screen=document.getElementById("screen");
+const settingsModal=document.getElementById("settingsModal");
+const editorModal=document.getElementById("editorModal");
+let config=loadConfig();
+let problems=loadProblems();
+let state={phase:"title",mode:null,questions:[],index:0,score:0,misses:[],current:null,accepting:false,timerId:null,endless:false,endlessCount:0,endlessQueue:[],practiceQueue:[],practiceIndex:0,demoQueue:[],demoIndex:0,demoTimer:null,menu:[],menuIndex:0,gamepadPrev:{},gamepadId:null,gamepadNeutralAxes:null,holdTimers:{},lastDir:null,pendingMode:null,demoMode:null,padCheck:null,padCheckLast:0};
+
+function clone(v){return JSON.parse(JSON.stringify(v));}
+function esc(v){return String(v??"").replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s]||s));}
+function loadConfig(){try{return Object.assign({timeLimit:8,clearCount:8,volume:.75,assistMode:false,padCalib:null},JSON.parse(localStorage.getItem(CONFIG_KEY)||"{}"));}catch(e){return {timeLimit:8,clearCount:8,volume:.75,assistMode:false,padCalib:null}}}
+function saveConfig(){localStorage.setItem(CONFIG_KEY,JSON.stringify(config));}
+function loadProblems(){
+  let base=clone(DEFAULT_PROBLEMS);
+  try{
+    const saved=JSON.parse(localStorage.getItem(PROBLEM_KEY)||"null");
+    if(Array.isArray(saved)){
+      const byId=new Map(saved.map(p=>[p.id,p]));
+      base=base.map(def=>{
+        const savedItem=byId.get(def.id)||{};
+        const merged=Object.assign({},def,savedItem);
+        // 旧版では幼児問題の「通常名」もひらがなだったため、未編集なら新しい通常名へ戻す。
+        if(def.group==="kids"){
+          if(savedItem.name&&savedItem.kana&&savedItem.name===savedItem.kana)merged.name=def.name;
+          if(savedItem.note&&savedItem.kidNote&&savedItem.note===savedItem.kidNote)merged.note=def.note;
+          if(!merged.kana)merged.kana=def.kana;
+          if(!merged.kidNote)merged.kidNote=def.kidNote;
+        }
+        return merged;
+      });
+    }
+  }catch(e){}
+  return base;
+}
+function saveProblems(){localStorage.setItem(PROBLEM_KEY,JSON.stringify(problems));}
+function enabledProblems(){return problems.filter(p=>p.enabled!==false);}
+function pool(fn){return enabledProblems().filter(fn);}
+function kidsPool(){return pool(p=>p.group==="kids"&&(p.ans==="left"||p.ans==="right"));}
+function schoolPool(){return pool(p=>p.group==="kids"||p.group==="school");}
+function adultNormalPool(){return pool(p=>p.group!=="hard");}
+function hardPool(){return pool(p=>p.group==="hard");}
+function practicePool(){return pool(p=>p.group!=="hard");}
+function shuffle(a){const c=[...a];for(let i=c.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[c[i],c[j]]=[c[j],c[i]]}return c;}
+function draw(poolArr,count){let out=[];let src=shuffle(poolArr);while(out.length<count){if(!src.length)src=shuffle(poolArr);out.push(src.shift());if(!poolArr.length)break;}return out.slice(0,count);}
+function bodyMode(...names){document.body.classList.remove("playing","kids","result","demo");names.forEach(n=>n&&document.body.classList.add(n));}
+function clearTimers(){if(state.timerId)clearInterval(state.timerId);state.timerId=null;if(state.demoTimer)clearTimeout(state.demoTimer);state.demoTimer=null;}
+function clearAssist(){document.querySelectorAll(".guide").forEach(g=>g.classList.remove("assist","choice-picked","choice-miss","choice-answer"));}
+function flashGuide(dir){clearAssist();if(!dir)return;document.querySelector(`.guide[data-dir="${dir}"]`)?.classList.add("assist");}
+function setGuideLabels(mode=false){
+  const isKids=mode===true||mode==="kids",isSchool=mode==="school"||mode==="practice";
+  const labels=isKids?{left:["←\nもえるごみ",""],right:["→\nもえないごみ",""]}:isSchool?{up:["↑ しげん","ペットボトル・かん・びん・かみ"],down:["↓ れんらくごみ","おおきいごみ"],left:["←\nもえるごみ","たべもの・かみくずなど"],right:["→\nもえないごみ","ガラス・きんぞくなど"]}:{up:["↑ 資源","ペットボトル・缶・びん・紙など"],down:["↓ 連絡ごみ","家具・自転車など"],left:["←\nもえるごみ","生ごみ・紙くず・木や布など"],right:["→\nもえないごみ","ガラス・せともの・金属など"]};
+  ["up","down","left","right"].forEach(dir=>{const g=document.querySelector(`.guide[data-dir="${dir}"]`);if(!g)return;const big=g.querySelector(".big"),small=g.querySelector(".small");if(isKids&&(dir==="up"||dir==="down")){big.textContent="";small.textContent="";return;}const l=labels[dir];big.innerHTML=esc(l[0]).replace(/\n/g,"<br>");small.textContent=l[1];});
+}
+function displayName(q){
+  if(state.mode==="kids")return q.kana||q.kidName||q.name||"";
+  if(state.mode==="school"||state.mode==="practice")return q.schoolName||q.name||q.kana||"";
+  return q.name||q.schoolName||q.kana||"";
+}
+function displayNote(q){
+  if(state.mode==="kids")return q.kidNote||q.schoolNote||q.note||"";
+  if(state.mode==="school"||state.mode==="practice")return q.schoolNote||q.note||"";
+  return q.note||q.schoolNote||q.kidNote||"";
+}
+function directionText(dir){
+  if(state.mode==="school"||state.mode==="practice")return {up:"しげん",down:"れんらくごみ",left:"もえる",right:"もえない"}[dir]||DIRECTION[dir]?.label||"?";
+  return DIRECTION[dir]?.label||"?";
+}
+function chip(dir){return `<span class="answer-chip ${dir}">${directionText(dir)}</span>`;}
+function dots(n){return `<div class="dots">${Array.from({length:QUESTION_COUNT},(_,i)=>`<span class="dot ${i<n?"done":i===n?"now":""}"></span>`).join("")}</div>`;}
+function modeTitle(mode){return {kids:"キッズ",school:"小学生",adult:"チャレンジ",practice:"練習"}[mode]||mode;}
+function titleStatus(){return config.assistMode?`<span class="assist-lamp assist-on" title="補助ON" aria-label="補助ON"></span>`:`<span class="assist-lamp assist-off" title="補助OFF" aria-label="補助OFF"></span>`;}
+
+function directionArrow(dir){return {up:"↑",down:"↓",left:"←",right:"→"}[dir]||"？";}
+function isKidsMode(){return state.mode==="kids"||state.pendingMode==="kids"||state.demoMode==="kids";}
+function logicalToPhysicalDir(dir){return dir;}
+function physicalToLogicalDir(dir){return dir;}
+function directionLongText(dir){
+  if(isKidsMode())return {left:"もえるごみ",right:"もえないごみ",up:"しげん",down:"れんらくごみ"}[dir]||directionText(dir)||"?";
+  const schoolLike=state.mode==="school"||state.pendingMode==="school"||state.demoMode==="school";
+  if(schoolLike)return {up:"しげん",down:"れんらくごみ",left:"もえるごみ",right:"もえないごみ"}[dir]||directionText(dir)||"?";
+  return DIRECTION[dir]?.long||directionText(dir)||"?";
+}
+function modeIntro(mode){
+  if(mode==="kids")return {title:"きっず",heading:"かくにん",lead:"もえるごみはひだり、もえないごみはみぎ",dirs:["left","right"],layout:"kids-confirm",tips:{left:"もえるごみ",right:"もえないごみ"}};
+  if(mode==="practice")return {title:"練習",heading:"始める前に確認",lead:"上下左右で中央のゴミを４つに分類します。",dirs:["up","left","right","down"],layout:"cross-4",tips:{up:"ペットボトル・缶・びん・紙など",down:"家具・自転車など",left:"生ごみ・紙くず・木や布など",right:"ガラス・せともの・金属など"}};
+  if(mode==="school")return {title:"小学生",heading:"はじめる前にかくにん",lead:"上下左右で中央のゴミを４つに分類します。",dirs:["up","left","right","down"],layout:"cross-4",tips:{up:"ペットボトル・かん・びん・かみ",down:"おおきいごみ",left:"たべもの・かみくずなど",right:"ガラス・きんぞくなど"}};
+  return {title:"チャレンジ",heading:"始める前に確認",lead:"上下左右で中央のゴミを４つに分類します。",dirs:["up","left","right","down"],layout:"cross-4",tips:{up:"資源として出すもの",down:"連絡ごみとして申し込むもの",left:"もえるごみ",right:"もえないごみ"}};
+}
+function readyDirCard(dir,tips={}){
+  const cardDir=isKidsMode()?logicalToPhysicalDir(dir):dir;
+  const name=isKidsMode()?tips[cardDir]||directionLongText(dir):directionLongText(dir);
+  const ex=isKidsMode()?"":(tips[dir]||"");
+  return `<div class="ready-dir-card ${cardDir}"><div class="arrow">${directionArrow(cardDir)}</div><div><div class="name">${esc(name)}</div><div class="ex">${esc(ex)}</div></div></div>`;
+}
+function showModeGuide(mode){
+  clearTimers();clearAssist();state.phase="ready";state.pendingMode=mode;state.mode=mode;state.accepting=false;state.lastDir=null;
+  const info=modeIntro(mode);bodyMode("playing",mode==="kids"?"kids":"");setGuideLabels(mode);screen.className="screen ready-screen";
+  screen.innerHTML=`<p class="kicker">${esc(info.title)}モード</p><h1 class="ready-title">${esc(info.heading)}</h1><p class="ready-lead">${esc(info.lead)}</p><div class="ready-directions ${esc(info.layout||"")}">${info.dirs.map(d=>readyDirCard(d,info.tips)).join("")}</div><button class="ready-start" data-menu data-default onclick="beginSelectedMode()">スタート</button>`;
+  setMenu();
+}
+function beginSelectedMode(){const mode=state.pendingMode||state.mode||"school";if(mode==="practice")beginPractice();else beginGame(mode);}
+function markChoice(selected,answer,ok){
+  clearAssist();
+  document.querySelectorAll(".guide").forEach(g=>g.classList.remove("choice-picked","choice-miss","choice-answer"));
+  if(selected&&selected!=="time"){const picked=document.querySelector(`.guide[data-dir="${selected}"]`);picked?.classList.add("choice-picked");if(!ok)picked?.classList.add("choice-miss");}
+  if(answer&&(!ok||selected==="demo")){document.querySelector(`.guide[data-dir="${answer}"]`)?.classList.add("choice-answer");}
+}
+function selectedChoiceHtml(selectedDir,q,ok,opts={}){
+  if(selectedDir==="time")return `<div class="choice-time">時間切れ</div><div class="choice-answer-line clean">正解は ${chip(q.ans)} ${esc(directionLongText(q.ans))}</div><div class="choice-note-line">${esc(displayNote(q))}</div>`;
+  const answerClass=ok?"choice-correct-clean":"choice-answer-line clean";
+  const prefix=ok?"":"正解は ";
+  return `<div class="${answerClass}">${prefix}${chip(q.ans)} ${esc(directionLongText(q.ans))}</div><div class="choice-note-line">${esc(displayNote(q))}</div>`;
+}
+function renderTitle(){
+  clearTimers();clearAssist();state.phase="title";state.mode=null;state.accepting=false;bodyMode();setGuideLabels(false);screen.className="screen title-screen";
+  screen.innerHTML=`<div class="title-logo-wrap"><img class="title-logo" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDIyOC42IDE0MS43Ij4KICA8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMjkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogMi4xLjAgQnVpbGQgMTg2KSAgLS0+CiAgPGRlZnM+CiAgICA8c3R5bGU+CiAgICAgIC5zdDAsIC5zdDEsIC5zdDIsIC5zdDMsIC5zdDQsIC5zdDUsIC5zdDYgewogICAgICAgIHN0cm9rZTogIzAwMDsKICAgICAgfQoKICAgICAgLnN0MCwgLnN0MSwgLnN0MiwgLnN0NCwgLnN0NSwgLnN0NyB7CiAgICAgICAgc3Ryb2tlLW1pdGVybGltaXQ6IDEwOwogICAgICB9CgogICAgICAuc3QwLCAuc3Q4IHsKICAgICAgICBmaWxsOiAjODg3ZGI2OwogICAgICB9CgogICAgICAuc3Q5IHsKICAgICAgICBzdHJva2U6ICM1OTU4NTg7CiAgICAgIH0KCiAgICAgIC5zdDksIC5zdDEsIC5zdDEwLCAuc3QxMSwgLnN0MywgLnN0NSwgLnN0MTIgewogICAgICAgIGZpbGw6IG5vbmU7CiAgICAgIH0KCiAgICAgIC5zdDksIC5zdDEwLCAuc3QxMSwgLnN0MywgLnN0MTIsIC5zdDYgewogICAgICAgIHN0cm9rZS1saW5lam9pbjogcm91bmQ7CiAgICAgIH0KCiAgICAgIC5zdDEsIC5zdDMsIC5zdDQsIC5zdDUsIC5zdDcgewogICAgICAgIHN0cm9rZS13aWR0aDogLjdweDsKICAgICAgfQoKICAgICAgLnN0MTMgewogICAgICAgIGZpbGw6ICNjMmUwZjc7CiAgICAgIH0KCiAgICAgIC5zdDIgewogICAgICAgIGZpbGw6ICNlOWJjNTk7CiAgICAgICAgc3Ryb2tlLXdpZHRoOiAuM3B4OwogICAgICB9CgogICAgICAuc3QxNCwgLnN0NCB7CiAgICAgICAgZmlsbDogI2ZmZjsKICAgICAgfQoKICAgICAgLnN0MTAgewogICAgICAgIHN0cm9rZTogI2ZmZjsKICAgICAgICBzdHJva2Utd2lkdGg6IDNweDsKICAgICAgfQoKICAgICAgLnN0MTUgewogICAgICAgIGZpbGw6ICM1YTUxODk7CiAgICAgIH0KCiAgICAgIC5zdDExIHsKICAgICAgICBzdHJva2U6ICM1YTUxODk7CiAgICAgICAgc3Ryb2tlLXdpZHRoOiAxLjVweDsKICAgICAgfQoKICAgICAgLnN0MTYgewogICAgICAgIGZpbGw6ICNjNGQ4ODc7CiAgICAgIH0KCiAgICAgIC5zdDE3IHsKICAgICAgICBmaWxsOiAjOWE5ODk0OwogICAgICB9CgogICAgICAuc3QzLCAuc3Q1IHsKICAgICAgICBzdHJva2UtbGluZWNhcDogcm91bmQ7CiAgICAgIH0KCiAgICAgIC5zdDE4IHsKICAgICAgICBmaWxsOiAjNzc3Yzg0OwogICAgICB9CgogICAgICAuc3QxOSB7CiAgICAgICAgZmlsbDogIzFlMjU0MjsKICAgICAgfQoKICAgICAgLnN0MjAgewogICAgICAgIGZpbGw6ICNjNWE1Y2E7CiAgICAgIH0KCiAgICAgIC5zdDIxIHsKICAgICAgICBmaWxsOiAjZGRiNWQwOwogICAgICB9CgogICAgICAuc3Q3IHsKICAgICAgICBmaWxsOiAjZjVlMmQ4OwogICAgICAgIHN0cm9rZTogIzI1MWUxYzsKICAgICAgfQoKICAgICAgLnN0MTIgewogICAgICAgIHN0cm9rZTogIzRlNDY3NDsKICAgICAgICBzdHJva2Utd2lkdGg6IDZweDsKICAgICAgfQoKICAgICAgLnN0NiB7CiAgICAgICAgZmlsbDogIzU2YjFkNzsKICAgICAgfQogICAgPC9zdHlsZT4KICA8L2RlZnM+CiAgPGcgaWQ9Il/jg6zjgqTjg6Tjg7xfMyIgZGF0YS1uYW1lPSLjg6zjgqTjg6Tjg7xfMyI+CiAgICA8cGF0aCBjbGFzcz0ic3QxNyIgZD0iTTg1LjQsNzMuM2MwLDAsMi43LTEsMi43LTEsMCwwLC4yLTMuNiwwLTMuNnMtMy44LDEuOC0zLjgsMS44bC44LDIuMiIvPgogICAgPHBvbHlnb24gY2xhc3M9InN0MTciIHBvaW50cz0iMTA2LjIgOTYuOSAxMDkuOSA5Ny4zIDExMC41IDkzLjMgMTA2IDkyLjcgMTA2LjIgOTYuOSIvPgogICAgPHBvbHlnb24gY2xhc3M9InN0MTciIHBvaW50cz0iMTE3LjkgOTcuMyAxMjEuNyA5NyAxMjEuOCA5Mi43IDExNy4zIDkzLjMgMTE3LjkgOTcuMyIvPgogICAgPHBhdGggY2xhc3M9InN0MTciIGQ9Ik0xMzkuNiw3Mi4zbDMsMS4xLDEuMi0yLjktMy44LTEuOHMtLjQsMy42LS40LDMuNloiLz4KICA8L2c+CiAgPGcgaWQ9Il/jg6zjgqTjg6Tjg7xfMiIgZGF0YS1uYW1lPSLjg6zjgqTjg6Tjg7xfMiI+CiAgICA8cGF0aCBjbGFzcz0ic3Q4IiBkPSJNMTI0LDIzLjZzLTYuOC0yLjMtMTAuNiw1LjdjLTEuMiwyLjUtLjcsNS42LS4xLDcuOCwzLjMtMS41LDgtMi44LDgtMi44LDAsMC0xLjEtLjktMi4zLS44LDAsMCwxLjktMiwzLjYtMi44LDAsMC0yLjctLjgtMy44LS41LDAsMCwzLjMtNS4zLDUuMy02LjZaIi8+CiAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNMTEzLjksMzYuM2MxNy44LDAsMjUuNywyMS41LDI1LjcsMzMuNywwLDYuNC0xLjYsMjMuNC0yNS43LDIzLjQtMjQuMSwwLTI1LjctMTYuOS0yNS43LTIzLjQsMC0xMi4yLDcuOS0zMy43LDI1LjctMzMuNyIvPgogICAgPHBhdGggY2xhc3M9InN0NyIgZD0iTTExMy45LDQ0YzkuNSwwLDE4LjQsNi45LDE4LjQsMTcuNXMtMTIuNiwxMS40LTE4LjQsMTEuNGMtNS44LDAtMTguNC0uOC0xOC40LTExLjRzOC45LTE3LjUsMTguNC0xNy41WiIvPgogICAgPHBhdGggY2xhc3M9InN0MiIgZD0iTTEwOC45LDgxLjNjLS40LDAtLjguMi0uOS42bC0xLjEsNi43YzAsLjQuMi44LjYuOSwwLDAsMCwwLC4xLDAsLjQsMCwuNy0uMy43LS42bDEuMS02LjdjMC0uNC0uMi0uOC0uNi0uOVoiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDIiIGQ9Ik0xMzAuMiw4NS4zbC00LjItNS45Yy0uMi0uMy0uNS0uNC0uOC0uMy0uMywwLS41LjQtLjUuN2wtLjMsNy4zYzAsLjQuMy44LjcuOCwwLDAsMCwwLDAsMCwuNCwwLC43LS4zLjctLjd2LTJjMCwwLDItLjUsMi0uNWwxLjEsMS42Yy4yLjMuNy40LDEsLjIuMy0uMi40LS43LjItMVpNMTI2LDgzLjZ2LTEuNWMwLDAsLjksMS4yLjksMS4ybC0uOS4zWiIvPgogICAgPHBhdGggY2xhc3M9InN0MiIgZD0iTTEyMyw4NS43Yy0uNCwwLS44LjItLjkuNiwwLC40LS43LjgtMS4zLjctLjQsMC0xLjUtLjItMS42LTEuOSwwLTEuNi43LTIuMiwxLjEtMi40LjUtLjMsMS0uMiwxLjIsMCwuMy4zLjguMiwxLjEsMCwuMy0uMy4yLS44LDAtMS4xLS43LS42LTEuOC0uNi0yLjgtLjEtLjYuMy0yLjEsMS4zLTIsMy45LjEsMi4zLDEuNywzLjIsMywzLjMsMCwwLC4xLDAsLjIsMCwxLjQsMCwyLjUtLjksMi43LTIsMC0uNC0uMi0uOC0uNi0uOVoiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDIiIGQ9Ik0xMTQuOCw4MS4zYy0uOC0uNC0xLjYtLjQtMi4yLDAtLjcuNC0xLjIsMS4xLTEuMiwxLjksMCwuNy4zLDEuOCwyLDMsLjYuNCwxLC45LjksMS4yLDAsLjMtLjcuNy0xLjQuNy0xLjEsMC0xLjQtLjktMS40LTEtLjEtLjQtLjUtLjYtLjktLjUtLjQuMS0uNi41LS41LjkuMi43LDEsMi4xLDIuOCwyLjFoMGMxLjMsMCwyLjUtLjcsMi44LTEuNy4yLS42LjItMS43LTEuNS0yLjgtLjktLjYtMS40LTEuMi0xLjQtMS43LDAtLjQuMy0uNi40LS43LjEsMCwuNCwwLC43LjEuNS4zLjkuOCwxLDEuMiwwLC40LjQuNy44LjcuNCwwLC43LS40LjctLjgtLjEtLjktLjgtMS44LTEuOC0yLjNaIi8+CiAgICA8cGF0aCBjbGFzcz0ic3QyIiBkPSJNMTAzLjcsNzkuOWMtMS44LS40LTMuNiwxLTQuMSwzLjMtLjMsMS0uMiwyLjEuMiwzLC40LDEsMS4xLDEuNiwyLDEuOC4yLDAsLjQsMCwuNiwwLC43LDAsMS40LS4zLDItLjguNy0uNiwxLjMtMS41LDEuNS0yLjYuMy0xLC4yLTIuMS0uMi0zLS40LTEtMS4xLTEuNi0yLTEuOFpNMTA0LjMsODQuNGMtLjIuNy0uNiwxLjQtMSwxLjgtLjIuMi0uNy41LTEuMy40LS41LS4xLS44LS43LS45LTEtLjItLjYtLjMtMS4zLDAtMi4xLjMtMS4zLDEuMi0yLjIsMi4xLTIuMnMuMiwwLC4zLDBjLjUuMS44LjcuOSwxLC4yLjYuMywxLjMsMCwyLjFaIi8+CiAgICA8Y2lyY2xlIGNsYXNzPSJzdDQiIGN4PSIxMDcuNSIgY3k9IjU4LjUiIHI9IjMuOCIvPgogICAgPGVsbGlwc2UgY2xhc3M9InN0MjEiIGN4PSIxMDIuMyIgY3k9IjYyLjkiIHJ4PSIyLjEiIHJ5PSIxLjIiLz4KICAgIDxwYXRoIGQ9Ik0xMDcuMiw1MC42YzEuOSwwLDMuNS4zLDMuNSwxLjJzLTEuNSwxLjItMy41LDEuMi0zLjUtLjMtMy41LTEuMiwxLjUtMS4yLDMuNS0xLjJaIi8+CiAgICA8Y2lyY2xlIGNsYXNzPSJzdDQiIGN4PSIxMjAuMyIgY3k9IjU4LjUiIHI9IjMuOCIvPgogICAgPHBhdGggY2xhc3M9InN0NSIgZD0iTTExNy43LDYzLjdjLjQsMS0uMiwzLjktMy44LDMuOS0zLjYsMC00LjItMi45LTMuOC0zLjkiLz4KICAgIDxlbGxpcHNlIGNsYXNzPSJzdDIxIiBjeD0iMTI1LjQiIGN5PSI2Mi45IiByeD0iMi4xIiByeT0iMS4yIi8+CiAgICA8cGF0aCBkPSJNMTIwLjYsNTAuNmMxLjksMCwzLjUuMywzLjUsMS4ycy0xLjUsMS4yLTMuNSwxLjItMy41LS4zLTMuNS0xLjIsMS41LTEuMiwzLjUtMS4yWiIvPgogICAgPGNpcmNsZSBjeD0iMTA4LjQiIGN5PSI1Ny44IiByPSIyLjgiLz4KICAgIDxjaXJjbGUgY2xhc3M9InN0MTQiIGN4PSIxMDkuMSIgY3k9IjU3LjMiIHI9IjEuMSIvPgogICAgPGNpcmNsZSBjeD0iMTIxLjIiIGN5PSI1Ny44IiByPSIyLjgiLz4KICAgIDxjaXJjbGUgY2xhc3M9InN0MTQiIGN4PSIxMjEuOCIgY3k9IjU3LjMiIHI9IjEuMSIvPgogICAgPHBhdGggY2xhc3M9InN0MyIgZD0iTTExMi4yLDQwLjVjLjItLjgsMS4xLTIuNywxLjEtMi43Ii8+CiAgICA8cGF0aCBjbGFzcz0ic3Q2IiBkPSJNODUuNiw3NC41bC0yLjEtNS4xcy0zLDEuNC0zLjIsMS42LTEuOC0xLjEtMy4xLTEuMS0yLjEuNS0xLjksMS4xLDEuNiwxLjMsMS42LDEuM2MwLDAtMy4zLjYtMi44LDIuM3MyLjYuNywyLjYuN2MwLDAtMi4yLDEuNi0xLjQsMi42czIuMy43LDMuMy0uNWMwLDAsLjIsMi4zLDEuOSwyLjFzMS44LTIuNiwxLjgtMy45bDMuMy0xLjFaIi8+CiAgICA8bGluZSBjbGFzcz0ic3QxIiB4MT0iODQiIHkxPSI3MC40IiB4Mj0iODguMiIgeTI9IjY4LjUiLz4KICAgIDxsaW5lIGNsYXNzPSJzdDEiIHgxPSI4NS4yIiB5MT0iNzMuMyIgeDI9Ijg4LjIiIHkyPSI3Mi4yIi8+CiAgICA8bGluZSBjbGFzcz0ic3QxIiB4MT0iMTA2IiB5MT0iOTIuNyIgeDI9IjEwNi4yIiB5Mj0iOTYuOSIvPgogICAgPHBhdGggY2xhc3M9InN0MSIgZD0iTTEwOS45LDk3LjNjMC0uMS42LTQsLjYtNCIvPgogICAgPHBhdGggY2xhc3M9InN0NiIgZD0iTTEwNC45LDk2LjlzNS4xLjMsNiwuNmMwLDAtLjUsNy4xLS44LDcuOHMtMy45LDEuNC03LjIsMS4xLTQuMS0yLjEtMy42LTMuNSwzLjUtMi41LDYuMS0xLjdjMCwwLS42LTMuNS0uNi00LjJaIi8+CiAgICA8cGF0aCBjbGFzcz0ic3Q2IiBkPSJNMTQyLjEsNzQuNWwyLjEtNS4xczMsMS40LDMuMiwxLjYsMS44LTEuMSwzLjEtMS4xLDIuMS41LDEuOSwxLjEtMS42LDEuMy0xLjYsMS4zYzAsMCwzLjMuNiwyLjgsMi4zcy0yLjYuNy0yLjYuN2MwLDAsMi4yLDEuNiwxLjQsMi42cy0yLjMuNy0zLjMtLjVjMCwwLS4yLDIuMy0xLjksMi4xcy0xLjgtMi42LTEuOC0zLjlsLTMuMy0xLjFaIi8+CiAgICA8bGluZSBjbGFzcz0ic3QxIiB4MT0iMTQzLjgiIHkxPSI3MC40IiB4Mj0iMTM5LjYiIHkyPSI2OC41Ii8+CiAgICA8bGluZSBjbGFzcz0ic3QxIiB4MT0iMTQyLjYiIHkxPSI3My4zIiB4Mj0iMTM5LjYiIHkyPSI3Mi4yIi8+CiAgICA8bGluZSBjbGFzcz0ic3QxIiB4MT0iMTIxLjgiIHkxPSI5Mi43IiB4Mj0iMTIxLjYiIHkyPSI5Ni45Ii8+CiAgICA8cGF0aCBjbGFzcz0ic3QxIiBkPSJNMTE3LjksOTcuM2MwLS4xLS42LTQtLjYtNCIvPgogICAgPHBhdGggY2xhc3M9InN0NiIgZD0iTTEyMi45LDk2LjlzLTUuMS4zLTYsLjZjMCwwLC41LDcuMS44LDcuOHMzLjksMS40LDcuMiwxLjFjMy4yLS4zLDQuMS0yLjEsMy42LTMuNXMtMy41LTIuNS02LjEtMS43YzAsMCwuNi0zLjUuNi00LjJaIi8+CiAgICA8Zz4KICAgICAgPHBhdGggY2xhc3M9InN0MTkiIGQ9Ik0xMjAuOCw3Mi44Yy0yLTEtNS40LDEuNS01LjQsMS41aDBjLS4yLS40LS43LS42LTEuNS0uNnMtMS4zLjMtMS41LjZoMHMtMy40LTIuNS01LjQtMS41Yy0yLDEtMS45LDQuMi0uOCw1LjgsMS4xLDEuNiwyLjcsMS40LDMuNy44LDEuMS0uNiwyLjctMS44LDIuNy0xLjhoMGMuMy4yLjYuNCwxLjIuNHMxLS4yLDEuMi0uNGgwczEuNiwxLjMsMi43LDEuOCwyLjcuOCwzLjctLjhjMS4xLTEuNiwxLjItNC44LS44LTUuOFoiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MjAiIGQ9Ik0xMDkuOSw3M2wtNC4yLDQuMmMwLS40LS4yLS44LS4yLTEuMmwzLjMtMy4zYy40LDAsLjguMiwxLjEuM1oiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MjAiIGQ9Ik0xMTMuMSw3My44bC01LjgsNS44aDBjLS4zLS4xLS41LS4zLS44LS42bDUuMS01LjFjLjUuMy44LjUuOC41LjEtLjIuNC0uNC43LS41WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QyMCIgZD0iTTEyMS41LDczLjRsLTUuMSw1LjFjLS4zLS4yLS42LS40LS44LS42bDUuMS01LjFzMCwwLDAsMGMuMy4yLjYuNC44LjZaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDIwIiBkPSJNMTE3LjksNzNsLTQuOSw0LjljLS4yLDAtLjMtLjItLjQtLjNoMHMtMS40LDEuMS0yLjQsMS43bDUuMS01LjFzMCwwLC4xLjFjMCwwLDEuMi0uOCwyLjUtMS4zWiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QyMCIgZD0iTTEyMi4zLDc2LjdsLTMuMSwzLjFoMGMtLjQsMC0uOC0uMS0xLjEtLjNsNC4yLTQuMmMwLC41LDAsMSwwLDEuNVoiLz4KICAgIDwvZz4KICAgIDxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0xMTIuNCw3NC4zcy0zLjQtMi41LTUuNC0xLjUtMS45LDQuMi0uOCw1LjgsMi43LDEuNCwzLjcuOCwyLjctMS44LDIuNy0xLjgiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0xMTMuOSw3My43YzEuNywwLDEuOCwxLjIsMS44LDJzMCwyLjMtMS44LDIuM2MtMS43LDAtMS44LTEuNS0xLjgtMi4zczAtMiwxLjgtMloiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0xMTUuNCw3NC4zczMuNC0yLjUsNS40LTEuNSwxLjksNC4yLjgsNS44LTIuNywxLjQtMy43LjgtMi43LTEuOC0yLjctMS44Ii8+CiAgICA8cGF0aCBjbGFzcz0ic3Q4IiBkPSJNMTI0LDIzLjZzLTYuOC0yLjMtMTAuNiw1LjdjLTEuMiwyLjUtLjcsNS42LS4xLDcuOCwzLjMtMS41LDgtMi44LDgtMi44LDAsMC0xLjEtLjktMi4zLS44LDAsMCwxLjktMiwzLjYtMi44LDAsMC0yLjctLjgtMy44LS41LDAsMCwzLjMtNS4zLDUuMy02LjZaIi8+CiAgICA8Zz4KICAgICAgPHBhdGggY2xhc3M9InN0MTQiIGQ9Ik0xMTYsMzQuMWMxLTEuNCwyLTIuNywyLjctMy4xLDAsMC01LjcuMi01LjIsNi4xLjEtLjkuNi0yLjUsMi41LTNaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDE0IiBkPSJNMTEzLjYsMzcuN3MuMS0uMS4zLS40YzAsMC0uMi4yLS4zLjMsMCwwLDAsMCwwLDBaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDE0IiBkPSJNMTE5LjEsMzQuM2MtMS4zLS40LTIuMy0uMy0zLjEtLjItLjksMS4zLTEuNywyLjYtMi4xLDMuMiwyLjEtMiw1LjItMy4xLDUuMi0zLjFaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDE0IiBkPSJNMTEzLjUsMzcuN3MwLDAsMCwwYzAtLjIsMC0uNCwwLS41LDAsLjQsMCwuNiwwLC42WiIvPgogICAgPC9nPgogICAgPHBhdGggY2xhc3M9InN0MyIgZD0iTTExNC4yLDQwLjNjMCwwLTIuNy02LS43LTEwLjMsMy44LTguMSwxMC42LTUuNywxMC42LTUuNy0yLDEuNC01LjMsNi42LTUuMyw2LjYsMS4xLS4zLDMuOC41LDMuOC41LTEuNy43LTMuNiwyLjgtMy42LDIuOCwxLjItLjEsMi4zLjgsMi4zLjgsMCwwLTcuOSwyLjItMTAuNSw0LjEiLz4KICA8L2c+CiAgPGcgaWQ9Il/jg4fjgrbjgqTjg7MiIGRhdGEtbmFtZT0i44OH44K244Kk44OzIj4KICAgIDxnPgogICAgICA8cGF0aCBjbGFzcz0ic3QxMiIgZD0iTTU4LjEsMTE3Yy0uMi0uMy0yLjYtMy44LTIuNi01LjFzMS0xLjcsMi4xLTEuNywxLjMuNCwxLjgsMS4zYzAsMCwxLjQsMi4zLDIuNSwzLjUuMy4zLDEuNywxLjcsMS45LDIuMS4yLjIuMy42LjMsMS4xLDAsMS4xLTEuMSwyLjMtMi4yLDIuM3MtLjUsMC0uNy0uMmMwLC42LS4yLDMuMS0uMiwzLjctLjQsNS42LTEuNiw1LjYtNC42LDUuNnMtMS45LDAtMi40LS4xYy0xLjMtLjMtMS4zLTEuNS0xLjMtMS44LDAtMS45LDEuNS0xLjksMS45LTEuOXMxLjIsMCwxLjMsMGMuOCwwLC45LS42LDEtMS4zLjItMS44LjMtMywuMy0zLjRzMC0uNi0uNC0uNmgtMi41Yy0uMSw0LjgtNS4xLDktNy40LDlzLTItMS4yLTItMi4yLjctMS40LDEuMy0xLjdjMS4yLS42LDQuMS0yLDQuMy01LjFoLTEuMmMtLjgsMC0xLjItLjItMS41LS42LS4yLjEtLjUuNC0xLC40LTEuMiwwLTIuNC0xLjEtMi40LTIuNHMwLS44LDItMi44YzEuMi0xLjIsMS45LTIuNSwyLjktNC4xLjQtLjcuOC0xLDEuNS0xLDEuMSwwLDIuMy43LDIuMywxLjdzLS45LDIuOC0yLjYsNS4xaDcuNFpNNzIuNywxMTkuNGMyLjIsMCwyLjUsMS4yLDIuNSwyLjhzLS4xLDQuOS0uNSw2Yy0uNCwxLjItMS4yLDEuNS0zLjYsMS41cy0yLjEsMC0yLjMtMS41Yy0uNywxLjMtMS4xLDEuNC0xLjcsMS40LTEuNCwwLTIuMi0xLjEtMi4yLTEuOXMwLS42LjctMS42YzEuNS0yLjcsMS41LTUuNiwxLjUtNy41LS44LS4xLTEuMy0uNC0xLjYtLjgtLjMtLjQtLjQtMS0uNC0xLjd2LTIuNWMwLTIsLjktMi42LDIuNi0yLjZoNWMxLjcsMCwyLjYuNiwyLjYsMi42djIuNWMwLDEuOS0uOSwyLjYtMi42LDIuNmgtMi4xdi45aDJaTTcxLjgsMTE0LjNjMC0uMSwwLS4yLS4yLS4yaC0yLjljLS4xLDAtLjIuMS0uMi4ydi44YzAsLjEsMCwuMi4yLjJoMi45cy4yLDAsLjItLjJ2LS44Wk03MC40LDEyMi43Yy0uMS44LS4zLDEuOC0uOCwzLjQuMiwwLC4zLS4xLjYtLjEsMCwwLC41LDAsLjYsMCwuNSwwLC42LS4xLjctLjUsMC0uMi4xLTIsLjEtMi4yLDAtLjYtLjEtLjYtLjQtLjZoLS45Wk03OS40LDEyMy4xYzAsLjktLjMsMS44LTEuNiwxLjhzLTEuOS0uNC0xLjktMS44di0xMGMwLS41LDAtMS44LDEuNi0xLjhzMS44LjUsMS44LDEuOHYxMFpNODAsMTEyYzAtLjguMi0xLjgsMS43LTEuOHMyLC40LDIsMS44djE1YzAsMi40LTEuMywyLjYtMy42LDIuNnMtMS45LDAtMi41LS4yYy0xLS4yLTEuMy0xLjMtMS4zLTEuOSwwLTEuOSwxLjUtMS45LDEuOS0xLjlzMS4zLDAsMS41LDBjLjQsMCwuNC0uMS40LS41di0xMy4zWk05Ny4zLDExNy40aDQuNmMuNCwwLDEuOCwwLDEuOCwxLjhzLS44LDEuOS0xLjgsMS45aC00LjdjLS4yLDIuNC0xLjEsNC44LTQsNi40LTEuNy45LTMuNiwxLjQtNC41LDEuNC0xLjYsMC0xLjktMS41LTEuOS0yLjEsMC0xLjIsMS0xLjUsMS43LTEuNiwyLjQtLjUsNC41LTEuMyw0LjgtNGgtNS44Yy0uNCwwLTEuOCwwLTEuOC0xLjhzLjgtMS44LDEuOC0xLjhoNS45di0xLjVjLTIuMy4yLTMuMS4zLTQuNC4zcy0yLjEsMC0yLjEtMS45LDEuMi0xLjYsMi0xLjdjMi42LDAsNi4xLS4zLDguNi0uOCwxLjYtLjMsMi4yLS41LDIuNS0uNSwxLjQsMCwxLjgsMS4zLDEuOCwyLDAsMS42LS45LDEuNy00LjUsMi4ydjEuOVpNMTE1LjgsMTI3Yy4xLDEuMy0uNiwyLTEuOSwycy0xLjctLjgtMS44LTEuN2wtLjctNi41LTIsLjJjLTEuOC4yLTIuMS0xLjEtMi4xLTEuOCwwLTEuNSwxLTEuNywxLjctMS43bDItLjItLjItMS41Yy0uMS0xLjQuNi0yLDEuOS0yczEuNy45LDEuNywxLjZsLjIsMS42LDQuOS0uNGMxLjEtLjEsMi42LDAsMi42LDEuOXMtMS4zLDQtMi4yLDQuOWMtLjguOS0xLjYsMS41LTIuMywxLjVzLTEuOS0uOC0xLjktMS44LjMtLjksMS0xLjZjLjYtLjUsMS0xLjIsMS0xLjNzLS4xLDAtLjMsMGwtMi42LjMuNyw2LjZaTTEyNy44LDExM2MwLTEuMy43LTIsMi0yczIsLjYsMiwydjExLjFjMCwuMywwLC40LjMuNHMyLjEtLjMsMy41LTEuMWMyLjYtMS41LDMuNi0zLjcsNC41LTUuNS40LS44LjktMSwxLjUtMSwuOSwwLDIuMy42LDIuMywxLjhzLTEuNiw0LjgtNS4zLDcuNGMtMy43LDIuNi04LDIuNi04LjMsMi42LTIuNSwwLTIuNi0xLjUtMi42LTIuM3YtMTMuNVpNMTUzLjEsMTEzLjZjMS4zLjgsMS45LDEuMywxLjksMi4ycy0uOSwyLjMtMi4xLDIuMy0uNiwwLTEuMi0uNWMtMS44LTEuMi0yLjItMS40LTMuNy0yLjItLjctLjQtMS40LS44LTEuNC0xLjdzMS0yLjEsMi4xLTIuMSwzLjYsMS41LDQuNCwyWk0xNTcuNSwxMjUuNmMtMy40LDIuMy03LjcsMi45LTguMywyLjktMS41LDAtMS45LTEuNC0xLjktMi4zLDAtMS42LDEuMS0xLjgsMi4xLTEuOSw1LjMtLjcsOC40LTIuNywxMC41LTguMS4xLS4yLjQtMS4zLjUtMS41LjItLjUuNS0xLjEsMS41LTEuMXMyLjMuNiwyLjMsMS45LTEuNiw2LjctNi43LDEwLjFaTTE3MC43LDEyMC44Yy0uNS0uMi0uOS0uNC0yLjMtLjgtLjctLjItMS43LS42LTEuNy0xLjdzLjQtMiwxLjgtMiwzLjEuOCw0LjEsMS4zYzEuMy41LDIuMS44LDIuMSwycy0uNiwyLjEtMS44LDIuMS0uNSwwLTIuMS0uOFpNMTg0LjMsMTE2LjFjMCwxLTEuOCw1LjctNSw4LjYtMi4xLDEuOS00LjQsMi45LTcuMywzLjYtLjUuMS0xLjYuMy0yLjIuMy0xLjUsMC0xLjktMS40LTEuOS0yLjIsMC0xLjUsMS4zLTEuOCwxLjktMS45LDMuNi0uNiw3LjUtMS40LDkuOS03LjMuOS0yLjIsMS0yLjQsMS40LTIuNy4xLS4xLjQtLjIsMS4xLS4yczIuMS40LDIuMSwxLjdaTTE3Mi41LDExNS42Yy0uNS0uMi0uOS0uNC0yLjMtLjgtLjctLjItMS43LS42LTEuNy0xLjdzLjQtMi4xLDEuOC0yLjEsMy4xLjksNC4xLDEuM2MxLjMuNSwyLjEuOCwyLjEsMnMtLjUsMi4xLTEuOCwyLjEtLjUsMC0yLjEtLjhaTTE4MC41LDExMS4zYzAtLjEsMC0uMywwLS40LDAtLjYuNy0uNy45LS43LjQsMCwuNi4yLjkuOSwwLC4xLjQsMS4yLjQsMS44cy0uOC44LS45LjhjLS41LDAtLjYtLjMtLjctLjYsMC0uMS0uMi0uOC0uMy0uOSwwLS4yLS4zLS44LS4zLS45Wk0xODIuOCwxMTEuMmMwLS4xLDAtLjMsMC0uNCwwLS42LjctLjcuOS0uNy40LDAsLjYuMi45LjksMCwuMS40LDEuMi40LDEuOHMtLjguOC0uOS44Yy0uNSwwLS42LS4zLS43LS42LDAtLjEtLjItLjgtLjMtLjksMC0uMi0uMy0uOC0uMy0uOVpNNjAuNyw5NC43Yy0uMy4zLS41LjQtLjcuNiwyLDIuMywyLjQsNS4yLDIuNCw2LjcsMCwzLjEtMS43LDMuNS0yLDMuNi0uNCwwLTEuNy4xLTIsLjEtMS45LDAtMi44LS4yLTIuOC0xLjVzMC0uNi4xLS43Yy0uOS40LTMuMSwxLjMtMy45LDEuMy0xLjQsMC0xLjQtMS4zLTEuNC0xLjUsMC0xLC42LTEuMSwxLjktMS40LDEtLjMsNC4xLTEuMiw2LjYtMi41LDAtLjItLjEtLjMtLjItLjUtMy4xLDEuNy02LjQsMi41LTYuOSwyLjUtMS4yLDAtMS4yLTEuMS0xLjItMS4zLDAtMSwuNC0xLDIuMS0xLjMsMi4zLS40LDQtMSw0LjktMS41LDAtLjEtLjEtLjEtLjMtLjMtMi4zLDEtNC42LDEuNC01LjMsMS40LTEsMC0xLjQtLjktMS40LTEuNSwwLTEuMi44LTEuMywyLjYtMS41LDEuMS0uMSwxLjktLjMsMi43LS42aC0xYy0uOCwwLTEuMy0uMi0xLjQtMS4xLS40LjMtMSwuMy0xLjEuMy0xLDAtMS44LS4zLTEuOC0xLjd2LS42YzAtMS41LDAtMi44LDIuMy0yLjhoNC42YzAtLjQuMi0xLjIsMS42LTEuMnMxLjkuNSwxLjksMS4yaDQuMmMxLjUsMCwyLjgsMCwyLjgsMi4zdjEuMWMwLDEuNC0uNywxLjctMS43LDEuN3MtLjksMC0xLjItLjJjMCwuMywwLC45LTEsMSwwLC43LjEsMS4xLjIsMS42LjYtLjQuNy0uNSwxLjEtLjguNC0uMy42LS40LjktLjQuOSwwLDEuNy45LDEuNywxLjhzMCwuOC0yLjUsMi4zYy4zLjUuOCwxLjMsMS41LDEuOS45LjgsMS4yLDEuMSwxLjIsMS43LDAsMS0xLDItMiwyLTEuNywwLTQuMi0zLjctNS4xLTEwLjFoLS40Wk02My42LDkyLjJjLjEsMCwuNiwwLC45LjJ2LS40YzAtLjIsMC0uMi0uMi0uMmgtMTAuMWMtLjEsMC0uMiwwLS4yLjJ2LjVjLjMtLjIuOC0uMiwxLS4yaDguN1pNNTguMSwxMDIuOWMuNywwLDEsMCwxLTEuMi0uNS4zLTEuMS43LTIuMSwxLjIuMSwwLC45LDAsMS4xLDBaTTg2LDk1LjJoMS40Yy4zLDAsMS40LDAsMS40LDEuM3MtMS4xLDEuNC0xLjQsMS40aC0xLjR2LjhoMS4yYy4zLDAsMS40LDAsMS40LDEuNHMtMSwxLjQtMS40LDEuNGgtNS40Yy0uNCwwLTEuNCwwLTEuNC0xLjRzMS0xLjQsMS40LTEuNGgxLjF2LS44aC0xLjZjLS43LDAtLjgtLjItMS0uMywwLC43LDAsMi41LS42LDQuMi43LjEsMiwuMSwyLC4xaDUuNGMxLjUsMCwxLjkuNiwxLjksMS42LDAsMS42LTEuMywxLjYtMS45LDEuNmgtNS43Yy0uOCwwLTIuMS0uMS0zLjMtLjgtLjMuMy0xLjEsMS0yLDEtMS4yLDAtMS41LTEuMi0xLjUtMS42cy4xLS43LjUtLjljMCwwLC42LS40LjctLjQtLjgtMS0xLTEuOS0xLjEtMi4zLDAsMS4yLS4yLDIuOS0uNiw0LDAsLjItLjQsMS4xLTEuNSwxLjFzLS45LDAtMS4zLS40Yy0uNS0uMy0uNy0uNy0uNy0xLjNzMC0uNCwwLS41Yy41LTIuNC44LTMuNS44LTUuOXYtNi42YzAtMS44LjctMi40LDIuNC0yLjRoNC4zYzAtLjgsMS4xLS45LDEuOS0uOXMxLjgsMCwxLjguOWg1LjJjLjYsMCwxLjcuMSwxLjcsMS40cy0uMywxLjYtMS43LDEuNmgtMTJjLS4yLDAtLjMsMC0uMy4zdjUuNmMwLDEuMSwwLDEuOSwwLDIuNS4yLS42LjctLjgsMS4zLS45LS4yLDAtMS0uMy0xLTEuNXMuMS0uOSwxLjQtMi4xYzAsMCwuNC0uNC40LS41czAtLjEtLjEtLjFoLS41Yy0uNCwwLTEuNCwwLTEuNC0xLjRzMS0xLjQsMS40LTEuNGgyLjFjLjcsMCwxLjYuMSwxLjksMSwuMi0xLDEtMSwyLjMtMSwuOCwwLDIuNi0uMSwzLjQtLjIuMSwwLC45LDAsMS40LDAsMS4yLDAsMS4zLDEuMSwxLjMsMS41LDAsMS4zLS44LDEuNC0yLjcsMS41di42Wk03Ni43LDk5LjFjLjIsMCwuMy4yLjQuNSwwLC4xLjQuNy40LjguMi0uNS4yLTEsLjItMS4xLDAtLjItLjEtLjItLjItLjJoLS45Wk04Mi45LDk0LjdjLTIsMC0yLjMsMC0yLjYtLjctLjEuOS0uNCwxLjItMS42LDIuMS0uMSwwLS4xLjEtLjEuMiwwLDAsMCwwLC40LDBzLjUsMCwuOS4zYzAtMS40LDEtMS40LDEuNC0xLjRoMS42di0uNVpNMTU0LjQsMTAzLjljLS44LjItMi44LjUtNS43LjUtNy4yLDAtOC43LTIuMS04LjctNC40czIuNC00LjYsMy42LTQuNiwxLjksMSwxLjksMS43LS40LDEtLjgsMS4zYy0uNC4zLS45LjgtLjksMS4yLDAsMS4yLDMuMSwxLjIsNC4yLDEuMiwxLjYsMCwzLjMtLjEsNC45LS40LjctLjEsMS0uMiwxLjMtLjIsMS42LDAsMS43LDEuMywxLjcsMS43LDAsMS4xLS40LDEuNi0xLjUsMS45Wk0xNDIuOCw5Mi4zYy0xLjUsMC0xLjgtLjktMS44LTEuOCwwLTEuOCwxLjQtMS44LDItMS44czIuOCwwLDMuNCwwYy45LDAsNS41LS4xLDYtLjEuOCwwLDIuMywwLDIuMywxLjdzLS41LDEuNC0xLjgsMi4zYy0uOS42LTEsLjctMi4zLDEuNi0uNi41LTEuMS44LTEuNy44LTEuMSwwLTEuOS0uOS0xLjktMS43cy4zLS44LDEtMS40Yy0xLjMsMC0zLjguMi01LjEuMlpNMTUxLjYsOTQuOWMwLS4yLS4xLS40LS4xLS40LDAtLjQuNS0uNi44LS42cy41LjIuOSwxYy4xLjIuNSwxLjEuNSwxLjVzLS41LjctLjguNy0uNC0uMi0uNi0uNGMwLS4xLS4zLS43LS40LS44LDAtLjEtLjQtLjctLjQtLjhaTTE1My40LDkzLjhjMC0uMi0uMS0uNC0uMS0uNSwwLS40LjUtLjYuOC0uNnMuNS4yLjksMWMuMy42LjUsMS4xLjUsMS41cy0uNS43LS44LjctLjQsMC0uNi0uNGMwLS4xLS4zLS43LS40LS44LDAtLjEtLjQtLjctLjQtLjhaTTE3MS4yLDkyLjRjMC0xLjEuOC0xLjYsMS44LTEuNiwxLjksMCwyLDEuNCwyLDIuM3MwLDEuMy0uMSwzLjFjMS4zLjYsMi4yLDEuMiwyLjIsMi4ycy0uNiwyLTEuNywyLS43LS4xLTEuMS0uM2MtLjksMi45LTMuNCw0LjgtNC44LDQuOHMtMS44LS45LTEuOC0xLjkuNC0xLjEsMS42LTEuOWMuNy0uNCwxLjYtMS4xLDEuOS0yLjgtLjYtLjItMS4zLS41LTIuNS0uNy0uNCwxLjctLjksMi45LTEuNiw0LjMtLjYsMS4yLTEuNCwyLjItMi45LDIuMnMtNC0xLjctNC00LjYsMi42LTUuMSw1LjktNS4zYzAtLjMuNC0xLjcuNC0xLjksMC0uNC0uMy0uNC0uNC0uNHMtMi40LjItMi45LjItMS44LDAtMS44LTEuNywxLjQtMS43LDIuMS0xLjcsMS4yLDAsMiwwLDIuMSwwLDIuNSwwYy42LDAsMi4zLDAsMi4zLDEuOHMtLjQsMi42LS43LDQuMWMuNy4xLDEuMS4yLDIsLjUsMC0uNCwwLTIsMC0yLjNaTTE2Myw5OS41YzAsLjkuNSwxLC42LDEsLjUsMCwxLjItMi40LDEuNC0zLjEtMSwuMi0yLC44LTIsMi4yWiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxMCIgZD0iTTU4LjEsMTE3Yy0uMi0uMy0yLjYtMy44LTIuNi01LjFzMS0xLjcsMi4xLTEuNywxLjMuNCwxLjgsMS4zYzAsMCwxLjQsMi4zLDIuNSwzLjUuMy4zLDEuNywxLjcsMS45LDIuMS4yLjIuMy42LjMsMS4xLDAsMS4xLTEuMSwyLjMtMi4yLDIuM3MtLjUsMC0uNy0uMmMwLC42LS4yLDMuMS0uMiwzLjctLjQsNS42LTEuNiw1LjYtNC42LDUuNnMtMS45LDAtMi40LS4xYy0xLjMtLjMtMS4zLTEuNS0xLjMtMS44LDAtMS45LDEuNS0xLjksMS45LTEuOXMxLjIsMCwxLjMsMGMuOCwwLC45LS42LDEtMS4zLjItMS44LjMtMywuMy0zLjRzMC0uNi0uNC0uNmgtMi41Yy0uMSw0LjgtNS4xLDktNy40LDlzLTItMS4yLTItMi4yLjctMS40LDEuMy0xLjdjMS4yLS42LDQuMS0yLDQuMy01LjFoLTEuMmMtLjgsMC0xLjItLjItMS41LS42LS4yLjEtLjUuNC0xLC40LTEuMiwwLTIuNC0xLjEtMi40LTIuNHMwLS44LDItMi44YzEuMi0xLjIsMS45LTIuNSwyLjktNC4xLjQtLjcuOC0xLDEuNS0xLDEuMSwwLDIuMy43LDIuMywxLjdzLS45LDIuOC0yLjYsNS4xaDcuNFpNNzIuNywxMTkuNGMyLjIsMCwyLjUsMS4yLDIuNSwyLjhzLS4xLDQuOS0uNSw2Yy0uNCwxLjItMS4yLDEuNS0zLjYsMS41cy0yLjEsMC0yLjMtMS41Yy0uNywxLjMtMS4xLDEuNC0xLjcsMS40LTEuNCwwLTIuMi0xLjEtMi4yLTEuOXMwLS42LjctMS42YzEuNS0yLjcsMS41LTUuNiwxLjUtNy41LS44LS4xLTEuMy0uNC0xLjYtLjgtLjMtLjQtLjQtMS0uNC0xLjd2LTIuNWMwLTIsLjktMi42LDIuNi0yLjZoNWMxLjcsMCwyLjYuNiwyLjYsMi42djIuNWMwLDEuOS0uOSwyLjYtMi42LDIuNmgtMi4xdi45aDJaTTcxLjgsMTE0LjNjMC0uMSwwLS4yLS4yLS4yaC0yLjljLS4xLDAtLjIuMS0uMi4ydi44YzAsLjEsMCwuMi4yLjJoMi45cy4yLDAsLjItLjJ2LS44Wk03MC40LDEyMi43Yy0uMS44LS4zLDEuOC0uOCwzLjQuMiwwLC4zLS4xLjYtLjEsMCwwLC41LDAsLjYsMCwuNSwwLC42LS4xLjctLjUsMC0uMi4xLTIsLjEtMi4yLDAtLjYtLjEtLjYtLjQtLjZoLS45Wk03OS40LDEyMy4xYzAsLjktLjMsMS44LTEuNiwxLjhzLTEuOS0uNC0xLjktMS44di0xMGMwLS41LDAtMS44LDEuNi0xLjhzMS44LjUsMS44LDEuOHYxMFpNODAsMTEyYzAtLjguMi0xLjgsMS43LTEuOHMyLC40LDIsMS44djE1YzAsMi40LTEuMywyLjYtMy42LDIuNnMtMS45LDAtMi41LS4yYy0xLS4yLTEuMy0xLjMtMS4zLTEuOSwwLTEuOSwxLjUtMS45LDEuOS0xLjlzMS4zLDAsMS41LDBjLjQsMCwuNC0uMS40LS41di0xMy4zWk05Ny4zLDExNy40aDQuNmMuNCwwLDEuOCwwLDEuOCwxLjhzLS44LDEuOS0xLjgsMS45aC00LjdjLS4yLDIuNC0xLjEsNC44LTQsNi40LTEuNy45LTMuNiwxLjQtNC41LDEuNC0xLjYsMC0xLjktMS41LTEuOS0yLjEsMC0xLjIsMS0xLjUsMS43LTEuNiwyLjQtLjUsNC41LTEuMyw0LjgtNGgtNS44Yy0uNCwwLTEuOCwwLTEuOC0xLjhzLjgtMS44LDEuOC0xLjhoNS45di0xLjVjLTIuMy4yLTMuMS4zLTQuNC4zcy0yLjEsMC0yLjEtMS45LDEuMi0xLjYsMi0xLjdjMi42LDAsNi4xLS4zLDguNi0uOCwxLjYtLjMsMi4yLS41LDIuNS0uNSwxLjQsMCwxLjgsMS4zLDEuOCwyLDAsMS42LS45LDEuNy00LjUsMi4ydjEuOVpNMTE1LjgsMTI3Yy4xLDEuMy0uNiwyLTEuOSwycy0xLjctLjgtMS44LTEuN2wtLjctNi41LTIsLjJjLTEuOC4yLTIuMS0xLjEtMi4xLTEuOCwwLTEuNSwxLTEuNywxLjctMS43bDItLjItLjItMS41Yy0uMS0xLjQuNi0yLDEuOS0yczEuNy45LDEuNywxLjZsLjIsMS42LDQuOS0uNGMxLjEtLjEsMi42LDAsMi42LDEuOXMtMS4zLDQtMi4yLDQuOWMtLjguOS0xLjYsMS41LTIuMywxLjVzLTEuOS0uOC0xLjktMS44LjMtLjksMS0xLjZjLjYtLjUsMS0xLjIsMS0xLjNzLS4xLDAtLjMsMGwtMi42LjMuNyw2LjZaTTEyNy44LDExM2MwLTEuMy43LTIsMi0yczIsLjYsMiwydjExLjFjMCwuMywwLC40LjMuNHMyLjEtLjMsMy41LTEuMWMyLjYtMS41LDMuNi0zLjcsNC41LTUuNS40LS44LjktMSwxLjUtMSwuOSwwLDIuMy42LDIuMywxLjhzLTEuNiw0LjgtNS4zLDcuNGMtMy43LDIuNi04LDIuNi04LjMsMi42LTIuNSwwLTIuNi0xLjUtMi42LTIuM3YtMTMuNVpNMTUzLjEsMTEzLjZjMS4zLjgsMS45LDEuMywxLjksMi4ycy0uOSwyLjMtMi4xLDIuMy0uNiwwLTEuMi0uNWMtMS44LTEuMi0yLjItMS40LTMuNy0yLjItLjctLjQtMS40LS44LTEuNC0xLjdzMS0yLjEsMi4xLTIuMSwzLjYsMS41LDQuNCwyWk0xNTcuNSwxMjUuNmMtMy40LDIuMy03LjcsMi45LTguMywyLjktMS41LDAtMS45LTEuNC0xLjktMi4zLDAtMS42LDEuMS0xLjgsMi4xLTEuOSw1LjMtLjcsOC40LTIuNywxMC41LTguMS4xLS4yLjQtMS4zLjUtMS41LjItLjUuNS0xLjEsMS41LTEuMXMyLjMuNiwyLjMsMS45LTEuNiw2LjctNi43LDEwLjFaTTE3MC43LDEyMC44Yy0uNS0uMi0uOS0uNC0yLjMtLjgtLjctLjItMS43LS42LTEuNy0xLjdzLjQtMiwxLjgtMiwzLjEuOCw0LjEsMS4zYzEuMy41LDIuMS44LDIuMSwycy0uNiwyLjEtMS44LDIuMS0uNSwwLTIuMS0uOFpNMTg0LjMsMTE2LjFjMCwxLTEuOCw1LjctNSw4LjYtMi4xLDEuOS00LjQsMi45LTcuMywzLjYtLjUuMS0xLjYuMy0yLjIuMy0xLjUsMC0xLjktMS40LTEuOS0yLjIsMC0xLjUsMS4zLTEuOCwxLjktMS45LDMuNi0uNiw3LjUtMS40LDkuOS03LjMuOS0yLjIsMS0yLjQsMS40LTIuNy4xLS4xLjQtLjIsMS4xLS4yczIuMS40LDIuMSwxLjdaTTE3Mi41LDExNS42Yy0uNS0uMi0uOS0uNC0yLjMtLjgtLjctLjItMS43LS42LTEuNy0xLjdzLjQtMi4xLDEuOC0yLjEsMy4xLjksNC4xLDEuM2MxLjMuNSwyLjEuOCwyLjEsMnMtLjUsMi4xLTEuOCwyLjEtLjUsMC0yLjEtLjhaTTE4MC41LDExMS4zYzAtLjEsMC0uMywwLS40LDAtLjYuNy0uNy45LS43LjQsMCwuNi4yLjkuOSwwLC4xLjQsMS4yLjQsMS44cy0uOC44LS45LjhjLS41LDAtLjYtLjMtLjctLjYsMC0uMS0uMi0uOC0uMy0uOSwwLS4yLS4zLS44LS4zLS45Wk0xODIuOCwxMTEuMmMwLS4xLDAtLjMsMC0uNCwwLS42LjctLjcuOS0uNy40LDAsLjYuMi45LjksMCwuMS40LDEuMi40LDEuOHMtLjguOC0uOS44Yy0uNSwwLS42LS4zLS43LS42LDAtLjEtLjItLjgtLjMtLjksMC0uMi0uMy0uOC0uMy0uOVpNNjAuNyw5NC43Yy0uMy4zLS41LjQtLjcuNiwyLDIuMywyLjQsNS4yLDIuNCw2LjcsMCwzLjEtMS43LDMuNS0yLDMuNi0uNCwwLTEuNy4xLTIsLjEtMS45LDAtMi44LS4yLTIuOC0xLjVzMC0uNi4xLS43Yy0uOS40LTMuMSwxLjMtMy45LDEuMy0xLjQsMC0xLjQtMS4zLTEuNC0xLjUsMC0xLC42LTEuMSwxLjktMS40LDEtLjMsNC4xLTEuMiw2LjYtMi41LDAtLjItLjEtLjMtLjItLjUtMy4xLDEuNy02LjQsMi41LTYuOSwyLjUtMS4yLDAtMS4yLTEuMS0xLjItMS4zLDAtMSwuNC0xLDIuMS0xLjMsMi4zLS40LDQtMSw0LjktMS41LDAtLjEtLjEtLjEtLjMtLjMtMi4zLDEtNC42LDEuNC01LjMsMS40LTEsMC0xLjQtLjktMS40LTEuNSwwLTEuMi44LTEuMywyLjYtMS41LDEuMS0uMSwxLjktLjMsMi43LS42aC0xYy0uOCwwLTEuMy0uMi0xLjQtMS4xLS40LjMtMSwuMy0xLjEuMy0xLDAtMS44LS4zLTEuOC0xLjd2LS42YzAtMS41LDAtMi44LDIuMy0yLjhoNC42YzAtLjQuMi0xLjIsMS42LTEuMnMxLjkuNSwxLjksMS4yaDQuMmMxLjUsMCwyLjgsMCwyLjgsMi4zdjEuMWMwLDEuNC0uNywxLjctMS43LDEuN3MtLjksMC0xLjItLjJjMCwuMywwLC45LTEsMSwwLC43LjEsMS4xLjIsMS42LjYtLjQuNy0uNSwxLjEtLjguNC0uMy42LS40LjktLjQuOSwwLDEuNy45LDEuNywxLjhzMCwuOC0yLjUsMi4zYy4zLjUuOCwxLjMsMS41LDEuOS45LjgsMS4yLDEuMSwxLjIsMS43LDAsMS0xLDItMiwyLTEuNywwLTQuMi0zLjctNS4xLTEwLjFoLS40Wk02My42LDkyLjJjLjEsMCwuNiwwLC45LjJ2LS40YzAtLjIsMC0uMi0uMi0uMmgtMTAuMWMtLjEsMC0uMiwwLS4yLjJ2LjVjLjMtLjIuOC0uMiwxLS4yaDguN1pNNTguMSwxMDIuOWMuNywwLDEsMCwxLTEuMi0uNS4zLTEuMS43LTIuMSwxLjIuMSwwLC45LDAsMS4xLDBaTTg2LDk1LjJoMS40Yy4zLDAsMS40LDAsMS40LDEuM3MtMS4xLDEuNC0xLjQsMS40aC0xLjR2LjhoMS4yYy4zLDAsMS40LDAsMS40LDEuNHMtMSwxLjQtMS40LDEuNGgtNS40Yy0uNCwwLTEuNCwwLTEuNC0xLjRzMS0xLjQsMS40LTEuNGgxLjF2LS44aC0xLjZjLS43LDAtLjgtLjItMS0uMywwLC43LDAsMi41LS42LDQuMi43LjEsMiwuMSwyLC4xaDUuNGMxLjUsMCwxLjkuNiwxLjksMS42LDAsMS42LTEuMywxLjYtMS45LDEuNmgtNS43Yy0uOCwwLTIuMS0uMS0zLjMtLjgtLjMuMy0xLjEsMS0yLDEtMS4yLDAtMS41LTEuMi0xLjUtMS42cy4xLS43LjUtLjljMCwwLC42LS40LjctLjQtLjgtMS0xLTEuOS0xLjEtMi4zLDAsMS4yLS4yLDIuOS0uNiw0LDAsLjItLjQsMS4xLTEuNSwxLjFzLS45LDAtMS4zLS40Yy0uNS0uMy0uNy0uNy0uNy0xLjNzMC0uNCwwLS41Yy41LTIuNC44LTMuNS44LTUuOXYtNi42YzAtMS44LjctMi40LDIuNC0yLjRoNC4zYzAtLjgsMS4xLS45LDEuOS0uOXMxLjgsMCwxLjguOWg1LjJjLjYsMCwxLjcuMSwxLjcsMS40cy0uMywxLjYtMS43LDEuNmgtMTJjLS4yLDAtLjMsMC0uMy4zdjUuNmMwLDEuMSwwLDEuOSwwLDIuNS4yLS42LjctLjgsMS4zLS45LS4yLDAtMS0uMy0xLTEuNXMuMS0uOSwxLjQtMi4xYzAsMCwuNC0uNC40LS41czAtLjEtLjEtLjFoLS41Yy0uNCwwLTEuNCwwLTEuNC0xLjRzMS0xLjQsMS40LTEuNGgyLjFjLjcsMCwxLjYuMSwxLjksMSwuMi0xLDEtMSwyLjMtMSwuOCwwLDIuNi0uMSwzLjQtLjIuMSwwLC45LDAsMS40LDAsMS4yLDAsMS4zLDEuMSwxLjMsMS41LDAsMS4zLS44LDEuNC0yLjcsMS41di42Wk03Ni43LDk5LjFjLjIsMCwuMy4yLjQuNSwwLC4xLjQuNy40LjguMi0uNS4yLTEsLjItMS4xLDAtLjItLjEtLjItLjItLjJoLS45Wk04Mi45LDk0LjdjLTIsMC0yLjMsMC0yLjYtLjctLjEuOS0uNCwxLjItMS42LDIuMS0uMSwwLS4xLjEtLjEuMiwwLDAsMCwwLC40LDBzLjUsMCwuOS4zYzAtMS40LDEtMS40LDEuNC0xLjRoMS42di0uNVpNMTU0LjQsMTAzLjljLS44LjItMi44LjUtNS43LjUtNy4yLDAtOC43LTIuMS04LjctNC40czIuNC00LjYsMy42LTQuNiwxLjksMSwxLjksMS43LS40LDEtLjgsMS4zYy0uNC4zLS45LjgtLjksMS4yLDAsMS4yLDMuMSwxLjIsNC4yLDEuMiwxLjYsMCwzLjMtLjEsNC45LS40LjctLjEsMS0uMiwxLjMtLjIsMS42LDAsMS43LDEuMywxLjcsMS43LDAsMS4xLS40LDEuNi0xLjUsMS45Wk0xNDIuOCw5Mi4zYy0xLjUsMC0xLjgtLjktMS44LTEuOCwwLTEuOCwxLjQtMS44LDItMS44czIuOCwwLDMuNCwwYy45LDAsNS41LS4xLDYtLjEuOCwwLDIuMywwLDIuMywxLjdzLS41LDEuNC0xLjgsMi4zYy0uOS42LTEsLjctMi4zLDEuNi0uNi41LTEuMS44LTEuNy44LTEuMSwwLTEuOS0uOS0xLjktMS43cy4zLS44LDEtMS40Yy0xLjMsMC0zLjguMi01LjEuMlpNMTUxLjYsOTQuOWMwLS4yLS4xLS40LS4xLS40LDAtLjQuNS0uNi44LS42cy41LjIuOSwxYy4xLjIuNSwxLjEuNSwxLjVzLS41LjctLjguNy0uNC0uMi0uNi0uNGMwLS4xLS4zLS43LS40LS44LDAtLjEtLjQtLjctLjQtLjhaTTE1My40LDkzLjhjMC0uMi0uMS0uNC0uMS0uNSwwLS40LjUtLjYuOC0uNnMuNS4yLjksMWMuMy42LjUsMS4xLjUsMS41cy0uNS43LS44LjctLjQsMC0uNi0uNGMwLS4xLS4zLS43LS40LS44LDAtLjEtLjQtLjctLjQtLjhaTTE3MS4yLDkyLjRjMC0xLjEuOC0xLjYsMS44LTEuNiwxLjksMCwyLDEuNCwyLDIuM3MwLDEuMy0uMSwzLjFjMS4zLjYsMi4yLDEuMiwyLjIsMi4ycy0uNiwyLTEuNywyLS43LS4xLTEuMS0uM2MtLjksMi45LTMuNCw0LjgtNC44LDQuOHMtMS44LS45LTEuOC0xLjkuNC0xLjEsMS42LTEuOWMuNy0uNCwxLjYtMS4xLDEuOS0yLjgtLjYtLjItMS4zLS41LTIuNS0uNy0uNCwxLjctLjksMi45LTEuNiw0LjMtLjYsMS4yLTEuNCwyLjItMi45LDIuMnMtNC0xLjctNC00LjYsMi42LTUuMSw1LjktNS4zYzAtLjMuNC0xLjcuNC0xLjksMC0uNC0uMy0uNC0uNC0uNHMtMi40LjItMi45LjItMS44LDAtMS44LTEuNywxLjQtMS43LDIuMS0xLjcsMS4yLDAsMiwwLDIuMSwwLDIuNSwwYy42LDAsMi4zLDAsMi4zLDEuOHMtLjQsMi42LS43LDQuMWMuNy4xLDEuMS4yLDIsLjUsMC0uNCwwLTIsMC0yLjNaTTE2Myw5OS41YzAsLjkuNSwxLC42LDEsLjUsMCwxLjItMi40LDEuNC0zLjEtMSwuMi0yLC44LTIsMi4yWiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxMSIgZD0iTTU4LjEsMTE3Yy0uMi0uMy0yLjYtMy44LTIuNi01LjFzMS0xLjcsMi4xLTEuNywxLjMuNCwxLjgsMS4zYzAsMCwxLjQsMi4zLDIuNSwzLjUuMy4zLDEuNywxLjcsMS45LDIuMS4yLjIuMy42LjMsMS4xLDAsMS4xLTEuMSwyLjMtMi4yLDIuM3MtLjUsMC0uNy0uMmMwLC42LS4yLDMuMS0uMiwzLjctLjQsNS42LTEuNiw1LjYtNC42LDUuNnMtMS45LDAtMi40LS4xYy0xLjMtLjMtMS4zLTEuNS0xLjMtMS44LDAtMS45LDEuNS0xLjksMS45LTEuOXMxLjIsMCwxLjMsMGMuOCwwLC45LS42LDEtMS4zLjItMS44LjMtMywuMy0zLjRzMC0uNi0uNC0uNmgtMi41Yy0uMSw0LjgtNS4xLDktNy40LDlzLTItMS4yLTItMi4yLjctMS40LDEuMy0xLjdjMS4yLS42LDQuMS0yLDQuMy01LjFoLTEuMmMtLjgsMC0xLjItLjItMS41LS42LS4yLjEtLjUuNC0xLC40LTEuMiwwLTIuNC0xLjEtMi40LTIuNHMwLS44LDItMi44YzEuMi0xLjIsMS45LTIuNSwyLjktNC4xLjQtLjcuOC0xLDEuNS0xLDEuMSwwLDIuMy43LDIuMywxLjdzLS45LDIuOC0yLjYsNS4xaDcuNFpNNzIuNywxMTkuNGMyLjIsMCwyLjUsMS4yLDIuNSwyLjhzLS4xLDQuOS0uNSw2Yy0uNCwxLjItMS4yLDEuNS0zLjYsMS41cy0yLjEsMC0yLjMtMS41Yy0uNywxLjMtMS4xLDEuNC0xLjcsMS40LTEuNCwwLTIuMi0xLjEtMi4yLTEuOXMwLS42LjctMS42YzEuNS0yLjcsMS41LTUuNiwxLjUtNy41LS44LS4xLTEuMy0uNC0xLjYtLjgtLjMtLjQtLjQtMS0uNC0xLjd2LTIuNWMwLTIsLjktMi42LDIuNi0yLjZoNWMxLjcsMCwyLjYuNiwyLjYsMi42djIuNWMwLDEuOS0uOSwyLjYtMi42LDIuNmgtMi4xdi45aDJaTTcxLjgsMTE0LjNjMC0uMSwwLS4yLS4yLS4yaC0yLjljLS4xLDAtLjIuMS0uMi4ydi44YzAsLjEsMCwuMi4yLjJoMi45cy4yLDAsLjItLjJ2LS44Wk03MC40LDEyMi43Yy0uMS44LS4zLDEuOC0uOCwzLjQuMiwwLC4zLS4xLjYtLjEsMCwwLC41LDAsLjYsMCwuNSwwLC42LS4xLjctLjUsMC0uMi4xLTIsLjEtMi4yLDAtLjYtLjEtLjYtLjQtLjZoLS45Wk03OS40LDEyMy4xYzAsLjktLjMsMS44LTEuNiwxLjhzLTEuOS0uNC0xLjktMS44di0xMGMwLS41LDAtMS44LDEuNi0xLjhzMS44LjUsMS44LDEuOHYxMFpNODAsMTEyYzAtLjguMi0xLjgsMS43LTEuOHMyLC40LDIsMS44djE1YzAsMi40LTEuMywyLjYtMy42LDIuNnMtMS45LDAtMi41LS4yYy0xLS4yLTEuMy0xLjMtMS4zLTEuOSwwLTEuOSwxLjUtMS45LDEuOS0xLjlzMS4zLDAsMS41LDBjLjQsMCwuNC0uMS40LS41di0xMy4zWk05Ny4zLDExNy40aDQuNmMuNCwwLDEuOCwwLDEuOCwxLjhzLS44LDEuOS0xLjgsMS45aC00LjdjLS4yLDIuNC0xLjEsNC44LTQsNi40LTEuNy45LTMuNiwxLjQtNC41LDEuNC0xLjYsMC0xLjktMS41LTEuOS0yLjEsMC0xLjIsMS0xLjUsMS43LTEuNiwyLjQtLjUsNC41LTEuMyw0LjgtNGgtNS44Yy0uNCwwLTEuOCwwLTEuOC0xLjhzLjgtMS44LDEuOC0xLjhoNS45di0xLjVjLTIuMy4yLTMuMS4zLTQuNC4zcy0yLjEsMC0yLjEtMS45LDEuMi0xLjYsMi0xLjdjMi42LDAsNi4xLS4zLDguNi0uOCwxLjYtLjMsMi4yLS41LDIuNS0uNSwxLjQsMCwxLjgsMS4zLDEuOCwyLDAsMS42LS45LDEuNy00LjUsMi4ydjEuOVpNMTE1LjgsMTI3Yy4xLDEuMy0uNiwyLTEuOSwycy0xLjctLjgtMS44LTEuN2wtLjctNi41LTIsLjJjLTEuOC4yLTIuMS0xLjEtMi4xLTEuOCwwLTEuNSwxLTEuNywxLjctMS43bDItLjItLjItMS41Yy0uMS0xLjQuNi0yLDEuOS0yczEuNy45LDEuNywxLjZsLjIsMS42LDQuOS0uNGMxLjEtLjEsMi42LDAsMi42LDEuOXMtMS4zLDQtMi4yLDQuOWMtLjguOS0xLjYsMS41LTIuMywxLjVzLTEuOS0uOC0xLjktMS44LjMtLjksMS0xLjZjLjYtLjUsMS0xLjIsMS0xLjNzLS4xLDAtLjMsMGwtMi42LjMuNyw2LjZaTTEyNy44LDExM2MwLTEuMy43LTIsMi0yczIsLjYsMiwydjExLjFjMCwuMywwLC40LjMuNHMyLjEtLjMsMy41LTEuMWMyLjYtMS41LDMuNi0zLjcsNC41LTUuNS40LS44LjktMSwxLjUtMSwuOSwwLDIuMy42LDIuMywxLjhzLTEuNiw0LjgtNS4zLDcuNGMtMy43LDIuNi04LDIuNi04LjMsMi42LTIuNSwwLTIuNi0xLjUtMi42LTIuM3YtMTMuNVpNMTUzLjEsMTEzLjZjMS4zLjgsMS45LDEuMywxLjksMi4ycy0uOSwyLjMtMi4xLDIuMy0uNiwwLTEuMi0uNWMtMS44LTEuMi0yLjItMS40LTMuNy0yLjItLjctLjQtMS40LS44LTEuNC0xLjdzMS0yLjEsMi4xLTIuMSwzLjYsMS41LDQuNCwyWk0xNTcuNSwxMjUuNmMtMy40LDIuMy03LjcsMi45LTguMywyLjktMS41LDAtMS45LTEuNC0xLjktMi4zLDAtMS42LDEuMS0xLjgsMi4xLTEuOSw1LjMtLjcsOC40LTIuNywxMC41LTguMS4xLS4yLjQtMS4zLjUtMS41LjItLjUuNS0xLjEsMS41LTEuMXMyLjMuNiwyLjMsMS45LTEuNiw2LjctNi43LDEwLjFaTTE3MC43LDEyMC44Yy0uNS0uMi0uOS0uNC0yLjMtLjgtLjctLjItMS43LS42LTEuNy0xLjdzLjQtMiwxLjgtMiwzLjEuOCw0LjEsMS4zYzEuMy41LDIuMS44LDIuMSwycy0uNiwyLjEtMS44LDIuMS0uNSwwLTIuMS0uOFpNMTg0LjMsMTE2LjFjMCwxLTEuOCw1LjctNSw4LjYtMi4xLDEuOS00LjQsMi45LTcuMywzLjYtLjUuMS0xLjYuMy0yLjIuMy0xLjUsMC0xLjktMS40LTEuOS0yLjIsMC0xLjUsMS4zLTEuOCwxLjktMS45LDMuNi0uNiw3LjUtMS40LDkuOS03LjMuOS0yLjIsMS0yLjQsMS40LTIuNy4xLS4xLjQtLjIsMS4xLS4yczIuMS40LDIuMSwxLjdaTTE3Mi41LDExNS42Yy0uNS0uMi0uOS0uNC0yLjMtLjgtLjctLjItMS43LS42LTEuNy0xLjdzLjQtMi4xLDEuOC0yLjEsMy4xLjksNC4xLDEuM2MxLjMuNSwyLjEuOCwyLjEsMnMtLjUsMi4xLTEuOCwyLjEtLjUsMC0yLjEtLjhaTTE4MC41LDExMS4zYzAtLjEsMC0uMywwLS40LDAtLjYuNy0uNy45LS43LjQsMCwuNi4yLjkuOSwwLC4xLjQsMS4yLjQsMS44cy0uOC44LS45LjhjLS41LDAtLjYtLjMtLjctLjYsMC0uMS0uMi0uOC0uMy0uOSwwLS4yLS4zLS44LS4zLS45Wk0xODIuOCwxMTEuMmMwLS4xLDAtLjMsMC0uNCwwLS42LjctLjcuOS0uNy40LDAsLjYuMi45LjksMCwuMS40LDEuMi40LDEuOHMtLjguOC0uOS44Yy0uNSwwLS42LS4zLS43LS42LDAtLjEtLjItLjgtLjMtLjksMC0uMi0uMy0uOC0uMy0uOVpNNjAuNyw5NC43Yy0uMy4zLS41LjQtLjcuNiwyLDIuMywyLjQsNS4yLDIuNCw2LjcsMCwzLjEtMS43LDMuNS0yLDMuNi0uNCwwLTEuNy4xLTIsLjEtMS45LDAtMi44LS4yLTIuOC0xLjVzMC0uNi4xLS43Yy0uOS40LTMuMSwxLjMtMy45LDEuMy0xLjQsMC0xLjQtMS4zLTEuNC0xLjUsMC0xLC42LTEuMSwxLjktMS40LDEtLjMsNC4xLTEuMiw2LjYtMi41LDAtLjItLjEtLjMtLjItLjUtMy4xLDEuNy02LjQsMi41LTYuOSwyLjUtMS4yLDAtMS4yLTEuMS0xLjItMS4zLDAtMSwuNC0xLDIuMS0xLjMsMi4zLS40LDQtMSw0LjktMS41LDAtLjEtLjEtLjEtLjMtLjMtMi4zLDEtNC42LDEuNC01LjMsMS40LTEsMC0xLjQtLjktMS40LTEuNSwwLTEuMi44LTEuMywyLjYtMS41LDEuMS0uMSwxLjktLjMsMi43LS42aC0xYy0uOCwwLTEuMy0uMi0xLjQtMS4xLS40LjMtMSwuMy0xLjEuMy0xLDAtMS44LS4zLTEuOC0xLjd2LS42YzAtMS41LDAtMi44LDIuMy0yLjhoNC42YzAtLjQuMi0xLjIsMS42LTEuMnMxLjkuNSwxLjksMS4yaDQuMmMxLjUsMCwyLjgsMCwyLjgsMi4zdjEuMWMwLDEuNC0uNywxLjctMS43LDEuN3MtLjksMC0xLjItLjJjMCwuMywwLC45LTEsMSwwLC43LjEsMS4xLjIsMS42LjYtLjQuNy0uNSwxLjEtLjguNC0uMy42LS40LjktLjQuOSwwLDEuNy45LDEuNywxLjhzMCwuOC0yLjUsMi4zYy4zLjUuOCwxLjMsMS41LDEuOS45LjgsMS4yLDEuMSwxLjIsMS43LDAsMS0xLDItMiwyLTEuNywwLTQuMi0zLjctNS4xLTEwLjFoLS40Wk02My42LDkyLjJjLjEsMCwuNiwwLC45LjJ2LS40YzAtLjIsMC0uMi0uMi0uMmgtMTAuMWMtLjEsMC0uMiwwLS4yLjJ2LjVjLjMtLjIuOC0uMiwxLS4yaDguN1pNNTguMSwxMDIuOWMuNywwLDEsMCwxLTEuMi0uNS4zLTEuMS43LTIuMSwxLjIuMSwwLC45LDAsMS4xLDBaTTg2LDk1LjJoMS40Yy4zLDAsMS40LDAsMS40LDEuM3MtMS4xLDEuNC0xLjQsMS40aC0xLjR2LjhoMS4yYy4zLDAsMS40LDAsMS40LDEuNHMtMSwxLjQtMS40LDEuNGgtNS40Yy0uNCwwLTEuNCwwLTEuNC0xLjRzMS0xLjQsMS40LTEuNGgxLjF2LS44aC0xLjZjLS43LDAtLjgtLjItMS0uMywwLC43LDAsMi41LS42LDQuMi43LjEsMiwuMSwyLC4xaDUuNGMxLjUsMCwxLjkuNiwxLjksMS42LDAsMS42LTEuMywxLjYtMS45LDEuNmgtNS43Yy0uOCwwLTIuMS0uMS0zLjMtLjgtLjMuMy0xLjEsMS0yLDEtMS4yLDAtMS41LTEuMi0xLjUtMS42cy4xLS43LjUtLjljMCwwLC42LS40LjctLjQtLjgtMS0xLTEuOS0xLjEtMi4zLDAsMS4yLS4yLDIuOS0uNiw0LDAsLjItLjQsMS4xLTEuNSwxLjFzLS45LDAtMS4zLS40Yy0uNS0uMy0uNy0uNy0uNy0xLjNzMC0uNCwwLS41Yy41LTIuNC44LTMuNS44LTUuOXYtNi42YzAtMS44LjctMi40LDIuNC0yLjRoNC4zYzAtLjgsMS4xLS45LDEuOS0uOXMxLjgsMCwxLjguOWg1LjJjLjYsMCwxLjcuMSwxLjcsMS40cy0uMywxLjYtMS43LDEuNmgtMTJjLS4yLDAtLjMsMC0uMy4zdjUuNmMwLDEuMSwwLDEuOSwwLDIuNS4yLS42LjctLjgsMS4zLS45LS4yLDAtMS0uMy0xLTEuNXMuMS0uOSwxLjQtMi4xYzAsMCwuNC0uNC40LS41czAtLjEtLjEtLjFoLS41Yy0uNCwwLTEuNCwwLTEuNC0xLjRzMS0xLjQsMS40LTEuNGgyLjFjLjcsMCwxLjYuMSwxLjksMSwuMi0xLDEtMSwyLjMtMSwuOCwwLDIuNi0uMSwzLjQtLjIuMSwwLC45LDAsMS40LDAsMS4yLDAsMS4zLDEuMSwxLjMsMS41LDAsMS4zLS44LDEuNC0yLjcsMS41di42Wk03Ni43LDk5LjFjLjIsMCwuMy4yLjQuNSwwLC4xLjQuNy40LjguMi0uNS4yLTEsLjItMS4xLDAtLjItLjEtLjItLjItLjJoLS45Wk04Mi45LDk0LjdjLTIsMC0yLjMsMC0yLjYtLjctLjEuOS0uNCwxLjItMS42LDIuMS0uMSwwLS4xLjEtLjEuMiwwLDAsMCwwLC40LDBzLjUsMCwuOS4zYzAtMS40LDEtMS40LDEuNC0xLjRoMS42di0uNVpNMTU0LjQsMTAzLjljLS44LjItMi44LjUtNS43LjUtNy4yLDAtOC43LTIuMS04LjctNC40czIuNC00LjYsMy42LTQuNiwxLjksMSwxLjksMS43LS40LDEtLjgsMS4zYy0uNC4zLS45LjgtLjksMS4yLDAsMS4yLDMuMSwxLjIsNC4yLDEuMiwxLjYsMCwzLjMtLjEsNC45LS40LjctLjEsMS0uMiwxLjMtLjIsMS42LDAsMS43LDEuMywxLjcsMS43LDAsMS4xLS40LDEuNi0xLjUsMS45Wk0xNDIuOCw5Mi4zYy0xLjUsMC0xLjgtLjktMS44LTEuOCwwLTEuOCwxLjQtMS44LDItMS44czIuOCwwLDMuNCwwYy45LDAsNS41LS4xLDYtLjEuOCwwLDIuMywwLDIuMywxLjdzLS41LDEuNC0xLjgsMi4zYy0uOS42LTEsLjctMi4zLDEuNi0uNi41LTEuMS44LTEuNy44LTEuMSwwLTEuOS0uOS0xLjktMS43cy4zLS44LDEtMS40Yy0xLjMsMC0zLjguMi01LjEuMlpNMTUxLjYsOTQuOWMwLS4yLS4xLS40LS4xLS40LDAtLjQuNS0uNi44LS42cy41LjIuOSwxYy4xLjIuNSwxLjEuNSwxLjVzLS41LjctLjguNy0uNC0uMi0uNi0uNGMwLS4xLS4zLS43LS40LS44LDAtLjEtLjQtLjctLjQtLjhaTTE1My40LDkzLjhjMC0uMi0uMS0uNC0uMS0uNSwwLS40LjUtLjYuOC0uNnMuNS4yLjksMWMuMy42LjUsMS4xLjUsMS41cy0uNS43LS44LjctLjQsMC0uNi0uNGMwLS4xLS4zLS43LS40LS44LDAtLjEtLjQtLjctLjQtLjhaTTE3MS4yLDkyLjRjMC0xLjEuOC0xLjYsMS44LTEuNiwxLjksMCwyLDEuNCwyLDIuM3MwLDEuMy0uMSwzLjFjMS4zLjYsMi4yLDEuMiwyLjIsMi4ycy0uNiwyLTEuNywyLS43LS4xLTEuMS0uM2MtLjksMi45LTMuNCw0LjgtNC44LDQuOHMtMS44LS45LTEuOC0xLjkuNC0xLjEsMS42LTEuOWMuNy0uNCwxLjYtMS4xLDEuOS0yLjgtLjYtLjItMS4zLS41LTIuNS0uNy0uNCwxLjctLjksMi45LTEuNiw0LjMtLjYsMS4yLTEuNCwyLjItMi45LDIuMnMtNC0xLjctNC00LjYsMi42LTUuMSw1LjktNS4zYzAtLjMuNC0xLjcuNC0xLjksMC0uNC0uMy0uNC0uNC0uNHMtMi40LjItMi45LjItMS44LDAtMS44LTEuNywxLjQtMS43LDIuMS0xLjcsMS4yLDAsMiwwLDIuMSwwLDIuNSwwYy42LDAsMi4zLDAsMi4zLDEuOHMtLjQsMi42LS43LDQuMWMuNy4xLDEuMS4yLDIsLjUsMC0uNCwwLTIsMC0yLjNaTTE2Myw5OS41YzAsLjkuNSwxLC42LDEsLjUsMCwxLjItMi40LDEuNC0zLjEtMSwuMi0yLC44LTIsMi4yWiIvPgogICAgPC9nPgogICAgPGc+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDE4IiBkPSJNNjIuMywyNC42Yy4xLDAsLjMtLjIuNS0uMy40LS4yLDEuMy0uNiwyLjEtLjQuNi4xLDEsLjYsMS4yLDEsLjYsMS4xLDAsMi4zLTEuNCwzLS4yLjEtLjYuMy0uOS0uMi0uMi0uNC4xLS42LjQtLjcuMy0uMSwxLjItLjYuOC0xLjUtLjQtLjgtMS4yLS42LTEuOC0uMy0uMy4xLS4zLjItLjUuM2wuNSwxYy4zLjYuOCwxLjctLjQsMi4zLTEsLjUtMS44LDAtMi4yLS43LS42LTEuMy40LTIuNC44LTIuOGwtLjMtLjdjLS4xLDAtLjguNC0uOS41aC0uM2MtLjIuMi0uNS40LS44LDAtLjItLjMsMC0uNS4xLS42LDAsMCwxLS41LDEuMy0uN2wtLjItLjNjLS4xLS4yLS4zLS41LjItLjguNS0uMi43LDAsLjguM3YuM2MuNC0uMi42LS4yLjYtLjMuMSwwLC41LS4zLjcuMi4yLjMsMCwuNSwwLC42LDAsMC0uMi4xLS43LjRsLjIuNVpNNjEuOSwyNi4zYy0uMi4yLS42LjgtLjMsMS4zLjEuMy41LjUuNy4zLjMtLjEuMi0uNSwwLTFsLS40LS43Wk02Mi44LDIxLjljLjMtLjIsMS4xLDAsMS42LjIuNC4xLjcuMy44LjUuMi4zLDAsLjctLjMuOC0uMi4xLS40LDAtLjYtLjEtLjYtLjMtLjgtLjMtMS4zLS40LS4zLDAtLjMtLjItLjQtLjMsMC0uMSwwLS4zLDAtLjQsMCwwLC4xLS4yLjMtLjNaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDE4IiBkPSJNNjcuNSwyMC4zYzAsMCwuMi41LjIuNiwwLC4zLjMuOC41LDEuMy40LDEsLjgsMS42LDEuMSwxLjgsMCwwLC4yLjEuNCwwLC4zLS4xLjQtLjUuMy0xLDAtLjQsMC0uNi4zLS43LjMtLjEuNywwLC44LjMuMi41LjEsMS4yLDAsMS42LDAsLjItLjIuOS0uOSwxLjEtMS42LjctMi44LTIuMS0zLjEtMi45LS4yLS40LS42LTEuNS0uNi0xLjgsMC0uNC4yLS41LjQtLjYuNS0uMi43LjIuNy4zWk03Mi44LDIyLjljLS41LTEuMy0xLjItMi44LTItMi44LDAsMC0uNCwwLS41LjEtLjIsMC0uNCwwLS41LS40LS4xLS4zLS4xLS42LjMtLjguNC0uMiwxLjItLjMsMS45LjIuNy41LDEuNSwxLjksMS45LDMuMS4xLjMuMy43LS4zLjktLjYuMi0uNy0uMS0uOC0uNFoiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MTgiIGQ9Ik03Ny4yLDIxLjNjMCwwLC4zLDAsLjMsMCwuMSwwLC4zLDAsLjQtLjEuOC0uMywyLS44LDEuNi0yLjEtLjMtLjgtLjktLjktMS41LS43LS42LjItMS4zLjYtMS42LjktLjYuNC0uNi41LS43LjUtLjQuMS0uNi0uMi0uNy0uNC0uMS0uNCwwLS41LjQtLjgsMS4xLS44LDItMS4xLDIuMy0xLjIuMy0uMSwxLjEtLjQsMS45LDAsLjYuMy45LjksMSwxLjMuMi43LjMsMS41LS4zLDIuMy0uNS43LTEuNywxLjEtMi4xLDEuMy0uNi4yLTEuMS40LTEuMy0uMiwwLS4zLDAtLjYuMy0uN1oiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MTgiIGQ9Ik04Ny4zLDE2LjFjLjEuMi4zLjQuNC45LjMsMS4zLS4yLDIuMi0xLjUsMi43LS41LjItMSwuNC0xLjEuNC0uMSwwLS42LjItLjgtLjQtLjEtLjUuMi0uNi42LS43LjQtLjEsMS0uMywxLjQtLjcuMy0uMy4zLS42LjMtLjctLjIuMi0uMy41LTEsLjYtMSwuMy0xLjksMC0yLjEtLjktLjItLjguMi0xLjYsMS40LTEuOS4yLDAsLjYtLjEsMS0uMXYtLjRjLTEuNC40LTEuOC41LTIuNi43LS43LjItLjguMi0uOS4yLS4xLDAtLjMsMC0uNC0uNC0uMS0uNS4yLS42LjUtLjcuMiwwLDEtLjMsMS4yLS4zLjgtLjIsMS4xLS4zLDEuOC0uNXYtLjJjLS4xLS4xLS4yLS42LjMtLjcuNi0uMi43LjMuNy40di4yYy4yLDAsLjktLjMsMS0uMy4yLDAsLjYtLjEuNy40LjEuNS0uMi42LS40LjctLjEsMC0uMiwwLTEsLjNsLjQsMS41Wk04Ni4zLDE2LjZjLS4yLS41LS44LS40LS45LS40LS4zLDAtLjguNC0uNy44LjEuNS44LjQsMSwuMy40LS4xLjgtLjQuNi0uOFoiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MTgiIGQ9Ik05MS4yLDE1LjdjLS4yLDAtLjYuMS0uOC0uNS0uMS0uNi4zLS43LjUtLjdsNS4yLTEuMWMuMiwwLC42LS4xLjguNS4xLjYtLjMuNy0uNS43bC01LjIsMS4xWiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxOCIgZD0iTTEwMi43LDExLjRjLjUsMCwuNS40LjUuNCwwLC4zLS4yLjQtLjUuNi0xLjEuMy0xLjguNy0yLjIsMS0uMi4xLS43LjUtLjcsMSwwLC41LjQuNiwxLjUuNC40LDAsLjgtLjEsMS40LS4zLjEsMCwuMywwLC40LS4xLjMsMCwuNSwwLC41LjRzLS4xLjQtLjMuNWMtLjQuMi0xLjIuMy0xLjcuNC0uOS4xLTIuNS4zLTIuNy0xLjEsMC0uNi4yLTEuMS41LTEuNC4zLS4zLjUtLjQuOC0uNiwwLS4xLDAtLjMtLjQtMS0uMi0uNC0uMi0uNC0uMi0uNSwwLS4zLjItLjQuNS0uNS40LDAsLjUuMS43LjcsMCwwLC4yLjcuMi44LjUtLjMsMS41LS43LDEuNy0uN1oiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MTgiIGQ9Ik0xMTEsMTAuN2MwLC40LS4zLjUtLjYuNS0uMywwLS42LDAtLjctLjMtLjItLjQtLjMtLjYtMS4xLS42LS4yLDAtMSwwLTEsLjYsMCwuNC4zLjUsMS42LjksMS4yLjQsMiwuNywyLDEuNiwwLC45LS42LDItMi4yLDIuMS0yLjEuMS0yLjYtMS4xLTIuNy0xLjYsMC0uNS41LS42LjYtLjYuNSwwLC42LjEuNy41LjIuNS44LjYsMS4yLjYuMiwwLDEuMSwwLDEtLjcsMC0uMy0uMi0uNC0xLjMtLjgtMS4zLS40LTIuMi0uNi0yLjMtMS44LDAtLjkuNi0xLjgsMi4yLTEuOSwxLjgsMCwyLjQsMSwyLjQsMS41WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxOCIgZD0iTTExNS45LDkuMWMyLjMsMCwyLjUsMi4xLDIuNSwzLjEsMCwuOC0uMiwzLTIuNiwzaC0xLjZjLS43LDAtMS0uMy0xLTEuMXYtMy45YzAtLjguNC0xLDEuMS0xaDEuNlpNMTE0LjcsMTAuMmMtLjIsMC0uMiwwLS4yLjJ2My4zYzAsLjIsMCwuMi4yLjJoMWMxLjIsMCwxLjQtMS4yLDEuNC0xLjgsMC0xLjEtLjQtMS45LTEuNC0xLjloLTFaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDE4IiBkPSJNMTIzLjcsMTMuM2MtLjQsMC0uNS0uMi0uNS0uNSwwLS40LjItLjUuNi0uNWguOWMuNy4xLDEsLjQsMSwxLjJsLS4yLDEuOWMwLC4xLS4xLjUtLjYuNCwwLDAtLjUsMC0uNS0uNXYtLjNjLS42LjYtMS4zLjctMS43LjYtMS43LS4xLTIuOC0xLjUtMi42LTMuNC4yLTEuOCwxLjMtMy4xLDMuMi0yLjksMS43LjEsMi41LDEuNCwyLjQsMi4xLDAsMCwwLC42LS43LjUtLjUsMC0uNS0uMi0uNi0uNSwwLS4zLS4yLS41LS4zLS42LS4yLS4yLS42LS40LTEtLjQtMS40LS4xLTEuNywxLjItMS44LDEuOS0uMSwxLjYuNywyLjEsMS40LDIuMiwxLDAsMS40LS44LDEuNS0xLDAtLjEsMC0uMi0uMi0uMmgtLjRaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDE4IiBkPSJNMTMxLjMsMTIuNmMwLC4xLjIuNC4xLjYsMCwuMy0uMy40LS43LjMtLjQsMC0uNS0uMi0uNS0uNCwwLS4yLDAtLjUtLjctLjYtLjMsMC0uNywwLS43LjMsMCwuMi4yLjQuNy41LDEsLjQsMS4zLjUsMS41LjkuMi4zLjMuNi4yLjktLjIsMS4yLTEuMywxLjMtMi4yLDEuMi0xLjUtLjItMS45LTEuMi0xLjgtMS43LDAtLjMuMy0uNS43LS40LjQsMCwuNC4yLjUuNiwwLC4zLjMuNC44LjUuNSwwLC44LDAsLjgtLjMsMC0uMiwwLS4zLTEtLjctLjktLjQtMS41LS43LTEuNC0xLjYuMS0uOS45LTEuMywyLjEtMS4xLjYsMCwxLjMuMywxLjYuOVoiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MTgiIGQ9Ik0xMzYuNiwxMi4zYzAsMCwuMi0uMi40LS4xLjIsMCwuNC4yLjQuNCwwLDAsMCwuMi0uMS4yLjYuMSwxLjYuMywxLjcuMy4yLDAsLjQuMi4zLjUsMCwuMy0uMy4zLS40LjMtLjEsMC0xLjctLjMtMi4zLS40LS4yLjItLjIuMi0uMy40LjQtLjEuNywwLC44LDAsLjEsMCwuMywwLC41LjIuMi4yLjIuNC4zLjQuNCwwLDEsMCwxLjIsMCwuNCwwLC4zLjUuMy41LDAsLjMtLjMuMy0uNS4zLS42LDAtLjcsMC0uOSwwLDAsLjIsMCwuNCwwLC42LDAsLjMtLjEuNi0uNS41LS40LDAtLjQtLjQtLjMtLjUsMC0uMSwwLS4zLDAtLjQtLjUuMS0uOS4yLTEsLjUsMCwuMy4zLjQuOS41LjQsMCwuOC4xLDEuMi4xLDAsMCwuMiwwLC4yLDAsLjMsMCwuMy4zLjMuNSwwLC4zLS4zLjMtLjQuMy0uNSwwLTEuMi0uMS0xLjMtLjItLjgtLjItMS4yLS4zLTEuNC0uNS0uMy0uMi0uNS0uNi0uNC0uOS4yLS44LDEuMi0xLjEsMi0xLjMsMC0uMS0uMi0uMi0uMy0uMi0uNi0uMS0xLjIuMy0xLjQuNSwwLDAtLjMuMy0uNC4zLDAsMC0uMi4xLS40LDAtLjMsMC0uNC0uMy0uMy0uNSwwLS4yLjItLjMuNS0uNS40LS4zLjYtLjQsMS4xLTEtLjEsMC0uNS0uMS0uNi0uMS0uMSwwLS41LDAtLjQtLjUsMC0uNC40LS4zLjUtLjMuNy4xLjcuMiwxLjEuMiwwLDAsLjItLjMuMi0uM1oiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MTgiIGQ9Ik0xNDQsMTQuMWMwLS4yLS4xLS42LDAtLjgsMC0uMy41LS4zLjctLjMuMywwLC4zLjIuNC42LDAsLjIsMCwuNSwwLC42LDAsMCwwLC4xLDAsLjFsLjcuMmMuMi0uMi4zLS40LjQtLjUuMi0uMy4zLS40LjctLjMuMiwwLC42LjMuNS42LDAsLjItLjIuMy0uNC41LjMsMCwuNy4zLjUsMS4xdi41Yy0uMy40LS41LjQtLjguNCwwLDAtLjMsMC0uNC0uMiwwLC40LS4zLjQtLjUuNS0uNC4xLS44LjItMS4yLjNsMiwuNmMuMSwwLC41LjEuNC42LS4xLjQtLjQuNC0uNy4zbC0yLjMtLjYtLjIuOGMtLjIuOS0uNy44LTEuNS41LS4zLDAtLjctLjItLjgtLjMtLjMtLjEtLjItLjUtLjItLjYuMS0uNS41LS40LjYtLjQsMCwwLC41LjIuNi4yLjIsMCwuMiwwLC4zLS4ydi0uNGMuMSwwLTIuMi0uNi0yLjItLjYtLjEsMC0uNS0uMi0uNC0uNi4xLS40LjQtLjQuNy0uM2wyLjMuNmMwLS4yLDAtLjMuNC0uMywwLDAsLjYsMCwuNi0uMiwwLDAsMCwwLDAsMGwtMi4xLS42Yy0uMSwwLS40LS4xLS4zLS42LDAsMC0uMiwwLS4zLDAtLjMsMC0uNS0uMy0uNC0uN3YtLjVjLjMtLjcuNy0uOCwxLjItLjYtLjEtLjYtLjEtLjYtLjEtLjcsMC0uMy40LS40LjctLjMuMiwwLC4zLjIuNC43LDAsLjMsMCwuNCwwLC42bC45LjJaTTE0MS45LDE1Yy4xLDAsLjMsMCwuMywwbDMuNSwxYy4zLDAsLjQuMS41LjJ2LS4zYy4xLDAsMC0uMiwwLS4ybC00LTEuMWMtLjEsMC0uMiwwLS4yLjF2LjNaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDE4IiBkPSJNMTUwLjksMTUuOGMwLC4xLS41LDEtLjYsMS4yLS4zLjYtLjUsMS4xLS42LDEuNi0uMi42LS40LDEuMi0uNSwxLjcsMCwuMS0uMS41LS4xLjYtLjEuNC0uNS4zLS43LjMtLjEsMC0uNC0uMS0uNC0uNSwwLS40LjItMS4yLjYtMi4zLjYtMS43LDEuMS0yLjgsMS4zLTMsLjItLjMuNC0uMy43LS4yLDAsMCwuNS4yLjMuNlpNMTUzLjgsMTguNGMwLDAsLjcuMi43LjIuMiwwLC41LjIuMy43LS4yLjQtLjUuNC0uNy4zLS4yLDAtLjQtLjEtLjctLjJsLS4zLDEuMWMuNC40LjYuOC43LjkuMi4zLjEuNS4xLjYtLjEuMy0uNS41LS43LjQtLjIsMC0uMi0uMS0uMy0uMiwwLDAtLjItLjQtLjMtLjUtLjQuNy0xLjEuNy0xLjguNS0uNC0uMS0uOC0uMy0xLS42LS4zLS4zLS4zLS44LS4yLTEuMi4yLS42LjktMS4xLDIuMS0uNy4zLDAsLjQuMi41LjJsLjItLjhjLS4yLDAtMS0uMy0xLjUtLjUtLjQtLjEtLjctLjItLjUtLjguMi0uNS41LS40LjctLjMsMCwwLC4zLjEuMy4xLjIsMCwxLjEuNCwxLjMuNGwuMi0uN2MtLjYtLjItLjgtLjItMS4zLS40LS4zLS4xLS41LS4yLS41LS4zLS4xLS4xLS4xLS4zLDAtLjUuMi0uNS42LS4zLjctLjMuNi4yLDEuMS40LDEuNy41LjIsMCwuNi4yLjguMi4xLDAsLjUuMi4zLjctLjEuNC0uNC40LS42LjNsLS4yLjdaTTE1MS40LDIwLjRjLS40LS4xLS43LDAtLjguMi0uMS40LjMuNi41LjYuNi4yLjctLjEuOS0uNSwwLDAtLjItLjItLjUtLjNaTTE1NC43LDE2LjRjMC0uMi4zLS4xLjQtLjEuMSwwLC4yLjIuMi40LDAsLjMsMCwuNSwwLC42LDAsLjItLjMuMi0uMy4yLS4xLDAtLjItLjEtLjItLjIsMCwwLDAtLjMsMC0uNCwwLS4zLDAtLjMsMC0uNFpNMTU1LjUsMTYuOHMwLDAsMC0uMWMwLS4yLjMtLjEuMy0uMS4xLDAsLjIuMi4yLjQsMCwuMSwwLC41LDAsLjcsMCwuMi0uMy4yLS40LjEtLjIsMC0uMiwwLS4xLS42LDAsMCwwLS4zLDAtLjRaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDE4IiBkPSJNMTU3LDI0LjVjLS4yLDAtLjQtLjItLjQtLjQsMC0uMSwwLS4zLDAtLjUuMi0uNC41LS4zLjctLjIuOC4zLDEuNi42LDIuMy40LjYtLjIuOC0uNi45LS44LjEtLjMuMS0uNiwwLS44LS4xLS4zLS40LS40LS43LS41LS4yLDAtMS0uNC0yLjItLjMtLjEsMC0uNywwLS44LDAtLjIsMC0uMiwwLS4zLDAtLjQtLjItLjQtLjYtLjMtLjguMS0uMy40LS40LDEuMy0uNCwxLDAsMi4yLjMsMi43LjUuNC4yLDEuMS42LDEuNCwxLjIuMy43LjEsMS4zLDAsMS42LS45LDIuMi0zLjUsMS41LTQuNywxWk0xNTksMTguMmMuMSwwLC41LjMuNi40LjQuMiwxLjIuNywyLjEsMS4xLjMuMS43LjMuNS44LDAsLjItLjIuMy0uNC40LS4xLDAtLjMsMC0uNCwwLS40LS4yLTIuMi0xLjItMi45LTEuNi0uMy0uMi0uMy0uNC0uMi0uNy4yLS40LjUtLjQuNy0uM1oiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MTgiIGQ9Ik0xNjYuNCwyNy42Yy0uMi40LS42LjUtMSwuM3MtLjUtLjYtLjMtMSwuNi0uNS45LS4zYy4zLjIuNS42LjMuOVpNMTY2LjgsMjZjLS4xLjItLjMuNC0uNS4yLS4zLS4xLS4yLS4zLS4yLS42bC42LTEuOS42LTEuM2MwLS4yLjMtLjUuOC0uMy40LjIuNS41LjMuOGwtLjYsMS4zLTEuMSwxLjdaIi8+CiAgICA8L2c+CiAgICA8Zz4KICAgICAgPHBhdGggY2xhc3M9InN0MTMiIGQ9Ik01OC4xLDExN2MtLjItLjMtMi42LTMuOC0yLjYtNS4xczEtMS43LDIuMS0xLjcsMS4zLjQsMS44LDEuM2MwLDAsMS40LDIuMywyLjUsMy41LjMuMywxLjcsMS43LDEuOSwyLjEuMi4yLjMuNi4zLDEuMSwwLDEuMS0xLjEsMi4zLTIuMiwyLjNzLS41LDAtLjctLjJjMCwuNi0uMiwzLjEtLjIsMy43LS40LDUuNi0xLjYsNS42LTQuNiw1LjZzLTEuOSwwLTIuNC0uMWMtMS4zLS4zLTEuMy0xLjUtMS4zLTEuOCwwLTEuOSwxLjUtMS45LDEuOS0xLjlzMS4yLDAsMS4zLDBjLjgsMCwuOS0uNiwxLTEuMy4yLTEuOC4zLTMsLjMtMy40czAtLjYtLjQtLjZoLTIuNWMtLjEsNC44LTUuMSw5LTcuNCw5cy0yLTEuMi0yLTIuMi43LTEuNCwxLjMtMS43YzEuMi0uNiw0LjEtMiw0LjMtNS4xaC0xLjJjLS44LDAtMS4yLS4yLTEuNS0uNi0uMi4xLS41LjQtMSwuNC0xLjIsMC0yLjQtMS4xLTIuNC0yLjRzMC0uOCwyLTIuOGMxLjItMS4yLDEuOS0yLjUsMi45LTQuMS40LS43LjgtMSwxLjUtMSwxLjEsMCwyLjMuNywyLjMsMS43cy0uOSwyLjgtMi42LDUuMWg3LjRaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDEzIiBkPSJNNzIuNywxMTkuNGMyLjIsMCwyLjUsMS4yLDIuNSwyLjhzLS4xLDQuOS0uNSw2Yy0uNCwxLjItMS4yLDEuNS0zLjYsMS41cy0yLjEsMC0yLjMtMS41Yy0uNywxLjMtMS4xLDEuNC0xLjcsMS40LTEuNCwwLTIuMi0xLjEtMi4yLTEuOXMwLS42LjctMS42YzEuNS0yLjcsMS41LTUuNiwxLjUtNy41LS44LS4xLTEuMy0uNC0xLjYtLjgtLjMtLjQtLjQtMS0uNC0xLjd2LTIuNWMwLTIsLjktMi42LDIuNi0yLjZoNWMxLjcsMCwyLjYuNiwyLjYsMi42djIuNWMwLDEuOS0uOSwyLjYtMi42LDIuNmgtMi4xdi45aDJaTTcxLjgsMTE0LjNjMC0uMSwwLS4yLS4yLS4yaC0yLjljLS4xLDAtLjIuMS0uMi4ydi44YzAsLjEsMCwuMi4yLjJoMi45cy4yLDAsLjItLjJ2LS44Wk03MC40LDEyMi43Yy0uMS44LS4zLDEuOC0uOCwzLjQuMiwwLC4zLS4xLjYtLjEsMCwwLC41LDAsLjYsMCwuNSwwLC42LS4xLjctLjUsMC0uMi4xLTIsLjEtMi4yLDAtLjYtLjEtLjYtLjQtLjZoLS45Wk03OS40LDEyMy4xYzAsLjktLjMsMS44LTEuNiwxLjhzLTEuOS0uNC0xLjktMS44di0xMGMwLS41LDAtMS44LDEuNi0xLjhzMS44LjUsMS44LDEuOHYxMFpNODAsMTEyYzAtLjguMi0xLjgsMS43LTEuOHMyLC40LDIsMS44djE1YzAsMi40LTEuMywyLjYtMy42LDIuNnMtMS45LDAtMi41LS4yYy0xLS4yLTEuMy0xLjMtMS4zLTEuOSwwLTEuOSwxLjUtMS45LDEuOS0xLjlzMS4zLDAsMS41LDBjLjQsMCwuNC0uMS40LS41di0xMy4zWiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxMyIgZD0iTTk3LjMsMTE3LjRoNC42Yy40LDAsMS44LDAsMS44LDEuOHMtLjgsMS45LTEuOCwxLjloLTQuN2MtLjIsMi40LTEuMSw0LjgtNCw2LjQtMS43LjktMy42LDEuNC00LjUsMS40LTEuNiwwLTEuOS0xLjUtMS45LTIuMSwwLTEuMiwxLTEuNSwxLjctMS42LDIuNC0uNSw0LjUtMS4zLDQuOC00aC01LjhjLS40LDAtMS44LDAtMS44LTEuOHMuOC0xLjgsMS44LTEuOGg1Ljl2LTEuNWMtMi4zLjItMy4xLjMtNC40LjNzLTIuMSwwLTIuMS0xLjksMS4yLTEuNiwyLTEuN2MyLjYsMCw2LjEtLjMsOC42LS44LDEuNi0uMywyLjItLjUsMi41LS41LDEuNCwwLDEuOCwxLjMsMS44LDIsMCwxLjYtLjksMS43LTQuNSwyLjJ2MS45WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxMyIgZD0iTTExNS44LDEyN2MuMSwxLjMtLjYsMi0xLjksMnMtMS43LS44LTEuOC0xLjdsLS43LTYuNS0yLC4yYy0xLjguMi0yLjEtMS4xLTIuMS0xLjgsMC0xLjUsMS0xLjcsMS43LTEuN2wyLS4yLS4yLTEuNWMtLjEtMS40LjYtMiwxLjktMnMxLjcuOSwxLjcsMS42bC4yLDEuNiw0LjktLjRjMS4xLS4xLDIuNiwwLDIuNiwxLjlzLTEuMyw0LTIuMiw0LjljLS44LjktMS42LDEuNS0yLjMsMS41cy0xLjktLjgtMS45LTEuOC4zLS45LDEtMS42Yy42LS41LDEtMS4yLDEtMS4zcy0uMSwwLS4zLDBsLTIuNi4zLjcsNi42WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxMyIgZD0iTTEyNy44LDExM2MwLTEuMy43LTIsMi0yczIsLjYsMiwydjExLjFjMCwuMywwLC40LjMuNHMyLjEtLjMsMy41LTEuMWMyLjYtMS41LDMuNi0zLjcsNC41LTUuNS40LS44LjktMSwxLjUtMSwuOSwwLDIuMy42LDIuMywxLjhzLTEuNiw0LjgtNS4zLDcuNGMtMy43LDIuNi04LDIuNi04LjMsMi42LTIuNSwwLTIuNi0xLjUtMi42LTIuM3YtMTMuNVoiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MTMiIGQ9Ik0xNTMuMSwxMTMuNmMxLjMuOCwxLjksMS4zLDEuOSwyLjJzLS45LDIuMy0yLjEsMi4zLS42LDAtMS4yLS41Yy0xLjgtMS4yLTIuMi0xLjQtMy43LTIuMi0uNy0uNC0xLjQtLjgtMS40LTEuN3MxLTIuMSwyLjEtMi4xLDMuNiwxLjUsNC40LDJaTTE1Ny41LDEyNS42Yy0zLjQsMi4zLTcuNywyLjktOC4zLDIuOS0xLjUsMC0xLjktMS40LTEuOS0yLjMsMC0xLjYsMS4xLTEuOCwyLjEtMS45LDUuMy0uNyw4LjQtMi43LDEwLjUtOC4xLjEtLjIuNC0xLjMuNS0xLjUuMi0uNS41LTEuMSwxLjUtMS4xczIuMy42LDIuMywxLjktMS42LDYuNy02LjcsMTAuMVoiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MTMiIGQ9Ik0xNzAuNywxMjAuOGMtLjUtLjItLjktLjQtMi4zLS44LS43LS4yLTEuNy0uNi0xLjctMS43cy40LTIsMS44LTIsMy4xLjgsNC4xLDEuM2MxLjMuNSwyLjEuOCwyLjEsMnMtLjYsMi4xLTEuOCwyLjEtLjUsMC0yLjEtLjhaTTE4NC4zLDExNi4xYzAsMS0xLjgsNS43LTUsOC42LTIuMSwxLjktNC40LDIuOS03LjMsMy42LS41LjEtMS42LjMtMi4yLjMtMS41LDAtMS45LTEuNC0xLjktMi4yLDAtMS41LDEuMy0xLjgsMS45LTEuOSwzLjYtLjYsNy41LTEuNCw5LjktNy4zLjktMi4yLDEtMi40LDEuNC0yLjcuMS0uMS40LS4yLDEuMS0uMnMyLjEuNCwyLjEsMS43Wk0xNzIuNSwxMTUuNmMtLjUtLjItLjktLjQtMi4zLS44LS43LS4yLTEuNy0uNi0xLjctMS43cy40LTIuMSwxLjgtMi4xLDMuMS45LDQuMSwxLjNjMS4zLjUsMi4xLjgsMi4xLDJzLS41LDIuMS0xLjgsMi4xLS41LDAtMi4xLS44Wk0xODAuNSwxMTEuM2MwLS4xLDAtLjMsMC0uNCwwLS42LjctLjcuOS0uNy40LDAsLjYuMi45LjksMCwuMS40LDEuMi40LDEuOHMtLjguOC0uOS44Yy0uNSwwLS42LS4zLS43LS42LDAtLjEtLjItLjgtLjMtLjksMC0uMi0uMy0uOC0uMy0uOVpNMTgyLjgsMTExLjJjMC0uMSwwLS4zLDAtLjQsMC0uNi43LS43LjktLjcuNCwwLC42LjIuOS45LDAsLjEuNCwxLjIuNCwxLjhzLS44LjgtLjkuOGMtLjUsMC0uNi0uMy0uNy0uNiwwLS4xLS4yLS44LS4zLS45LDAtLjItLjMtLjgtLjMtLjlaIi8+CiAgICA8L2c+CiAgICA8Zz4KICAgICAgPHBhdGggY2xhc3M9InN0MTUiIGQ9Ik00NS4yLDQ3LjhjMCwwLC4zLDAsLjQsMCwuMiwwLC4zLDAsLjUsMCwuOCwwLDIuNCwwLDIuNC0xLjZzLS42LTEuMy0xLjQtMS4zLTEuNS4yLTEuOS4zYy0uNy4yLS44LjMtLjkuMy0uNCwwLS41LS40LS41LS42LDAtLjQuMi0uNS42LS42LDEuNC0uNCwyLjQtLjQsMi43LS40czEuMywwLDEuOS43Yy40LjQuNiwxLC42LDEuNiwwLDEuNy0xLjIsMi4yLTEuNiwyLjMtLjcuMi0xLjQuMy0yLjEuM3MtLjYsMC0uOSwwYy0uMiwwLS4zLS4zLS4zLS41czAtLjUuNS0uNVoiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MTUiIGQ9Ik01MS43LDQ1LjZjMi4xLTEuMiwyLjQtMS40LDMuMS0xLjkuMS0uMS4zLS4yLjUtLjJzLjYuMi42LjUsMCwuMy0uNS42Yy0uOC41LTEuNiwxLTIuNSwxLjQtLjMuMS0uNC4yLS40LjNzMCwuMS4zLjJjLjcuMywxLjguOCwyLjgsMS41LjMuMi41LjMuNS42cy0uMi42LS42LjYtLjQsMC0uNS0uMmMtMS0uNy0xLjMtLjktMi4zLTEuNS0uMiwwLS45LS40LTEtLjUtLjEsMC0uNS0uMy0uNS0uN3MuMy0uNi41LS43WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxNSIgZD0iTTYxLjUsNDUuM2MuMywwLC43LDAsMSwuMi42LjMuOS45LjksMS41cy0uMiwxLjMtMS4xLDEuOGMtLjUuMi0xLC4zLTEuNS4zLS44LDAtMS4yLS4yLTEuNC0uMy0uMy0uMi0uNC0uNS0uNC0uOCwwLS44LjctMS4xLDEuNC0xLjFzMS4zLjEsMS4zLDEuMSwwLC4xLDAsLjJjLjctLjIuOC0uOC44LTFzLS4xLS43LS42LS45Yy0uMi0uMS0uNS0uMS0uNy0uMS0uNSwwLTEuMi4xLTIsLjgtLjQuNC0uNS40LS42LjQtLjIsMC0uNS0uMi0uNS0uNXMwLS4zLjUtLjZjLjgtLjYsMS41LTEuMSwyLjEtMS42LDAsMCwuMS0uMS4yLS4yLS4zLDAtMS43LjEtMS44LjFzLS41LDAtLjUtLjUuMy0uNS41LS41YzEuNywwLDEuOCwwLDIuNiwwLDAsMCwuMiwwLC4zLDAsLjIsMCwuNiwwLC42LjRzMCwuNC0uOC44Yy0uNC4yLS43LjUtLjguNi4yLDAsLjMsMCwuNiwwWk02MC45LDQ4LjFjMC0uMy0uMi0uNC0uNS0uNHMtLjUuMS0uNS4zLjMuNC43LjQuMiwwLC4zLDBjMC0uMSwwLS4yLDAtLjJaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDE1IiBkPSJNNzAuMyw0My41YzAsMCwuNCwwLC40LjNzLS4yLjMtLjQuM2gtMi4xdi4yaDEuOGMwLDAsLjMsMCwuMy4zcy0uMi4zLS4zLjNoLTEuOHYuMmgyLjJjMCwwLC4zLDAsLjMuM3MtLjMuMy0uMy4zaC01LjVjMCwwLS4zLDAtLjMtLjNzLjMtLjMuMy0uM2gyLjJ2LS4yaC0xLjhjMCwwLS4zLDAtLjMtLjNzLjItLjMuMy0uM2gxLjh2LS4yaC0yLjFjMCwwLS40LDAtLjQtLjNzLjMtLjMuNC0uM2gyLjFjMC0uMiwwLS4zLjQtLjNzLjUuMS41LjNoMi4xWk02Ny4xLDQ4LjJjMCwwLC4xLjEuMS4zczAsLjMtLjguNWMtLjQuMS0xLC4zLTEuMi4zcy0uNC0uMy0uNC0uNWMwLS4zLjItLjQuNC0uNC41LDAsLjctLjEsMS0uMmgtLjFjLS41LDAtLjgtLjItLjgtLjh2LTFjMC0uNi4zLS44LjgtLjhoMy40Yy41LDAsLjguMi44Ljh2MWMwLC43LS40LjgtLjguOC4zLDAsLjQuMS45LjIuMiwwLC40LDAsLjQuNHMtLjIuNS0uNC41LS41LDAtMS0uMmMtLjgtLjItMS0uMy0xLS42czAtLjEsMC0uM2gtMS4yWk02Ni4yLDQ2LjVoM2MwLS4yLDAtLjItLjEtLjJoLTIuOGMwLDAtLjEsMC0uMS4xaDBaTTY5LjMsNDYuOGgtM3YuMmgzdi0uMlpNNjYuMiw0Ny41aDBjMCwuMiwwLC4yLjEuMmgyLjhjMCwwLC4xLDAsLjEtLjFoMGMwLS4xLTMtLjEtMy0uMVoiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MTUiIGQ9Ik03My4zLDQ4LjhjMCwuMSwwLC41LS40LjVzLS41LS4yLS41LS41di0yLjNjMCwwLS4xLjEtLjIuMS0uMiwwLS41LS4zLS41LS42czAtLjMuMi0uNWMuNC0uNi43LTEuNC43LTEuNy4yLS42LjItLjYuMy0uNywwLDAsLjIsMCwuMywwcy41LDAsLjUuNC0uMi44LS4zLDEuMXY0LjFaTTc2LjEsNDUuN2gxLjJjLjEsMCwuNCwwLC40LjRzLS4yLjUtLjQuNWgtMS4ydjEuNWgxLjFjLjIsMCwuNCwwLC40LjRzLS4xLjUtLjQuNWgtMy4yYy0uMiwwLS40LDAtLjQtLjRzLjEtLjUuNC0uNWgxLjJ2LTEuNWgtMS4zYy0uMSwwLS40LDAtLjQtLjRzLjItLjUuNC0uNWgxLjN2LTEuMmMtLjIsMC0uOSwwLTEsMHMtLjUsMC0uNS0uNS4zLS40LjQtLjRjLjIsMCwxLjYsMCwyLjQtLjIuMSwwLC42LS4xLjctLjEuNCwwLC40LjMuNC41LDAsLjMtLjIuNC0uMy40LS4xLDAtLjYuMS0xLjIuMnYxLjNaIi8+CiAgICA8L2c+CiAgICA8Zz4KICAgICAgPHBhdGggY2xhc3M9InN0MTUiIGQ9Ik0xNTEsNDcuNmMwLDAsLjMsMCwuNCwwLC4yLDAsLjMsMCwuNSwwLC44LDAsMi40LDAsMi40LTEuNnMtLjYtMS4zLTEuNC0xLjMtMS41LjItMS45LjNjLS43LjItLjguMy0uOS4zLS40LDAtLjUtLjQtLjUtLjYsMC0uNC4yLS41LjYtLjYsMS40LS40LDIuNC0uNCwyLjctLjRzMS4zLDAsMS45LjdjLjQuNC42LDEsLjYsMS42LDAsMS43LTEuMiwyLjItMS42LDIuMy0uNy4yLTEuNC4zLTIuMS4zcy0uNiwwLS45LDBjLS4yLDAtLjMtLjMtLjMtLjVzMC0uNS41LS41WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxNSIgZD0iTTE1OC4yLDQzLjVjMC0uMi4yLS4zLjQtLjNzLjIsMCwuNCwwYy4yLDAsLjIuMi4yLjNzMCwuMi0uMS43Yy40LDAsLjcsMCwuOS4xLjcuMy44LDEuMi44LDEuOCwwLDEuOC0uNCwyLjYtMS40LDIuNnMtLjcsMC0xLS4yYy0uMSwwLS4zLS4xLS4zLS40czAtLjUuNC0uNS4xLDAsLjMsMGMwLDAsLjIsMCwuNCwwLC4zLDAsLjQtLjEuNC0uNSwwLS4zLjEtLjcuMS0xLjNzMC0uOS0uNy0uOS0uMiwwLS4yLDBjLS4zLDEtLjYsMi4xLTEsMy0uMi41LS40LjYtLjYuNi0uMywwLS42LS4yLS42LS41czAtLjMuMi0uNmMuMS0uMy42LTEuMi45LTIuNC0uMiwwLS43LDAtLjcsMC0uNCwwLS41LS4zLS41LS41LDAtLjQuMy0uNS40LS41LjIsMCwuNCwwLDEsMCwwLS4xLjEtLjguMi0uOFpNMTYwLjYsNDQuNGMwLDAsMC0uMiwwLS4zLDAtLjIuMS0uMy4yLS4zLDAsMCwuMiwwLC4zLDBzLjMsMCwuNi4zYy40LjQuNi45LjgsMS40LjEuNS4xLDEsLjEsMS4xczAsLjUtLjYuNS0uNS0uMy0uNS0uNGMwLS42LDAtMS40LS42LTEuOWwtLjMtLjNaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDE1IiBkPSJNMTY1LjYsNDguOWMtLjIsMC0uNCwwLS41LS4xLDAsMC0uMi0uMi0uMi0uNCwwLS40LjMtLjQuNS0uNC44LDAsMS41LDAsMi0uNS40LS4zLjUtLjcuNS0uOSwwLS4zLS4xLS41LS4zLS42LS4yLS4yLS41LS4yLS43LS4ycy0xLDAtMS44LjVjLS4xLDAtLjUuMy0uNi4zLS4xLDAtLjIsMC0uMywwLS40LDAtLjUtLjQtLjUtLjYsMC0uMy4yLS40LjktLjcuOC0uMywxLjgtLjUsMi4zLS41czEuMSwwLDEuNS40Yy41LjQuNiwxLC42LDEuMywwLDIuMS0yLjMsMi40LTMuNSwyLjRaTTE2NS4xLDQzLjJjLjEsMCwuNSwwLC42LjEuNCwwLDEuMi4xLDIsLjIuMywwLC43LDAsLjcuNXMwLC40LS4yLjRjMCwwLS4yLDAtLjQsMC0uNCwwLTIuMS0uMi0yLjgtLjMtLjMsMC0uNC0uMi0uNC0uNSwwLS40LjItLjUuNS0uNVoiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MTUiIGQ9Ik0xNzYuMSw0My4zYzAsMCwuNCwwLC40LjNzLS4yLjMtLjQuM2gtMi4xdi4yaDEuOGMwLDAsLjMsMCwuMy4zcy0uMi4zLS4zLjNoLTEuOHYuMmgyLjJjMCwwLC4zLDAsLjMuM3MtLjMuMy0uMy4zaC01LjVjMCwwLS4zLDAtLjMtLjNzLjMtLjMuMy0uM2gyLjJ2LS4yaC0xLjhjMCwwLS4zLDAtLjMtLjNzLjItLjMuMy0uM2gxLjh2LS4yaC0yLjFjMCwwLS40LDAtLjQtLjNzLjMtLjMuNC0uM2gyLjFjMC0uMiwwLS4zLjQtLjNzLjUuMS41LjNoMi4xWk0xNzIuOSw0OGMwLDAsLjEuMS4xLjNzMCwuMy0uOC41Yy0uNC4xLTEsLjMtMS4yLjNzLS40LS4zLS40LS41YzAtLjMuMi0uNC40LS40LjUsMCwuNy0uMSwxLS4yaC0uMWMtLjUsMC0uOC0uMi0uOC0uOHYtMWMwLS42LjMtLjguOC0uOGgzLjRjLjUsMCwuOC4yLjguOHYxYzAsLjctLjQuOC0uOC44LjMsMCwuNC4xLjkuMi4yLDAsLjQsMCwuNC40cy0uMi41LS40LjUtLjUsMC0xLS4yYy0uOC0uMi0xLS4zLTEtLjZzMC0uMSwwLS4zaC0xLjJaTTE3Miw0Ni4zaDNjMC0uMiwwLS4yLS4xLS4yaC0yLjhjMCwwLS4xLDAtLjEuMWgwWk0xNzUuMSw0Ni43aC0zdi4yaDN2LS4yWk0xNzIsNDcuM2gwYzAsLjIsMCwuMi4xLjJoMi44YzAsMCwuMSwwLC4xLS4xaDBjMC0uMS0zLS4xLTMtLjFaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDE1IiBkPSJNMTc5LjEsNDguNmMwLC4xLDAsLjUtLjQuNXMtLjUtLjItLjUtLjV2LTIuM2MwLDAtLjEuMS0uMi4xLS4yLDAtLjUtLjMtLjUtLjZzMC0uMy4yLS41Yy40LS42LjctMS40LjctMS43LjItLjYuMi0uNi4zLS43LDAsMCwuMiwwLC4zLDBzLjUsMCwuNS40LS4yLjgtLjMsMS4xdjQuMVpNMTgxLjksNDUuNWgxLjJjLjEsMCwuNCwwLC40LjRzLS4yLjUtLjQuNWgtMS4ydjEuNWgxLjFjLjIsMCwuNCwwLC40LjRzLS4xLjUtLjQuNWgtMy4yYy0uMiwwLS40LDAtLjQtLjRzLjEtLjUuNC0uNWgxLjJ2LTEuNWgtMS4zYy0uMSwwLS40LDAtLjQtLjRzLjItLjUuNC0uNWgxLjN2LTEuMmMtLjIsMC0uOSwwLTEsMHMtLjUsMC0uNS0uNS4zLS40LjQtLjRjLjIsMCwxLjYsMCwyLjQtLjIuMSwwLC42LS4xLjctLjEuNCwwLC40LjMuNC41LDAsLjMtLjIuNC0uMy40LS4xLDAtLjYuMS0xLjIuMnYxLjNaIi8+CiAgICA8L2c+CiAgICA8cGF0aCBjbGFzcz0ic3Q5IiBkPSJNODYuMSw0Ni4yYzAtNS42LTExLjEtOC0yNS4zLThzLTI1LjMsMi4zLTI1LjMsOCwxMS4xLDgsMjUuMyw4LDEwLjEtLjMsMTQuMS0xYzEuNiwxLDUuMSwyLjcsNy42LDIuNCwwLDAtMi4yLTEuNi0zLTMuNSw0LjItMS4zLDYuNy0zLjIsNi43LTUuOVoiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDkiIGQ9Ik0xNDEuMiw0NmMwLTUuNiwxMS4xLTgsMjUuMy04LDE0LjMsMCwyNS4zLDIuMywyNS4zLDhzLTExLjEsOC0yNS4zLDhjLTUuMywwLTEwLjEtLjMtMTQuMS0xLTEuNiwxLTUuMSwyLjctNy42LDIuNCwwLDAsMi4yLTEuNiwzLTMuNS00LjItMS4zLTYuNy0zLjItNi43LTUuOVoiLz4KICAgIDxnPgogICAgICA8cGF0aCBjbGFzcz0ic3QxNiIgZD0iTTYwLjcsOTQuN2MtLjMuMy0uNS40LS43LjYsMiwyLjMsMi40LDUuMiwyLjQsNi43LDAsMy4xLTEuNywzLjUtMiwzLjYtLjQsMC0xLjcuMS0yLC4xLTEuOSwwLTIuOC0uMi0yLjgtMS41czAtLjYuMS0uN2MtLjkuNC0zLjEsMS4zLTMuOSwxLjMtMS40LDAtMS40LTEuMy0xLjQtMS41LDAtMSwuNi0xLjEsMS45LTEuNCwxLS4zLDQuMS0xLjIsNi42LTIuNSwwLS4yLS4xLS4zLS4yLS41LTMuMSwxLjctNi40LDIuNS02LjksMi41LTEuMiwwLTEuMi0xLjEtMS4yLTEuMywwLTEsLjQtMSwyLjEtMS4zLDIuMy0uNCw0LTEsNC45LTEuNSwwLS4xLS4xLS4xLS4zLS4zLTIuMywxLTQuNiwxLjQtNS4zLDEuNC0xLDAtMS40LS45LTEuNC0xLjUsMC0xLjIuOC0xLjMsMi42LTEuNSwxLjEtLjEsMS45LS4zLDIuNy0uNmgtMWMtLjgsMC0xLjMtLjItMS40LTEuMS0uNC4zLTEsLjMtMS4xLjMtMSwwLTEuOC0uMy0xLjgtMS43di0uNmMwLTEuNSwwLTIuOCwyLjMtMi44aDQuNmMwLS40LjItMS4yLDEuNi0xLjJzMS45LjUsMS45LDEuMmg0LjJjMS41LDAsMi44LDAsMi44LDIuM3YxLjFjMCwxLjQtLjcsMS43LTEuNywxLjdzLS45LDAtMS4yLS4yYzAsLjMsMCwuOS0xLDEsMCwuNy4xLDEuMS4yLDEuNi42LS40LjctLjUsMS4xLS44LjQtLjMuNi0uNC45LS40LjksMCwxLjcuOSwxLjcsMS44czAsLjgtMi41LDIuM2MuMy41LjgsMS4zLDEuNSwxLjkuOS44LDEuMiwxLjEsMS4yLDEuNywwLDEtMSwyLTIsMi0xLjcsMC00LjItMy43LTUuMS0xMC4xaC0uNFpNNjMuNiw5Mi4yYy4xLDAsLjYsMCwuOS4ydi0uNGMwLS4yLDAtLjItLjItLjJoLTEwLjFjLS4xLDAtLjIsMC0uMi4ydi41Yy4zLS4yLjgtLjIsMS0uMmg4LjdaTTU4LjEsMTAyLjljLjcsMCwxLDAsMS0xLjItLjUuMy0xLjEuNy0yLjEsMS4yLjEsMCwuOSwwLDEuMSwwWiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxNiIgZD0iTTg2LDk1LjJoMS40Yy4zLDAsMS40LDAsMS40LDEuM3MtMS4xLDEuNC0xLjQsMS40aC0xLjR2LjhoMS4yYy4zLDAsMS40LDAsMS40LDEuNHMtMSwxLjQtMS40LDEuNGgtNS40Yy0uNCwwLTEuNCwwLTEuNC0xLjRzMS0xLjQsMS40LTEuNGgxLjF2LS44aC0xLjZjLS43LDAtLjgtLjItMS0uMywwLC43LDAsMi41LS42LDQuMi43LjEsMiwuMSwyLC4xaDUuNGMxLjUsMCwxLjkuNiwxLjksMS42LDAsMS42LTEuMywxLjYtMS45LDEuNmgtNS43Yy0uOCwwLTIuMS0uMS0zLjMtLjgtLjMuMy0xLjEsMS0yLDEtMS4yLDAtMS41LTEuMi0xLjUtMS42cy4xLS43LjUtLjljMCwwLC42LS40LjctLjQtLjgtMS0xLTEuOS0xLjEtMi4zLDAsMS4yLS4yLDIuOS0uNiw0LDAsLjItLjQsMS4xLTEuNSwxLjFzLS45LDAtMS4zLS40Yy0uNS0uMy0uNy0uNy0uNy0xLjNzMC0uNCwwLS41Yy41LTIuNC44LTMuNS44LTUuOXYtNi42YzAtMS44LjctMi40LDIuNC0yLjRoNC4zYzAtLjgsMS4xLS45LDEuOS0uOXMxLjgsMCwxLjguOWg1LjJjLjYsMCwxLjcuMSwxLjcsMS40cy0uMywxLjYtMS43LDEuNmgtMTJjLS4yLDAtLjMsMC0uMy4zdjUuNmMwLDEuMSwwLDEuOSwwLDIuNS4yLS42LjctLjgsMS4zLS45LS4yLDAtMS0uMy0xLTEuNXMuMS0uOSwxLjQtMi4xYzAsMCwuNC0uNC40LS41czAtLjEtLjEtLjFoLS41Yy0uNCwwLTEuNCwwLTEuNC0xLjRzMS0xLjQsMS40LTEuNGgyLjFjLjcsMCwxLjYuMSwxLjksMSwuMi0xLDEtMSwyLjMtMSwuOCwwLDIuNi0uMSwzLjQtLjIuMSwwLC45LDAsMS40LDAsMS4yLDAsMS4zLDEuMSwxLjMsMS41LDAsMS4zLS44LDEuNC0yLjcsMS41di42Wk03Ni43LDk5LjFjLjIsMCwuMy4yLjQuNSwwLC4xLjQuNy40LjguMi0uNS4yLTEsLjItMS4xLDAtLjItLjEtLjItLjItLjJoLS45Wk04Mi45LDk0LjdjLTIsMC0yLjMsMC0yLjYtLjctLjEuOS0uNCwxLjItMS42LDIuMS0uMSwwLS4xLjEtLjEuMiwwLDAsMCwwLC40LDBzLjUsMCwuOS4zYzAtMS40LDEtMS40LDEuNC0xLjRoMS42di0uNVoiLz4KICAgIDwvZz4KICAgIDxnPgogICAgICA8cGF0aCBjbGFzcz0ic3QxNiIgZD0iTTE1NC40LDEwMy45Yy0uOC4yLTIuOC41LTUuNy41LTcuMiwwLTguNy0yLjEtOC43LTQuNHMyLjQtNC42LDMuNi00LjYsMS45LDEsMS45LDEuNy0uNCwxLS44LDEuM2MtLjQuMy0uOS44LS45LDEuMiwwLDEuMiwzLjEsMS4yLDQuMiwxLjIsMS42LDAsMy4zLS4xLDQuOS0uNC43LS4xLDEtLjIsMS4zLS4yLDEuNiwwLDEuNywxLjMsMS43LDEuNywwLDEuMS0uNCwxLjYtMS41LDEuOVpNMTQyLjgsOTIuM2MtMS41LDAtMS44LS45LTEuOC0xLjgsMC0xLjgsMS40LTEuOCwyLTEuOHMyLjgsMCwzLjQsMGMuOSwwLDUuNS0uMSw2LS4xLjgsMCwyLjMsMCwyLjMsMS43cy0uNSwxLjQtMS44LDIuM2MtLjkuNi0xLC43LTIuMywxLjYtLjYuNS0xLjEuOC0xLjcuOC0xLjEsMC0xLjktLjktMS45LTEuN3MuMy0uOCwxLTEuNGMtMS4zLDAtMy44LjItNS4xLjJaTTE1MS42LDk0LjljMC0uMi0uMS0uNC0uMS0uNCwwLS40LjUtLjYuOC0uNnMuNS4yLjksMWMuMS4yLjUsMS4xLjUsMS41cy0uNS43LS44LjctLjQtLjItLjYtLjRjMC0uMS0uMy0uNy0uNC0uOCwwLS4xLS40LS43LS40LS44Wk0xNTMuNCw5My44YzAtLjItLjEtLjQtLjEtLjUsMC0uNC41LS42LjgtLjZzLjUuMi45LDFjLjMuNi41LDEuMS41LDEuNXMtLjUuNy0uOC43LS40LDAtLjYtLjRjMC0uMS0uMy0uNy0uNC0uOCwwLS4xLS40LS43LS40LS44WiIvPgogICAgICA8cGF0aCBjbGFzcz0ic3QxNiIgZD0iTTE3MS4yLDkyLjRjMC0xLjEuOC0xLjYsMS44LTEuNiwxLjksMCwyLDEuNCwyLDIuM3MwLDEuMy0uMSwzLjFjMS4zLjYsMi4yLDEuMiwyLjIsMi4ycy0uNiwyLTEuNywyLS43LS4xLTEuMS0uM2MtLjksMi45LTMuNCw0LjgtNC44LDQuOHMtMS44LS45LTEuOC0xLjkuNC0xLjEsMS42LTEuOWMuNy0uNCwxLjYtMS4xLDEuOS0yLjgtLjYtLjItMS4zLS41LTIuNS0uNy0uNCwxLjctLjksMi45LTEuNiw0LjMtLjYsMS4yLTEuNCwyLjItMi45LDIuMnMtNC0xLjctNC00LjYsMi42LTUuMSw1LjktNS4zYzAtLjMuNC0xLjcuNC0xLjksMC0uNC0uMy0uNC0uNC0uNHMtMi40LjItMi45LjItMS44LDAtMS44LTEuNywxLjQtMS43LDIuMS0xLjcsMS4yLDAsMiwwLDIuMSwwLDIuNSwwYy42LDAsMi4zLDAsMi4zLDEuOHMtLjQsMi42LS43LDQuMWMuNy4xLDEuMS4yLDIsLjUsMC0uNCwwLTIsMC0yLjNaTTE2Myw5OS41YzAsLjkuNSwxLC42LDEsLjUsMCwxLjItMi40LDEuNC0zLjEtMSwuMi0yLC44LTIsMi4yWiIvPgogICAgPC9nPgogIDwvZz4KPC9zdmc+" alt="ごみゼロ分別チャレンジ"></div><div class="rule-flow"><div class="step"><div class="icon">🗑️</div><div class="text">ごみを見る</div></div><div class="step"><div class="icon">🎮</div><div class="text">分別を選ぶ</div></div><div class="step"><div class="icon">✅</div><div class="text">10問で結果</div></div></div><div class="mode-grid"><button class="btn-green" data-menu onclick="startPractice()">練習<span class="sub">まちがえても続く</span></button><button class="btn-yellow" data-menu onclick="startGame('kids')">キッズ<span class="sub">もえる・もえない</span></button><button class="btn-blue" data-menu data-default onclick="startGame('school')">小学生<span class="sub">4つに分ける</span></button><button class="btn-red" data-menu onclick="startGame('adult')">チャレンジ<span class="sub">ノーミスでエンドレス</span></button></div><p class="assist-status">${titleStatus()}</p>`;setMenu();
+}
+function setMenu(defaultIndex=0){state.menu=[...screen.querySelectorAll("[data-menu]")];const def=state.menu.findIndex(b=>b.hasAttribute("data-default"));state.menuIndex=def>=0?def:Math.min(defaultIndex,state.menu.length-1);updateMenu();}
+function updateMenu(){state.menu.forEach((b,i)=>b.classList.toggle("menu-selected",i===state.menuIndex));}
+function menuColumns(){const b=state.menu[state.menuIndex];if(!b)return 1;const p=b.parentElement;if(p?.classList.contains("mode-grid"))return 2;if(p?.classList.contains("result-actions")||p?.classList.contains("footer-buttons"))return state.menu.length;return 1;}
+function moveMenu(dir){if(!state.menu.length)return;let cols=menuColumns(),i=state.menuIndex;if(dir==="left")i--;if(dir==="right")i++;if(dir==="up")i-=cols;if(dir==="down")i+=cols;if(i<0)i=state.menu.length-1;if(i>=state.menu.length)i=0;state.menuIndex=i;updateMenu();}
+function activateMenu(){const b=state.menu[state.menuIndex];if(b)b.click();}
+function startGame(mode){showModeGuide(mode);}
+function beginGame(mode){
+  clearTimers();clearAssist();state.mode=mode;state.pendingMode=null;state.phase="game";state.index=0;state.score=0;state.misses=[];state.endless=false;state.endlessCount=0;state.endlessQueue=[];state.accepting=true;state.lastDir=null;
+  const p=mode==="kids"?kidsPool():mode==="school"?schoolPool():adultNormalPool();
+  state.questions=draw(p,QUESTION_COUNT);
+  bodyMode("playing",mode==="kids"?"kids":"");setGuideLabels(mode);showQuestion();
+}
+function showQuestion(){
+  clearTimers();state.phase="game";state.accepting=true;clearAssist();
+  const q=state.endless?nextEndlessQuestion():state.questions[state.index];state.current=q;
+  const num=state.endless?state.endlessCount+1:state.index+1,total=state.endless?"∞":QUESTION_COUNT;
+  const t=state.endless?Math.max(3.2,config.timeLimit-state.endlessCount*.12):config.timeLimit;
+  screen.style.setProperty("--timerAngle","360deg");
+  const hint=state.mode==="kids"?"ひだりか みぎを えらぼう":"上下左右でえらぼう";
+  screen.innerHTML=`<div class="hud"><div class="hud-left">${state.endless?"エンドレス":modeTitle(state.mode)} ${num}/${total}</div><div><div class="timer"><span id="timerText">${Math.ceil(t)}</span></div>${state.endless?"":dots(state.index)} </div><div class="hud-right">正解 ${state.score}</div></div><div class="question-card"><div class="garbage-img">${q.emoji||"❔"}</div><div class="garbage-name">${esc(displayName(q))}</div><div class="hint ${config.assistMode?"assist-hint":""}">${config.assistMode?"ヒント：光っている分別へ！":hint}</div></div><div class="feedback" id="feedback"></div>`;
+  if(config.assistMode)flashGuide(logicalToPhysicalDir(q.ans));startTimer(t);
+}
+function startTimer(limit){const start=performance.now(),ms=limit*1000;state.timerId=setInterval(()=>{const remain=Math.max(0,(ms-(performance.now()-start))/1000);const el=document.getElementById("timerText");if(el)el.textContent=Math.ceil(remain);screen.style.setProperty("--timerAngle",`${Math.max(0,remain/limit)*360}deg`);if(remain<=0){clearInterval(state.timerId);state.timerId=null;timeUp();}},70);}
+function answer(dir){
+  if(state.phase==="practice"){practiceAnswer(dir);return;}
+  if(state.phase!=="game"||!state.accepting)return;
+  if(state.mode==="kids"&&!(dir==="left"||dir==="right"))return;
+  state.accepting=false;clearTimers();
+  const q=state.current,logicalDir=physicalToLogicalDir(dir),answerPhysical=logicalToPhysicalDir(q.ans),ok=q.ans===logicalDir;state.lastDir=dir;markChoice(dir,answerPhysical,ok);
+  if(ok){state.score++;showFeedback(true,q,null,dir);playSound("correct");setTimeout(nextQuestion,900);}
+  else{state.misses.push({...q,selected:dir,answerDir:q.ans,gameNote:displayNote(q),displayName:displayName(q)});showFeedback(false,q,null,dir);playSound("wrong");setTimeout(()=>state.endless?finishEndless(q,dir):nextQuestion(),1400);}
+}
+function timeUp(){if(state.phase!=="game")return;state.accepting=false;const q=state.current;markChoice("time",logicalToPhysicalDir(q.ans),false);state.misses.push({...q,selected:"time",answerDir:q.ans,gameNote:displayNote(q),displayName:displayName(q)});showFeedback(false,q,"じかんぎれ","time");playSound("wrong");setTimeout(()=>state.endless?finishEndless(q,"time"):nextQuestion(),1500);}
+function showFeedback(ok,q,label,selectedDir,opts={}){const fb=document.getElementById("feedback");if(!fb)return;const main=label||(ok?"正解！":"ざんねん");fb.className=`feedback show learning ${ok?"correct":"wrong"} ${opts.demo?"demo-feedback":""}`;fb.innerHTML=`<div class="choice-board"><div class="main">${esc(main)}</div>${selectedChoiceHtml(selectedDir,q,ok,opts)}</div>`;}
+function nextQuestion(){
+  if(state.endless){state.endlessCount++;showQuestion();return;}
+  state.index++;
+  if(state.index>=QUESTION_COUNT){if(state.mode==="adult"&&state.misses.length===0)showEndlessReady();else renderResult();}
+  else showQuestion();
+}
+function showEndlessReady(){
+  clearTimers();clearAssist();state.phase="endlessReady";bodyMode("result");celebrate();
+  screen.innerHTML=`<div class="endless-card"><h1 class="title">ノーミス！</h1><p class="subtitle">ここから、むずかしい問題も出ます。</p><div class="badge">エンドレスに挑戦</div><div class="result-actions"><button data-menu data-default onclick="beginEndless()">つづける</button><button data-menu onclick="renderResult()">結果を見る</button></div></div>`;setMenu();
+}
+function beginEndless(){state.endless=true;state.phase="game";state.endlessCount=0;state.endlessQueue=[];bodyMode("playing");setGuideLabels(false);showQuestion();}
+function nextEndlessQuestion(){if(!state.endlessQueue.length){const hard=hardPool(),norm=shuffle(adultNormalPool()).slice(0,28);state.endlessQueue=shuffle([...hard,...norm]);}return state.endlessQueue.shift()||shuffle(enabledProblems())[0];}
+function badge(score,total,clear){const r=score/total;if(r===1)return"ごみ分別マスター";if(r>=.9)return"リサイクル博士";if(clear)return"分別名人";if(r>=.5)return"分別チャレンジャー";return"ナイスチャレンジ";}
+function animateRateCircle(rate){
+  const circle=document.querySelector(".rate-circle"),label=circle?.querySelector("span");
+  if(!circle||!label)return;
+  const start=performance.now(),duration=760,target=Math.max(0,Math.min(100,rate));
+  function frame(now){
+    const t=Math.min(1,(now-start)/duration),e=1-Math.pow(1-t,3),v=Math.round(target*e);
+    circle.style.setProperty("--rateAngle",`${target*3.6*e}deg`);
+    label.textContent=`${v}%`;
+    if(t<1)requestAnimationFrame(frame);else{circle.style.setProperty("--rateAngle",`${target*3.6}deg`);label.textContent=`${target}%`;}
+  }
+  requestAnimationFrame(frame);
+}
+function renderResult(){
+  clearTimers();clearAssist();state.phase="result";bodyMode("result");setGuideLabels(false);const total=QUESTION_COUNT,score=state.score,rate=Math.round(score/total*100),clear=score>=config.clearCount;if(clear)celebrate();screen.style.setProperty("--rateAngle","0deg");
+  screen.innerHTML=`<div class="result-top"><div class="rate-circle"><span>0%</span></div><div class="result-summary"><h1 class="result-title">${clear?"クリア！":"あと少し！"}</h1><div class="result-score">正解 ${score}/${total}問</div><div class="badge">${badge(score,total,clear)}</div></div></div>${reviewHtml()}<div class="result-actions"><button data-menu data-default onclick="renderTitle()">モードを選ぶ</button><button data-menu onclick="startGame('${state.mode||"school"}')">つぎの人スタート</button></div>`;setMenu();animateRateCircle(rate);
+}
+function selectedText(sel){return sel==="time"?"時間切れ":(DIRECTION[sel]?.long||"-");}
+function reviewHtml(){
+  if(!state.misses.length)return `<div class="review-empty">まちがいなし！すごい！</div>`;
+  const title=state.mode==="kids"?"まちがえたところ":"まちがえたところ";
+  const items=state.misses.slice(0,10).map(m=>`<div class="review-card"><div class="review-icon">${m.emoji||"❔"}</div><div><div class="review-name">${esc(m.displayName||m.name)}</div><div>${chip(m.answerDir||m.ans)} <span class="review-note">${esc(m.gameNote||m.note)}</span></div></div></div>`).join("");
+  return `<section class="review-box"><h2>${title}</h2><div class="review-list">${items}</div></section>`;
+}
+function todayKey(){const d=new Date();return `gomizeroToday_v8_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;}
+function saveTodayScore(score){let list=[];try{list=JSON.parse(localStorage.getItem(todayKey())||"[]");}catch(e){}list.push({score,time:Date.now()});list=list.sort((a,b)=>b.score-a.score||a.time-b.time).slice(0,5);localStorage.setItem(todayKey(),JSON.stringify(list));return list;}
+function rankingHtml(list){return `<div class="today-ranking"><div class="today-ranking-title">今日のハイスコア TOP5</div><ol>${list.map(x=>`<li>${x.score}問</li>`).join("")}</ol></div>`;}
+function finishEndless(q,sel){
+  clearTimers();clearAssist();state.phase="result";bodyMode("result");const total=state.score,prev=+localStorage.getItem(BEST_KEY)||0;if(total>prev)localStorage.setItem(BEST_KEY,String(total));const list=saveTodayScore(total);const last=q?`<div class="review-box endless-last"><h2>最後にまちがえた問題</h2><div class="review-list"><div class="review-card"><div class="review-icon">${q.emoji||"❔"}</div><div><div class="review-name">${esc(displayName(q))}</div><div class="review-note">選んだ：${esc(selectedText(sel))}</div><div>${chip(q.ans)} <span class="review-note">${esc(displayNote(q))}</span></div></div></div></div></div>`:"";
+  screen.innerHTML=`<div class="endless-card"><h1 class="result-title">エンドレス終了</h1><div class="endless-score">${total}問</div><div class="badge">${total>=60?"伝説の分別王":total>=30?"リサイクル博士":"分別名人"}</div><p class="subtitle">通常10問 + エンドレス${Math.max(0,total-QUESTION_COUNT)}問</p>${last}${rankingHtml(list)}<div class="result-actions"><button data-menu data-default onclick="renderTitle()">モードを選ぶ</button><button data-menu onclick="startGame('adult')">つぎの人スタート</button></div></div>`;setMenu();
+}
+function startPractice(){showModeGuide("practice");}
+function beginPractice(){
+  clearTimers();clearAssist();state.phase="practice";state.pendingMode=null;state.mode="practice";state.score=0;state.misses=[];state.practiceQueue=shuffle(practicePool());state.practiceIndex=0;bodyMode("playing");setGuideLabels("practice");renderPracticeQuestion();
+}
+function nextPracticeProblem(){if(!state.practiceQueue.length)state.practiceQueue=shuffle(practicePool());state.current=state.practiceQueue.shift();state.practiceIndex++;}
+function renderPracticeQuestion(message=""){nextPracticeProblem();const q=state.current;state.accepting=true;clearAssist();if(config.assistMode)flashGuide(logicalToPhysicalDir(q.ans));screen.innerHTML=`<div class="hud"><div class="hud-left">練習 ${state.practiceIndex}</div><div></div><div class="hud-right">1ボタンでやめる</div></div><div class="question-card"><div class="garbage-img">${q.emoji||"❔"}</div><div class="garbage-name">${esc(displayName(q))}</div><div class="hint">時間なし。まちがえても続く。</div>${message}</div><div class="feedback" id="feedback"></div>`;}
+function practiceAnswer(dir){if(state.phase!=="practice"||!state.accepting)return;state.accepting=false;const q=state.current,ok=q.ans===dir;markChoice(dir,q.ans,ok);if(ok){state.score++;playSound("correct");showFeedback(true,q,null,dir);}else{state.misses.push({...q,selected:dir,answerDir:q.ans,gameNote:displayNote(q),displayName:displayName(q)});playSound("wrong");showFeedback(false,q,null,dir);}setTimeout(()=>renderPracticeQuestion(),ok?950:1450);}
+function stopPractice(){clearTimers();clearAssist();renderTitle();}
+function demoPool(mode){return mode==="kids"?kidsPool():mode==="school"?schoolPool():adultNormalPool();}
+function startDemo(){
+  if(state.phase==="game"||state.phase==="practice")return;showDemoSelect();
+}
+function showDemoSelect(){
+  clearTimers();clearAssist();state.phase="demoSelect";state.mode=null;state.demoMode=null;state.accepting=false;bodyMode();setGuideLabels(false);screen.className="screen ready-screen";
+  screen.innerHTML=`<p class="kicker">デモモード</p><h1 class="ready-title">見て学ぶモードを選択</h1><p class="ready-lead">問題を見てから、正しい分別エリアが光り、最後に分類名が大きく表示されます。</p><div class="demo-select-grid"><button class="btn-yellow" data-menu onclick="beginDemo('kids')">キッズ<span class="sub">もえる・もえない</span></button><button class="btn-blue" data-menu data-default onclick="beginDemo('school')">小学生<span class="sub">4つに分ける</span></button><button class="btn-red" data-menu onclick="beginDemo('adult')">チャレンジ<span class="sub">少しむずかしい</span></button></div><p class="ready-tip">Aボタンで決定 / 1ボタンで戻る</p>`;
+  setMenu();
+}
+function beginDemo(mode){
+  clearTimers();clearAssist();state.phase="demo";state.mode=mode;state.demoMode=mode;state.demoQueue=draw(demoPool(mode),12);state.demoIndex=0;state.accepting=false;bodyMode("playing","demo",mode==="kids"?"kids":"");setGuideLabels(mode);renderDemoStep();
+}
+function showDemoCategory(q){
+  const fb=document.getElementById("feedback");if(!fb)return;
+  fb.className=`feedback show learning demo-feedback demo-${q.ans}`;
+  fb.innerHTML=`<div class="choice-board demo-board"><div class="demo-category-main">${esc(directionLongText(q.ans))}</div><div class="demo-category-note">${esc(displayNote(q))}</div></div>`;
+}
+function renderDemoStep(){
+  clearTimers();clearAssist();const q=state.demoQueue[state.demoIndex%state.demoQueue.length];state.current=q;state.accepting=false;
+  screen.innerHTML=`<div class="demo-tag">デモ</div><div class="hud"><div class="hud-left">${modeTitle(state.mode)} ${state.demoIndex+1}</div><div></div><div class="hud-right">1ボタンで戻る</div></div><div class="question-card"><div class="garbage-img">${q.emoji||"❔"}</div><div class="garbage-name">${esc(displayName(q))}</div><div id="demoAnswer" class="demo-answer-card">このごみはどこかな？</div></div><div class="feedback" id="feedback"></div>`;
+  state.demoTimer=setTimeout(()=>{
+    flashGuide(logicalToPhysicalDir(q.ans));
+    markChoice("demo",logicalToPhysicalDir(q.ans),true);
+    const a=document.getElementById("demoAnswer");if(a){a.className=`demo-answer-card show demo-${q.ans}`;a.innerHTML=`<div class="demo-category-text">${esc(directionLongText(q.ans))}</div><div class="demo-category-note">${esc(displayNote(q))}</div>`;}
+    playSound("correct");
+    state.demoTimer=setTimeout(()=>{showDemoCategory(q);state.demoTimer=setTimeout(()=>{state.demoIndex++;renderDemoStep();},2200);},1700);
+  },1500);
+}
+function stopDemo(){clearTimers();clearAssist();renderTitle();}
+function celebrate(){const marks=["🎉","✨","♻️","🌟","👏"];for(let i=0;i<54;i++){const s=document.createElement("div");s.className="confetti";s.textContent=marks[Math.floor(Math.random()*marks.length)];s.style.left=Math.random()*100+"vw";s.style.animationDelay=Math.random()*.35+"s";s.style.fontSize=(17+Math.random()*20)+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),2300);}}
+// v16: スマホで途中から音が鳴らなくなる対策。
+// 毎回 new Audio() せず、最初のタッチで音を解放し、Audio要素をプールして使い回します。
+let soundReady=false;
+let soundCtx=null;
+let soundPoolIndex={correct:0,wrong:0};
+const SOUND_URLS={
+  correct:["quiz01.mp3","https://xxxo9xxx.github.io/o9/gomizero/quiz01.mp3"],
+  wrong:["quiz02.mp3","https://xxxo9xxx.github.io/o9/gomizero/quiz02.mp3"]
+};
+const soundPools={correct:[],wrong:[]};
+function getSoundCtx(){
+  if(soundCtx)return soundCtx;
+  try{soundCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){soundCtx=null;}
+  return soundCtx;
+}
+function makeSoundAudio(kind,srcIndex=0){
+  const a=new Audio(SOUND_URLS[kind][srcIndex]);
+  a.preload="auto";
+  a.playsInline=true;
+  a.volume=config.volume;
+  a.dataset.srcIndex=String(srcIndex);
+  a.addEventListener("error",()=>{
+    if(a.dataset.srcIndex==="0"){
+      a.dataset.srcIndex="1";
+      a.src=SOUND_URLS[kind][1];
+      try{a.load();}catch(e){}
+    }
+  });
+  return a;
+}
+function initSound(){
+  if(soundReady)return;
+  soundReady=true;
+  const ctx=getSoundCtx();
+  if(ctx&&ctx.state==="suspended")ctx.resume().catch(()=>{});
+  ["correct","wrong"].forEach(kind=>{
+    if(!soundPools[kind].length){
+      for(let i=0;i<5;i++)soundPools[kind].push(makeSoundAudio(kind,0));
+    }
+    soundPools[kind].forEach(a=>{try{a.load();}catch(e){}});
+  });
+}
+function playTone(kind){
+  if(config.volume<=0)return;
+  try{
+    const ctx=getSoundCtx();
+    if(!ctx)return;
+    if(ctx.state==="suspended")ctx.resume().catch(()=>{});
+    const osc=ctx.createOscillator(),gain=ctx.createGain();
+    osc.type="sine";
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.frequency.value=kind==="correct"?880:180;
+    gain.gain.setValueAtTime(Math.max(.0001,config.volume*.10),ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.18);
+    osc.start();osc.stop(ctx.currentTime+.2);
+  }catch(e){}
+}
+function playSound(kind){
+  if(config.volume<=0)return;
+  initSound();
+  const pool=soundPools[kind];
+  if(!pool||!pool.length){playTone(kind);return;}
+  const idx=soundPoolIndex[kind]++%pool.length;
+  const a=pool[idx];
+  try{
+    a.pause();
+    a.currentTime=0;
+    a.volume=config.volume;
+    const p=a.play();
+    if(p&&p.catch)p.catch(()=>playTone(kind));
+  }catch(e){playTone(kind);}
+}
+["pointerdown","touchstart","click","keydown"].forEach(ev=>{
+  window.addEventListener(ev,initSound,{once:true,passive:true});
+});
+function toggleAssist(){config.assistMode=!config.assistMode;saveConfig();if(state.phase==="title")renderTitle();else if((state.phase==="game"||state.phase==="practice")&&state.current){config.assistMode?flashGuide(state.current.ans):clearAssist();}}
+function openSettings(){if(state.phase==="game"||state.phase==="practice")return;document.getElementById("cfgTime").value=config.timeLimit;document.getElementById("cfgClear").value=config.clearCount;document.getElementById("cfgVolume").value=config.volume;document.getElementById("cfgAssist").checked=config.assistMode;document.getElementById("bestScoreLabel").textContent=localStorage.getItem(BEST_KEY)||"0";settingsModal.classList.add("show");}
+function closeSettings(){config.timeLimit=Math.max(3,Math.min(20,+document.getElementById("cfgTime").value||8));config.clearCount=Math.max(1,Math.min(10,+document.getElementById("cfgClear").value||8));config.volume=+document.getElementById("cfgVolume").value;config.assistMode=document.getElementById("cfgAssist").checked;saveConfig();settingsModal.classList.remove("show");if(state.phase==="title")renderTitle();}
+function resetScores(){localStorage.removeItem(BEST_KEY);localStorage.removeItem(todayKey());document.getElementById("bestScoreLabel").textContent="0";}
+function openEditor(){if(state.phase==="game"||state.phase==="practice")return;editorModal.classList.add("show");renderEditor();}
+function closeEditor(){editorModal.classList.remove("show");if(state.phase==="title")renderTitle();}
+function renderEditor(){const term=document.getElementById("editorSearch").value.trim(),filter=document.getElementById("editorGroup").value;let list=problems.filter(p=>{if(filter!=="all"){if(filter==="enabled"&&p.enabled===false)return false;else if(filter==="disabled"&&p.enabled!==false)return false;else if(!["enabled","disabled"].includes(filter)&&p.group!==filter)return false;}if(term&&!(`${p.name} ${p.schoolName||""} ${p.kana||""} ${p.note} ${p.schoolNote||""} ${p.kidNote||""} ${p.id}`.includes(term)))return false;return true;});document.getElementById("editorCount").textContent=`表示 ${list.length}件 / 標準200問`;
+  const rows=list.map(p=>`<div class="problem-row" data-id="${p.id}"><div class="pid">${p.id.replace("q","")}</div><input data-field="emoji" value="${esc(p.emoji)}"><input data-field="name" value="${esc(p.name)}" placeholder="通常"><input data-field="schoolName" value="${esc(p.schoolName||"")}" placeholder="小学生"><input data-field="kana" value="${esc(p.kana||p.kidName||"")}" placeholder="キッズ"><select data-field="ans">${Object.entries(DIRECTION).map(([k,v])=>`<option value="${k}" ${p.ans===k?"selected":""}>${v.long}</option>`).join("")}</select><select data-field="group">${Object.entries(GROUP_LABEL).map(([k,v])=>`<option value="${k}" ${p.group===k?"selected":""}>${v}</option>`).join("")}</select><input class="note-cell" data-field="note" value="${esc(p.note)}" placeholder="通常一言"><input class="school-note-cell" data-field="schoolNote" value="${esc(p.schoolNote||"")}" placeholder="小学生一言"><input class="kid-note-cell" data-field="kidNote" value="${esc(p.kidNote||"")}" placeholder="キッズ一言"><input type="checkbox" data-field="enabled" ${p.enabled!==false?"checked":""}></div>`).join("");
+  document.getElementById("problemTable").innerHTML=`<div class="problem-row header"><div>ID</div><div>絵</div><div>通常名</div><div>小学生名</div><div>キッズ名</div><div>答え</div><div>分類</div><div>通常一言</div><div>小学生一言</div><div>キッズ一言</div><div>ON</div></div>${rows}`;
+}
+function updateProblem(id,field,value){const p=problems.find(x=>x.id===id);if(!p)return;if(field==="enabled")p.enabled=value;else p[field]=value;saveProblems();}
+function resetProblemsToDefault(){if(!confirm("問題を標準の200問に戻しますか？"))return;problems=clone(DEFAULT_PROBLEMS);saveProblems();renderEditor();}
+document.getElementById("problemTable").addEventListener("input",e=>{const row=e.target.closest(".problem-row[data-id]");if(!row)return;const field=e.target.dataset.field;if(!field)return;updateProblem(row.dataset.id,field,e.target.type==="checkbox"?e.target.checked:e.target.value);});
+document.getElementById("problemTable").addEventListener("change",e=>{const row=e.target.closest(".problem-row[data-id]");if(!row)return;const field=e.target.dataset.field;if(!field)return;updateProblem(row.dataset.id,field,e.target.type==="checkbox"?e.target.checked:e.target.value);});
+document.getElementById("editorSearch").addEventListener("input",renderEditor);document.getElementById("editorGroup").addEventListener("change",renderEditor);
+settingsModal.addEventListener("click",e=>{if(e.target===settingsModal)closeSettings();});editorModal.addEventListener("click",e=>{if(e.target===editorModal)closeEditor();});
+
+
+
+// v15: スマホのスワイプ操作。中央の問題カード上でも上下左右スワイプで分別できます。
+(function setupMobileSwipe(){
+  const root=document.getElementById("app");
+  if(!root)return;
+  let startX=0,startY=0,startT=0,tracking=false;
+  root.addEventListener("pointerdown",e=>{
+    if(e.pointerType!=="touch"&&e.pointerType!=="pen")return;
+    if(e.target.closest(".guide,button,input,select,textarea,.modal"))return;
+    if(state.phase!=="game"&&state.phase!=="practice")return;
+    tracking=true;startX=e.clientX;startY=e.clientY;startT=performance.now();
+  },{passive:true});
+  root.addEventListener("pointerup",e=>{
+    if(!tracking)return;tracking=false;
+    if(state.phase!=="game"&&state.phase!=="practice")return;
+    const dx=e.clientX-startX,dy=e.clientY-startY;
+    const dist=Math.hypot(dx,dy);
+    const elapsed=performance.now()-startT;
+    const minDist=Math.min(70,Math.max(42,window.innerWidth*.12));
+    if(dist<minDist||elapsed>900)return;
+    const dir=Math.abs(dx)>Math.abs(dy)?(dx>0?"right":"left"):(dy>0?"down":"up");
+    answer(dir);
+  },{passive:true});
+  root.addEventListener("pointercancel",()=>{tracking=false;},{passive:true});
+})();
+
+document.querySelectorAll(".guide[data-dir]").forEach(g=>g.addEventListener("pointerup",e=>{if(state.phase!=="game"&&state.phase!=="practice")return;e.preventDefault();answer(g.dataset.dir);}));
+const keyDir={ArrowUp:"up",ArrowDown:"down",ArrowLeft:"left",ArrowRight:"right"};
+function startHold(code,fn){if(state.holdTimers[code])return;state.holdTimers[code]=setTimeout(()=>{state.holdTimers[code]=null;fn();},760);}
+function cancelHold(code){if(state.holdTimers[code]){clearTimeout(state.holdTimers[code]);state.holdTimers[code]=null;}}
+window.addEventListener("keydown",e=>{
+  if(["KeyH","KeyS","KeyM","KeyD","KeyC"].includes(e.code)){e.preventDefault();if(e.code==="KeyH")startHold(e.code,()=>{toggleAssist();playSound("correct");});if(e.code==="KeyS")startHold(e.code,openSettings);if(e.code==="KeyM")startHold(e.code,openEditor);if(e.code==="KeyD")startHold(e.code,startDemo);if(e.code==="KeyC")startHold(e.code,openPadCheck);return;}
+  if(state.phase==="padCheck"&&e.code==="KeyR"){e.preventDefault();resetPadCalibration();return;}
+  const dir=keyDir[e.code];
+  if(dir){e.preventDefault();if(state.phase==="game"||state.phase==="practice")answer(dir);else moveMenu(dir);return;}
+  if(e.code==="Enter"||e.code==="Space"){e.preventDefault();if(state.phase==="padCheck")return; if(state.phase==="practice")stopPractice();else if(state.phase==="demo")stopDemo();else activateMenu();}
+  if(e.code==="Escape"){e.preventDefault();cancelAction();}
+});
+window.addEventListener("keyup",e=>{cancelHold(e.code);});
+function cancelAction(){
+  if(settingsModal.classList.contains("show")){closeSettings();return;}
+  if(editorModal.classList.contains("show")){closeEditor();return;}
+  if(state.phase==="practice"){stopPractice();return;}
+  if(state.phase==="demo"){stopDemo();return;}
+  if(state.phase==="demoSelect"){renderTitle();return;}
+  if(state.phase==="padCheck"){closePadCheck();return;}
+  if(state.phase==="ready"){renderTitle();return;}
+  if(state.phase==="endlessReady"){renderResult();return;}
+  if(state.phase==="result"){renderTitle();return;}
+}
+function blankPadState(){return {up:false,down:false,left:false,right:false,confirm:false,cancel:false};}
+function mergePadDirs(base,dirs){for(const d of ["up","down","left","right"]){if(dirs[d])base[d]=true;}return base;}
+
+const PAD_DIR_LABEL={up:"↑ 上",right:"→ 右",down:"↓ 下",left:"← 左"};
+const PAD_CALIB_ORDER=["up","right","down","left"];
+function dirListText(now){
+  const dirs=["up","right","down","left"].filter(d=>now&&now[d]);
+  return dirs.length?dirs.map(d=>PAD_DIR_LABEL[d]).join(" ＋ "):"なし";
+}
+function activeButtonList(pad){return [...(pad?.buttons||[])].map((b,i)=>b?.pressed?i:null).filter(i=>i!==null);}
+function axisLine(pad){
+  const axes=[...(pad?.axes||[])],neutral=state.gamepadNeutralAxes||[];
+  if(!axes.length)return "axes: なし";
+  return axes.map((v,i)=>{
+    const n=typeof neutral[i]==="number"?neutral[i]:0,d=v-n,mark=Math.abs(d)>.08?"*":"";
+    return `${i}:${Number(v).toFixed(3)}${mark}`;
+  }).join(" / ");
+}
+function calibrationSummary(){
+  const items=config.padCalib?.items;
+  if(!items?.length)return "登録なし";
+  return items.map(x=>`${PAD_DIR_LABEL[x.dir]}=${x.type==="axis"?`axis${x.axis}:${Number(x.value).toFixed(3)}`:`button${x.index}`}`).join("　");
+}
+function applyPadCalibration(now,pad){
+  const cal=config.padCalib,items=cal?.items,axes=pad.axes||[],buttons=pad.buttons||[];
+  if(!Array.isArray(items)||!items.length)return false;
+  let matched=false;
+  items.forEach(item=>{
+    if(item.type==="axis"&&typeof axes[item.axis]==="number"){
+      const v=axes[item.axis],tol=Math.max(.085,Math.min(.18,Math.abs(item.value)*.04+.085));
+      if(Math.abs(v-item.value)<=tol){now[item.dir]=true;matched=true;}
+    }else if(item.type==="button"&&buttons[item.index]?.pressed){now[item.dir]=true;matched=true;}
+  });
+  return matched;
+}
+function findPadSample(pad){
+  if(!pad)return null;
+  const buttons=pad.buttons||[],axes=pad.axes||[],neutral=state.gamepadNeutralAxes||[];
+  for(let i=0;i<buttons.length;i++){
+    if(i===0||i===1)continue;
+    if(buttons[i]?.pressed)return {type:"button",index:i};
+  }
+  let best=null;
+  for(let i=0;i<axes.length;i++){
+    const n=typeof neutral[i]==="number"?neutral[i]:0,d=Math.abs(axes[i]-n);
+    if(d>.075&&(!best||d>best.delta))best={type:"axis",axis:i,value:+Number(axes[i]).toFixed(6),delta:d};
+  }
+  return best;
+}
+function openPadCheck(){
+  if(state.phase==="game"||state.phase==="practice")return;
+  clearTimers();clearAssist();bodyMode();state.phase="padCheck";state.menu=[];state.padCheck={recording:false,step:0,items:[],message:"左・下などを押して、表示と実際の向きを見比べてください。"};state.padCheckLast=0;
+  screen.className="screen pad-screen";
+  screen.innerHTML=`<h1 class="pad-title">コントローラー確認</h1><p class="pad-note">ハットスイッチを押すと、ゲームが受け取った方向とRAW値を表示します。<br>向きが違う場合は「方向登録」を使うと、このPC用に補正できます。</p><div class="pad-live"><div class="pad-card"><h3>ゲーム側の判定</h3><div id="padDir" class="pad-dir">なし<small>押した方向と同じか確認</small></div></div><div class="pad-card"><h3>コントローラー情報</h3><div id="padInfo" class="pad-raw">接続待ち</div></div><div class="pad-card"><h3>ボタン</h3><div id="padButtons" class="pad-raw">-</div></div><div class="pad-card"><h3>axes値</h3><div id="padAxes" class="pad-raw">-</div></div></div><div class="pad-flow"><div id="padStep" class="pad-step">2ボタン：方向登録　/　1ボタン：戻る</div><div id="padMsg">${esc(state.padCheck.message)}</div><div class="pad-actions"><button onclick="startPadCalibration()">方向登録を開始</button><button onclick="resetPadCalibration()">登録を消す</button><button onclick="closePadCheck()">タイトルへ</button></div></div>`;
+}
+function closePadCheck(){state.padCheck=null;renderTitle();}
+function startPadCalibration(){
+  state.padCheck={recording:true,step:0,items:[],message:"まず ↑ 上 を押したまま、2ボタンを押してください。"};
+  updatePadCheckText();
+}
+function resetPadCalibration(){config.padCalib=null;saveConfig();if(state.padCheck){state.padCheck.message="方向登録を消しました。もう一度、左・下などを試してください。";state.padCheck.recording=false;state.padCheck.step=0;state.padCheck.items=[];updatePadCheckText();}}
+function handlePadCheckConfirm(pad){
+  if(!state.padCheck?.recording){startPadCalibration();return;}
+  const dir=PAD_CALIB_ORDER[state.padCheck.step],sample=findPadSample(pad);
+  if(!sample){state.padCheck.message=`${PAD_DIR_LABEL[dir]} を押したまま、2ボタンを押してください。方向入力が見つかりません。`;updatePadCheckText();return;}
+  state.padCheck.items.push(Object.assign({dir},sample));
+  state.padCheck.step++;
+  if(state.padCheck.step>=PAD_CALIB_ORDER.length){
+    config.padCalib={padId:pad?.id||"",items:state.padCheck.items,createdAt:Date.now()};saveConfig();
+    state.padCheck.recording=false;state.padCheck.message="登録しました。左・下などを押して、表示が合っているか確認してください。";
+  }else{
+    const next=PAD_CALIB_ORDER[state.padCheck.step];state.padCheck.message=`次は ${PAD_DIR_LABEL[next]} を押したまま、2ボタンを押してください。`;
+  }
+  updatePadCheckText();
+}
+function updatePadCheckText(){
+  const st=state.padCheck;if(!st)return;
+  const stepEl=document.getElementById("padStep"),msgEl=document.getElementById("padMsg");
+  if(stepEl)stepEl.textContent=st.recording?`登録中 ${st.step+1}/4：${PAD_DIR_LABEL[PAD_CALIB_ORDER[st.step]]}`:"2ボタン：方向登録　/　1ボタン：戻る";
+  if(msgEl)msgEl.innerHTML=`${esc(st.message)}<br><span style="font-size:.82em;opacity:.72">現在の登録：${esc(calibrationSummary())}</span>`;
+}
+function updatePadCheckUI(pad,now){
+  const t=performance.now();if(t-state.padCheckLast<90)return;state.padCheckLast=t;
+  const dirEl=document.getElementById("padDir"),infoEl=document.getElementById("padInfo"),btnEl=document.getElementById("padButtons"),axesEl=document.getElementById("padAxes");
+  if(dirEl)dirEl.innerHTML=`${esc(dirListText(now))}<small>押した方向と同じか確認</small>`;
+  if(infoEl)infoEl.innerHTML=pad?`id: ${esc(pad.id||"不明")}<br>mapping: ${esc(pad.mapping||"なし")}<br>登録: ${esc(config.padCalib?.items?.length?"あり":"なし")}`:"接続待ち：何かボタンを押してください";
+  if(btnEl)btnEl.textContent=pad?`pressed: ${activeButtonList(pad).join(", ")||"なし"}`:"-";
+  if(axesEl)axesEl.textContent=pad?axisLine(pad):"-";
+  updatePadCheckText();
+}
+
+function decodeHatAxis(value){
+  const v=Number(value),out=blankPadState();
+  if(!Number.isFinite(v))return out;
+  const tables=[
+    {vals:[0,1/7,2/7,3/7,4/7,5/7,6/7,1],dirs:[["up"],["up","right"],["right"],["down","right"],["down"],["down","left"],["left"],["up","left"]]},
+    {vals:[0,1/8,2/8,3/8,4/8,5/8,6/8,7/8],dirs:[["up"],["up","right"],["right"],["down","right"],["down"],["down","left"],["left"],["up","left"]]},
+    {vals:[-1,-5/7,-3/7,-1/7,1/7,3/7,5/7,1],dirs:[["up"],["up","right"],["right"],["down","right"],["down"],["down","left"],["left"],["up","left"]]},
+    {vals:[-1,-.75,-.5,-.25,.25,.5,.75,1],dirs:[["up"],["up","right"],["right"],["down","right"],["down"],["down","left"],["left"],["up","left"]]}
+  ];
+  let best=null;
+  for(const table of tables){
+    table.vals.forEach((val,i)=>{const diff=Math.abs(v-val);if(!best||diff<best.diff)best={diff,dirs:table.dirs[i]};});
+  }
+  if(best&&best.diff<=.09)best.dirs.forEach(d=>out[d]=true);
+  return out;
+}
+function readGamepad(pad){
+  const b=pad.buttons||[],axes=pad.axes||[],dead=.55,now=blankPadState();
+  now.up=!!(b[12]?.pressed||axes[1]<-dead);
+  now.down=!!(b[13]?.pressed||axes[1]>dead);
+  now.left=!!(b[14]?.pressed||axes[0]<-dead);
+  now.right=!!(b[15]?.pressed||axes[0]>dead);
+  // 会場用コントローラー設定：2ボタン＝決定、1ボタン＝キャンセル。
+  now.confirm=!!(b[1]?.pressed);
+  now.cancel=!!(b[0]?.pressed);
+  // ハットスイッチ対応。登録済みなら登録値を優先し、機種ごとの左/下ズレを避ける。
+  const calibrated=applyPadCalibration(now,pad);
+  if(!config.padCalib?.items?.length){
+    const neutral=state.gamepadNeutralAxes||[];
+    for(let i=2;i<axes.length;i++){
+      const n=neutral[i];
+      if(typeof n==="number"&&Math.abs(axes[i]-n)<.08)continue;
+      mergePadDirs(now,decodeHatAxis(axes[i]));
+    }
+    // ハットがX/Y軸のペアとして出るコントローラー向け。標準マッピングでは右スティック誤爆を避けるため使わない。
+    if(pad.mapping!=="standard"){
+      [[2,3],[4,5],[6,7]].forEach(([x,y])=>{
+        if(x<axes.length&&y<axes.length){
+          const nx=neutral[x]??0,ny=neutral[y]??0,dx=axes[x]-nx,dy=axes[y]-ny;
+          if(dx<-dead)now.left=true;if(dx>dead)now.right=true;if(dy<-dead)now.up=true;if(dy>dead)now.down=true;
+        }
+      });
+    }
+  }
+  return now;
+}
+function pollGamepad(){
+  const pads=navigator.getGamepads?navigator.getGamepads():[],pad=[...pads].find(Boolean);
+  if(pad){
+    const axes=pad.axes||[];
+    if(state.gamepadId!==pad.id){state.gamepadId=pad.id;state.gamepadNeutralAxes=[...axes];state.gamepadPrev=blankPadState();}
+    const now=readGamepad(pad),prev=state.gamepadPrev||blankPadState();
+    if(state.phase==="padCheck"){
+      updatePadCheckUI(pad,now);
+      if(now.confirm&&!prev.confirm)handlePadCheckConfirm(pad);
+      if(now.cancel&&!prev.cancel)closePadCheck();
+      state.gamepadPrev=now;requestAnimationFrame(pollGamepad);return;
+    }
+    for(const dir of ["up","down","left","right"]){
+      if(now[dir]&&!prev[dir]){if(state.phase==="game"||state.phase==="practice")answer(dir);else moveMenu(dir);}
+    }
+    if(now.confirm&&!prev.confirm){if(state.phase!=="game"&&state.phase!=="practice"&&state.phase!=="demo")activateMenu();}
+    if(now.cancel&&!prev.cancel){if(state.phase==="ready")beginSelectedMode();else cancelAction();}
+    state.gamepadPrev=now;
+  }else if(state.phase==="padCheck"){
+    updatePadCheckUI(null,blankPadState());
+  }
+  requestAnimationFrame(pollGamepad);
+}
+renderTitle();pollGamepad();
+</script>
+</body>
+</html>
