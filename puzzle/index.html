@@ -69,11 +69,29 @@
 
   const W = 390;
   const H = 844;
-  const DPR = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
-  canvas.width = Math.round(W * DPR);
-  canvas.height = Math.round(H * DPR);
+  const LIGHT_MODE_KEY = 'sansanRocketLightMode';
+  let lightMode = false;
+  try { lightMode = localStorage.getItem(LIGHT_MODE_KEY) === '1'; } catch (_) { lightMode = false; }
+  let DPR = 1;
+  function desiredDpr() {
+    const deviceDpr = Math.max(1, window.devicePixelRatio || 1);
+    return Math.max(1, Math.min(lightMode ? 1.5 : 3, deviceDpr));
+  }
   function resetCanvasTransform() { ctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
-  resetCanvasTransform();
+  function applyDisplayMode() {
+    DPR = desiredDpr();
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    document.documentElement.style.setProperty('--display-scale', lightMode ? '1.00' : '1.10');
+    resetCanvasTransform();
+  }
+  function setLightMode(on) {
+    lightMode = !!on;
+    try { localStorage.setItem(LIGHT_MODE_KEY, lightMode ? '1' : '0'); } catch (_) {}
+    applyDisplayMode();
+    trimEffectsForPerformance();
+  }
+  applyDisplayMode();
   const COLS = 7;
   const ROWS = 11;
   const CELL = 55;
@@ -207,6 +225,13 @@
   let cutinFreeze = 0;
   let paused = false;
   let muted = false;
+  let settingsOpen = false;
+  const SETTINGS_BTN = { x: 326, y: 42, w: 44, h: 44 };
+  const SETTINGS_PANEL = { x: 38, y: 198, w: 314, h: 356 };
+  const SETTINGS_X_BTN = { x: 316, y: 214, w: 24, h: 24 };
+  const LIGHT_TOGGLE_BTN = { x: 72, y: 318, w: 246, h: 58 };
+  const SOUND_TOGGLE_BTN = { x: 72, y: 394, w: 246, h: 46 };
+  const SETTINGS_CLOSE_BTN = { x: 94, y: 474, w: 202, h: 48 };
   let audio = null;
   let mediaAudio = null;
   let scoreSfxPlayed = false;
@@ -218,6 +243,15 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const lerp = (a, b, t) => a + (b - a) * t;
   const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+  function fxQuality() { return lightMode ? 0.45 : 1; }
+  function trimEffectsForPerformance() {
+    const maxParticles = lightMode ? 100 : 320;
+    const maxShockwaves = lightMode ? 5 : 18;
+    const maxSparkLines = lightMode ? 12 : 48;
+    if (particles && particles.length > maxParticles) particles.splice(0, particles.length - maxParticles);
+    if (shockwaves && shockwaves.length > maxShockwaves) shockwaves.splice(0, shockwaves.length - maxShockwaves);
+    if (sparkLines && sparkLines.length > maxSparkLines) sparkLines.splice(0, sparkLines.length - maxSparkLines);
+  }
   const easeInOutCubic = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   const easeOutBack = (t) => {
     const c1 = 1.70158;
@@ -855,27 +889,44 @@
   }
 
   function addParticle(x, y, color = '#fff', count = 8, power = 120, kind = 'dot') {
+    if (lightMode) {
+      if (count <= 1 && Math.random() > .45) return;
+      count = Math.max(1, Math.ceil(count * .45));
+      power *= .82;
+    }
+    const maxParticles = lightMode ? 100 : 320;
+    if (particles.length >= maxParticles) {
+      if (lightMode) return;
+      particles.splice(0, Math.min(count, particles.length));
+    }
+    count = Math.min(count, Math.max(0, maxParticles - particles.length));
     for (let i = 0; i < count; i++) {
       const a = rand(Math.PI * 2, 0);
       const s = rand(power, power * .18);
-      const life = rand(.68, .28);
+      const life = lightMode ? rand(.48, .22) : rand(.68, .28);
       particles.push({
         x, y,
         vx: Math.cos(a) * s,
-        vy: Math.sin(a) * s - rand(45),
+        vy: Math.sin(a) * s - rand(lightMode ? 28 : 45),
         life, maxLife: life,
-        size: rand(5, 2), color, kind,
-        spin: rand(6, -6), rot: rand(Math.PI * 2, 0)
+        size: rand(lightMode ? 3.4 : 5, 1.8), color, kind,
+        spin: rand(lightMode ? 3 : 6, lightMode ? -3 : -6), rot: rand(Math.PI * 2, 0)
       });
     }
   }
 
   function addShockwave(x, y, radius = 80, color = 'rgba(255,255,255,.75)', life = .4) {
+    if (lightMode) {
+      if (shockwaves.length >= 5) return;
+      radius *= .78;
+      life *= .72;
+    }
     shockwaves.push({ x, y, radius, color, life, maxLife: life });
   }
 
   function addSparkLine(x1, y1, x2, y2, color = '#fff58c', life = .22) {
-    sparkLines.push({ x1, y1, x2, y2, color, life, maxLife: life });
+    if (lightMode && (sparkLines.length >= 12 || Math.random() > .55)) return;
+    sparkLines.push({ x1, y1, x2, y2, color, life: lightMode ? life * .72 : life, maxLife: lightMode ? life * .72 : life });
   }
 
   function showCutin(title, subtitle, color = '#fff58c', kind = 'sun', duration = 1.02, freeze = true) {
@@ -958,6 +1009,16 @@
     const p = getCanvasPoint(ev);
     pointer = { id: ev.pointerId, x: p.x, y: p.y, startX: p.x, startY: p.y, moved: false };
 
+    if (settingsOpen) {
+      handleSettingsPointer(p);
+      return;
+    }
+    if (pointInRect(p.x, p.y, SETTINGS_BTN.x, SETTINGS_BTN.y, SETTINGS_BTN.w, SETTINGS_BTN.h)) {
+      settingsOpen = true;
+      playTone('swap', .35);
+      return;
+    }
+
     if (gameState === State.TITLE) {
       if (pointInRect(p.x, p.y, 70, 572, 250, 66)) {
         resetGame();
@@ -982,18 +1043,6 @@
       return;
     }
     if (gameState !== State.PLAY) return;
-
-    if (pointInCircle(p.x, p.y, 348, 66, 24)) {
-      muted = !muted;
-      if (!muted) {
-        initAudio();
-        resumeBgm();
-      } else {
-        pauseBgm();
-      }
-      addFloatText(348, 66, muted ? '音OFF' : '音ON', 15, '#fff', .45);
-      return;
-    }
 
     const hit = hitTestTile(p.x, p.y);
     if (!hit) {
@@ -1106,6 +1155,37 @@
 
   function pointInCircle(x, y, cx, cy, r) {
     return Math.hypot(x - cx, y - cy) <= r;
+  }
+
+  function toggleMute() {
+    muted = !muted;
+    if (!muted) {
+      initAudio();
+      resumeBgm();
+    } else {
+      pauseBgm();
+    }
+    addFloatText(W / 2, SETTINGS_PANEL.y + SETTINGS_PANEL.h + 22, muted ? '音OFF' : '音ON', 15, '#fff', .55);
+  }
+
+  function handleSettingsPointer(p) {
+    if (pointInRect(p.x, p.y, LIGHT_TOGGLE_BTN.x, LIGHT_TOGGLE_BTN.y, LIGHT_TOGGLE_BTN.w, LIGHT_TOGGLE_BTN.h)) {
+      setLightMode(!lightMode);
+      addFloatText(W / 2, SETTINGS_PANEL.y - 8, lightMode ? '軽量モードON' : '軽量モードOFF', 16, lightMode ? '#b9f4ff' : '#fff58c', .75);
+      playTone('swap', .55);
+      return;
+    }
+    if (pointInRect(p.x, p.y, SOUND_TOGGLE_BTN.x, SOUND_TOGGLE_BTN.y, SOUND_TOGGLE_BTN.w, SOUND_TOGGLE_BTN.h)) {
+      toggleMute();
+      playTone('swap', .35);
+      return;
+    }
+    if (pointInRect(p.x, p.y, SETTINGS_CLOSE_BTN.x, SETTINGS_CLOSE_BTN.y, SETTINGS_CLOSE_BTN.w, SETTINGS_CLOSE_BTN.h)
+      || pointInRect(p.x, p.y, SETTINGS_X_BTN.x, SETTINGS_X_BTN.y, SETTINGS_X_BTN.w, SETTINGS_X_BTN.h)
+      || !pointInRect(p.x, p.y, SETTINGS_PANEL.x, SETTINGS_PANEL.y, SETTINGS_PANEL.w, SETTINGS_PANEL.h)) {
+      settingsOpen = false;
+      playTone('swap', .25);
+    }
   }
 
   function findGroundRuns(touched = null) {
@@ -2128,7 +2208,7 @@
     updateSparkLines(dt);
     updateLaunchers(dt);
 
-    if (gameState !== State.PLAY || paused) {
+    if (gameState !== State.PLAY || paused || settingsOpen) {
       if (gameState === State.OVER && gameOverTimer > 0) {
         gameOverTimer = Math.max(0, gameOverTimer - dt);
         if (gameOverTimer <= 0) {
@@ -2209,7 +2289,7 @@
         it.y += it.vy * dt;
         it.vy -= 430 * dt;
         it.rot += it.spin * dt;
-        if (Math.random() < dt * 20) addParticle(it.x + TILE / 2, it.y + TILE / 2, l.fever ? '#fff58c' : l.color, 1, 110, 'flame');
+        if (Math.random() < dt * (lightMode ? 6 : 20)) addParticle(it.x + TILE / 2, it.y + TILE / 2, l.fever ? '#fff58c' : l.color, 1, 110, 'flame');
       }
       if (l.tiles.every(it => it.y < BOARD_Y - CELL * 2.2)) launchers.splice(i, 1);
     }
@@ -2309,6 +2389,8 @@
     drawCutins();
     if (gameState === State.TITLE) drawTitleOverlay();
     if (gameState === State.OVER) drawGameOverOverlay();
+    drawSettingsButton();
+    if (settingsOpen) drawSettingsOverlay();
   }
 
   function roundedRect(x, y, w, h, r) {
@@ -2332,25 +2414,27 @@
     ctx.fillRect(0, 0, W, H);
 
     ctx.save();
-    ctx.globalAlpha = .17 + (fever > 0 ? .16 : 0);
-    for (let i = 0; i < 48; i++) {
+    ctx.globalAlpha = lightMode && gameState === State.PLAY ? .12 : .17 + (fever > 0 ? .16 : 0);
+    const starCount = lightMode && gameState === State.PLAY ? 18 : 48;
+    for (let i = 0; i < starCount; i++) {
       const x = (i * 83 + 19) % W;
       const y = (i * 157 + 35 + performance.now() * .006 * (i % 3 + 1)) % H;
       ctx.fillStyle = i % 7 === 0 ? '#ffe69a' : '#ffffff';
       ctx.beginPath();
-      ctx.arc(x, y, i % 7 === 0 ? 1.8 : 1.1, 0, Math.PI * 2);
+      ctx.arc(x, y, i % 7 === 0 ? 1.5 : .9, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();
 
     const sunX = 328, sunY = 82;
-    const rg = ctx.createRadialGradient(sunX, sunY, 8, sunX, sunY, 160 + (fever > 0 ? 80 : 0));
+    const sunGlow = lightMode && gameState === State.PLAY ? 118 : 160 + (fever > 0 ? 80 : 0);
+    const rg = ctx.createRadialGradient(sunX, sunY, 8, sunX, sunY, sunGlow);
     rg.addColorStop(0, 'rgba(255,238,105,.68)');
     rg.addColorStop(.35, 'rgba(255,170,60,.21)');
     rg.addColorStop(1, 'rgba(255,170,60,0)');
     ctx.fillStyle = rg;
     ctx.beginPath();
-    ctx.arc(sunX, sunY, 220, 0, Math.PI * 2);
+    ctx.arc(sunX, sunY, lightMode && gameState === State.PLAY ? 135 : 220, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -2374,11 +2458,7 @@
     ctx.fillStyle = '#fff'; ctx.font = '900 25px system-ui, sans-serif';
     ctx.fillText(String(Math.floor(elapsedSeconds())), 261, 68);
 
-    // sound
-    roundedRect(326, 42, 44, 44, 17);
-    ctx.fillStyle = 'rgba(255,255,255,.11)'; ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.font = '19px system-ui, sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText(muted ? '×' : '♪', 348, 69);
+    // 設定ボタンはタイトル・ゲームオーバー中も押せるよう、最後に共通描画する。
 
     drawComboPanel();
     drawSunGauge();
@@ -2628,6 +2708,7 @@
   }
 
   function drawFallingTrails() {
+    if (lightMode && gameState === State.PLAY) return;
     ctx.save();
     for (const t of falling) {
       const x = t.x + TILE / 2;
@@ -2649,14 +2730,16 @@
 
   function drawLaunchers() {
     ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    for (const l of launchers) {
-      for (const it of l.tiles) {
-        const grad = ctx.createLinearGradient(it.x, it.y + 72, it.x, it.y - 10);
-        grad.addColorStop(0, l.fever ? 'rgba(255,246,120,.74)' : hexToRgba(l.color, .58));
-        grad.addColorStop(1, 'rgba(255,255,255,0)');
-        ctx.strokeStyle = grad; ctx.lineWidth = 14; ctx.lineCap = 'round';
-        ctx.beginPath(); ctx.moveTo(it.x + TILE / 2, it.y + TILE + 54); ctx.lineTo(it.x + TILE / 2 + Math.sin(l.age * 14 + it.tile.id) * 7, it.y + 12); ctx.stroke();
+    if (!lightMode) {
+      ctx.globalCompositeOperation = 'lighter';
+      for (const l of launchers) {
+        for (const it of l.tiles) {
+          const grad = ctx.createLinearGradient(it.x, it.y + 72, it.x, it.y - 10);
+          grad.addColorStop(0, l.fever ? 'rgba(255,246,120,.74)' : hexToRgba(l.color, .58));
+          grad.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.strokeStyle = grad; ctx.lineWidth = 14; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(it.x + TILE / 2, it.y + TILE + 54); ctx.lineTo(it.x + TILE / 2 + Math.sin(l.age * 14 + it.tile.id) * 7, it.y + 12); ctx.stroke();
+        }
       }
     }
     ctx.globalCompositeOperation = 'source-over';
@@ -2682,7 +2765,7 @@
     ctx.rotate(t.rot);
     ctx.scale(scale, scale);
     ctx.shadowColor = col.fill;
-    ctx.shadowBlur = 16 * (.12 + extraGlow + t.flash * .6 + (isLion ? .18 : 0));
+    ctx.shadowBlur = lightMode && gameState === State.PLAY ? (isLion ? 3 : 0) : 16 * (.12 + extraGlow + t.flash * .6 + (isLion ? .18 : 0));
     roundedRect(-TILE / 2, -TILE / 2, TILE, TILE, ROUND);
     const g = ctx.createLinearGradient(-TILE / 2, -TILE / 2, TILE / 2, TILE / 2);
     if (isLion) {
@@ -2701,25 +2784,27 @@
       const tnow = performance.now() * .001;
       const pulse = Math.sin(tnow * 7 + t.id) * .5 + .5;
       ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = .45 + pulse * .30;
+      if (!lightMode || gameState !== State.PLAY) ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = lightMode && gameState === State.PLAY ? .40 : .45 + pulse * .30;
       ctx.strokeStyle = '#fff58c';
-      ctx.lineWidth = 2.2 + pulse * 1.2;
+      ctx.lineWidth = lightMode && gameState === State.PLAY ? 2 : 2.2 + pulse * 1.2;
       roundedRect(-TILE / 2 + 2, -TILE / 2 + 2, TILE - 4, TILE - 4, ROUND - 1);
       ctx.stroke();
-      ctx.rotate(tnow * 1.8 + t.id);
-      for (let i = 0; i < 4; i++) {
-        const a = i * Math.PI / 2;
-        const sx = Math.cos(a) * TILE * .34;
-        const sy = Math.sin(a) * TILE * .34;
-        ctx.fillStyle = i % 2 ? '#b9f4ff' : '#fff58c';
-        ctx.beginPath();
-        ctx.moveTo(sx, sy - 4);
-        ctx.lineTo(sx + 2.4, sy);
-        ctx.lineTo(sx, sy + 4);
-        ctx.lineTo(sx - 2.4, sy);
-        ctx.closePath();
-        ctx.fill();
+      if (!lightMode || gameState !== State.PLAY) {
+        ctx.rotate(tnow * 1.8 + t.id);
+        for (let i = 0; i < 4; i++) {
+          const a = i * Math.PI / 2;
+          const sx = Math.cos(a) * TILE * .34;
+          const sy = Math.sin(a) * TILE * .34;
+          ctx.fillStyle = i % 2 ? '#b9f4ff' : '#fff58c';
+          ctx.beginPath();
+          ctx.moveTo(sx, sy - 4);
+          ctx.lineTo(sx + 2.4, sy);
+          ctx.lineTo(sx, sy + 4);
+          ctx.lineTo(sx - 2.4, sy);
+          ctx.closePath();
+          ctx.fill();
+        }
       }
       ctx.restore();
     }
@@ -2774,12 +2859,15 @@
   }
 
   function drawParticles() {
-    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    ctx.save(); ctx.globalCompositeOperation = lightMode ? 'source-over' : 'lighter';
     for (const p of particles) {
       const a = clamp(p.life / p.maxLife, 0, 1);
-      ctx.globalAlpha = a;
+      ctx.globalAlpha = lightMode ? a * .78 : a;
       ctx.translate(p.x, p.y); ctx.rotate(p.rot);
-      if (p.kind === 'flame' || p.kind === 'dust') {
+      if (lightMode) {
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(0, 0, p.size, 0, Math.PI * 2); ctx.fill();
+      } else if (p.kind === 'flame' || p.kind === 'dust') {
         const g = ctx.createRadialGradient(0, 0, 1, 0, 0, p.size * 2.3);
         g.addColorStop(0, p.kind === 'dust' ? p.color : '#fff');
         g.addColorStop(.45, p.color); g.addColorStop(1, 'rgba(255,255,255,0)');
@@ -2796,18 +2884,18 @@
     ctx.save();
     for (const s of shockwaves) {
       const t = 1 - s.life / s.maxLife;
-      ctx.globalAlpha = (s.life / s.maxLife) * .65;
-      ctx.strokeStyle = s.color; ctx.lineWidth = 8 * (1 - t) + 1;
+      ctx.globalAlpha = (s.life / s.maxLife) * (lightMode ? .38 : .65);
+      ctx.strokeStyle = s.color; ctx.lineWidth = (lightMode ? 4 : 8) * (1 - t) + 1;
       ctx.beginPath(); ctx.arc(s.x, s.y, s.radius * easeOutCubic(t), 0, Math.PI * 2); ctx.stroke();
     }
     ctx.restore();
   }
 
   function drawSparkLines() {
-    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+    ctx.save(); ctx.globalCompositeOperation = lightMode ? 'source-over' : 'lighter'; ctx.lineCap = 'round';
     for (const s of sparkLines) {
       const a = clamp(s.life / s.maxLife, 0, 1);
-      ctx.globalAlpha = a; ctx.strokeStyle = s.color; ctx.lineWidth = 4 * a;
+      ctx.globalAlpha = lightMode ? a * .72 : a; ctx.strokeStyle = s.color; ctx.lineWidth = (lightMode ? 2.2 : 4) * a;
       ctx.beginPath(); ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x2, s.y2); ctx.stroke();
     }
     ctx.restore();
@@ -2832,6 +2920,102 @@
   }
 
   function drawFooter() {}
+
+  function drawSettingsButton() {
+    if (settingsOpen) return;
+    ctx.save();
+    const b = SETTINGS_BTN;
+    roundedRect(b.x, b.y, b.w, b.h, 17);
+    ctx.fillStyle = lightMode ? 'rgba(80,180,255,.26)' : 'rgba(255,255,255,.13)';
+    ctx.fill();
+    ctx.strokeStyle = lightMode ? 'rgba(185,244,255,.70)' : 'rgba(255,255,255,.26)';
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+    ctx.font = '900 22px system-ui, sans-serif';
+    ctx.fillText('⚙', b.x + b.w / 2, b.y + b.h / 2 + 1);
+    if (lightMode) {
+      roundedRect(b.x + 23, b.y - 7, 22, 16, 8);
+      ctx.fillStyle = '#b9f4ff';
+      ctx.fill();
+      ctx.fillStyle = '#061129';
+      ctx.font = '900 10px system-ui, sans-serif';
+      ctx.fillText('軽', b.x + 34, b.y + 1);
+    }
+    ctx.restore();
+  }
+
+  function drawSettingsOverlay() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(3,6,18,.72)';
+    ctx.fillRect(0, 0, W, H);
+    const p = SETTINGS_PANEL;
+    roundedRect(p.x, p.y, p.w, p.h, 28);
+    ctx.fillStyle = 'rgba(10,20,48,.98)';
+    ctx.fill();
+    ctx.strokeStyle = lightMode ? 'rgba(185,244,255,.62)' : 'rgba(255,245,140,.38)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+    ctx.font = '900 28px system-ui, sans-serif';
+    ctx.fillText('設定', W / 2, p.y + 40);
+    ctx.fillStyle = 'rgba(255,255,255,.68)';
+    ctx.font = '800 12px system-ui, sans-serif';
+    ctx.fillText('Pixelなどで重い時は軽量モードをON', W / 2, p.y + 70);
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#b9f4ff';
+    ctx.font = '900 15px system-ui, sans-serif';
+    ctx.fillText('軽量モード', p.x + 34, p.y + 108);
+    ctx.fillStyle = 'rgba(255,255,255,.72)';
+    ctx.font = '800 11px system-ui, sans-serif';
+    ctx.fillText('解像度・光・パーティクルを抑えてカクつきを軽減', p.x + 34, p.y + 130);
+    ctx.fillText(`現在の描画解像度: DPR ×${DPR.toFixed(2)}`, p.x + 34, p.y + 148);
+
+    const l = LIGHT_TOGGLE_BTN;
+    roundedRect(l.x, l.y, l.w, l.h, 22);
+    const lg = ctx.createLinearGradient(l.x, l.y, l.x + l.w, l.y + l.h);
+    if (lightMode) {
+      lg.addColorStop(0, '#3eb4ff'); lg.addColorStop(1, '#55df80');
+    } else {
+      lg.addColorStop(0, 'rgba(255,255,255,.14)'); lg.addColorStop(1, 'rgba(255,255,255,.08)');
+    }
+    ctx.fillStyle = lg; ctx.fill();
+    ctx.strokeStyle = lightMode ? 'rgba(255,255,255,.80)' : 'rgba(255,255,255,.32)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fff';
+    ctx.font = '900 20px system-ui, sans-serif';
+    ctx.fillText(lightMode ? '軽量モード ON' : '軽量モード OFF', l.x + l.w / 2, l.y + 25);
+    ctx.font = '800 11px system-ui, sans-serif';
+    ctx.fillStyle = lightMode ? 'rgba(6,17,41,.82)' : 'rgba(255,255,255,.72)';
+    ctx.fillText(lightMode ? '画質より動作優先' : '通常画質・演出多め', l.x + l.w / 2, l.y + 43);
+
+    const s = SOUND_TOGGLE_BTN;
+    roundedRect(s.x, s.y, s.w, s.h, 19);
+    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = '900 16px system-ui, sans-serif';
+    ctx.fillText(muted ? '音: OFF' : '音: ON', s.x + s.w / 2, s.y + 24);
+
+    const c = SETTINGS_CLOSE_BTN;
+    roundedRect(c.x, c.y, c.w, c.h, 20);
+    ctx.fillStyle = 'rgba(255,245,140,.20)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.34)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = '900 17px system-ui, sans-serif';
+    ctx.fillText('閉じる', c.x + c.w / 2, c.y + 25);
+
+    const x = SETTINGS_X_BTN;
+    roundedRect(x.x, x.y, x.w, x.h, 10);
+    ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = '900 15px system-ui, sans-serif';
+    ctx.fillText('×', x.x + x.w / 2, x.y + x.h / 2 + 1);
+    ctx.restore();
+  }
 
 
   function drawCrashCountdownOverlay() {
@@ -3171,6 +3355,10 @@
     const damage = !!opts.damage;
     const feverMode = !!opts.feverMode;
     const scale = opts.scale || 1;
+    if (lightMode && gameState === State.PLAY && r <= 24) {
+      drawSunFallback(x, y, r * scale);
+      return;
+    }
     const faceImg = damage ? uiImages.damageFace : uiImages.sunnyFace;
     const ringImg = uiImages.sunnyRing;
     const speed = feverMode ? .0048 : .00115;
