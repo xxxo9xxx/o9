@@ -655,10 +655,21 @@
         }
 
 
-        /* 2026-06 v3 修正: 小枝HUD右上、タイトル枠内、SVGロゴ、キャラ文字の切れ防止 */
+        /* 2026-06 v3 修正: COMBO表示を右上の見えにくい位置へ寄せる */
         #combo-display {
-            top: 60px;
-            right: 12px;
+            top: 8px;
+            right: 8px;
+            max-width: min(44vw, 190px);
+            padding: 6px 10px;
+            font-size: clamp(1rem, 4.1vw, 1.45rem);
+            line-height: 1.02;
+            border-radius: 12px;
+            text-align: right;
+            transform-origin: top right;
+            background: linear-gradient(135deg, rgba(92, 58, 22, .52), rgba(37, 86, 43, .38));
+        }
+        .fever-timer {
+            font-size: .66em;
         }
         .title-card {
             overflow: visible;
@@ -1455,6 +1466,17 @@
             background: rgba(255, 248, 217, .82) !important;
             border: 1px solid rgba(139, 90, 43, .18) !important;
             border-radius: 12px !important;
+        }
+
+
+        @media (max-width: 420px) {
+            #combo-display {
+                top: 6px;
+                right: 6px;
+                max-width: min(42vw, 165px);
+                padding: 5px 8px;
+                font-size: clamp(.92rem, 3.8vw, 1.18rem);
+            }
         }
 
     </style>
