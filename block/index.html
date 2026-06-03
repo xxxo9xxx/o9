@@ -2222,9 +2222,10 @@ function updatePaddle() {
 }
 
 function drawForestBackground() {
-    // 背景は前景より淡く。弾・ブロック・ボールを邪魔しないよう、森全体を少しかすませる。
-    const topColor = isFeverTime ? color(255, 224, 150) : color(214, 238, 198);
-    const bottomColor = isFeverTime ? color(255, 185, 128) : color(157, 203, 148);
+    // フィーバー中は「背景だけ」を夜モードにして、弾・ボール・ブロックを目立たせる。
+    // 前景まで暗くしないことで、遊びやすさと派手さを両立する。
+    const topColor = isFeverTime ? color(22, 35, 72) : color(214, 238, 198);
+    const bottomColor = isFeverTime ? color(29, 67, 58) : color(157, 203, 148);
     noStroke();
     for (let y = 0; y < height; y += 4) {
         const c = lerpColor(topColor, bottomColor, y / height);
@@ -2234,16 +2235,30 @@ function drawForestBackground() {
 
     push();
     const sunPulse = 1 + sin(frameCount * 0.04) * 0.04;
-    fill(255, 237, 122, 80);
-    ellipse(width - 72, 68, 104 * sunPulse, 104 * sunPulse);
-    fill(255, 226, 91, 135);
-    ellipse(width - 72, 68, 62, 62);
+    if (isFeverTime) {
+        drawingContext.shadowColor = 'rgba(170, 215, 255, .55)';
+        drawingContext.shadowBlur = 22;
+        fill(207, 232, 255, 155);
+        ellipse(width - 72, 68, 72 * sunPulse, 72 * sunPulse);
+        drawingContext.shadowBlur = 0;
+        fill(255, 255, 210, 90);
+        for (let i = 0; i < 18; i++) {
+            const sx = (i * 67 + frameCount * .18) % width;
+            const sy = 34 + ((i * 41) % 210);
+            ellipse(sx, sy, 2.2, 2.2);
+        }
+    } else {
+        fill(255, 237, 122, 80);
+        ellipse(width - 72, 68, 104 * sunPulse, 104 * sunPulse);
+        fill(255, 226, 91, 135);
+        ellipse(width - 72, 68, 62, 62);
+    }
     pop();
 
-    drawCloud(70, 62, 1.0, 70);
-    drawCloud(250, 92, .75, 45);
+    drawCloud(70, 62, 1.0, isFeverTime ? 24 : 70);
+    drawCloud(250, 92, .75, isFeverTime ? 18 : 45);
 
-    fill(96, 155, 100, 130);
+    fill(isFeverTime ? color(38, 92, 82, 145) : color(96, 155, 100, 130));
     beginShape();
     vertex(0, 210);
     bezierVertex(65, 160, 118, 190, 185, 155);
@@ -2252,7 +2267,7 @@ function drawForestBackground() {
     vertex(0, 600);
     endShape(CLOSE);
 
-    fill(84, 142, 91, 150);
+    fill(isFeverTime ? color(27, 75, 68, 165) : color(84, 142, 91, 150));
     beginShape();
     vertex(0, 278);
     bezierVertex(75, 220, 140, 256, 196, 211);
@@ -2266,25 +2281,33 @@ function drawForestBackground() {
     drawTree(26, 328, .82);
     drawTree(302, 340, .82);
 
-    fill(118, 91, 46, 78);
+    fill(isFeverTime ? color(48, 55, 50, 110) : color(118, 91, 46, 78));
     rect(0, height - 28, width, 28);
-    fill(139, 101, 54, 58);
+    fill(isFeverTime ? color(42, 78, 66, 85) : color(139, 101, 54, 58));
     for (let i = 0; i < width; i += 28) {
         ellipse(i + ((frameCount / 2) % 28), height - 12, 32, 10);
     }
 
     updateForestLeaves();
 
-    // 背景だけを白くかすませて、弾・ブロック・ボールを見やすくする
     noStroke();
-    fill(255, 252, 238, isFeverTime ? 76 : 118);
-    rect(0, 0, width, height);
-    fill(255, 255, 255, isFeverTime ? 28 : 48);
-    ellipse(width * .18, height * .20, 230, 126);
-    ellipse(width * .78, height * .34, 272, 152);
-    ellipse(width * .48, height * .52, 340, 118);
+    if (isFeverTime) {
+        // 画面全体を薄い紺色で締め、黄色系の弾やエフェクトが浮くようにする。
+        fill(8, 18, 42, 94);
+        rect(0, 0, width, height);
+        fill(80, 180, 255, 22);
+        ellipse(width * .22, height * .22, 220, 120);
+        ellipse(width * .78, height * .38, 260, 145);
+    } else {
+        // 通常時は背景だけを白くかすませて、弾・ブロック・ボールを見やすくする。
+        fill(255, 252, 238, 118);
+        rect(0, 0, width, height);
+        fill(255, 255, 255, 48);
+        ellipse(width * .18, height * .20, 230, 126);
+        ellipse(width * .78, height * .34, 272, 152);
+        ellipse(width * .48, height * .52, 340, 118);
+    }
 }
-
 function drawCloud(x, y, s, alphaValue) {
     push();
     translate(x, y);
@@ -2817,22 +2840,27 @@ function drawTwigShot(x, y, s, spin) {
     push();
     translate(x, y);
     rotate(spin);
-    drawingContext.shadowColor = 'rgba(50, 30, 8, .28)';
-    drawingContext.shadowBlur = 5;
-    stroke(101, 64, 28);
-    strokeWeight(max(2, s * .18));
+    const feverGlow = (typeof isFeverTime !== 'undefined' && isFeverTime);
+    drawingContext.shadowColor = feverGlow ? 'rgba(90, 225, 255, .95)' : 'rgba(50, 30, 8, .28)';
+    drawingContext.shadowBlur = feverGlow ? 16 : 5;
+    stroke(feverGlow ? color(255, 252, 210) : color(101, 64, 28));
+    strokeWeight(max(feverGlow ? 3.2 : 2, s * (feverGlow ? .22 : .18)));
     strokeCap(ROUND);
     line(0, s * .45, 0, -s * .45);
-    strokeWeight(max(1.3, s * .1));
+    strokeWeight(max(feverGlow ? 2.1 : 1.3, s * (feverGlow ? .14 : .1)));
     line(0, -s * .12, s * .32, -s * .38);
     line(0, s * .08, -s * .28, -s * .18);
-    stroke(214, 143, 64, 170);
+    stroke(feverGlow ? color(255, 232, 80, 240) : color(214, 143, 64, 170));
     strokeWeight(max(1, s * .06));
     line(-s * .05, s * .35, -s * .05, -s * .35);
+    if (feverGlow) {
+        noStroke();
+        fill(125, 235, 255, 105);
+        ellipse(0, 0, s * .95, s * 1.25);
+    }
     drawingContext.shadowBlur = 0;
     pop();
 }
-
 function drawAcorn(x, y, s, rotation, fever) {
     push();
     translate(x, y);
@@ -3090,12 +3118,17 @@ function drawSpeechBubble(x, y, message) {
 function drawFeverOverlay() {
     if (!isFeverTime) return;
     push();
+    // 画面端と波だけを派手にして、中央の弾の視認性は邪魔しない。
     noFill();
-    stroke(255, 230, 80, 150 + sin(frameCount * .18) * 70);
-    strokeWeight(5 + sin(frameCount * .2) * 1.5);
+    drawingContext.shadowColor = 'rgba(90, 225, 255, .85)';
+    drawingContext.shadowBlur = 14;
+    stroke(120, 224, 255, 145 + sin(frameCount * .18) * 55);
+    strokeWeight(4 + sin(frameCount * .2) * 1.2);
     rect(7, 7, width - 14, height - 14, 18);
+    drawingContext.shadowBlur = 0;
+
     noStroke();
-    fill(255, 245, 98, 28);
+    fill(255, 232, 92, 24);
     const wave = sin(frameCount * .08) * 22;
     beginShape();
     vertex(0, height * .35 + wave);
@@ -3103,9 +3136,11 @@ function drawFeverOverlay() {
     vertex(width, 0);
     vertex(0, 0);
     endShape(CLOSE);
+
+    fill(60, 210, 255, 18);
+    ellipse(width * .5, height * .5, 330 + sin(frameCount * .07) * 24, 190);
     pop();
 }
-
 function showBanner(textValue) {
     bannerText = textValue;
     bannerTimer = 82;
