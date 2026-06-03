@@ -19,7 +19,7 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       touch-action: none; overscroll-behavior: none;
     }
-    #wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #070b19; overflow: hidden; }
+    #wrap { position: fixed; inset: 0; z-index: 0; display: flex; align-items: center; justify-content: center; background: #070b19; overflow: hidden; }
     canvas {
       /* 比率固定のまま、画面内に収める。110%拡大は負荷・はみ出し対策で停止 */
       display: block;
@@ -39,6 +39,136 @@
         box-shadow: none;
       }
     }
+
+    #settingsFloat {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2147483647 !important;
+      width: min(330px, calc(100vw - 34px));
+      border-radius: 28px;
+      padding: 22px 20px 20px;
+      background: rgba(10, 20, 48, .98);
+      border: 2px solid rgba(185, 244, 255, .58);
+      box-shadow: 0 18px 70px rgba(0,0,0,.62), inset 0 0 0 1px rgba(255,255,255,.10);
+      color: #fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: none;
+      pointer-events: auto;
+      user-select: none;
+    }
+    #settingsFloat.open { display: block; }
+    #settingsFloat::before {
+      content: "";
+      position: fixed;
+      left: -200vw;
+      top: -200vh;
+      width: 400vw;
+      height: 400vh;
+      background: rgba(3, 6, 18, .68);
+      z-index: -1;
+      pointer-events: auto;
+    }
+    .settings-title {
+      margin: 0 0 5px;
+      font-size: 24px;
+      font-weight: 900;
+      text-align: center;
+      letter-spacing: .04em;
+    }
+    .settings-subtitle {
+      margin: 0 0 18px;
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(255,255,255,.70);
+      text-align: center;
+      line-height: 1.45;
+    }
+    .settings-row {
+      width: 100%;
+      border: 0;
+      border-radius: 20px;
+      padding: 14px 16px;
+      margin: 10px 0;
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      font: inherit;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      touch-action: manipulation;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.17);
+    }
+    .settings-row.active {
+      background: linear-gradient(135deg, rgba(62,180,255,.95), rgba(85,223,128,.90));
+      color: #061129;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.72);
+    }
+    .settings-row-main {
+      display: block;
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+    .settings-row-sub {
+      display: block;
+      margin-top: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.25;
+      opacity: .78;
+    }
+    .settings-pill {
+      flex: 0 0 auto;
+      min-width: 54px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.18);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 900;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.20);
+    }
+    .settings-row.active .settings-pill {
+      background: rgba(6,17,41,.18);
+      color: #061129;
+    }
+    .settings-close {
+      width: 100%;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 20px;
+      padding: 14px 16px;
+      background: rgba(255,245,140,.24);
+      color: #fff;
+      font: 900 16px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.26);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .settings-x {
+      position: absolute;
+      right: 14px;
+      top: 14px;
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 14px;
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      font: 900 18px system-ui, sans-serif;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+
+    body.settings-menu-open #wrap { filter: brightness(.72); }
+    body.settings-menu-open canvas { pointer-events: none; }
+
     .note {
       position: fixed; left: 50%; bottom: max(10px, env(safe-area-inset-bottom)); transform: translateX(-50%);
       color: rgba(255,255,255,.42); font-size: 11px; letter-spacing: .02em; pointer-events: none; user-select: none;
@@ -50,6 +180,27 @@
 <body>
   <div id="wrap"><canvas id="game" width="390" height="820" aria-label="さんさんロケットパズル"></canvas></div>
   <div class="note" style="display:none"></div>
+
+  <div id="settingsFloat" aria-hidden="true">
+    <button class="settings-x" id="settingsCloseX" type="button" aria-label="設定を閉じる">×</button>
+    <h2 class="settings-title">設定</h2>
+    <p class="settings-subtitle">設定を開いている間はゲームが一時停止します。</p>
+    <button class="settings-row" id="lightModeButton" type="button">
+      <span>
+        <span class="settings-row-main">軽量モード</span>
+        <span class="settings-row-sub" id="lightModeSub">描画を軽くしてカクつきを減らす</span>
+      </span>
+      <span class="settings-pill" id="lightModePill">OFF</span>
+    </button>
+    <button class="settings-row" id="muteButton" type="button">
+      <span>
+        <span class="settings-row-main">消音</span>
+        <span class="settings-row-sub">BGM・効果音をOFFにします</span>
+      </span>
+      <span class="settings-pill" id="mutePill">ON</span>
+    </button>
+    <button class="settings-close" id="settingsCloseButton" type="button">閉じる</button>
+  </div>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -175,6 +326,27 @@
   };
 
   const State = { TITLE: 'title', PLAY: 'play', OVER: 'over' };
+  const settingsFloatEl = document.getElementById('settingsFloat');
+  const lightModeButtonEl = document.getElementById('lightModeButton');
+  const muteButtonEl = document.getElementById('muteButton');
+  const settingsCloseButtonEl = document.getElementById('settingsCloseButton');
+  const settingsCloseXEl = document.getElementById('settingsCloseX');
+  const lightModePillEl = document.getElementById('lightModePill');
+  const lightModeSubEl = document.getElementById('lightModeSub');
+  const mutePillEl = document.getElementById('mutePill');
+
+  function syncSettingsFloat() {
+    if (!settingsFloatEl) return;
+    settingsFloatEl.classList.toggle('open', !!settingsOpen);
+    settingsFloatEl.setAttribute('aria-hidden', settingsOpen ? 'false' : 'true');
+    document.body.classList.toggle('settings-menu-open', !!settingsOpen);
+    if (lightModeButtonEl) lightModeButtonEl.classList.toggle('active', !!lowPowerMode);
+    if (lightModePillEl) lightModePillEl.textContent = lowPowerMode ? 'ON' : 'OFF';
+    if (lightModeSubEl) lightModeSubEl.textContent = lowPowerMode ? `軽量中 / DPR ×${DPR.toFixed(1)} / サニーSVGなし` : '描画を軽くしてカクつきを減らす';
+    if (muteButtonEl) muteButtonEl.classList.toggle('active', !!muted);
+    if (mutePillEl) mutePillEl.textContent = muted ? 'OFF' : 'ON';
+  }
+
 
   function isSettingsGameplayPause() {
     return gameState === State.PLAY && settingsOpen;
@@ -185,6 +357,7 @@
     settingsOpen = true;
     if (gameState === State.PLAY) settingsPauseStartedAt = performance.now();
     if (gameState === State.TITLE) setTitleRankingOpen(false);
+    syncSettingsFloat();
   }
 
   function closeSettingsMenu() {
@@ -194,6 +367,7 @@
     }
     settingsPauseStartedAt = 0;
     settingsOpen = false;
+    syncSettingsFloat();
   }
 
   function toggleSettingsMenu() {
@@ -743,6 +917,7 @@
     flash = 0;
     cutinFreeze = 0;
     paused = false;
+    closeSettingsMenu();
     initBoard();
     settingsOpen = false;
     settingsPauseStartedAt = 0;
@@ -756,6 +931,7 @@
     closeSettingsMenu();
     gameOverReason = reason;
     gameState = State.OVER;
+    closeSettingsMenu();
     drag = null;
     pointer = null;
     selectedHint = null;
@@ -1165,11 +1341,15 @@
     }
     const b = settingsLayout().button;
     addFloatText(b.x + b.w / 2, b.y + b.h + 12, muted ? '音OFF' : '音ON', 15, '#fff', .45);
+    syncSettingsFloat();
   }
 
   function setLowPowerMode(enabled) {
     const next = !!enabled;
-    if (lowPowerMode === next) return;
+    if (lowPowerMode === next) {
+      syncSettingsFloat();
+      return;
+    }
     lowPowerMode = next;
     localStorage.setItem('sansanRocketLowPowerMode', lowPowerMode ? '1' : '0');
     localStorage.setItem('sansanRocketLightMode', lowPowerMode ? '1' : '0');
@@ -1181,6 +1361,7 @@
     } else {
       addFloatText(W / 2, 118, '標準モード', 17, '#fff58c', .72);
     }
+    syncSettingsFloat();
   }
 
   function handleSettingsPointer(p) {
@@ -3283,32 +3464,14 @@
       ctx.font = '900 8px system-ui, sans-serif';
       ctx.fillText('軽量', b.x + 12, b.y + b.h - 3);
     }
-
-    if (settingsOpen) {
-      const m = ui.menu;
-      roundedRect(m.x, m.y, m.w, m.h, 20);
-      ctx.fillStyle = 'rgba(5,10,26,.995)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(185,244,255,.75)';
-      ctx.lineWidth = 1.7;
-      ctx.stroke();
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#b9f4ff';
-      ctx.font = '900 15px system-ui, sans-serif';
-      ctx.fillText('設定', m.x + 16, m.y + 24);
-      ctx.fillStyle = 'rgba(255,255,255,.58)';
-      ctx.font = '800 9.5px system-ui, sans-serif';
+    if (settingsOpen && gameState === State.PLAY) {
       ctx.textAlign = 'right';
-      ctx.fillText(`DPR ${DPR.toFixed(1)}`, m.x + m.w - 14, m.y + 24);
-      if (gameState === State.PLAY) {
-        ctx.textAlign = 'left';
-        ctx.fillStyle = '#fff58c';
-        ctx.font = '900 10.5px system-ui, sans-serif';
-        ctx.fillText(settingsPauseOverlayText(), m.x + 16, m.y + 44);
-      }
-      drawTogglePill(ui.light.x, ui.light.y, lowPowerMode, '軽量モード', 'DPR1.5 / SVGなし');
-      drawTogglePill(ui.mute.x, ui.mute.y, muted, '消音', muted ? '音を鳴らさない' : '音を鳴らす');
+      ctx.font = '900 12px system-ui, sans-serif';
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(3,6,18,.80)';
+      ctx.fillStyle = '#fff58c';
+      ctx.strokeText(settingsPauseOverlayText(), b.x - 8, b.y + b.h / 2 + 1);
+      ctx.fillText(settingsPauseOverlayText(), b.x - 8, b.y + b.h / 2 + 1);
     }
     ctx.restore();
   }
@@ -3803,10 +3966,17 @@
   canvas.addEventListener('pointermove', onPointerMove, { passive: false });
   canvas.addEventListener('pointerup', onPointerUp, { passive: false });
   canvas.addEventListener('pointercancel', onPointerUp, { passive: false });
+  lightModeButtonEl?.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); setLowPowerMode(!lowPowerMode); playTone('swap', .45); });
+  muteButtonEl?.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); toggleMuteSetting(); playTone('swap', .35); });
+  settingsCloseButtonEl?.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); closeSettingsMenu(); playTone('swap', .25); });
+  settingsCloseXEl?.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); closeSettingsMenu(); playTone('swap', .25); });
+  settingsFloatEl?.addEventListener('pointerdown', (ev) => { ev.stopPropagation(); }, { passive: true });
+  settingsFloatEl?.addEventListener('click', (ev) => { ev.stopPropagation(); });
   window.addEventListener('blur', () => { paused = true; });
   window.addEventListener('focus', () => { paused = false; lastTime = performance.now(); });
   document.addEventListener('gesturestart', e => e.preventDefault());
 
+  syncSettingsFloat();
   setupFirebaseRanking();
   initBoard();
   for (let i = 0; i < 4; i++) spawnMeteor(1);
