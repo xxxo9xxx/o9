@@ -72,6 +72,8 @@
   const H = 820;
   let lowPowerMode = localStorage.getItem('sansanRocketLowPowerMode') === '1';
   let settingsOpen = false;
+  let settingsPauseStartedAt = 0;
+  let settingsPausedTotal = 0;
   let titleRankingOpen = localStorage.getItem('sansanRocketTitleRankingOpen') === '1';
   function getTargetDpr() {
     const raw = window.devicePixelRatio || 1;
@@ -102,15 +104,16 @@
 
   // 見た目を大きく変えず、重い場面だけ描画量を抑えるための上限。
   const NORMAL_MAX_PARTICLES = 140;
-  const LOW_POWER_MAX_PARTICLES = 82;
-  const PARTICLE_SCREEN_MARGIN = 120;
-  const LAUNCHER_SCREEN_MARGIN = 150;
+  const LOW_POWER_MAX_PARTICLES = 56;
+  const PARTICLE_SCREEN_MARGIN = 100;
+  const LAUNCHER_SCREEN_MARGIN = 120;
   const FEVER_SPARK_KEEP_RATE = 0.70;
   const FEVER_FLAME_KEEP_RATE = 0.62;
   function currentMaxParticles() { return lowPowerMode ? LOW_POWER_MAX_PARTICLES : NORMAL_MAX_PARTICLES; }
-  function effectQuality() { return lowPowerMode ? 0.55 : 1; }
-  function starFieldCount() { return lowPowerMode ? 28 : 48; }
-  function launcherFlameRate() { return lowPowerMode ? 8 : 20; }
+  function effectQuality() { return lowPowerMode ? 0.32 : 1; }
+  function starFieldCount() { return lowPowerMode ? 16 : 48; }
+  function launcherFlameRate() { return lowPowerMode ? 3 : 20; }
+  function lowPowerSunnySvgOff() { return lowPowerMode; }
 
   const COLORS = [
     { name: 'あか', fill: '#ff5a62', edge: '#ffb0b4', dark: '#8c1f31', mark: '●' },
@@ -172,20 +175,50 @@
   };
 
   const State = { TITLE: 'title', PLAY: 'play', OVER: 'over' };
+
+  function isSettingsGameplayPause() {
+    return gameState === State.PLAY && settingsOpen;
+  }
+
+  function openSettingsMenu() {
+    if (settingsOpen) return;
+    settingsOpen = true;
+    if (gameState === State.PLAY) settingsPauseStartedAt = performance.now();
+    if (gameState === State.TITLE) setTitleRankingOpen(false);
+  }
+
+  function closeSettingsMenu() {
+    if (!settingsOpen) return;
+    if (gameState === State.PLAY && settingsPauseStartedAt) {
+      settingsPausedTotal += performance.now() - settingsPauseStartedAt;
+    }
+    settingsPauseStartedAt = 0;
+    settingsOpen = false;
+  }
+
+  function toggleSettingsMenu() {
+    if (settingsOpen) closeSettingsMenu();
+    else openSettingsMenu();
+  }
+
+  function settingsPauseOverlayText() {
+    return lowPowerMode ? '一時停止中・軽量モード' : '一時停止中';
+  }
+
   function settingsLayout() {
     if (gameState === State.TITLE) {
       return {
         button: { x: 304, y: 650, w: 42, h: 42 },
-        menu: { x: 158, y: 490, w: 198, h: 154 },
-        light: { x: 172, y: 530, w: 170, h: 42 },
-        mute: { x: 172, y: 580, w: 170, h: 42 }
+        menu: { x: 148, y: 484, w: 214, h: 160 },
+        light: { x: 162, y: 526, w: 186, h: 42 },
+        mute: { x: 162, y: 578, w: 186, h: 42 }
       };
     }
     return {
-      button: { x: 310, y: 26, w: 44, h: 44 },
-      menu: { x: 174, y: 82, w: 198, h: 154 },
-      light: { x: 188, y: 122, w: 170, h: 42 },
-      mute: { x: 188, y: 172, w: 170, h: 42 }
+      button: { x: 306, y: 26, w: 46, h: 46 },
+      menu: { x: 150, y: 82, w: 222, h: 184 },
+      light: { x: 166, y: 132, w: 190, h: 44 },
+      mute: { x: 166, y: 186, w: 190, h: 44 }
     };
   }
 
@@ -712,15 +745,17 @@
     paused = false;
     initBoard();
     settingsOpen = false;
+    settingsPauseStartedAt = 0;
+    settingsPausedTotal = 0;
     gameState = State.PLAY;
     startBgm();
   }
 
   function endGame(reason = 'overflow') {
     if (gameState === State.OVER) return;
+    closeSettingsMenu();
     gameOverReason = reason;
     gameState = State.OVER;
-    settingsOpen = false;
     drag = null;
     pointer = null;
     selectedHint = null;
@@ -966,10 +1001,10 @@
 
   function particleKeepRate(kind) {
     if (lowPowerMode) {
-      if (kind === 'flame') return fever > 0 ? .24 : .34;
-      if (kind === 'spark') return fever > 0 ? .38 : .52;
-      if (kind === 'dust') return .55;
-      return .62;
+      if (kind === 'flame') return fever > 0 ? .10 : .18;
+      if (kind === 'spark') return fever > 0 ? .22 : .34;
+      if (kind === 'dust') return .38;
+      return .42;
     }
     if (fever <= 0) return 1;
     if (kind === 'flame') return FEVER_FLAME_KEEP_RATE;
@@ -1003,11 +1038,11 @@
     n = Math.min(n, Math.max(0, currentMaxParticles() - particles.length));
     if (!n) return;
 
-    const powerScale = lowPowerMode ? .86 : 1;
-    const maxLife = lowPowerMode ? .50 : .68;
-    const minLife = lowPowerMode ? .20 : .28;
-    const maxSize = lowPowerMode ? 4.0 : 5;
-    const minSize = lowPowerMode ? 1.6 : 2;
+    const powerScale = lowPowerMode ? .78 : 1;
+    const maxLife = lowPowerMode ? .38 : .68;
+    const minLife = lowPowerMode ? .16 : .28;
+    const maxSize = lowPowerMode ? 3.2 : 5;
+    const minSize = lowPowerMode ? 1.3 : 2;
     for (let i = 0; i < n; i++) {
       const a = rand(Math.PI * 2, 0);
       const s = rand(power * powerScale, power * powerScale * .18);
@@ -1024,13 +1059,13 @@
   }
 
   function addShockwave(x, y, radius = 80, color = 'rgba(255,255,255,.75)', life = .4) {
-    const maxWaves = lowPowerMode ? 6 : 12;
+    const maxWaves = lowPowerMode ? 3 : 12;
     while (shockwaves.length >= maxWaves) shockwaves.shift();
-    shockwaves.push({ x, y, radius: lowPowerMode ? radius * .88 : radius, color, life: lowPowerMode ? life * .82 : life, maxLife: lowPowerMode ? life * .82 : life });
+    shockwaves.push({ x, y, radius: lowPowerMode ? radius * .72 : radius, color, life: lowPowerMode ? life * .62 : life, maxLife: lowPowerMode ? life * .62 : life });
   }
 
   function addSparkLine(x1, y1, x2, y2, color = '#fff58c', life = .22) {
-    const maxLines = lowPowerMode ? 18 : 36;
+    const maxLines = lowPowerMode ? 8 : 36;
     while (sparkLines.length >= maxLines) sparkLines.shift();
     sparkLines.push({ x1, y1, x2, y2, color, life: lowPowerMode ? life * .72 : life, maxLife: lowPowerMode ? life * .72 : life });
   }
@@ -1135,14 +1170,13 @@
 
   function handleSettingsPointer(p) {
     if (gameState !== State.TITLE && gameState !== State.PLAY) {
-      settingsOpen = false;
+      closeSettingsMenu();
       return false;
     }
     const ui = settingsLayout();
     const b = ui.button;
     if (pointInRect(p.x, p.y, b.x, b.y, b.w, b.h)) {
-      settingsOpen = !settingsOpen;
-      if (settingsOpen && gameState === State.TITLE) setTitleRankingOpen(false);
+      toggleSettingsMenu();
       return true;
     }
     if (!settingsOpen) return false;
@@ -1158,7 +1192,7 @@
       return true;
     }
     if (pointInRect(p.x, p.y, m.x, m.y, m.w, m.h)) return true;
-    settingsOpen = false;
+    closeSettingsMenu();
     return true;
   }
 
@@ -2356,7 +2390,8 @@
   }
 
   function elapsedSeconds() {
-    return Math.max(0, (performance.now() - gameStartedAt) / 1000);
+    const activeSettingsPause = isSettingsGameplayPause() && settingsPauseStartedAt ? performance.now() - settingsPauseStartedAt : 0;
+    return Math.max(0, (performance.now() - gameStartedAt - settingsPausedTotal - activeSettingsPause) / 1000);
   }
 
   function update(dt) {
@@ -2374,7 +2409,7 @@
     updateSparkLines(dt);
     updateLaunchers(dt);
 
-    if (gameState !== State.PLAY || paused) {
+    if (gameState !== State.PLAY || paused || isSettingsGameplayPause()) {
       if (gameState === State.OVER && gameOverTimer > 0) {
         gameOverTimer = Math.max(0, gameOverTimer - dt);
         if (gameOverTimer <= 0) {
@@ -2547,6 +2582,8 @@
 
     ctx.restore();
 
+    if (isSettingsGameplayPause()) drawSettingsPauseShade();
+
     if (flash > 0) {
       ctx.save();
       ctx.globalAlpha = Math.min(.45, flash);
@@ -2592,15 +2629,17 @@
     }
     ctx.restore();
 
-    const sunX = 328, sunY = 82;
-    const rg = ctx.createRadialGradient(sunX, sunY, 8, sunX, sunY, 160 + (fever > 0 ? 80 : 0));
-    rg.addColorStop(0, 'rgba(255,238,105,.68)');
-    rg.addColorStop(.35, 'rgba(255,170,60,.21)');
-    rg.addColorStop(1, 'rgba(255,170,60,0)');
-    ctx.fillStyle = rg;
-    ctx.beginPath();
-    ctx.arc(sunX, sunY, 220, 0, Math.PI * 2);
-    ctx.fill();
+    if (!lowPowerMode) {
+      const sunX = 328, sunY = 82;
+      const rg = ctx.createRadialGradient(sunX, sunY, 8, sunX, sunY, 160 + (fever > 0 ? 80 : 0));
+      rg.addColorStop(0, 'rgba(255,238,105,.68)');
+      rg.addColorStop(.35, 'rgba(255,170,60,.21)');
+      rg.addColorStop(1, 'rgba(255,170,60,0)');
+      ctx.fillStyle = rg;
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, 220, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   function drawHeader() {
@@ -2623,10 +2662,9 @@
     ctx.fillStyle = '#fff'; ctx.font = '900 25px system-ui, sans-serif';
     ctx.fillText(String(Math.floor(elapsedSeconds())), 261, 68);
 
-    if (gameState === State.PLAY) drawSettingsButtonAndMenu();
-
     drawComboPanel();
     drawSunGauge();
+    if (gameState === State.PLAY) drawSettingsButtonAndMenu();
     ctx.restore();
   }
 
@@ -2894,14 +2932,16 @@
 
   function drawLaunchers() {
     ctx.save();
-    ctx.globalCompositeOperation = lowPowerMode ? 'source-over' : 'lighter';
-    for (const l of launchers) {
-      for (const it of l.tiles) {
-        const grad = ctx.createLinearGradient(it.x, it.y + 72, it.x, it.y - 10);
-        grad.addColorStop(0, l.fever ? 'rgba(255,246,120,.74)' : hexToRgba(l.color, .58));
-        grad.addColorStop(1, 'rgba(255,255,255,0)');
-        ctx.strokeStyle = grad; ctx.lineWidth = lowPowerMode ? 9 : 14; ctx.lineCap = 'round';
-        ctx.beginPath(); ctx.moveTo(it.x + TILE / 2, it.y + TILE + 54); ctx.lineTo(it.x + TILE / 2 + Math.sin(l.age * 14 + it.tile.id) * 7, it.y + 12); ctx.stroke();
+    if (!lowPowerMode) {
+      ctx.globalCompositeOperation = 'lighter';
+      for (const l of launchers) {
+        for (const it of l.tiles) {
+          const grad = ctx.createLinearGradient(it.x, it.y + 72, it.x, it.y - 10);
+          grad.addColorStop(0, l.fever ? 'rgba(255,246,120,.74)' : hexToRgba(l.color, .58));
+          grad.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.strokeStyle = grad; ctx.lineWidth = 14; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(it.x + TILE / 2, it.y + TILE + 54); ctx.lineTo(it.x + TILE / 2 + Math.sin(l.age * 14 + it.tile.id) * 7, it.y + 12); ctx.stroke();
+        }
       }
     }
     ctx.globalCompositeOperation = 'source-over';
@@ -2946,7 +2986,7 @@
       const tnow = performance.now() * .001;
       const pulse = Math.sin(tnow * 7 + t.id) * .5 + .5;
       ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalCompositeOperation = lowPowerMode ? 'source-over' : 'lighter';
       ctx.globalAlpha = .45 + pulse * .30;
       ctx.strokeStyle = '#fff58c';
       ctx.lineWidth = 2.2 + pulse * 1.2;
@@ -3081,6 +3121,21 @@
   function drawFooter() {}
 
 
+  function drawSettingsPauseShade() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,.18)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = '900 16px system-ui, sans-serif';
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = 'rgba(3,6,18,.88)';
+    ctx.fillStyle = '#fff58c';
+    ctx.strokeText(settingsPauseOverlayText(), W / 2, 304);
+    ctx.fillText(settingsPauseOverlayText(), W / 2, 304);
+    ctx.restore();
+  }
+
   function drawCrashCountdownOverlay() {
     if (gameState !== State.PLAY || !crashActive) return;
     const count = crashDisplayCount();
@@ -3209,9 +3264,9 @@
     if (settingsOpen) {
       const m = ui.menu;
       roundedRect(m.x, m.y, m.w, m.h, 20);
-      ctx.fillStyle = 'rgba(7,15,36,.96)';
+      ctx.fillStyle = 'rgba(5,10,26,.995)';
       ctx.fill();
-      ctx.strokeStyle = 'rgba(185,244,255,.46)';
+      ctx.strokeStyle = 'rgba(185,244,255,.75)';
       ctx.lineWidth = 1.7;
       ctx.stroke();
       ctx.textAlign = 'left';
@@ -3223,7 +3278,13 @@
       ctx.font = '800 9.5px system-ui, sans-serif';
       ctx.textAlign = 'right';
       ctx.fillText(`DPR ${DPR.toFixed(1)}`, m.x + m.w - 14, m.y + 24);
-      drawTogglePill(ui.light.x, ui.light.y, lowPowerMode, '軽量モード', 'DPR1.5 / 演出控えめ');
+      if (gameState === State.PLAY) {
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#fff58c';
+        ctx.font = '900 10.5px system-ui, sans-serif';
+        ctx.fillText(settingsPauseOverlayText(), m.x + 16, m.y + 44);
+      }
+      drawTogglePill(ui.light.x, ui.light.y, lowPowerMode, '軽量モード', 'DPR1.5 / SVGなし');
       drawTogglePill(ui.mute.x, ui.mute.y, muted, '消音', muted ? '音を鳴らさない' : '音を鳴らす');
     }
     ctx.restore();
@@ -3592,6 +3653,10 @@
   }
 
   function drawSunnyBadge(x, y, r, opts = {}) {
+    if (lowPowerSunnySvgOff()) {
+      drawSunFallback(x, y, r);
+      return;
+    }
     const damage = !!opts.damage;
     const feverMode = !!opts.feverMode;
     const scale = opts.scale || 1;
