@@ -452,7 +452,7 @@ function getSelectedAgeGroup(){var el=document.querySelector('input[name="rankin
 function restoreAgeGroupSelection(){var saved=normalizeAgeGroup(localStorage.getItem('sunnyAgeGroup')||'elementary');var list=document.querySelectorAll('input[name="rankingAgeGroup"]');list.forEach(function(el){el.checked=el.value===saved;});}
 function collectBuildData(){
   var fusions=[],weapons=[],passives=[],breaks=[];
-  fusionOrder.forEach(function(id){var lv=getFusionLevel(id);if(lv>0){var fd=getFusionDisplayDef(id);fusions.push({id:id,name:fd.name,level:lv,icon:fd.icon,synergyId:fd.synergyId||''});}});
+  fusionOrder.forEach(function(id){var lv=getFusionLevel(id);if(lv>0){var fd=fusionDefs[id]||{icon:'✨',name:id};fusions.push({id:id,name:fd.name,level:lv,icon:fd.icon,synergyId:getActiveSynergyForFusion(id)||''});}});
   weaponOrder.forEach(function(id){var lv=getWeaponLevel(id);if(lv>0)weapons.push({id:id,name:weaponDefs[id].name,level:lv,icon:weaponDefs[id].icon});});
   passiveOrder.forEach(function(id){var lv=getPassiveLevel(id);if(lv>0)passives.push({id:id,name:passiveDefs[id].name,level:lv,icon:passiveDefs[id].icon});});
   breakOrder.forEach(function(id){var lv=getBreakLevel(id);if(lv>0)breaks.push({id:id,name:breakDefs[id].name,level:lv,icon:breakDefs[id].icon});});
@@ -512,7 +512,7 @@ function makeResultPayload(name){
     ageGroupLabel:rankGroupLabel(getSelectedAgeGroup()),
     titles:earnedTitles(),
     synergies:plainSynergyList(),
-    synergyText:'',
+    synergyText:plainSynergyText(),
     build:plainBuildSummary(),
     buildFull:plainBuildFull(),
     fusionText:parts.fusionText,
@@ -536,7 +536,7 @@ function makeResultPayload(name){
     moderationStatus:'public',
     resultTitle:(document.getElementById('resultTitle')&&document.getElementById('resultTitle').textContent)||'',
     clientCreatedAt:new Date().toISOString(),
-    gameVersion:'v53-script-error-filter-runtimefix'
+    gameVersion:'v54-fairybit-guruguru-ranking-synergy'
   };
 }
 function validatePayload(p){
@@ -556,18 +556,30 @@ function formatRankDate(data){try{var v=data.createdAt;if(v&&typeof v.toDate==='
 function renderRankError(id){var el=document.getElementById(id);if(el){el.className='rankEmpty';el.textContent='ランキングを読めませんでした';}}
 function renderRankPrompt(){['menuScoreRanks','menuTimeRanks','resultScoreRanks','resultTimeRanks'].forEach(function(id){var el=document.getElementById(id);if(el&&!rankingsLoaded){el.className='rankEmpty';el.textContent=(id.indexOf('menu')===0?'ランキングを表示で読み込み':'ランキングを表示/更新で読み込み');}});}
 function listFromData(data,key){var arr=Array.isArray(data[key])?data[key]:[];return arr.map(function(x){return escapeHtml((x.icon||'')+' '+(x.name||'')+' '+(key==='breaks'?'+':'Lv')+(x.level||1));}).join(' / ');}
+function fusionListFromData(data){
+  data=data||{};
+  if(Array.isArray(data.fusions)&&data.fusions.length){return data.fusions.map(function(x){var fd=fusionDefs[(x&&x.id)||'']||x||{};return escapeHtml((fd.icon||'')+' '+(fd.name||'')+' Lv'+((x&&x.level)||1));}).join(' / ');}
+  return data.fusionText?escapeHtml(data.fusionText):'';
+}
+function synergyTextFromData(data){
+  data=data||{};
+  if(data.synergyText)return escapeHtml(data.synergyText);
+  if(Array.isArray(data.synergies)&&data.synergies.length){return data.synergies.map(function(x){return escapeHtml(((x&&x.icon)||'')+' '+((x&&x.name)||''));}).join(' / ');}
+  if(Array.isArray(data.fusions)){var out=[];data.fusions.forEach(function(x){var sid=x&&x.synergyId,sd=sid&&getSynergyDef(sid);if(sd)out.push(escapeHtml((sd.icon||'')+' '+sd.name));});return out.join(' / ');}
+  return '';
+}
 function rankDetailHtml(data){
   data=data||{};
-  // 管理ツールで編集したテキストを優先表示する。
-  // 旧データの fusions/weapons/passives/breaks 配列が残っていても、編集内容がランキング詳細へ反映されるようにする。
-  var attack=[data.fusionText,data.weaponText].filter(Boolean).map(escapeHtml).join(' / ');
-  if(!attack){attack=[listFromData(data,'fusions'),listFromData(data,'weapons')].filter(Boolean).join(' / ');}
+  // ランキングの武器欄はシナジー後の名前ではなく、元の合成武器名・アイコンで表示する。
+  var attack=[fusionListFromData(data),(data.weaponText?escapeHtml(data.weaponText):listFromData(data,'weapons'))].filter(Boolean).join(' / ');
+  if(!attack){attack=escapeHtml(data.build||'');}
   var passive=data.passiveText?escapeHtml(data.passiveText):listFromData(data,'passives');
   if(!passive)passive=escapeHtml(extractBuildLine(data.buildFull,'補助'));
   if(passive==='なし')passive='';
   var br=data.breakText?escapeHtml(data.breakText):listFromData(data,'breaks');
   if(!br)br=escapeHtml(extractBuildLine(data.buildFull,'限界突破'));
   var build=escapeHtml(data.buildFull||data.build||attack||'記録なし').replace(/\n/g,'<br>');
+  var synergy=synergyTextFromData(data);
   var titles=Array.isArray(data.titles)?data.titles.join(' / '):'';
   return '<div class="rankDetail"><b>詳細</b><br>'+
     'スコア：'+escapeHtml(Math.floor(data.score||0))+'点 / 生存時間：'+escapeHtml(formatRankTime(data.surviveTime||0))+'<br>'+
@@ -575,6 +587,7 @@ function rankDetailHtml(data){
     '区分：'+escapeHtml(rankGroupLabel(data.ageGroup||'all'))+' / シーズン：'+escapeHtml(data.seasonLabel||data.season||'記録なし')+'<br>'+
     (titles?'称号：'+escapeHtml(titles)+'<br>':'')+
     '<b>使用武器</b><br>'+(attack||build||'記録なし')+'<br>'+
+    '<b>シナジー効果</b><br>'+(synergy||'なし')+'<br>'+
     '<b>補助</b><br>'+(passive||'なし')+'<br>'+
     (br?'<b>限界突破</b><br>'+br+'<br>':'')+
     '<span class="muted">登録日時：'+escapeHtml(formatRankDate(data))+'</span></div>';
@@ -930,31 +943,31 @@ function hasFusionMax(id){return getFusionLevel(id)>=3;}
 function hasPassiveMax(id){return getPassiveLevel(id)>=5;}
 function activeSynergy(id){return !!activeSynergies[id];}
 var SYNERGY_DEFS={
-  sunnyDrain:{icon:'🟣',name:'サニードレイン',line:'全敵からちょっとずつ吸います',condition:function(){return hasFusionMax('bloodFang')&&hasPassiveMax('heart')&&hasPassiveMax('goggles');}},
+  sunnyDrain:{icon:'🟣',name:'ヴァンパイア',line:'全敵からちょっとずつ吸います',condition:function(){return hasFusionMax('bloodFang')&&hasPassiveMax('heart')&&hasPassiveMax('goggles');}},
   negotiator:{icon:'🗣️',name:'ネゴシエーター',line:'大きい相手とも話が通じる',condition:function(){return hasFusionMax('charmPulse')&&hasPassiveMax('area')&&hasPassiveMax('goggles');}},
   paralyze360:{icon:'🧨',name:'ビリビリクラッシュメン',line:'全方位しびれ注意',condition:function(){return hasFusionMax('paralyzeGun')&&hasPassiveMax('haste')&&hasPassiveMax('goggles');}},
-  dronePilot:{icon:'🕹️',name:'ドローンパイロット',line:'ドローン操作、だいたい成功',condition:function(){return hasFusionMax('droneCarrier')&&hasPassiveMax('magnet')&&hasPassiveMax('goggles');}},
+  dronePilot:{icon:'🕹️',name:'ホークアイ',line:'ドローン操作、だいたい成功',condition:function(){return hasFusionMax('droneCarrier')&&hasPassiveMax('magnet')&&hasPassiveMax('goggles');}},
   fireSpread:{icon:'🏮',name:'火の用心',line:'燃え広がりにご注意ください',condition:function(){return hasFusionMax('napalmLaser')&&hasPassiveMax('area')&&hasPassiveMax('power');}},
-  bunbunMaru:{icon:'🪃',name:'ぶんぶん丸',line:'雑魚を大きく弾く鎖鉄球が増える',condition:function(){return hasFusionMax('chainFlail')&&hasPassiveMax('haste')&&hasPassiveMax('speed');}},
+  bunbunMaru:{icon:'🪃',name:'モーニングスター',line:'雑魚を大きく弾く鎖鉄球が増える',condition:function(){return hasFusionMax('chainFlail')&&hasPassiveMax('haste')&&hasPassiveMax('speed');}},
   senpuShuriken:{icon:'🥷',name:'旋風手裏剣',line:'刃数が増え、ボスを弾かず高速で削る',condition:function(){return hasFusionMax('laserFan')&&hasPassiveMax('haste')&&hasPassiveMax('speed');}},
   guruguruDefense:{icon:'🛡️',name:'ぐるぐる防衛線',line:'雑魚を押し返す防衛リングが広がる',condition:function(){return hasFusionMax('cycloneCutter')&&hasPassiveMax('heart')&&hasPassiveMax('speed');}},
   fallingCaution:{icon:'💥',name:'爆発注意',line:'メテオ着弾後に爆発と衝撃波が連鎖する',condition:function(){return hasFusionMax('meteorMissile')&&hasPassiveMax('power')&&hasPassiveMax('heart');}},
-  ranHansha:{icon:'🪞',name:'乱反射',line:'レーザーがビカビカ跳ね回る',condition:function(){return hasFusionMax('reflectLaser')&&hasPassiveMax('haste')&&hasPassiveMax('speed');}},
-  sunglasses:{icon:'🕶️',name:'サングラス',line:'閃光が長く残る',condition:function(){return hasFusionMax('flashLaser')&&hasPassiveMax('heart')&&hasPassiveMax('goggles');}},
+  ranHansha:{icon:'🪞',name:'リフレクター',line:'レーザーがビカビカ跳ね回る',condition:function(){return hasFusionMax('reflectLaser')&&hasPassiveMax('haste')&&hasPassiveMax('speed');}},
+  sunglasses:{icon:'🕶️',name:'ゴールデンフラッシュ',line:'閃光が長く残る',condition:function(){return hasFusionMax('flashLaser')&&hasPassiveMax('heart')&&hasPassiveMax('goggles');}},
   hornet:{icon:'🐝',name:'ホーネット',line:'針の貫通力が大きく上がる',condition:function(){return hasFusionMax('needleGun')&&hasPassiveMax('haste')&&hasPassiveMax('power');}},
   fireworkFestival:{icon:'🎇',name:'花火大会',line:'派手に打ち上がります',condition:function(){return hasFusionMax('fireworks')&&hasPassiveMax('haste')&&hasPassiveMax('heart');}},
   salamander:{icon:'🦎',name:'サラマンダー',line:'火のしっぽで追いかける',condition:function(){return hasFusionMax('allMissile')&&hasPassiveMax('speed')&&hasPassiveMax('goggles');}},
-  gachigachiIce:{icon:'🧱',name:'ガチガチ氷',line:'防衛リングがさらに硬くなる',condition:function(){return hasFusionMax('hardIce')&&hasPassiveMax('heart')&&hasPassiveMax('power');}},
+  gachigachiIce:{icon:'🧱',name:'グレイシャー',line:'防衛リングがさらに硬くなる',condition:function(){return hasFusionMax('hardIce')&&hasPassiveMax('heart')&&hasPassiveMax('power');}},
   mokumokuSmoke:{icon:'🌫️',name:'もくもく煙',line:'煙が残って足止めします',condition:function(){return hasFusionMax('steamExplosion')&&hasPassiveMax('heart')&&hasPassiveMax('area');}},
   explosiveNeedle:{icon:'🎊',name:'爆発ニードル',line:'針の爆発がさらに広がる',condition:function(){return hasFusionMax('burstNeedle')&&hasPassiveMax('haste')&&hasPassiveMax('area');}},
   laserRain:{icon:'☔',name:'レーザーレイン',line:'レーザーの雨量が増えます',condition:function(){return hasFusionMax('laserShower')&&hasPassiveMax('haste')&&hasPassiveMax('goggles');}},
   focusedShot:{icon:'🧿',name:'一点集中',line:'強く太い一本に集中',condition:function(){return hasFusionMax('railgun')&&hasPassiveMax('power')&&hasPassiveMax('goggles');}},
-  thunderForecast:{icon:'🌩️',name:'雷予報',line:'落雷間隔が短くなるでしょう',condition:function(){return hasFusionMax('lightningRod')&&hasPassiveMax('haste')&&hasPassiveMax('power');}},
-  coolDelivery:{icon:'📦',name:'クール宅急便',line:'氷床をしっかりお届け',condition:function(){return hasFusionMax('frozenMissile')&&hasPassiveMax('speed')&&hasPassiveMax('area');}},
-  fairyMashimashi:{icon:'🪽',name:'妖精ましまし',line:'妖精さん多忙につき高速化',condition:function(){return hasFusionMax('fairySummon')&&hasPassiveMax('heart')&&hasPassiveMax('speed');}},
+  thunderForecast:{icon:'🌩️',name:'ライトニングボルト',line:'落雷間隔が短くなるでしょう',condition:function(){return hasFusionMax('lightningRod')&&hasPassiveMax('haste')&&hasPassiveMax('power');}},
+  coolDelivery:{icon:'📦',name:'フロストロード',line:'氷床をしっかりお届け',condition:function(){return hasFusionMax('frozenMissile')&&hasPassiveMax('speed')&&hasPassiveMax('area');}},
+  fairyMashimashi:{icon:'🪽',name:'ピクシーダスト',line:'妖精はそのまま、外側に光ビットを追加',condition:function(){return hasFusionMax('fairySummon')&&hasPassiveMax('heart')&&hasPassiveMax('speed');}},
   pinball:{icon:'🎱',name:'ピンボール',line:'跳ねる弾が増えて止まらない',condition:function(){return hasFusionMax('ricochetRelease')&&hasPassiveMax('speed')&&hasPassiveMax('haste');}},
-  hotDrop:{icon:'🪂',name:'あつあつ落下物',line:'落ちたあとも熱い',condition:function(){return hasFusionMax('ironPress')&&hasPassiveMax('heart')&&hasPassiveMax('power');}},
-  fireDaruma:{icon:'🎴',name:'火だるま',line:'回転する火をまとって焼きます',condition:function(){return hasFusionMax('burningGun')&&hasPassiveMax('heart')&&hasPassiveMax('area');}},
+  hotDrop:{icon:'🪂',name:'ヒートプレス',line:'落ちたあとも熱い',condition:function(){return hasFusionMax('ironPress')&&hasPassiveMax('heart')&&hasPassiveMax('power');}},
+  fireDaruma:{icon:'🎴',name:'イフリート',line:'回転する火をまとって焼きます',condition:function(){return hasFusionMax('burningGun')&&hasPassiveMax('heart')&&hasPassiveMax('area');}},
   molePrisoner:{icon:'🕳️',name:'モールタウンプリズナー',line:'ドリルが追って貫いて包囲する',condition:function(){return hasFusionMax('drillMissile')&&hasPassiveMax('power')&&hasPassiveMax('area');}},
   stageLight:{icon:'🎚️',name:'ステージライト',line:'光の太さと長さが暴れます',condition:function(){return hasFusionMax('shortLaser')&&hasPassiveMax('speed')&&hasPassiveMax('area');}}
 };
@@ -1091,7 +1104,7 @@ function updateSunnyDrainSynergy(dt){
   if(hits>0&&player){
     heal=Math.min(4,Math.max(1,Math.floor(hits/7)+Math.floor(getPassiveLevel('heart')/4)));
     player.hp=Math.min(player.maxHp,player.hp+heal);
-    if(Math.random()<.85)showMessage('サニードレイン +'+heal,520);
+    if(Math.random()<.85)showMessage('ヴァンパイア +'+heal,520);
     bigBurst(player.x,player.y,'#ff5c8a',14,.42);
   }
 }
@@ -1149,17 +1162,17 @@ function earnedTitles(){
   if(hasFusion('laserFan'))t.push('レーザー扇風機');
   if(synergyHistory.length>=1)t.push('シナジー発見者');
   if(synergyHistory.length>=3)t.push('組み合わせの妙');
-  if(activeSynergy('sunnyDrain'))t.push('サニードレイン済み');
+  if(activeSynergy('sunnyDrain'))t.push('ヴァンパイア発動');
   if(activeSynergy('negotiator'))t.push('交渉係');
   if(activeSynergy('paralyze360'))t.push('ビリビリクラッシュメン');
   if(activeSynergy('fireSpread'))t.push('火の用心係');
   if(activeSynergy('fallingCaution'))t.push('爆発注意を見た');
-  if(activeSynergy('ranHansha'))t.push('乱反射で目がチカチカ');
-  if(activeSynergy('sunglasses'))t.push('サングラス持参');
+  if(activeSynergy('ranHansha'))t.push('リフレクター発動');
+  if(activeSynergy('sunglasses'))t.push('ゴールデンフラッシュ発動');
   if(activeSynergy('hornet'))t.push('ホーネット注意報');
   if(activeSynergy('fireworkFestival'))t.push('花火大会実行委員');
   if(activeSynergy('salamander'))t.push('サラマンダー係');
-  if(activeSynergy('gachigachiIce'))t.push('ガチガチ氷担当');
+  if(activeSynergy('gachigachiIce'))t.push('グレイシャー担当');
   if(activeSynergy('pinball'))t.push('ピンボール部');
   if(endlessMode&&gameTime>=480)t.push('サニーさんの守護者');
   if(endlessMode&&gameTime>=600)t.push('まだやってるの？');
@@ -1457,7 +1470,32 @@ function damageEnemy(e,amount,src){
   if(src.flash)pushCap(lightnings,{x:e.x,y:e.y,life:.14,max:.14},CONFIG.lightningCap);
   return e.hp<=0;
 }
-function addBullet(o){if(!o)return;if(o.fusion){o.damage*=damageMult(true)*fusionPowerMult(o.fusion);o.r=(o.r||3)*(1+getBreakLevel('area')*.015);if(o.explode)o.explode*=areaMult();var sv=getSynergyVisual(o.fusion);if(sv){o.synergyVisual=sv.id;o.synergyIcon=sv.icon;o.synergyName=sv.name;o.synergyColor=sv.color;o.visualScale=sv.scale;if(!o.baseColor)o.baseColor=o.color;if(o.color)o.color=sv.color||o.color;if(o.length)o.length*=Math.min(1.22,sv.scale);if(o.thickness)o.thickness*=Math.min(1.18,sv.scale);}}if(bullets.length>=CONFIG.bulletCap)bullets.splice(0,Math.max(1,bullets.length-CONFIG.bulletCap+1));bullets.push(o);}
+function bulletPriority(b){
+  if(!b)return 1;
+  if(b.lowPriority||b.priority==='low')return 0;
+  if(b.highPriority||b.priority==='high')return 2;
+  // 反射レーザー・レールガン・メテオなど、見た目にも性能にも重要な弾は押し出されにくくする。
+  if(b.fusion==='reflectLaser'||b.fusion==='railgun'||b.fusion==='meteorMissile'||b.type==='railgun'||b.meteor)return 2;
+  return 1;
+}
+function trimBulletsForIncoming(incoming){
+  var cap=CONFIG.bulletCap;
+  if(bullets.length<cap)return true;
+  var incomingPriority=bulletPriority(incoming);
+  while(bullets.length>=cap){
+    var idx=-1,bestPriority=99;
+    for(var i=0;i<bullets.length;i++){
+      var p=bulletPriority(bullets[i]);
+      if(p<bestPriority){bestPriority=p;idx=i;if(p===0)break;}
+    }
+    if(idx<0)return false;
+    // 低優先弾は、通常弾や重要弾を押し出さない。低優先枠が空く時だけ追加する。
+    if(incomingPriority<bestPriority)return false;
+    bullets.splice(idx,1);
+  }
+  return true;
+}
+function addBullet(o){if(!o)return false;if(o.fusion){o.damage*=damageMult(true)*fusionPowerMult(o.fusion);o.r=(o.r||3)*(1+getBreakLevel('area')*.015);if(o.explode)o.explode*=areaMult();var sv=getSynergyVisual(o.fusion);if(sv){o.synergyVisual=sv.id;o.synergyIcon=sv.icon;o.synergyName=sv.name;o.synergyColor=sv.color;o.visualScale=sv.scale;if(!o.baseColor)o.baseColor=o.color;if(o.color)o.color=sv.color||o.color;if(o.length)o.length*=Math.min(1.22,sv.scale);if(o.thickness)o.thickness*=Math.min(1.18,sv.scale);}}if(!trimBulletsForIncoming(o))return false;bullets.push(o);return true;}
 function rocketLaunchBurst(x,y,angle,lv){var back=angle+Math.PI;if(particles.length<CONFIG.particleCap-10){for(var i=0;i<3+lv;i++){var a=back+rand(-.28,.28),sp=rand(60,160);pushCap(particles,{x:x+Math.cos(back)*8,y:y+Math.sin(back)*8,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:rand(.18,.35),max:.4,color:Math.random()<.45?'#ffb06a':'#d8d8d8',r:rand(1.6,3.3)},CONFIG.particleCap);}}addTrail(x+Math.cos(back)*12,y+Math.sin(back)*12,'#d8d8d8',7+lv, .34,'smoke');}
 function explodeAt(x,y,r,damage,color,src){
   src=src||{weapon:'explosion'};
@@ -1483,7 +1521,7 @@ function spawnFirework(x,y,damage,lv){
   var count=10+lv*5+(fest?8+lv*4:0);
   for(var i=0;i<count;i++){
     var a=Math.PI*2*i/count+rand(-.055,.055),sp=360+lv*44+(fest?55:0);
-    addBullet({x:x,y:y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:4.1+lv*.38+(fest?.25:0),life:.84+lv*.10+(fest?.20:0),damage:damage*(fest?.46:.52),color:fest?(Math.random()<.5?'#ff77aa':'#ffdf6b'):'#ff77aa',pierce:0,type:'normal',weapon:'fireworksShard',fusion:'fireworks',knock:7+lv*2+(fest?5:0)});
+    addBullet({x:x,y:y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:4.1+lv*.38+(fest?.25:0),life:.84+lv*.10+(fest?.20:0),damage:damage*(fest?.46:.52),color:fest?(Math.random()<.5?'#ff77aa':'#ffdf6b'):'#ff77aa',pierce:0,type:'normal',weapon:'fireworksShard',fusion:'fireworks',knock:7+lv*2+(fest?5:0),lowPriority:fest,fireworkShard:true});
   }
   if(fest){
     var mini=5+lv*2;
@@ -1590,7 +1628,7 @@ function shootFireworks(lv){
   var magnet=getPassiveLevel('magnet'),speedLv=getPassiveLevel('speed'),fest=activeSynergy('fireworkFestival'),count=2+lv+(magnet>=5?1:0)+(fest?1:0);
   for(var i=0;i<count;i++){
     var a=Math.atan2(target.y-player.y,target.x-player.x)+(i-(count-1)/2)*.22,sp=470+lv*44+speedLv*5+magnet*4+(fest?25:0),sx=player.x+Math.cos(a)*18,sy=player.y+Math.sin(a)*18;
-    addBullet({x:sx,y:sy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:8.3+lv*.68+(fest?.55:0),life:2.72+speedLv*.02+magnet*.015+(fest?.15:0),damage:(42+lv*14)*(fest?1.08:1),color:fest?'#ffdf6b':'#ff77aa',pierce:0,type:'missile',weapon:'missile',fusion:'fireworks',homing:true,homingPower:.034+magnet*.0014+speedLv*.0010+(fest?.004:0),baseSpeed:sp,explode:54+lv*10.8+(fest?12:0),firework:true,fireworkLv:lv+(fest?1:0),fireworkKnock:22+lv*6+(fest?8:0)});
+    addBullet({x:sx,y:sy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:8.3+lv*.68+(fest?.55:0),life:2.72+speedLv*.02+magnet*.015+(fest?.15:0),damage:(42+lv*14)*(fest?1.08:1),color:fest?'#ffdf6b':'#ff77aa',pierce:0,type:'missile',weapon:'missile',fusion:'fireworks',homing:true,homingPower:.034+magnet*.0014+speedLv*.0010+(fest?.004:0),baseSpeed:sp,explode:54+lv*10.8+(fest?12:0),firework:true,fireworkLv:lv+(fest?1:0),fireworkKnock:22+lv*6+(fest?8:0),lowPriority:fest});
     rocketLaunchBurst(sx,sy,a,lv+1+(fest?1:0));
   }
 }
@@ -1650,8 +1688,16 @@ function spawnDrillRing(lv){
 }
 function shootDrillMissile(lv){var target=nearestEnemy();if(!target)return;var speedLv=getPassiveLevel('speed'),g=getPassiveLevel('goggles'),magnet=getPassiveLevel('magnet'),mole=activeSynergy('molePrisoner'),count=1+lv+(g>=5?1:0)+(mole?1:0);for(var i=0;i<count;i++){var a=Math.atan2(target.y-player.y,target.x-player.x)+(i-(count-1)/2)*(mole?.14:.18),sp=500+lv*44+speedLv*7+magnet*3+(mole?42:0),sx=player.x+Math.cos(a)*20,sy=player.y+Math.sin(a)*20;addBullet({x:sx,y:sy,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:7.1+lv*.44+(mole?.38:0),life:2.52+lv*.12+speedLv*.025+(mole?.20:0),damage:(38+lv*12.5)*(mole?1.12:1),color:mole?'#eaf4ff':'#d6e8ff',pierce:4+lv*2+Math.floor(g/2)+(mole?4+lv:0),type:'missile',weapon:'missile',fusion:'drillMissile',homing:true,homingPower:.033+speedLv*.0015+magnet*.0010+(mole?.010:0),baseSpeed:sp,explode:43+lv*9.2+(mole?8:0),drill:true,drillLv:lv+(mole?1:0)});rocketLaunchBurst(sx,sy,a,lv+1+(mole?1:0));}if(mole){var rt=synergyRuntime.molePrisoner||(synergyRuntime.molePrisoner={ring:0});rt.ring=(rt.ring||0)-fusionInterval('drillMissile',lv);if(rt.ring<=0){rt.ring=2.25-lv*.18;spawnDrillRing(lv);}}}
 function updateFairySummon(dt){
-  var lv=getFusionLevel('fairySummon');if(lv<=0||!player)return;var mash=activeSynergy('fairyMashimashi');fairyAngle+=dt*(7.0+lv*1.1)*(mash?1.36:1);var pairs=1+(lv>=2?1:0)+(lv>=3?1:0)+(mash?1:0),radius=54+lv*9+(mash?5:0),orbR=(13.0+lv*1.55+(mash?1.5:0))*areaMult();var mult=damageMult(true)*fusionPowerMult('fairySummon')*(mash?1.10:1);
-  for(var p=0;p<pairs;p++){for(var k=0;k<2;k++){var fire=k===0,ang=fairyAngle+(p*Math.PI*2/pairs)+(fire?0:Math.PI),ox=player.x+Math.cos(ang)*radius,oy=player.y+Math.sin(ang)*radius;addTrail(ox,oy,fire?'#ff7a35':'#9ee8ff',orbR,.18,fire?'flame':'ice');for(var i=enemies.length-1;i>=0;i--){var e=enemies[i];if(!e)continue;var timerKey=fire?'fairyFireHitTimer':'fairyIceHitTimer';if(e[timerKey]>0)continue;if(Math.hypot(e.x-ox,e.y-oy)<e.r+orbR){e[timerKey]=mash?.062:.095;if(damageEnemy(e,(fire?(58+lv*18):(42+lv*14))*mult,{weapon:fire?'fire':'ice',fusion:'fairySummon',slow:fire?0:1.65+lv*.28+(mash?.18:0),burn:fire&&mash?.9:0,burnDps:fire&&mash?4+lv:0}))killEnemyAt(i);}}}}
+  var lv=getFusionLevel('fairySummon');if(lv<=0||!player)return;var mash=activeSynergy('fairyMashimashi');fairyAngle+=dt*(7.0+lv*1.1);var pairs=1+(lv>=2?1:0)+(lv>=3?1:0),radius=54+lv*9,orbR=(13.0+lv*1.55)*areaMult();var mult=damageMult(true)*fusionPowerMult('fairySummon');
+  for(var p=0;p<pairs;p++){for(var k=0;k<2;k++){var fire=k===0,ang=fairyAngle+(p*Math.PI*2/pairs)+(fire?0:Math.PI),ox=player.x+Math.cos(ang)*radius,oy=player.y+Math.sin(ang)*radius;addTrail(ox,oy,fire?'#ff7a35':'#9ee8ff',orbR,.18,fire?'flame':'ice');for(var i=enemies.length-1;i>=0;i--){var e=enemies[i];if(!e)continue;var timerKey=fire?'fairyFireHitTimer':'fairyIceHitTimer';if(e[timerKey]>0)continue;if(Math.hypot(e.x-ox,e.y-oy)<e.r+orbR){e[timerKey]=.095;if(damageEnemy(e,(fire?(58+lv*18):(42+lv*14))*mult,{weapon:fire?'fire':'ice',fusion:'fairySummon',slow:fire?0:1.65+lv*.28}))killEnemyAt(i);}}}}
+  if(mash){
+    var bitCount=4,bitRadius=88+lv*10+getPassiveLevel('speed')*2,bitR=(7.2+lv*.72)*areaMult(),bitDmg=(18+lv*5.5)*mult,bitBase=-fairyAngle*.72+gameTime*1.4;
+    for(var b=0;b<bitCount;b++){
+      var ba=bitBase+Math.PI*2*b/bitCount,bx=player.x+Math.cos(ba)*bitRadius,by=player.y+Math.sin(ba)*bitRadius;
+      addTrail(bx,by,'#fff3a6',bitR*.95,.16,'dot');
+      for(var j=enemies.length-1;j>=0;j--){var be=enemies[j];if(!be||be.fairyBitHitTimer>0)continue;if(Math.hypot(be.x-bx,be.y-by)<be.r+bitR){be.fairyBitHitTimer=.105;if(damageEnemy(be,be.boss?bitDmg*.62:bitDmg,{weapon:'fairyBit',fusion:'fairySummon',slow:be.boss?.10:.46,flash:false}))killEnemyAt(j);}}
+    }
+  }
 }
 function shootShortLaser(lv){
   var haste=getPassiveLevel('haste'),g=getPassiveLevel('goggles'),stage=activeSynergy('stageLight'),count=5+lv*2+Math.floor(haste/2)+(g>=5?2:0)+(stage?3:0),range=275+lv*42+g*18+(stage?70:0);
@@ -1666,7 +1712,7 @@ function shootShortLaser(lv){
 }
 function shootRicochetRelease(lv){
   var speedLv=getPassiveLevel('speed'),area=getPassiveLevel('area'),haste=getPassiveLevel('haste'),pin=activeSynergy('pinball'),count=20+lv*10+speedLv*2+Math.floor(area/2)+Math.floor(haste/3)+(pin?10+lv*5:0),base=rand(0,Math.PI*2);
-  for(var i=0;i<count;i++){var a=base+Math.PI*2*i/count+rand(-.030,.030),sp=430+lv*42+speedLv*12+(pin?45:0);addBullet({x:player.x+Math.cos(a)*18,y:player.y+Math.sin(a)*18,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:3.8+lv*.20+area*.04+(pin?.22:0),life:3.12+lv*.32+speedLv*.04+(pin?.70:0),damage:(13.5+lv*4.3)*(pin?1.04:1),color:pin?'#ffdf6b':'#ffd166',pierce:0,type:'normal',weapon:'machinegun',fusion:'ricochetRelease',reflect:4+lv+Math.floor(area/2)+(pin?4:0),ricochet:true});}
+  for(var i=0;i<count;i++){var a=base+Math.PI*2*i/count+rand(-.030,.030),sp=430+lv*42+speedLv*12+(pin?45:0);addBullet({x:player.x+Math.cos(a)*18,y:player.y+Math.sin(a)*18,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:3.8+lv*.20+area*.04+(pin?.22:0),life:3.12+lv*.32+speedLv*.04+(pin?.70:0),damage:(13.5+lv*4.3)*(pin?1.04:1),color:pin?'#ffdf6b':'#ffd166',pierce:0,type:'normal',weapon:'machinegun',fusion:'ricochetRelease',reflect:4+lv+Math.floor(area/2)+(pin?4:0),ricochet:true,lowPriority:pin});}
   bigBurst(player.x,player.y,pin?'#ffdf6b':'#ffd166',22+lv*6+(pin?22:0),pin?.80:.58);
 }
 function shootIronPress(lv){
@@ -1711,11 +1757,20 @@ function updateNewContinuousFusions(dt){
   }
   lv=getFusionLevel('cycloneCutter');
   if(lv>0){
-    var cycloneSpin=baseSpin*(activeSynergy('guruguruDefense')?1.12:1);
+    var isDefense=activeSynergy('guruguruDefense');
+    var cycloneSpin=baseSpin*(isDefense?1.08:1);
     cycloneAngle+=dt*(5.4+lv*.82)*cycloneSpin;
-    // 狭い回転半径＋小さなボスノックバック。ボスの危険円より内側でしか押し返せない近距離防衛型。
-    var count=2+lv+(activeSynergy('guruguruDefense')?1:0),radius=38+lv*5+(activeSynergy('guruguruDefense')?5:0),orbR=(10.5+lv*1.15)*areaMult(),cdmg=(16.8+lv*4.85)*damageMult(true)*fusionPowerMult('cycloneCutter')*(activeSynergy('guruguruDefense')?1.02:1);
-    for(var c=0;c<count;c++){var ca=cycloneAngle+Math.PI*2*c/count,ox=player.x+Math.cos(ca)*radius,oy=player.y+Math.sin(ca)*radius;addTrail(ox,oy,'#d6f4ff',orbR,.14,'ice');for(var j=enemies.length-1;j>=0;j--){var ce=enemies[j];if(!ce||ce.cycloneHitTimer>0)continue;if(Math.hypot(ce.x-ox,ce.y-oy)<ce.r+orbR){ce.cycloneHitTimer=Math.max(.045,.135/cycloneSpin);var pa=Math.atan2(ce.y-player.y,ce.x-player.x);var push=(activeSynergy('guruguruDefense')?32:22);var cyclonePush=ce.boss?(activeSynergy('guruguruDefense')?5.5:3.5):push;ce.x+=Math.cos(pa)*cyclonePush;ce.y+=Math.sin(pa)*cyclonePush;var cycloneDmg=ce.boss?cdmg*.88:cdmg;if(damageEnemy(ce,cycloneDmg,{weapon:'cycloneCutter',fusion:'cycloneCutter',slow:ce.boss?.22:1.35+lv*.30+(activeSynergy('guruguruDefense')?.30:0)}))killEnemyAt(j);}}}
+    // 通常サイクロンは狭い近距離カッターのまま。ぐるぐる防衛線は外側に3つの大きい円形カッターを追加する。
+    var count=2+lv,radius=38+lv*5,orbR=(10.5+lv*1.15)*areaMult(),cdmg=(16.8+lv*4.85)*damageMult(true)*fusionPowerMult('cycloneCutter');
+    for(var c=0;c<count;c++){var ca=cycloneAngle+Math.PI*2*c/count,ox=player.x+Math.cos(ca)*radius,oy=player.y+Math.sin(ca)*radius;addTrail(ox,oy,'#d6f4ff',orbR,.14,'ice');for(var j=enemies.length-1;j>=0;j--){var ce=enemies[j];if(!ce||ce.cycloneHitTimer>0)continue;if(Math.hypot(ce.x-ox,ce.y-oy)<ce.r+orbR){ce.cycloneHitTimer=Math.max(.045,.135/cycloneSpin);var pa=Math.atan2(ce.y-player.y,ce.x-player.x);var cyclonePush=ce.boss?3.5:22;ce.x+=Math.cos(pa)*cyclonePush;ce.y+=Math.sin(pa)*cyclonePush;var cycloneDmg=ce.boss?cdmg*.88:cdmg;if(damageEnemy(ce,cycloneDmg,{weapon:'cycloneCutter',fusion:'cycloneCutter',slow:ce.boss?.22:1.35+lv*.30}))killEnemyAt(j);}}}
+    if(isDefense){
+      var outerCount=3,outerRadius=88+lv*15+getPassiveLevel('heart')*2,outerR=(17+lv*2.1)*areaMult(),outerDmg=(24+lv*7.2)*damageMult(true)*fusionPowerMult('cycloneCutter'),outerBase=-cycloneAngle*.62+gameTime*.9;
+      for(var g=0;g<outerCount;g++){
+        var ga=outerBase+Math.PI*2*g/outerCount,gx=player.x+Math.cos(ga)*outerRadius,gy=player.y+Math.sin(ga)*outerRadius;
+        addTrail(gx,gy,'#c8fbff',outerR*.95,.16,'ice');
+        for(var k= enemies.length-1;k>=0;k--){var ge=enemies[k];if(!ge||ge.guruguruOuterHitTimer>0)continue;if(Math.hypot(ge.x-gx,ge.y-gy)<ge.r+outerR){ge.guruguruOuterHitTimer=Math.max(.10,.28/cycloneSpin);var gpa=Math.atan2(ge.y-player.y,ge.x-player.x);var bossKnock=ge.guruguruBossKnockTimer>0?2.0:13.5;if(ge.boss)ge.guruguruBossKnockTimer=.55;var gpush=ge.boss?bossKnock:(54+lv*5);ge.x+=Math.cos(gpa)*gpush;ge.y+=Math.sin(gpa)*gpush;var gdmg=ge.boss?outerDmg*.68:outerDmg;if(damageEnemy(ge,gdmg,{weapon:'guruguruDefense',fusion:'cycloneCutter',slow:ge.boss?.36:1.35+lv*.25,flash:false}))killEnemyAt(k);}}
+      }
+    }
   }
   lv=getFusionLevel('chainFlail');
   if(lv>0){
@@ -1739,7 +1794,7 @@ function updateInput(dt){var mx=0,my=0;if(keys.arrowleft||keys.a)mx--;if(keys.ar
 function updateEnemyStatusEffects(dt){
   if(bloodFangHealCooldown>0)bloodFangHealCooldown=Math.max(0,bloodFangHealCooldown-dt);
   for(var i=enemies.length-1;i>=0;i--){var e=enemies[i];if(!e)continue;
-    ['laserFanHitTimer','cycloneHitTimer','flailHitTimer','fireDarumaHitTimer','drillRingHitTimer'].forEach(function(k){if(e[k]>0)e[k]-=dt;});
+    ['laserFanHitTimer','cycloneHitTimer','guruguruOuterHitTimer','guruguruBossKnockTimer','flailHitTimer','fireDarumaHitTimer','drillRingHitTimer','fairyBitHitTimer'].forEach(function(k){if(e[k]>0)e[k]-=dt;});
     if(e.burnTimer>0){e.burnTimer-=dt;e.burnTick=(e.burnTick||0)-dt;if(e.burnTick<=0){e.burnTick=.35;if(damageEnemy(e,(e.burnDps||3)*.35,{weapon:'burnTick',fusion:e.burnFusion||'napalmLaser'})){makeBurnZone(e.x,e.y,getFusionLevel('napalmLaser')||1,(e.burnDps||3)*.48);killEnemyAt(i);continue;}}if(Math.random()<.40)addTrail(e.x+rand(-4,4),e.y+rand(-4,4),'#ff7a35',8,.20,'flame');if(activeSynergy('fireSpread'))spreadBurnFrom(e,dt);}
     if(e.paralyzeTimer>0){e.paralyzeTimer-=dt;e.paralyzeTick=(e.paralyzeTick||0)-dt;e.slowTimer=Math.max(e.slowTimer||0,.34);if(e.paralyzeTick<=0){e.paralyzeTick=.38;pushCap(lightnings,{x:e.x,y:e.y,life:.09,max:.09},CONFIG.lightningCap);if(damageEnemy(e,(e.paralyzeDps||2)*.38,{weapon:'paralyzeTick',fusion:'paralyzeGun',flash:true})){killEnemyAt(i);continue;}}}
     if(e.charmTimer>0)e.charmTimer=Math.max(0,e.charmTimer-dt);
@@ -1881,9 +1936,9 @@ function update(dt){if(!running||!player)return;if(gameOver){updateDeathSequence
 
 function drawMetalBallBullet(b){var r=b.r||10;var g=ctx.createRadialGradient(b.x-r*.35,b.y-r*.38,r*.15,b.x,b.y,r*1.12);g.addColorStop(0,'#f3f6ff');g.addColorStop(.22,'#b7bfcc');g.addColorStop(.72,'#58606d');g.addColorStop(1,'#1d222b');ctx.save();ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=8;ctx.fillStyle=g;ctx.beginPath();ctx.arc(b.x,b.y,r,0,Math.PI*2);ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='rgba(255,255,255,.34)';ctx.stroke();ctx.fillStyle='rgba(255,255,255,.75)';ctx.beginPath();ctx.arc(b.x-r*.32,b.y-r*.38,r*.22,0,Math.PI*2);ctx.fill();ctx.restore();}
 function drawHotIronBullet(b){var r=b.r||18;ctx.save();ctx.translate(b.x,b.y);ctx.shadowColor='#ff7a35';ctx.shadowBlur=16;ctx.fillStyle='#333844';ctx.beginPath();ctx.roundRect?ctx.roundRect(-r*.75,-r*.42,r*1.5,r*.9,6):ctx.rect(-r*.75,-r*.42,r*1.5,r*.9);ctx.fill();ctx.strokeStyle='#ffb06a';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#ff7a35';ctx.globalAlpha=.75;ctx.fillRect(-r*.55,r*.18,r*1.1,r*.15);ctx.globalAlpha=1;ctx.strokeStyle='#d8d8d8';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-r*.55,r*.45,Math.PI,0);ctx.stroke();ctx.restore();}
-function drawFairies(){var lv=getFusionLevel('fairySummon');if(lv<=0||!player)return;var pairs=1+(lv>=2?1:0)+(lv>=3?1:0),radius=54+lv*9,orbR=(13.0+lv*1.55)*areaMult();for(var p=0;p<pairs;p++){for(var k=0;k<2;k++){var fire=k===0,ang=fairyAngle+(p*Math.PI*2/pairs)+(fire?0:Math.PI),ox=player.x+Math.cos(ang)*radius,oy=player.y+Math.sin(ang)*radius;ctx.save();ctx.shadowColor=fire?'#ff7a35':'#9ee8ff';ctx.shadowBlur=14;ctx.fillStyle=fire?'#ff7a35':'#9ee8ff';ctx.beginPath();ctx.arc(ox,oy,orbR,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,255,255,.86)';ctx.beginPath();ctx.arc(ox-orbR*.25,oy-orbR*.28,orbR*.28,0,Math.PI*2);ctx.fill();ctx.font=Math.max(12,orbR*1.05)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(fire?'🔥':'❄️',ox,oy+1);ctx.restore();}}}
+function drawFairies(){var lv=getFusionLevel('fairySummon');if(lv<=0||!player)return;var mash=activeSynergy('fairyMashimashi'),pairs=1+(lv>=2?1:0)+(lv>=3?1:0),radius=54+lv*9,orbR=(13.0+lv*1.55)*areaMult();for(var p=0;p<pairs;p++){for(var k=0;k<2;k++){var fire=k===0,ang=fairyAngle+(p*Math.PI*2/pairs)+(fire?0:Math.PI),ox=player.x+Math.cos(ang)*radius,oy=player.y+Math.sin(ang)*radius;ctx.save();ctx.shadowColor=fire?'#ff7a35':'#9ee8ff';ctx.shadowBlur=14;ctx.fillStyle=fire?'#ff7a35':'#9ee8ff';ctx.beginPath();ctx.arc(ox,oy,orbR,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,255,255,.86)';ctx.beginPath();ctx.arc(ox-orbR*.25,oy-orbR*.28,orbR*.28,0,Math.PI*2);ctx.fill();ctx.font=Math.max(12,orbR*1.05)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(fire?'🔥':'❄️',ox,oy+1);ctx.restore();}}if(mash){var bitCount=4,bitRadius=88+lv*10+getPassiveLevel('speed')*2,bitR=(7.2+lv*.72)*areaMult(),bitBase=-fairyAngle*.72+gameTime*1.4;ctx.save();ctx.globalAlpha=.34;ctx.strokeStyle='rgba(255,243,166,.62)';ctx.lineWidth=1.4;ctx.setLineDash&&ctx.setLineDash([5,7]);ctx.beginPath();ctx.arc(player.x,player.y,bitRadius,0,Math.PI*2);ctx.stroke();ctx.restore();for(var b=0;b<bitCount;b++){var ba=bitBase+Math.PI*2*b/bitCount,bx=player.x+Math.cos(ba)*bitRadius,by=player.y+Math.sin(ba)*bitRadius;ctx.save();ctx.translate(bx,by);ctx.rotate(-ba+gameTime*4.5);ctx.shadowColor='#fff3a6';ctx.shadowBlur=16;ctx.fillStyle='#fff3a6';ctx.beginPath();ctx.arc(0,0,bitR,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.88)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-bitR*.9,0);ctx.lineTo(bitR*.9,0);ctx.moveTo(0,-bitR*.9);ctx.lineTo(0,bitR*.9);ctx.stroke();ctx.fillStyle='rgba(255,255,255,.92)';ctx.font=Math.max(10,bitR*1.12)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('✦',0,1);ctx.restore();}}}
 function drawNewOrbitFusions(){if(!player)return;var lv=getFusionLevel('laserFan');if(lv>0){var isSenpu=activeSynergy('senpuShuriken');var blades=3+lv+(isSenpu?1:0),reach=76+lv*14+(isSenpu?8:0);ctx.save();ctx.shadowColor=isSenpu?'#f2f7ff':'#b7f9ff';ctx.shadowBlur=isSenpu?18:14;ctx.strokeStyle=isSenpu?'#dff6ff':'#b7f9ff';ctx.lineCap='round';for(var b=0;b<blades;b++){var a=laserFanAngle+Math.PI*2*b/blades;var tipx=player.x+Math.cos(a)*reach,tipy=player.y+Math.sin(a)*reach;ctx.globalAlpha=.74;ctx.lineWidth=(isSenpu?4.2:3)+lv*.6;ctx.beginPath();ctx.moveTo(player.x,player.y);ctx.lineTo(tipx,tipy);ctx.stroke();if(isSenpu){ctx.save();ctx.translate(tipx,tipy);ctx.rotate(a+gameTime*8);ctx.fillStyle='#f6fbff';ctx.strokeStyle='#8beaff';ctx.lineWidth=1.2;ctx.beginPath();for(var i=0;i<4;i++){var ang=i*Math.PI/2;var ox=Math.cos(ang)*(10+lv*1.0),oy=Math.sin(ang)*(10+lv*1.0);ctx.moveTo(0,0);ctx.lineTo(ox,oy);ctx.lineTo(Math.cos(ang+Math.PI/4)*(4+lv*.25),Math.sin(ang+Math.PI/4)*(4+lv*.25));}ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();}}ctx.restore();}
-lv=getFusionLevel('cycloneCutter');if(lv>0){var isDefense=activeSynergy('guruguruDefense');var count=2+lv+(isDefense?1:0),radius=36+lv*5+(isDefense?5:0),orbR=(9.8+lv*.95+(isDefense?1.0:0))*areaMult();if(isDefense){ctx.save();ctx.strokeStyle='rgba(190,245,255,.42)';ctx.lineWidth=5;ctx.shadowColor='rgba(190,245,255,.38)';ctx.shadowBlur=16;ctx.beginPath();ctx.arc(player.x,player.y,radius+8,0,Math.PI*2);ctx.stroke();ctx.restore();}for(var c=0;c<count;c++){var ca=cycloneAngle+Math.PI*2*c/count,ox=player.x+Math.cos(ca)*radius,oy=player.y+Math.sin(ca)*radius;ctx.save();ctx.translate(ox,oy);ctx.rotate(ca*2);ctx.shadowColor='#d6f4ff';ctx.shadowBlur=isDefense?16:12;ctx.fillStyle=isDefense?'#eafcff':'#d6f4ff';ctx.beginPath();ctx.moveTo(0,-orbR);ctx.lineTo(orbR*.8,0);ctx.lineTo(0,orbR);ctx.lineTo(-orbR*.8,0);ctx.closePath();ctx.fill();if(isDefense){ctx.strokeStyle='rgba(90,210,255,.9)';ctx.lineWidth=1.4;ctx.stroke();}ctx.fillStyle='rgba(255,255,255,.75)';ctx.fillText(isDefense?'🛡️':'❄️',0,1);ctx.restore();}}
+lv=getFusionLevel('cycloneCutter');if(lv>0){var isDefense=activeSynergy('guruguruDefense');var count=2+lv,radius=36+lv*5,orbR=(9.8+lv*.95)*areaMult();for(var c=0;c<count;c++){var ca=cycloneAngle+Math.PI*2*c/count,ox=player.x+Math.cos(ca)*radius,oy=player.y+Math.sin(ca)*radius;ctx.save();ctx.translate(ox,oy);ctx.rotate(ca*2);ctx.shadowColor='#d6f4ff';ctx.shadowBlur=12;ctx.fillStyle='#d6f4ff';ctx.beginPath();ctx.moveTo(0,-orbR);ctx.lineTo(orbR*.8,0);ctx.lineTo(0,orbR);ctx.lineTo(-orbR*.8,0);ctx.closePath();ctx.fill();ctx.fillStyle='rgba(255,255,255,.75)';ctx.fillText('❄️',0,1);ctx.restore();}if(isDefense){var outerRadius=88+lv*15+getPassiveLevel('heart')*2,outerR=(17+lv*2.1)*areaMult(),outerBase=-cycloneAngle*.62+gameTime*.9;ctx.save();ctx.strokeStyle='rgba(190,245,255,.34)';ctx.lineWidth=4;ctx.shadowColor='rgba(190,245,255,.34)';ctx.shadowBlur=18;ctx.beginPath();ctx.arc(player.x,player.y,outerRadius,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=.55;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(player.x,player.y,outerRadius+outerR*.65,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(player.x,player.y,outerRadius-outerR*.65,0,Math.PI*2);ctx.stroke();ctx.restore();for(var gc=0;gc<3;gc++){var ga=outerBase+Math.PI*2*gc/3,gx=player.x+Math.cos(ga)*outerRadius,gy=player.y+Math.sin(ga)*outerRadius;ctx.save();ctx.translate(gx,gy);ctx.rotate(ga+gameTime*5.8);ctx.shadowColor='#c8fbff';ctx.shadowBlur=18;ctx.strokeStyle='#c8fbff';ctx.fillStyle='rgba(200,251,255,.18)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,outerR,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,outerR*.48,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#eafcff';ctx.font=Math.max(12,outerR*.78)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('〇',0,1);ctx.restore();}}}
 lv=getFusionLevel('chainFlail');if(lv>0){var isBunbun=activeSynergy('bunbunMaru');var balls=1+(lv>=3?1:0)+(isBunbun?1:0),fr=76+lv*13+(isBunbun?10:0),ballR=(18+lv*3.4)*areaMult();for(var f=0;f<balls;f++){var fa=flailAngle+Math.PI*2*f/balls,fx=player.x+Math.cos(fa)*fr,fy=player.y+Math.sin(fa)*fr;ctx.save();ctx.strokeStyle=isBunbun?'rgba(255,220,150,.86)':'rgba(210,220,238,.72)';ctx.lineWidth=isBunbun?4:3;ctx.beginPath();ctx.moveTo(player.x,player.y);ctx.lineTo(fx,fy);ctx.stroke();ctx.shadowColor=isBunbun?'rgba(255,176,64,.38)':'rgba(0,0,0,.45)';ctx.shadowBlur=isBunbun?14:10;var g=ctx.createRadialGradient(fx-ballR*.35,fy-ballR*.35,ballR*.12,fx,fy,ballR);g.addColorStop(0,isBunbun?'#fff7cf':'#ffffff');g.addColorStop(.24,isBunbun?'#ffd479':'#b7bfcc');g.addColorStop(1,isBunbun?'#7c5124':'#303743');ctx.fillStyle=g;ctx.beginPath();ctx.arc(fx,fy,ballR,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.38)';ctx.stroke();ctx.restore();}}
 lv=getFusionLevel('burningGun');if(lv>0&&activeSynergy('fireDaruma')){var area=getPassiveLevel('area'),count=4+lv+Math.floor(area/3),radius=54+lv*8+area*2,orbR=(10.5+lv*1.2+area*.18)*areaMult(),phase=gameTime*(2.8+lv*.55);for(var fd=0;fd<count;fd++){var da=phase+Math.PI*2*fd/count,fx2=player.x+Math.cos(da)*radius,fy2=player.y+Math.sin(da)*radius;ctx.save();ctx.shadowColor='#ff7a35';ctx.shadowBlur=16;ctx.fillStyle='#ffb044';ctx.beginPath();ctx.arc(fx2,fy2,orbR,0,Math.PI*2);ctx.fill();ctx.font=Math.max(12,orbR*1.05)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🔥',fx2,fy2+1);ctx.restore();}}}
 function drawDrones(){
