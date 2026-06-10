@@ -1479,6 +1479,32 @@
             }
         }
 
+
+        /* 2026-06 v21: ニックネーム注意書き・スタートバナー調整 */
+        .name-guide {
+            margin: 8px 0 2px 0 !important;
+            font-size: clamp(.95rem, 3.8vw, 1.08rem) !important;
+            line-height: 1.15 !important;
+        }
+        .score-name-note,
+        .ranking-unique-note,
+        .unique-name-note,
+        .name-rule-note {
+            display: block !important;
+            margin: 2px auto 4px !important;
+            padding: 0 !important;
+            max-width: 100% !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: clip !important;
+            font-size: clamp(.62rem, 2.65vw, .74rem) !important;
+            line-height: 1.12 !important;
+            font-weight: 800 !important;
+            color: #7a552b !important;
+            background: transparent !important;
+            border: 0 !important;
+        }
+
     </style>
 </head>
 <body>
@@ -1518,9 +1544,9 @@
 <div><span id="result-character-name">すっくん</span>の収穫きろく</div>
 </div>
 <p class="result-score-line">あつめたどんぐり: <span id="final-score">0</span>こ</p>
-<p class="name-guide">名前をいれてきろくを残してね。</p>
+<p class="name-guide">ニックネームをいれてきろくを残してね。</p>
 <input id="player-name" maxlength="14" placeholder="なまえ（14文字まで）" type="text"/>
-<p class="ranking-rule-note">同じ名前はランキングに最高得点だけ表示されます。</p>
+<p class="ranking-rule-note"><span class="score-name-note">同じ名前は最高得点だけ表示されます。</span></p>
 <p class="category-guide">のせるランキングをえらんでね。</p>
 <div aria-label="のせるランキングをえらぶ" class="category-select">
 <button aria-pressed="true" class="category-choice selected" data-category="elementary" type="button">小学生</button>
@@ -3209,23 +3235,33 @@ function showBanner(textValue) {
 function drawBanner() {
     if (bannerTimer <= 0) return;
     const alpha = bannerTimer < 20 ? map(bannerTimer, 0, 20, 0, 255) : 255;
-    const y = 118 + sin(frameCount * .09) * 2;
+    const y = 96;
+    const boxW = min(width - 44, 314);
+    const boxH = 38;
+
     push();
+    rectMode(CENTER);
     textAlign(CENTER, CENTER);
     textStyle(BOLD);
-    textSize(24);
-    rectMode(CENTER);
-    noStroke();
-    fill(75, 46, 17, alpha * .68);
-    rect(width / 2, y, 260, 46, 23);
-    stroke(255, 243, 161, alpha);
+    textSize(17);
+
+    drawingContext.shadowColor = `rgba(55, 35, 12, ${0.28 * (alpha / 255)})`;
+    drawingContext.shadowBlur = 10;
+    drawingContext.shadowOffsetY = 3;
+
+    stroke(255, 245, 178, alpha);
     strokeWeight(3);
-    fill(255, 220, 84, alpha);
+    fill(96, 59, 23, alpha * .82);
+    rect(width / 2, y, boxW, boxH, 999);
+
+    drawingContext.shadowBlur = 0;
+    noStroke();
+    fill(255, 249, 206, alpha);
     text(bannerText, width / 2, y + 1);
+
     bannerTimer--;
     pop();
 }
-
 async function handleSubmitScore() {
     const playerNameInput = document.getElementById('player-name');
     const playerName = playerNameInput.value.trim();
