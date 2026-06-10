@@ -536,7 +536,7 @@ function makeResultPayload(name){
     moderationStatus:'public',
     resultTitle:(document.getElementById('resultTitle')&&document.getElementById('resultTitle').textContent)||'',
     clientCreatedAt:new Date().toISOString(),
-    gameVersion:'v44-season2-three-render-modes-dronefix'
+    gameVersion:'v53-script-error-filter-runtimefix'
   };
 }
 function validatePayload(p){
@@ -682,7 +682,35 @@ document.addEventListener('click',function(e){var btn=e.target.closest&&e.target
 syncRankGroupButtons();
 renderRankPrompt();
 
-window.onerror=function(message,source,line,column){var box=document.getElementById('error');box.style.display='block';box.textContent=['JavaScript Error:',String(message),'line:'+line+' col:'+column].join('\n');};
+function showRuntimeErrorBox(title,message,source,line,column,extra){
+  var box=document.getElementById('error');
+  if(!box)return;
+  box.style.display='block';
+  var rows=[title||'JavaScript Error:',String(message||'Unknown error')];
+  if(line||column)rows.push('line:'+(line||0)+' col:'+(column||0));
+  if(source)rows.push('source:'+String(source).slice(0,180));
+  if(extra)rows.push(String(extra).slice(0,600));
+  box.textContent=rows.join('\n');
+}
+window.onerror=function(message,source,line,column,error){
+  // ブラウザ拡張・外部ライブラリ・CORS制限由来のエラーは、
+  // 内容が「Script error. line:0 col:0」に潰れて届くことがある。
+  // ゲーム本体の行番号が取れない非致命エラーなので、赤いエラー表示でプレイを止めたように見せない。
+  var msg=String(message||'');
+  if(msg==='Script error.'&&Number(line||0)===0&&Number(column||0)===0){
+    console.warn('Ignored opaque external script error', {source:source||'', line:line||0, column:column||0});
+    return true;
+  }
+  var detail=error&&(error.stack||error.message)||'';
+  showRuntimeErrorBox('JavaScript Error:',msg,source,line,column,detail);
+  return false;
+};
+window.addEventListener('unhandledrejection',function(ev){
+  var reason=ev&&ev.reason;
+  var msg=reason&&(reason.message||reason.name)||reason||'Promise rejection';
+  var stack=reason&&reason.stack?reason.stack:'';
+  showRuntimeErrorBox('Promise Error:',msg,'',0,0,stack);
+});
 
 var weaponDefs={
   laser:{icon:'🌈',name:'レーザー',desc:'細い長射程貫通。向きを作ると強い。'},
