@@ -37,7 +37,7 @@ h1{font-size:clamp(30px,8vw,42px);line-height:1.12;margin:8px 0 12px;}p{line-hei
 .slot{width:42px;height:42px;border-radius:13px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.24);display:grid;place-items:center;position:relative;font-size:21px;line-height:1;box-shadow:inset 0 0 14px rgba(255,255,255,.04);}
 .slotIcon,.choice .emoji{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui,sans-serif;font-variant-emoji:emoji;line-height:1;display:inline-block;}
 .slotIcon{font-size:21px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));}
-.slot.empty{color:rgba(255,255,255,.35);font-size:18px}.slot .lv{position:absolute;right:2px;bottom:0;font-size:10px;background:rgba(0,0,0,.72);border-radius:999px;padding:0 4px;font-weight:900;color:#fff;}.slot.fusion{border-color:rgba(255,223,107,.85);box-shadow:0 0 18px rgba(255,223,107,.28),inset 0 0 16px rgba(255,223,107,.08);}
+.slot.empty{color:rgba(255,255,255,.35);font-size:18px}.slot .lv{position:absolute;right:2px;bottom:0;font-size:10px;background:rgba(0,0,0,.72);border-radius:999px;padding:0 4px;font-weight:900;color:#fff;}.slot.fusion{border-color:rgba(255,223,107,.85);box-shadow:0 0 18px rgba(255,223,107,.28),inset 0 0 16px rgba(255,223,107,.08);}.slot.synergy{border-color:rgba(255,102,170,.95);box-shadow:0 0 24px rgba(255,102,170,.38),0 0 12px rgba(255,223,107,.22),inset 0 0 18px rgba(255,102,170,.12);}.slot.synergy .lv{background:rgba(255,102,170,.88);color:#fff3a6}.slot.synergy .slotIcon{font-size:23px;filter:drop-shadow(0 0 8px rgba(255,223,107,.55));}
 .modal{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.64);z-index:30;padding:18px;}
 .panelGlass{width:min(820px,96vw);max-height:calc(var(--game-height,100dvh) - 18px);overflow:auto;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);border-radius:24px;padding:20px;text-align:center;box-shadow:0 20px 70px rgba(0,0,0,.42);backdrop-filter:blur(12px);}
 #levelPanel h2{font-size:clamp(30px,7vw,42px);margin:6px 0 8px;}#choices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;}
@@ -97,6 +97,17 @@ button.gp-selected{outline:3px solid rgba(255,255,255,.96);box-shadow:0 0 0 5px 
   #expOuter{top:calc(var(--play-top,0px) + 58px + var(--safe-top));}
 }
 
+/* v48: 通常モードのカットインを強化。軽量系では控えめ表示に戻す。 */
+#synergyCutin{top:25%;z-index:36;width:min(700px,94vw);padding:20px 24px;border-radius:28px;background:radial-gradient(circle at 50% 0%,rgba(255,255,255,.98),rgba(255,223,107,.96) 24%,rgba(102,217,255,.90) 58%,rgba(255,102,170,.86));border:3px solid rgba(255,255,255,.88);box-shadow:0 24px 78px rgba(0,0,0,.52),0 0 38px rgba(255,223,107,.55),inset 0 0 24px rgba(255,255,255,.28);}
+#synergyCutin::after{content:"";position:absolute;left:50%;top:50%;width:140%;height:130%;transform:translate(-50%,-50%) rotate(0deg);background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.36) 0 7deg,transparent 7deg 18deg);opacity:.28;animation:cutinRaySpin 1.9s linear infinite;pointer-events:none;}
+#synergyCutin .cutinBurst{position:relative;z-index:1;display:inline-grid;place-items:center;width:72px;height:72px;margin:-4px auto 4px;border-radius:50%;background:rgba(255,255,255,.48);box-shadow:0 0 26px rgba(255,255,255,.65),0 0 34px rgba(255,223,107,.55);font-size:42px;}
+#synergyCutin.cutinSkill{background:radial-gradient(circle at 50% 0%,rgba(255,255,255,.98),rgba(102,217,255,.92) 24%,rgba(172,132,255,.90) 58%,rgba(255,223,107,.86));box-shadow:0 24px 78px rgba(0,0,0,.52),0 0 42px rgba(102,217,255,.55),inset 0 0 24px rgba(255,255,255,.28);}
+#synergyCutin.cutinSkill .synergyCutinTag{color:#17304d}#synergyCutin.cutinSkill .cutinBurst{box-shadow:0 0 28px rgba(102,217,255,.75),0 0 34px rgba(255,255,255,.55)}
+#synergyCutin .synergyCutinTag,#synergyCutin .synergyCutinName,#synergyCutin .synergyCutinLine{position:relative;z-index:1}.synergyCutinTag{font-size:14px;letter-spacing:.22em}.synergyCutinName{font-size:clamp(32px,8.8vw,58px);margin:2px 0 5px}.synergyCutinLine{font-size:clamp(14px,4vw,19px);font-weight:1000}
+#synergyCutin.show{display:block;animation:synergyPop 2.05s ease-in-out forwards}@keyframes cutinRaySpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.perfLightMode #synergyCutin,.ultraLightMode #synergyCutin{top:28%;width:min(620px,92vw);padding:15px 18px;border-radius:22px;box-shadow:0 18px 55px rgba(0,0,0,.45),0 0 25px rgba(255,223,107,.26);}
+.perfLightMode #synergyCutin::after,.ultraLightMode #synergyCutin::after{display:none}.perfLightMode #synergyCutin .cutinBurst,.ultraLightMode #synergyCutin .cutinBurst{display:none}.perfLightMode #synergyCutin.show,.ultraLightMode #synergyCutin.show{animation:synergyPop 1.55s ease-in-out forwards}
+
 </style>
 </head>
 <body>
@@ -110,8 +121,8 @@ button.gp-selected{outline:3px solid rgba(255,255,255,.96);box-shadow:0 0 0 5px 
 <div id="debugPanel"><div class="debugTitle">DEBUG</div><button type="button" data-debug="level">L LvUP</button><button type="button" data-spawn="normal">1 基本</button><button type="button" data-spawn="fast">2 速い</button><button type="button" data-spawn="tank">3 硬い</button><button type="button" data-spawn="split">5 分裂</button><button type="button" data-boss="basicBoss">6 中ボス</button><button type="button" data-boss="specialBoss">7 特殊</button><button type="button" data-boss="rushBoss">8 突進</button></div>
 <div id="levelScreen" class="modal"><div id="levelPanel" class="panelGlass"><h2>LEVEL UP!</h2><p>ビルドを選んでね。完成後は自動でスコア化、エンドレスでは限界突破。</p><div id="choices"></div><button id="rerollBtn" type="button">デバッグ：3択ひきなおし</button></div></div>
 <div id="clearScreen" class="modal"><div class="resultPanel"><h2 class="clearGlow">GAME CLEAR!</h2><p>5分間生存成功！結果を見るか、エンドレスへ挑戦できます。</p><div id="clearStats" class="statsGrid"></div><div id="clearBuild" class="buildLine"></div><button id="endlessBtn" type="button">エンドレスへ挑戦</button><button id="finishBtn" type="button">結果を見る</button></div></div>
-<div id="resultScreen" class="modal"><div class="resultPanel"><h2 id="resultTitle">RESULT</h2><p id="resultComment"></p><div id="resultStats" class="statsGrid"></div><div id="resultBuild" class="buildLine"></div><div id="scoreSubmit" class="scoreSubmit"><label for="playerNameInput">ランキングに登録する名前（低スコアでも大歓迎・登録でヒントカード）</label><div class="scoreSubmitRow"><input id="playerNameInput" maxlength="16" autocomplete="off" inputmode="text" placeholder="ひらがなフルネーム推奨"><button id="submitScoreBtn" type="button">登録する</button></div><div class="ageGroupSubmit" role="group" aria-label="ランキング区分"><span>ランキング区分</span><label><input type="radio" name="rankingAgeGroup" value="elementary" checked>小学生</label><label><input type="radio" name="rankingAgeGroup" value="juniorPlus">中学生以上</label></div><div id="rankSubmitStatus" class="rankStatus"></div></div><div id="resultRanking" class="rankingBox"><h3>シーズン2 ランキング</h3><div class="rankingControls"><button id="resultLoadRankingsBtn" class="rankLoadBtn" type="button">ランキングを表示/更新</button><span id="resultRankingStatus" class="rankStatus">必要な時だけ読み込みます</span></div><div class="rankGroupTabs"><span>表示</span><button class="rankGroupBtn active" type="button" data-rank-group="all">全体</button><button class="rankGroupBtn" type="button" data-rank-group="elementary">小学生</button><button class="rankGroupBtn" type="button" data-rank-group="juniorPlus">中学生以上</button></div><div class="rankColumns"><div class="rankList"><h4>🏆 シーズン2 TOP5</h4><div id="resultScoreRanks" class="rankEmpty">ランキングを表示/更新で読み込み</div></div><div class="rankList"><h4>🌞 今日のTOP5</h4><div id="resultTimeRanks" class="rankEmpty">ランキングを表示/更新で読み込み</div></div></div><div class="rankHint">順位をタップすると、使った武器などの詳細を開きます。同じ名前は最高スコアだけ表示します。</div><div class="rankPolicy">※ななしや不健全と思われる名前などでの登録は削除対象とします。</div></div><button id="againBtn" type="button">もう一度</button><button id="titleBtn" type="button">タイトルへ</button></div></div>
-<div id="menu"><div id="panel"><div class="menuHero seasonHero"><div class="seasonHeroBadge">✨ NEW SEASON START ✨</div><div class="titleSprite" aria-hidden="true"><img id="menuRingImg" class="ring" alt=""><img id="menuFaceImg" class="face" alt=""></div><h1>サニーさんサバイバー</h1><div class="seasonLogo">シーズン2</div><div class="seasonSub">新ランキング・新合成武器・新バランス</div></div><div class="menuCatch">シーズン2開幕！ もやもやを倒して５分間生き残れ！</div><button id="startBtn" type="button">GAME START</button><div id="menuRanking" class="rankingBox"><h3>シーズン2 ランキング</h3><div class="rankingControls"><button id="menuLoadRankingsBtn" class="rankLoadBtn" type="button">ランキングを表示</button><span id="menuRankingStatus" class="rankStatus">通信節約のため手動読み込み</span></div><div class="rankGroupTabs"><span>表示</span><button class="rankGroupBtn active" type="button" data-rank-group="all">全体</button><button class="rankGroupBtn" type="button" data-rank-group="elementary">小学生</button><button class="rankGroupBtn" type="button" data-rank-group="juniorPlus">中学生以上</button></div><div class="rankColumns"><div class="rankList"><h4>🏆 シーズン2 TOP5</h4><div id="menuScoreRanks" class="rankEmpty">ランキングを表示で読み込み</div></div><div class="rankList"><h4>🌞 今日のTOP5</h4><div id="menuTimeRanks" class="rankEmpty">ランキングを表示で読み込み</div></div></div><div class="rankHint">順位をタップすると、使った武器などの詳細を開きます。同じ名前は最高スコアだけ表示します。</div><div class="rankPolicy">※ななしや不健全と思われる名前などでの登録は削除対象とします。</div></div><div class="menuUpdateWrap" id="menuUpdateWrap"><button id="updateToggleBtn" class="menuUpdateToggle" type="button" aria-expanded="false">アップデート情報を表示</button><div class="menuUpdateContent" id="menuUpdateContent"><div class="updateInfo"><b>アップデート情報 v3.1</b><div>・武器と合成武器を全面リバランスし、5分生存がギリギリ熱くなる難易度へ調整しました。<br>・新合成武器を9種類追加し、全通常武器の合成登場回数が6回ずつに揃いました。<br>・燃焼／麻痺／吸血／誘惑／ノックバックなど、状態異常と個性を追加しました。<br>・条件がそろうとシナジー効果を発揮する武器、パッシブの組み合わせを追加しました。<br>・描画モードを「通常／軽量／超軽量」の3段階から選べるようにしました。<br>・ランキングはシーズン2として新規スタート。旧ランキングデータは削除しません。<br>・ランキングに登録すると「スコアアップのヒントカード」をもらえるようにしました。</div></div></div></div><div class="menuQrWrap" id="menuQrWrap"><button id="qrToggleBtn" class="menuQrToggle" type="button" aria-expanded="false">QRコードを表示</button><div class="menuQrContent" id="menuQrContent"><img id="menuQrImg" alt="このゲームのQRコード"><div class="menuQrHint">このゲームのURLを開くQRコード</div></div></div></div></div>
+<div id="resultScreen" class="modal"><div class="resultPanel"><h2 id="resultTitle">RESULT</h2><p id="resultComment"></p><div id="resultStats" class="statsGrid"></div><div id="resultBuild" class="buildLine"></div><div id="scoreSubmit" class="scoreSubmit"><label for="playerNameInput">ランキングに登録するニックネーム（友達にわかるとおもしろいかも）</label><div class="scoreSubmitRow"><input id="playerNameInput" maxlength="16" autocomplete="off" inputmode="text" placeholder="ニックネーム"><button id="submitScoreBtn" type="button">登録する</button></div><div class="ageGroupSubmit" role="group" aria-label="ランキング区分"><span>ランキング区分</span><label><input type="radio" name="rankingAgeGroup" value="elementary" checked>小学生</label><label><input type="radio" name="rankingAgeGroup" value="juniorPlus">中学生以上</label></div><div id="rankSubmitStatus" class="rankStatus"></div></div><div id="resultRanking" class="rankingBox"><h3>シーズン2 ランキング</h3><div class="rankingControls"><button id="resultLoadRankingsBtn" class="rankLoadBtn" type="button">ランキングを表示/更新</button><span id="resultRankingStatus" class="rankStatus">必要な時だけ読み込みます</span></div><div class="rankGroupTabs"><span>表示</span><button class="rankGroupBtn active" type="button" data-rank-group="all">全体</button><button class="rankGroupBtn" type="button" data-rank-group="elementary">小学生</button><button class="rankGroupBtn" type="button" data-rank-group="juniorPlus">中学生以上</button></div><div class="rankColumns"><div class="rankList"><h4>🏆 シーズン2 TOP5</h4><div id="resultScoreRanks" class="rankEmpty">ランキングを表示/更新で読み込み</div></div><div class="rankList"><h4>🌞 今日のTOP5</h4><div id="resultTimeRanks" class="rankEmpty">ランキングを表示/更新で読み込み</div></div></div><div class="rankHint">順位をタップすると、使った武器などの詳細を開きます。同じ名前は最高スコアだけ表示します。</div><div class="rankPolicy">※ななしや不健全と思われる名前などでの登録は削除対象とします。</div></div><button id="againBtn" type="button">もう一度</button><button id="titleBtn" type="button">タイトルへ</button></div></div>
+<div id="menu"><div id="panel"><div class="menuHero seasonHero"><div class="titleSprite" aria-hidden="true"><img id="menuRingImg" class="ring" alt=""><img id="menuFaceImg" class="face" alt=""></div><h1>サニーさんサバイバー</h1><div class="seasonLogo">シーズン2</div><div class="seasonSub">新ランキング・新合成武器・新バランス</div></div><div class="menuCatch">シーズン2開幕！<br>もやもやを倒して５分間生き残れ！</div><button id="startBtn" type="button">GAME START</button><div id="menuRanking" class="rankingBox"><h3>シーズン2 ランキング</h3><div class="rankingControls"><button id="menuLoadRankingsBtn" class="rankLoadBtn" type="button">ランキングを表示</button><span id="menuRankingStatus" class="rankStatus">通信節約のため手動読み込み</span></div><div class="rankGroupTabs"><span>表示</span><button class="rankGroupBtn active" type="button" data-rank-group="all">全体</button><button class="rankGroupBtn" type="button" data-rank-group="elementary">小学生</button><button class="rankGroupBtn" type="button" data-rank-group="juniorPlus">中学生以上</button></div><div class="rankColumns"><div class="rankList"><h4>🏆 シーズン2 TOP5</h4><div id="menuScoreRanks" class="rankEmpty">ランキングを表示で読み込み</div></div><div class="rankList"><h4>🌞 今日のTOP5</h4><div id="menuTimeRanks" class="rankEmpty">ランキングを表示で読み込み</div></div></div><div class="rankHint">順位をタップすると、使った武器などの詳細を開きます。同じ名前は最高スコアだけ表示します。</div><div class="rankPolicy">※ななしや不健全と思われる名前などでの登録は削除対象とします。</div></div><div class="menuUpdateWrap" id="menuUpdateWrap"><button id="updateToggleBtn" class="menuUpdateToggle" type="button" aria-expanded="false">アップデート情報を表示</button><div class="menuUpdateContent" id="menuUpdateContent"><div class="updateInfo"><b>アップデート情報 v3.1</b><div>・武器と合成武器を全面リバランスし、5分生存がギリギリ熱くなる難易度へ調整しました。<br>・新合成武器を9種類追加し、全通常武器の合成登場回数が6回ずつに揃いました。<br>・燃焼／麻痺／吸血／誘惑／ノックバックなど、状態異常と個性を追加しました。<br>・条件がそろうとシナジー効果を発揮する武器、パッシブの組み合わせを追加しました。<br>・描画モードを「通常／軽量／超軽量」の3段階から選べるようにしました。<br>・ランキングはシーズン2として新規スタート。旧ランキングデータは削除しません。<br>・ランキングに登録すると「スコアアップのヒントカード」をもらえるようにしました。</div></div></div></div><div class="menuQrWrap" id="menuQrWrap"><button id="qrToggleBtn" class="menuQrToggle" type="button" aria-expanded="false">QRコードを表示</button><div class="menuQrContent" id="menuQrContent"><img id="menuQrImg" alt="このゲームのQRコード"><div class="menuQrHint">このゲームのURLを開くQRコード</div></div></div></div></div>
 </div>
 <script>
 
@@ -124,8 +135,8 @@ var BASE_CONFIG={
   smokeEvery:0.075,gemLife:15.8,lateGemLife:13.2
 };
 // 描画モードは3段階。
-// 通常：SVGを1枚固定表示（フレーム切替なし）＋通常演出
-// 軽量：SVG表示は維持しつつ、パーティクル・軌跡・上限を控えめ
+// 通常：敵SVGの2枚アニメを表示＋通常演出
+// 軽量：SVGは1枚固定表示、パーティクル・軌跡・上限を控えめ
 // 超軽量：旧軽量モード相当の簡易描画。ただしボス情報は表示する
 var LIGHT_CONFIG={
   enemyCap:108,endlessEnemyCap:128,bulletCap:170,itemCap:88,trailCap:72,particleCap:86,zoneCap:32,lightningCap:14,
@@ -211,7 +222,7 @@ var running=false,paused=false,gameOver=false,clearOffered=false,endlessMode=fal
 var totalKills=0,lastTime=performance.now(),player=null;
 var enemies=[],bullets=[],items=[],particles=[],trails=[],lightnings=[],zones=[],afterImages=[],drones=[];
 var iceAngle=0,fairyAngle=0,laserFanAngle=0,cycloneAngle=0,flailAngle=0,bloodFangHits=0,bloodFangHealCooldown=0,screenFlash=0,warningTimer=0,warningText='WARNING',levelPulse=0;
-var activeSynergies={},synergyHistory=[],synergyRuntime={},synergyCutinTimeout=0;
+var activeSynergies={},synergyHistory=[],synergyRuntime={},synergyCutinTimeout=0,passiveSkillCutinSeen={};
 var keys={},touch={active:false,startX:0,startY:0,x:0,y:0};
 var gamepadMove={x:0,y:0},gamepadConfirmLatch=false,gamepadNavCooldown=0,selectedChoiceIndex=0,selectedActionIndex=0,gamepadNoticeShown=false,choiceSelectionVisible=false,actionSelectionVisible=false,lastInputMode='touch';
 var gameTime=0,score=0,level=1,exp=0,nextExp=15,spawnTimer=0,waveTimer=7,sunnyTimer=0,pressureTimer=0;
@@ -313,8 +324,10 @@ function getEnemySprite(en){
   if(!frames||!frames.length)return null;
   var usable=frames.filter(function(img){return img&&!img.failed&&img.complete&&img.naturalWidth!==0;});
   if(!usable.length)return null;
-  // 全モードでSVGは1枚固定表示。フレーム切替によるチラつきと負荷をなくす。
-  return usable[0];
+  // 通常モードだけ敵キャラSVGの2枚切り替えを使う。軽量・超軽量は1枚固定で負荷を抑える。
+  if(usable.length===1||perfMode!==PERF_MODE_NORMAL)return usable[0];
+  var frame=Math.floor(performance.now()/260)%usable.length;
+  return usable[frame];
 }
 function drawEnemySprite(en){
   var img=getEnemySprite(en);
@@ -439,7 +452,7 @@ function getSelectedAgeGroup(){var el=document.querySelector('input[name="rankin
 function restoreAgeGroupSelection(){var saved=normalizeAgeGroup(localStorage.getItem('sunnyAgeGroup')||'elementary');var list=document.querySelectorAll('input[name="rankingAgeGroup"]');list.forEach(function(el){el.checked=el.value===saved;});}
 function collectBuildData(){
   var fusions=[],weapons=[],passives=[],breaks=[];
-  fusionOrder.forEach(function(id){var lv=getFusionLevel(id);if(lv>0)fusions.push({id:id,name:fusionDefs[id].name,level:lv,icon:fusionDefs[id].icon});});
+  fusionOrder.forEach(function(id){var lv=getFusionLevel(id);if(lv>0){var fd=getFusionDisplayDef(id);fusions.push({id:id,name:fd.name,level:lv,icon:fd.icon,synergyId:fd.synergyId||''});}});
   weaponOrder.forEach(function(id){var lv=getWeaponLevel(id);if(lv>0)weapons.push({id:id,name:weaponDefs[id].name,level:lv,icon:weaponDefs[id].icon});});
   passiveOrder.forEach(function(id){var lv=getPassiveLevel(id);if(lv>0)passives.push({id:id,name:passiveDefs[id].name,level:lv,icon:passiveDefs[id].icon});});
   breakOrder.forEach(function(id){var lv=getBreakLevel(id);if(lv>0)breaks.push({id:id,name:breakDefs[id].name,level:lv,icon:breakDefs[id].icon});});
@@ -481,8 +494,6 @@ function plainBuildFull(){
   lines.push('武器: '+(attack||'サニーショット'));
   lines.push('補助: '+(parts.passiveText||'なし'));
   if(parts.breakText)lines.push('限界突破: '+parts.breakText);
-  var syn=plainSynergyText();
-  if(syn)lines.push('シナジー: '+syn);
   return lines.join('\n').slice(0,900);
 }
 function makeResultPayload(name){
@@ -501,7 +512,7 @@ function makeResultPayload(name){
     ageGroupLabel:rankGroupLabel(getSelectedAgeGroup()),
     titles:earnedTitles(),
     synergies:plainSynergyList(),
-    synergyText:plainSynergyText(),
+    synergyText:'',
     build:plainBuildSummary(),
     buildFull:plainBuildFull(),
     fusionText:parts.fusionText,
@@ -558,15 +569,12 @@ function rankDetailHtml(data){
   if(!br)br=escapeHtml(extractBuildLine(data.buildFull,'限界突破'));
   var build=escapeHtml(data.buildFull||data.build||attack||'記録なし').replace(/\n/g,'<br>');
   var titles=Array.isArray(data.titles)?data.titles.join(' / '):'';
-  var synText=data.synergyText||'';
-  if(!synText&&Array.isArray(data.synergies))synText=data.synergies.map(function(x){return ((x.icon||'')+' '+(x.name||'')).trim();}).join(' / ');
   return '<div class="rankDetail"><b>詳細</b><br>'+
     'スコア：'+escapeHtml(Math.floor(data.score||0))+'点 / 生存時間：'+escapeHtml(formatRankTime(data.surviveTime||0))+'<br>'+
     '到達Lv：'+escapeHtml(data.level||1)+' / 撃破数：'+escapeHtml(data.kills||0)+' / モード：'+escapeHtml(data.mode||'NORMAL')+'<br>'+
     '区分：'+escapeHtml(rankGroupLabel(data.ageGroup||'all'))+' / シーズン：'+escapeHtml(data.seasonLabel||data.season||'記録なし')+'<br>'+
     (titles?'称号：'+escapeHtml(titles)+'<br>':'')+
-    (synText?'シナジー：'+escapeHtml(synText)+'<br>':'')+
-    '<b>使用武器</b><br>'+(attack||build||'記録なし')+'<br>'+
+    '<b>使用武器</b><br>'+(attack||build||'記録なし')+'<br'+'>
     '<b>補助</b><br>'+(passive||'なし')+'<br>'+
     (br?'<b>限界突破</b><br>'+br+'<br>':'')+
     '<span class="muted">登録日時：'+escapeHtml(formatRankDate(data))+'</span></div>';
@@ -662,7 +670,7 @@ function submitScore(){
   var payload=makeResultPayload(input?input.value:'');
   var problem=validatePayload(payload);if(problem){setRankingStatus(problem);return;}
   scoreSubmitInProgress=true;setSubmitButtonState(true);setRankingStatus(RANKING_SEASON_LABEL+'・'+rankGroupLabel(group)+'へ登録中...');
-  initRanking().then(function(){var fs=fireFns;payload.createdAt=fs.serverTimestamp();return fs.addDoc(fs.collection(fireDb,RANKING_COLLECTION),payload);}).then(function(){scoreAlreadySubmitted=true;localStorage.setItem('sunnyLastSubmitAt',String(Date.now()));localStorage.setItem('sunnyAgeGroup',group);rankingGroupFilter=group;setRankingStatus('登録ありがとう！低スコアでも大歓迎。ヒントカードをどうぞ！');showScoreHintCard(payload);loadRankings();}).catch(function(err){console.warn('score submit failed',err);setRankingStatus('登録に失敗しました。Firestoreのルールを確認してください。');}).finally(function(){scoreSubmitInProgress=false;setSubmitButtonState(false);});
+  initRanking().then(function(){var fs=fireFns;payload.createdAt=fs.serverTimestamp();return fs.addDoc(fs.collection(fireDb,RANKING_COLLECTION),payload);}).then(function(){scoreAlreadySubmitted=true;localStorage.setItem('sunnyLastSubmitAt',String(Date.now()));localStorage.setItem('sunnyAgeGroup',group);rankingGroupFilter=group;setRankingStatus('登録ありがとう！ヒントカードをどうぞ！');showScoreHintCard(payload);loadRankings();}).catch(function(err){console.warn('score submit failed',err);setRankingStatus('登録に失敗しました。Firestoreのルールを確認してください。');}).finally(function(){scoreSubmitInProgress=false;setSubmitButtonState(false);});
 }
 function setupRankingEvents(){
   var m=document.getElementById('menuLoadRankingsBtn');if(m)m.addEventListener('click',loadRankings);
@@ -708,14 +716,14 @@ var fusionDefs={
   ricochetRelease:{icon:'🔁',name:'跳弾開放',a:'machinegun',b:'beam',desc:'跳ね返る弾で画面制圧。移動スピードと範囲で伸びる。'},
   ironPress:{icon:'♨️',name:'アイロンプレス',a:'fire',b:'iron',desc:'熱い鉄塊で押しつぶし熱床を残す。ハートと範囲で強化。'},
   napalmLaser:{icon:'🔥',name:'ナパームレーザー',a:'laser',b:'fire',desc:'焼けるレーザー。燃焼と残り火で道を作る。'},
-  laserFan:{icon:'🌪️',name:'レーザーファン',a:'laser',b:'ice',desc:'高速回転するレーザー刃。発射速度と移動スピードでさらに回る。'},
+  laserFan:{icon:'🌪️',name:'レーザーファン',a:'laser',b:'ice',desc:'高速回転するレーザー刃。ボスは弾かず、近距離で削る特化。'},
   droneCarrier:{icon:'🚁',name:'ドローンキャリア',a:'machinegun',b:'missile',desc:'小型ドローンを展開し、一定時間だけ支援射撃する。'},
   paralyzeGun:{icon:'☠️',name:'パラライズガン',a:'machinegun',b:'thunder',desc:'しびれ弾を連射。麻痺毒が周囲へ小さく広がる。'},
   meteorMissile:{icon:'☄️',name:'メテオミサイル',a:'missile',b:'iron',desc:'でっかい重ミサイル。遅いが大爆発で硬い敵に強い。'},
   charmPulse:{icon:'💘',name:'チャームパルス',a:'thunder',b:'beam',desc:'広がるパルスで小型敵を味方化。味方敵の攻撃も強化。'},
   bloodFang:{icon:'🩸',name:'ブラッドファング',a:'fire',b:'needle',desc:'吸血牙の貫通弾。連続ヒットで粘り強く回復する。'},
-  cycloneCutter:{icon:'🌪️',name:'サイクロンカッター',a:'ice',b:'needle',desc:'回転する氷刃。接近した敵を押し返し、鈍足にする。'},
-  chainFlail:{icon:'⛓️',name:'チェーンフレイル',a:'iron',b:'beam',desc:'鎖付き鉄球を高速回転。発射速度と移動スピードでぶん回す。'}
+  cycloneCutter:{icon:'🌪️',name:'サイクロンカッター',a:'ice',b:'needle',desc:'回転する氷刃。雑魚を押し返し、ボスは鈍足で削る。'},
+  chainFlail:{icon:'⛓️',name:'チェーンフレイル',a:'iron',b:'beam',desc:'鎖付き鉄球を高速回転。雑魚を弾き、ボスには重い一撃。'}
 };
 var fusionOrder=['reflectLaser','flashLaser','needleGun','burningGun','fireworks','allMissile','hardIce','steamExplosion','burstNeedle','laserShower','railgun','lightningRod','frozenMissile','drillMissile','fairySummon','shortLaser','ricochetRelease','ironPress','napalmLaser','laserFan','droneCarrier','paralyzeGun','meteorMissile','charmPulse','bloodFang','cycloneCutter','chainFlail'];
 var passiveDefs={
@@ -730,8 +738,8 @@ var passiveDefs={
 var passiveOrder=['heart','speed','magnet','power','haste','area','goggles'];
 var weaponIntervals={laser:.82,machinegun:.24,missile:1.05,thunder:1.12,fire:.86,ice:99,iron:1.02,needle:.50,beam:.72};
 var bossCoefNormal={sunny:.12,laser:.20,machinegun:.15,missile:.20,thunder:.21,fire:.095,ice:.17,iron:.27,needle:.15,beam:.14};
-var bossCoefFusion={reflectLaser:.90,flashLaser:.88,needleGun:.88,burningGun:.74,fireworks:.84,allMissile:.80,hardIce:.82,steamExplosion:.86,burstNeedle:.74,laserShower:.84,railgun:1.06,lightningRod:.97,frozenMissile:.84,drillMissile:.97,fairySummon:.80,shortLaser:1.00,ricochetRelease:.76,ironPress:1.02,napalmLaser:.98,laserFan:.95,droneCarrier:.84,paralyzeGun:.94,meteorMissile:1.02,charmPulse:.90,bloodFang:.96,cycloneCutter:.90,chainFlail:.98};
-var fireBossCooldown={fire:.34,burningGun:.24,hardIceAura:.30,steamExplosion:.24,laserShower:.045,lightningRod:.11,frozenMissile:.20,fairySummon:.070,shortLaser:.034,ricochetRelease:.038,ironPress:.22,flashPulse:.16,napalmLaser:.045,laserFan:.055,droneCarrier:.045,paralyzeGun:.055,meteorMissile:.42,charmPulse:.11,bloodFang:.040,cycloneCutter:.080,chainFlail:.10,burnTick:.22,paralyzeTick:.22,afterImage:.16};
+var bossCoefFusion={reflectLaser:.90,flashLaser:.88,needleGun:.88,burningGun:.74,fireworks:.84,allMissile:.80,hardIce:.82,steamExplosion:.86,burstNeedle:.74,laserShower:.84,railgun:1.06,lightningRod:.97,frozenMissile:.84,drillMissile:.97,fairySummon:.80,shortLaser:1.00,ricochetRelease:.76,ironPress:1.02,napalmLaser:.98,laserFan:.90,droneCarrier:.84,paralyzeGun:.94,meteorMissile:1.02,charmPulse:.90,bloodFang:.96,cycloneCutter:.86,chainFlail:.92};
+var fireBossCooldown={fire:.34,burningGun:.24,hardIceAura:.30,steamExplosion:.24,laserShower:.045,lightningRod:.11,frozenMissile:.20,fairySummon:.070,shortLaser:.034,ricochetRelease:.038,ironPress:.22,flashPulse:.16,napalmLaser:.045,laserFan:.070,droneCarrier:.045,paralyzeGun:.055,meteorMissile:.42,charmPulse:.11,bloodFang:.040,cycloneCutter:.120,chainFlail:.140,burnTick:.22,paralyzeTick:.22,afterImage:.16};
 var breakDefs={
   attack:{icon:'💪',name:'攻撃力突破',desc:'全ダメージ +4%。'},
   haste:{icon:'⏱️',name:'連射突破',desc:'発射速度 +3.5%。'},
@@ -887,7 +895,7 @@ function statGridHtml(){var titles=earnedTitles();return '<div class="statBox"><
 '<div class="statBox"><span>撃破数</span><b>'+totalKills+'</b></div>'+
 '<div class="statBox"><span>到達Lv</span><b>'+level+'</b></div>'+
 '<div class="statBox wide"><span>称号</span><b>'+titles.join(' / ')+'</b></div>';}
-function buildText(){var weapons=[];weaponOrder.forEach(function(id){var lv=getWeaponLevel(id);if(lv>0)weapons.push(weaponDefs[id].icon+' '+weaponDefs[id].name+' Lv'+lv);});fusionOrder.forEach(function(id){var lv=getFusionLevel(id);if(lv>0)weapons.push(fusionDefs[id].icon+' '+fusionDefs[id].name+' Lv'+lv);});var passives=[];passiveOrder.forEach(function(id){var lv=getPassiveLevel(id);if(lv>0)passives.push(passiveDefs[id].icon+' '+passiveDefs[id].name+' Lv'+lv);});var breaks=[];breakOrder.forEach(function(id){var lv=getBreakLevel(id);if(lv>0)breaks.push(breakDefs[id].icon+' '+breakDefs[id].name+' +'+lv);});var syn=plainSynergyText();return '<b>所持武器</b><br>'+(weapons.length?weapons.join(' / '):'なし')+'<br><br><b>所持パッシブ</b><br>'+(passives.length?passives.join(' / '):'なし')+(breaks.length?'<br><br><b>限界突破</b><br>'+breaks.join(' / '):'')+(syn?'<br><br><b>発動シナジー</b><br>'+escapeHtml(syn):'');}
+function buildText(){var weapons=[];weaponOrder.forEach(function(id){var lv=getWeaponLevel(id);if(lv>0)weapons.push(weaponDefs[id].icon+' '+weaponDefs[id].name+' Lv'+lv);});fusionOrder.forEach(function(id){var lv=getFusionLevel(id);if(lv>0){var fd=getFusionDisplayDef(id);weapons.push(fd.icon+' '+fd.name+' Lv'+lv);}});var passives=[];passiveOrder.forEach(function(id){var lv=getPassiveLevel(id);if(lv>0)passives.push(passiveDefs[id].icon+' '+passiveDefs[id].name+' Lv'+lv);});var breaks=[];breakOrder.forEach(function(id){var lv=getBreakLevel(id);if(lv>0)breaks.push(breakDefs[id].icon+' '+breakDefs[id].name+' +'+lv);});return '<b>所持武器</b><br>'+(weapons.length?weapons.join(' / '):'なし')+'<br><br><b>所持パッシブ</b><br>'+(passives.length?passives.join(' / '):'なし')+(breaks.length?'<br><br><b>限界突破</b><br>'+breaks.join(' / '):'');}
 function hasFusion(id){return getFusionLevel(id)>0;}
 function hasPassive(id){return getPassiveLevel(id)>0;}
 function hasFusionMax(id){return getFusionLevel(id)>=3;}
@@ -899,10 +907,10 @@ var SYNERGY_DEFS={
   paralyze360:{icon:'🧨',name:'ビリビリクラッシュメン',line:'全方位しびれ注意',condition:function(){return hasFusionMax('paralyzeGun')&&hasPassiveMax('haste')&&hasPassiveMax('goggles');}},
   dronePilot:{icon:'🕹️',name:'ドローンパイロット',line:'ドローン操作、だいたい成功',condition:function(){return hasFusionMax('droneCarrier')&&hasPassiveMax('magnet')&&hasPassiveMax('goggles');}},
   fireSpread:{icon:'🏮',name:'火の用心',line:'燃え広がりにご注意ください',condition:function(){return hasFusionMax('napalmLaser')&&hasPassiveMax('area')&&hasPassiveMax('power');}},
-  bunbunMaru:{icon:'🪃',name:'ぶんぶん丸',line:'鎖鉄球が止まらない',condition:function(){return hasFusionMax('chainFlail')&&hasPassiveMax('haste')&&hasPassiveMax('speed');}},
-  senpuShuriken:{icon:'🥷',name:'旋風手裏剣',line:'レーザー刃が高速回転',condition:function(){return hasFusionMax('laserFan')&&hasPassiveMax('haste')&&hasPassiveMax('speed');}},
-  guruguruDefense:{icon:'🛡️',name:'ぐるぐる防衛線',line:'守りの輪で近寄らせない',condition:function(){return hasFusionMax('cycloneCutter')&&hasPassiveMax('heart')&&hasPassiveMax('speed');}},
-  fallingCaution:{icon:'⚠️',name:'落下注意',line:'着弾後に衝撃波が広がる',condition:function(){return hasFusionMax('meteorMissile')&&hasPassiveMax('power')&&hasPassiveMax('heart');}},
+  bunbunMaru:{icon:'🪃',name:'ぶんぶん丸',line:'雑魚を大きく弾く鎖鉄球が増える',condition:function(){return hasFusionMax('chainFlail')&&hasPassiveMax('haste')&&hasPassiveMax('speed');}},
+  senpuShuriken:{icon:'🥷',name:'旋風手裏剣',line:'刃数が増え、ボスを弾かず高速で削る',condition:function(){return hasFusionMax('laserFan')&&hasPassiveMax('haste')&&hasPassiveMax('speed');}},
+  guruguruDefense:{icon:'🛡️',name:'ぐるぐる防衛線',line:'雑魚を押し返す防衛リングが広がる',condition:function(){return hasFusionMax('cycloneCutter')&&hasPassiveMax('heart')&&hasPassiveMax('speed');}},
+  fallingCaution:{icon:'💥',name:'爆発注意',line:'メテオ着弾後に爆発と衝撃波が連鎖する',condition:function(){return hasFusionMax('meteorMissile')&&hasPassiveMax('power')&&hasPassiveMax('heart');}},
   ranHansha:{icon:'🪞',name:'乱反射',line:'レーザーがビカビカ跳ね回る',condition:function(){return hasFusionMax('reflectLaser')&&hasPassiveMax('haste')&&hasPassiveMax('speed');}},
   sunglasses:{icon:'🕶️',name:'サングラス',line:'閃光が長く残る',condition:function(){return hasFusionMax('flashLaser')&&hasPassiveMax('heart')&&hasPassiveMax('goggles');}},
   hornet:{icon:'🐝',name:'ホーネット',line:'針の貫通力が大きく上がる',condition:function(){return hasFusionMax('needleGun')&&hasPassiveMax('haste')&&hasPassiveMax('power');}},
@@ -926,12 +934,21 @@ function getSynergyDef(id){return SYNERGY_DEFS[id]||null;}
 function plainSynergyList(){return synergyHistory.map(function(id){var d=getSynergyDef(id);return d?{id:id,icon:d.icon,name:d.name,line:d.line}:null;}).filter(Boolean);}
 function plainSynergyText(){return plainSynergyList().map(function(x){return (x.icon||'')+' '+x.name;}).join(' / ');}
 
+var SYNERGY_FUSION_MAP={
+  sunnyDrain:'bloodFang',negotiator:'charmPulse',paralyze360:'paralyzeGun',dronePilot:'droneCarrier',fireSpread:'napalmLaser',bunbunMaru:'chainFlail',senpuShuriken:'laserFan',guruguruDefense:'cycloneCutter',fallingCaution:'meteorMissile',ranHansha:'reflectLaser',sunglasses:'flashLaser',hornet:'needleGun',fireworkFestival:'fireworks',salamander:'allMissile',gachigachiIce:'hardIce',mokumokuSmoke:'steamExplosion',explosiveNeedle:'burstNeedle',laserRain:'laserShower',focusedShot:'railgun',thunderForecast:'lightningRod',coolDelivery:'frozenMissile',fairyMashimashi:'fairySummon',pinball:'ricochetRelease',hotDrop:'ironPress',fireDaruma:'burningGun',molePrisoner:'drillMissile',stageLight:'shortLaser'
+};
+function getActiveSynergyForFusion(fid){var best=null;Object.keys(SYNERGY_FUSION_MAP).forEach(function(id){if(!best&&SYNERGY_FUSION_MAP[id]===fid&&activeSynergy(id))best=id;});return best;}
+function getFusionDisplayDef(fid){var base=fusionDefs[fid]||{icon:'✨',name:fid};var sid=getActiveSynergyForFusion(fid),sd=sid&&getSynergyDef(sid);if(sd)return{icon:sd.icon||base.icon,name:sd.name||base.name,baseName:base.name,synergyId:sid};return{icon:base.icon,name:base.name,baseName:base.name,synergyId:''};}
+function getSynergyVisual(fid){var sid=getActiveSynergyForFusion(fid),sd=sid&&getSynergyDef(sid);if(!sd)return null;var palette={
+  fallingCaution:{color:'#ffdf6b',scale:1.25,accent:'💥'},senpuShuriken:{color:'#e9fbff',scale:1.14,accent:'✦'},guruguruDefense:{color:'#c8fbff',scale:1.10,accent:'🛡️'},bunbunMaru:{color:'#ffd479',scale:1.18,accent:'✹'},fireSpread:{color:'#ff9d4d',scale:1.12,accent:'🔥'},dronePilot:{color:'#d6f4ff',scale:1.12,accent:'🕹️'},paralyze360:{color:'#b9ff6a',scale:1.10,accent:'☠️'},sunnyDrain:{color:'#ff5c8a',scale:1.12,accent:'🩸'},negotiator:{color:'#ff9bd2',scale:1.12,accent:'💘'},laserRain:{color:'#b7f9ff',scale:1.12,accent:'☔'},focusedShot:{color:'#fff8a8',scale:1.18,accent:'🧿'},thunderForecast:{color:'#fff06b',scale:1.12,accent:'🌩️'},fireworkFestival:{color:'#ffdf6b',scale:1.16,accent:'🎇'},salamander:{color:'#ff8b45',scale:1.13,accent:'🦎'},gachigachiIce:{color:'#c8fbff',scale:1.13,accent:'🧱'},mokumokuSmoke:{color:'#dff7ff',scale:1.15,accent:'🌫️'},explosiveNeedle:{color:'#ffdf6b',scale:1.12,accent:'💥'},coolDelivery:{color:'#c8fbff',scale:1.12,accent:'📦'},fairyMashimashi:{color:'#fff3a6',scale:1.13,accent:'🪽'},pinball:{color:'#ffdf6b',scale:1.10,accent:'🎱'},hotDrop:{color:'#ffdf6b',scale:1.18,accent:'🪂'},fireDaruma:{color:'#ffb044',scale:1.13,accent:'🎴'},molePrisoner:{color:'#eaf4ff',scale:1.15,accent:'🕳️'},stageLight:{color:'#e9fbff',scale:1.16,accent:'🎚️'},ranHansha:{color:'#e8d4ff',scale:1.12,accent:'🪞'},sunglasses:{color:'#fff0a8',scale:1.14,accent:'🕶️'},hornet:{color:'#ffe45c',scale:1.10,accent:'🐝'}
+};var v=palette[sid]||{color:'#ffdf6b',scale:1.12,accent:sd.icon||'✨'};v.id=sid;v.icon=sd.icon||v.accent;v.name=sd.name||'';return v;}
+
 var HINT_CARD_UNLOCK_TIME=240;
 var PASSIVE_HINT_CARD_DEFS=[
-  {id:'sunnyAwakening',icon:'🌞',name:'サニー覚醒',type:'パッシブヒント',conditions:['❤️ 大きなハート Lv5','🥽 ゴーグル Lv5','3枠目の通常武器 Lv5'],desc:'3枠目の通常武器が、合成武器Lv3へ覚醒進化するチャンス。'},
-  {id:'scoreDrive',icon:'💎',name:'スコアドライブ',type:'パッシブヒント',conditions:['🧲 きらきら磁石 Lv5','👟 移動スピード Lv5'],desc:'ジェムを集めるほどスコアアップチャンス。低スコアから一気に伸ばしやすい。'},
-  {id:'yomigaeri',icon:'👻',name:'黄泉がえり',type:'パッシブヒント',conditions:['❤️ 大きなハート Lv5','👟 移動スピード Lv5'],desc:'一度だけ倒れても復活。4分以降を目指す時の保険になる。'},
-  {id:'afterImageStep',icon:'👥',name:'残像ダミー',type:'パッシブヒント',conditions:['👟 移動スピード Lv5','🥽 ゴーグル Lv5'],desc:'たくさん動くと残像が出て、敵の注意をそらしてくれる。'}
+  {id:'sunnyAwakening',icon:'🌞',name:'サニー覚醒',type:'発動スキルヒント',conditions:['❤️ 大きなハート Lv5','🥽 ゴーグル Lv5','3枠目の通常武器 Lv5'],desc:'3枠目の通常武器が、合成武器Lv3へ覚醒進化するチャンス。'},
+  {id:'scoreDrive',icon:'💎',name:'スコアドライブ',type:'発動スキルヒント',conditions:['🧲 きらきら磁石 Lv5','👟 移動スピード Lv5'],desc:'ジェムを集めるほどスコアアップチャンス。低スコアから一気に伸ばしやすい。'},
+  {id:'yomigaeri',icon:'👻',name:'黄泉がえり',type:'発動スキルヒント',conditions:['❤️ 大きなハート Lv5','👟 移動スピード Lv5'],desc:'一度だけ倒れても復活。4分以降を目指す時の保険になる。'},
+  {id:'afterImageStep',icon:'👥',name:'残像ダミー',type:'発動スキルヒント',conditions:['👟 移動スピード Lv5','🥽 ゴーグル Lv5'],desc:'たくさん動くと残像が出て、敵の注意をそらしてくれる。'}
 ];
 function hintConditionForWeapon(id){var d=weaponDefs[id];return d?((d.icon||'')+' '+d.name+' Lv5'):(id+' Lv5');}
 function hintConditionForFusion(id){var d=fusionDefs[id];return d?((d.icon||'')+' '+d.name+' Lv3'):(id+' Lv3');}
@@ -952,12 +969,19 @@ function buildSynergyHintCards(){
 }
 function chooseScoreHintCard(payload){
   var survive=Math.max(0,Math.floor((payload&&payload.surviveTime)||gameTime||0));
-  var pool=survive>=HINT_CARD_UNLOCK_TIME?buildSynergyHintCards():buildFusionHintCards();
-  if(!pool.length)pool=buildFusionHintCards();
-  if(!pool.length)return null;
+  var fusionPool=buildFusionHintCards();
+  var advancedPool=buildSynergyHintCards();
+  // 4分未満は合成カード。4分以上は上級カード中心だが、約2割は合成カードも混ぜる。
+  var pool;
+  if(survive>=HINT_CARD_UNLOCK_TIME){
+    pool=(Math.random()<.20&&fusionPool.length)?fusionPool:advancedPool;
+    if(!pool||!pool.length)pool=fusionPool;
+  }else{
+    pool=fusionPool;
+  }
+  if(!pool||!pool.length)return null;
   var card=choose(pool);
   card.surviveTime=survive;
-  card.unlockTier=survive>=HINT_CARD_UNLOCK_TIME?'synergy':'fusion';
   return card;
 }
 function renderHintConditions(list){
@@ -968,15 +992,14 @@ function showScoreHintCard(payload){
   var card=chooseScoreHintCard(payload);if(!card)return;
   var overlay=document.getElementById('hintCardOverlay');if(!overlay)return;
   var header=document.getElementById('hintCardHeader'),sub=document.getElementById('hintCardSub'),type=document.getElementById('hintCardType'),icon=document.getElementById('hintCardIcon'),title=document.getElementById('hintCardTitle'),cond=document.getElementById('hintCardConditions'),desc=document.getElementById('hintCardDesc'),footer=document.getElementById('hintCardFooter');
-  var isSynergy=card.unlockTier==='synergy';
-  if(header)header.textContent=isSynergy?'4分生存ボーナス！ シナジーカード':'登録ありがとう！ 合成カード';
-  if(sub)sub.textContent='生存時間 '+formatTime(card.surviveTime)+' / '+(isSynergy?'シナジー・パッシブ条件からランダム':'合成条件からランダム');
+  if(header)header.textContent='登録ありがとう！ スコアアップのヒントカード';
+  if(sub)sub.textContent='次のプレイで狙えるヒントを1枚プレゼント！';
   if(type)type.textContent=card.type||'ヒントカード';
   if(icon)icon.textContent=card.icon||'✨';
   if(title)title.textContent=card.name||'ヒント';
   if(cond)cond.innerHTML=renderHintConditions(card.conditions);
   if(desc)desc.textContent=card.desc||'';
-  if(footer)footer.textContent=isSynergy?'ここまで来た人向けの上級ヒント。次は条件をそろえて発動を狙おう！':'まずはこの2つの武器をLv5にして、合成を狙ってみよう！';
+  if(footer)footer.textContent='次のプレイで狙ってみよう！';
   overlay.style.display='flex';overlay.setAttribute('aria-hidden','false');
   var btn=document.getElementById('hintCardCloseBtn');if(btn){try{btn.focus({preventScroll:true});}catch(e){try{btn.focus();}catch(err){}}}
 }
@@ -984,18 +1007,26 @@ function closeScoreHintCard(){
   var overlay=document.getElementById('hintCardOverlay');if(!overlay)return;
   overlay.style.display='none';overlay.setAttribute('aria-hidden','true');clearActionSelection();selectedActionIndex=0;actionSelectionVisible=(lastInputMode==='gamepad');if(actionSelectionVisible)setActionFocus(0,true);
 }
-function showSynergyCutin(def){
+function showCinematicCutin(tag,def,kind){
+  def=def||{};
   var el=document.getElementById('synergyCutin');
-  if(!el){showMessage('シナジー発動！ '+def.name,1500);return;}
+  if(!el){showMessage((tag||'発動！')+' '+(def.name||''),1500);return;}
   clearTimeout(synergyCutinTimeout);
+  el.className=kind==='skill'?'cutinSkill':'cutinSynergy';
   el.classList.remove('show');
-  el.innerHTML='<div class="synergyCutinTag">シナジー発動！</div><div class="synergyCutinName">'+escapeHtml((def.icon||'✨')+' '+def.name)+'</div><div class="synergyCutinLine">'+escapeHtml(def.line||'')+'</div>';
+  el.innerHTML='<div class="cutinBurst">'+escapeHtml(def.icon||'✨')+'</div><div class="synergyCutinTag">'+escapeHtml(tag||'シナジー発動！')+'</div><div class="synergyCutinName">'+escapeHtml((def.icon||'✨')+' '+(def.name||''))+'</div><div class="synergyCutinLine">'+escapeHtml(def.line||'')+'</div>';
   void el.offsetWidth;
   el.classList.add('show');
-  synergyCutinTimeout=setTimeout(function(){el.classList.remove('show');},1750);
-  screenFlash=Math.max(screenFlash,.16);
-  if(player)bigBurst(player.x,player.y,'#ffdf6b',42,.72);
+  synergyCutinTimeout=setTimeout(function(){el.classList.remove('show');},perfMode===PERF_MODE_NORMAL?2050:1550);
+  screenFlash=Math.max(screenFlash,kind==='skill'?.18:.20);
+  if(player)bigBurst(player.x,player.y,kind==='skill'?'#66d9ff':'#ffdf6b',perfMode===PERF_MODE_NORMAL?64:38,kind==='skill'?.82:.90);
   playSfx('fusion');
+}
+function showSynergyCutin(def){showCinematicCutin('シナジー発動！',def,'synergy');}
+function showPassiveSkillCutin(id,def,force){
+  if(!force&&passiveSkillCutinSeen[id])return;
+  passiveSkillCutinSeen[id]=true;
+  showCinematicCutin('発動スキル',def,'skill');
 }
 function checkSynergyUnlocks(){
   if(!running||gameOver)return;
@@ -1006,6 +1037,7 @@ function checkSynergyUnlocks(){
       synergyHistory.push(id);
       synergyRuntime[id]=synergyRuntime[id]||{};
       showSynergyCutin(d);
+      updateSlots();
     }
   });
 }
@@ -1093,7 +1125,7 @@ function earnedTitles(){
   if(activeSynergy('negotiator'))t.push('交渉係');
   if(activeSynergy('paralyze360'))t.push('ビリビリクラッシュメン');
   if(activeSynergy('fireSpread'))t.push('火の用心係');
-  if(activeSynergy('fallingCaution'))t.push('落下注意を見た');
+  if(activeSynergy('fallingCaution'))t.push('爆発注意を見た');
   if(activeSynergy('ranHansha'))t.push('乱反射で目がチカチカ');
   if(activeSynergy('sunglasses'))t.push('サングラス持参');
   if(activeSynergy('hornet'))t.push('ホーネット注意報');
@@ -1106,12 +1138,12 @@ function earnedTitles(){
   if(t.length===0)t.push('見習いサバイバー');
   return t.slice(0,7);
 }
-function showResult(title,comment){closeSettingsMenu();stopBgm();paused=true;running=false;showPerfToggle(false);scoreAlreadySubmitted=false;scoreSubmitInProgress=false;document.getElementById('levelScreen').style.display='none';document.getElementById('clearScreen').style.display='none';document.getElementById('resultTitle').textContent=title;document.getElementById('resultComment').textContent=comment;document.getElementById('resultStats').innerHTML=statGridHtml();document.getElementById('resultBuild').innerHTML=buildText();var input=document.getElementById('playerNameInput');if(input){input.value=localStorage.getItem('sunnyPlayerName')||'';}restoreAgeGroupSelection();lastResultPayload=makeResultPayload('');setSubmitButtonState(false);setRankingStatus('低スコアでも登録大歓迎！登録するとスコアアップのヒントカードが1枚もらえます。');if(!rankingsLoaded)renderRankPrompt();document.getElementById('resultScreen').style.display='flex';selectedActionIndex=0;actionSelectionVisible=(lastInputMode==='gamepad');if(actionSelectionVisible)setActionFocus(0,true);else clearActionSelection();}
+function showResult(title,comment){closeSettingsMenu();stopBgm();paused=true;running=false;showPerfToggle(false);scoreAlreadySubmitted=false;scoreSubmitInProgress=false;document.getElementById('levelScreen').style.display='none';document.getElementById('clearScreen').style.display='none';document.getElementById('resultTitle').textContent=title;document.getElementById('resultComment').textContent=comment;document.getElementById('resultStats').innerHTML=statGridHtml();document.getElementById('resultBuild').innerHTML=buildText();var input=document.getElementById('playerNameInput');if(input){input.value=localStorage.getItem('sunnyPlayerName')||'';}restoreAgeGroupSelection();lastResultPayload=makeResultPayload('');setSubmitButtonState(false);setRankingStatus('');if(!rankingsLoaded)renderRankPrompt();document.getElementById('resultScreen').style.display='flex';selectedActionIndex=0;actionSelectionVisible=(lastInputMode==='gamepad');if(actionSelectionVisible)setActionFocus(0,true);else clearActionSelection();}
 function showClearScreen(){if(clearOffered||gameOver)return;clearOffered=true;paused=true;gameTime=CLEAR_TIME;screenFlash=.42;bigBurst(player.x,player.y,'#ffdf6b',100,1.2);document.getElementById('clearStats').innerHTML=statGridHtml();document.getElementById('clearBuild').innerHTML=buildText();document.getElementById('clearScreen').style.display='flex';selectedActionIndex=0;actionSelectionVisible=(lastInputMode==='gamepad');if(actionSelectionVisible)setActionFocus(0,true);else clearActionSelection();showMessage('5分生存クリア！',1600);playSfx('clear');}
 function showGameOver(){if(gameOver)return;gameOver=true;paused=false;deathShown=false;deathTimer=1.35;deathResultTitle=endlessMode?'ENDLESS RESULT':'GAME OVER';deathResultComment=endlessMode?'エンドレスのモヤモヤに飲み込まれました。':'モヤモヤに飲み込まれました。ビルドと合成を変えて再挑戦！';screenFlash=.55;playSfx('gameover');playDeathBurstSfx();showMessage('サニーさんダウン！',1200);if(player){player.hitFace=.9;player.inv=0;bigBurst(player.x,player.y,'#ffdf6b',95,1.2);bigBurst(player.x,player.y,'#ff6678',65,1.0);}}
 
 
-function startGame(){ensureAudio();playBgm();resize();player={x:width/2,y:height/2,r:playerRadiusForViewport(),hp:120,maxHp:120,baseSpeed:240,speed:240,facingX:1,facingY:0,inv:.75,ringAngle:0,hitFace:0};drones=[];enemies=[];bullets=[];items=[];particles=[];trails=[];lightnings=[];zones=[];afterImages=[];iceAngle=0;fairyAngle=0;laserFanAngle=0;cycloneAngle=0;flailAngle=0;bloodFangHits=0;bloodFangHealCooldown=0;screenFlash=0;warningTimer=0;levelPulse=0;deathTimer=0;deathShown=false;deathResultTitle='';deathResultComment='';weaponLevels={};fusionLevels={};passiveLevels={};breakLevels={};weaponTimers={};weaponSlotOrder=[];resetPassiveSynergyState();activeSynergies={};synergyHistory=[];synergyRuntime={};clearTimeout(synergyCutinTimeout);var sc=document.getElementById('synergyCutin');if(sc)sc.classList.remove('show');bossFlags={};gameTime=0;score=0;level=1;exp=0;nextExp=nextExpFor(level);spawnTimer=.95;waveTimer=12;pressureTimer=18;sunnyTimer=.16;running=true;paused=false;gameOver=false;clearOffered=false;endlessMode=false;totalKills=0;lastEndlessBossMinute=5;lastTime=performance.now();document.getElementById('menu').style.display='none';document.getElementById('clearScreen').style.display='none';document.getElementById('resultScreen').style.display='none';document.getElementById('levelScreen').style.display='none';document.getElementById('hud').style.display='flex';document.getElementById('hpOuter').style.display='block';document.getElementById('expOuter').style.display='block';document.getElementById('bottomSlots').style.display='flex';showPerfToggle(true);setPerfMode(perfMode,false);document.getElementById('debugPanel').style.display=DEBUG_MODE?'flex':'none';document.getElementById('rerollBtn').style.display=DEBUG_MODE?'inline-block':'none';updateSlots();updateHud();showMessage('サニーショット固定。武器選択で突破口を作ろう！');}
+function startGame(){ensureAudio();playBgm();resize();player={x:width/2,y:height/2,r:playerRadiusForViewport(),hp:120,maxHp:120,baseSpeed:240,speed:240,facingX:1,facingY:0,inv:.75,ringAngle:0,hitFace:0};drones=[];enemies=[];bullets=[];items=[];particles=[];trails=[];lightnings=[];zones=[];afterImages=[];iceAngle=0;fairyAngle=0;laserFanAngle=0;cycloneAngle=0;flailAngle=0;bloodFangHits=0;bloodFangHealCooldown=0;screenFlash=0;warningTimer=0;levelPulse=0;deathTimer=0;deathShown=false;deathResultTitle='';deathResultComment='';weaponLevels={};fusionLevels={};passiveLevels={};breakLevels={};weaponTimers={};weaponSlotOrder=[];resetPassiveSynergyState();activeSynergies={};synergyHistory=[];synergyRuntime={};passiveSkillCutinSeen={};clearTimeout(synergyCutinTimeout);var sc=document.getElementById('synergyCutin');if(sc)sc.classList.remove('show');bossFlags={};gameTime=0;score=0;level=1;exp=0;nextExp=nextExpFor(level);spawnTimer=.95;waveTimer=12;pressureTimer=18;sunnyTimer=.16;running=true;paused=false;gameOver=false;clearOffered=false;endlessMode=false;totalKills=0;lastEndlessBossMinute=5;lastTime=performance.now();document.getElementById('menu').style.display='none';document.getElementById('clearScreen').style.display='none';document.getElementById('resultScreen').style.display='none';document.getElementById('levelScreen').style.display='none';document.getElementById('hud').style.display='flex';document.getElementById('hpOuter').style.display='block';document.getElementById('expOuter').style.display='block';document.getElementById('bottomSlots').style.display='flex';showPerfToggle(true);setPerfMode(perfMode,false);document.getElementById('debugPanel').style.display=DEBUG_MODE?'flex':'none';document.getElementById('rerollBtn').style.display=DEBUG_MODE?'inline-block':'none';updateSlots();updateHud();showMessage('サニーショット固定。武器選択で突破口を作ろう！');}
 function hideGameUi(){closeSettingsMenu();document.getElementById('hud').style.display='none';document.getElementById('hpOuter').style.display='none';document.getElementById('expOuter').style.display='none';document.getElementById('bottomSlots').style.display='none';showPerfToggle(false);document.getElementById('debugPanel').style.display='none';}
 
 document.getElementById('startBtn').addEventListener('click',startGame);document.getElementById('againBtn').addEventListener('click',startGame);document.getElementById('titleBtn').addEventListener('click',function(){stopBgm();running=false;paused=false;gameOver=false;document.getElementById('resultScreen').style.display='none';document.getElementById('clearScreen').style.display='none';hideGameUi();document.getElementById('menu').style.display='flex';if(!rankingsLoaded)renderRankPrompt();selectedActionIndex=0;actionSelectionVisible=(lastInputMode==='gamepad');if(actionSelectionVisible)setActionFocus(0,true);else clearActionSelection();});document.getElementById('finishBtn').addEventListener('click',function(){showResult('GAME CLEAR!','5分間生き残りました！');});document.getElementById('endlessBtn').addEventListener('click',function(){endlessMode=true;paused=false;document.getElementById('clearScreen').style.display='none';document.getElementById('modeText').textContent='ENDLESS';showMessage('ENDLESS START! 限界突破解放',1500);screenFlash=.25;});document.getElementById('rerollBtn').addEventListener('click',function(){if(DEBUG_MODE){renderLevelChoices();showMessage('3択ひきなおし');}});document.getElementById('submitScoreBtn').addEventListener('click',function(){var input=document.getElementById('playerNameInput');if(input)localStorage.setItem('sunnyPlayerName',sanitizeName(input.value));submitScore();});
@@ -1175,10 +1207,11 @@ var wb=document.getElementById('weaponSlots');wb.innerHTML='';var slots=currentW
 for(var i=0;i<slotCount;i++){
   var d=document.createElement('div'),key=slots[i];
   if(key){
-    var isFusion=isFusionSlotKey(key),id=weaponSlotIdFromKey(key),def=isFusion?fusionDefs[id]:weaponDefs[id],lv=isFusion?getFusionLevel(id):getWeaponLevel(id);
-    d.className='slot '+(isFusion?'fusion':'');
+    var isFusion=isFusionSlotKey(key),id=weaponSlotIdFromKey(key),def=isFusion?getFusionDisplayDef(id):weaponDefs[id],lv=isFusion?getFusionLevel(id):getWeaponLevel(id);
+    d.className='slot '+(isFusion?'fusion ':'')+(isFusion&&def&&def.synergyId?'synergy':'');
+    if(isFusion&&def&&def.synergyId)d.title=(def.baseName||'合成武器')+' → '+def.name;
     var icon=document.createElement('span');icon.className='slotIcon';icon.textContent=def?def.icon:'?';d.appendChild(icon);
-    var lvEl=document.createElement('span');lvEl.className='lv';lvEl.textContent=lv;d.appendChild(lvEl);
+    var lvEl=document.createElement('span');lvEl.className='lv';lvEl.textContent=(isFusion&&def&&def.synergyId)?'S':lv;d.appendChild(lvEl);
   }else{d.className='slot empty';d.textContent='＋';}
   wb.appendChild(d);
 }
@@ -1253,7 +1286,7 @@ updateSlots();checkSynergyUnlocks();document.getElementById('levelScreen').style
 function shuffleArray(arr){arr=arr.slice();for(var i=arr.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=arr[i];arr[i]=arr[j];arr[j]=t;}return arr;}
 function sunnyAwakeningCandidates(baseWeapon){return fusionOrder.filter(function(fid){var fd=fusionDefs[fid];return getFusionLevel(fid)===0&&(fd.a===baseWeapon||fd.b===baseWeapon);});}
 function renderSunnyAwakeningChoices(baseWeapon,candidates){var box=document.getElementById('choices');box.innerHTML='';var out=shuffleArray(candidates).slice(0,3);out.forEach(function(fid){var fd=fusionDefs[fid];var other=fd.a===baseWeapon?fd.b:fd.a;var btn=document.createElement('button');btn.className='choice fusionChoice';var tag=document.createElement('span');tag.className='tag';tag.textContent='🌞サニー覚醒';btn.appendChild(tag);var emoji=document.createElement('div');emoji.className='emoji';emoji.textContent=fd.icon;btn.appendChild(emoji);var name=document.createElement('b');name.textContent=fd.name+' Lv3';btn.appendChild(name);var desc=document.createElement('small');desc.textContent=weaponDefs[baseWeapon].name+' Lv5が覚醒進化。'+weaponDefs[other].name+'系統の力も引き出す。'+fd.desc;btn.appendChild(desc);btn.addEventListener('click',function(){applySunnyAwakening(fid,baseWeapon);});box.appendChild(btn);});selectedChoiceIndex=0;choiceSelectionVisible=(lastInputMode==='gamepad');if(choiceSelectionVisible)setChoiceFocus(0,true);else clearChoiceSelection();}
-function openSunnyAwakening(baseWeapon){if(!passiveSynergyState||passiveSynergyState.sunnyAwakeningDone)return;var candidates=sunnyAwakeningCandidates(baseWeapon);passiveSynergyState.sunnyAwakeningDone=true;if(!candidates.length){breakLevels.fusion=getBreakLevel('fusion')+2;updateSlots();celebrateText('SUNNY AWAKENING! 合成突破 +2');return;}paused=true;screenFlash=Math.max(screenFlash,.38);if(player)bigBurst(player.x,player.y,'#ffdf6b',96,1.2);var lh=document.querySelector('#levelPanel h2');if(lh)lh.textContent='SUNNY AWAKENING!';showMessage('サニー覚醒！ 3枠目の武器が限界を超える！',1500);renderSunnyAwakeningChoices(baseWeapon,candidates);document.getElementById('levelScreen').style.display='flex';playSfx('clear');}
+function openSunnyAwakening(baseWeapon){if(!passiveSynergyState||passiveSynergyState.sunnyAwakeningDone)return;var candidates=sunnyAwakeningCandidates(baseWeapon);passiveSynergyState.sunnyAwakeningDone=true;showPassiveSkillCutin('sunnyAwakening',{icon:'🌞',name:'サニー覚醒',line:'3枠目の武器が覚醒進化！'});if(!candidates.length){breakLevels.fusion=getBreakLevel('fusion')+2;updateSlots();celebrateText('SUNNY AWAKENING! 合成突破 +2');return;}paused=true;screenFlash=Math.max(screenFlash,.38);if(player)bigBurst(player.x,player.y,'#ffdf6b',96,1.2);var lh=document.querySelector('#levelPanel h2');if(lh)lh.textContent='SUNNY AWAKENING!';showMessage('サニー覚醒！ 3枠目の武器が限界を超える！',1500);renderSunnyAwakeningChoices(baseWeapon,candidates);document.getElementById('levelScreen').style.display='flex';playSfx('clear');}
 function applySunnyAwakening(fid,baseWeapon){
   // サニー覚醒：武器枠は増やさず、3枠目の通常武器Lv5を合成武器Lv3へ進化させる。
   weaponLevels[baseWeapon]=0;
@@ -1270,8 +1303,8 @@ function applySunnyAwakening(fid,baseWeapon){
   setTimeout(checkLevelUps,0);
 }
 function checkPassiveSynergies(){if(!running||gameOver||paused||!player||!passiveSynergyState)return;if(!passiveSynergyState.sunnyAwakeningDone&&getPassiveLevel('heart')>=5&&getPassiveLevel('goggles')>=5){var base=getThirdNormalWeaponSlot();if(base)openSunnyAwakening(base);}}
-function notifyGemPickupForDrive(value){if(!hasScoreDrive()||!passiveSynergyState)return;passiveSynergyState.scoreDriveCharge+=Math.max(1,Math.floor(value||1));passiveSynergyState.scoreDriveComboTimer=1.8;if(passiveSynergyState.scoreDriveCharge>=35&&passiveSynergyState.scoreDriveTimer<=0){passiveSynergyState.scoreDriveCharge=0;passiveSynergyState.scoreDriveTimer=5.0;screenFlash=Math.max(screenFlash,.16);if(player)bigBurst(player.x,player.y,'#66d9ff',44,.75);showMessage('スコアドライブ！ ジェムスコアアップ',1050);playSfx('level');}}
-function hasYomigaeri(){return getPassiveLevel('heart')>=5&&getPassiveLevel('speed')>=5;}function tryYomigaeri(){if(!hasYomigaeri()||!passiveSynergyState||passiveSynergyState.yomigaeriUsed)return false;passiveSynergyState.yomigaeriUsed=true;player.hp=Math.max(1,Math.floor(player.maxHp*.55));player.inv=3.0;player.hitFace=.8;screenFlash=Math.max(screenFlash,.65);bigBurst(player.x,player.y,'#ffdf6b',120,1.3);bigBurst(player.x,player.y,'#ff7899',70,1.0);for(var i=enemies.length-1;i>=0;i--){var e=enemies[i],d=Math.hypot(e.x-player.x,e.y-player.y);if(d<170+player.r){var a=Math.atan2(e.y-player.y,e.x-player.x);e.x+=Math.cos(a)*(e.boss?28:90);e.y+=Math.sin(a)*(e.boss?28:90);e.slowTimer=Math.max(e.slowTimer||0,1.35);if(!e.boss&&d<110&&damageEnemy(e,70,{weapon:'yomigaeri',slow:1.2}))killEnemyAt(i);}}showMessage('黄泉がえり！ サニーさんはまだ倒れない！',1600);playSfx('clear');return true;}
+function notifyGemPickupForDrive(value){if(!hasScoreDrive()||!passiveSynergyState)return;passiveSynergyState.scoreDriveCharge+=Math.max(1,Math.floor(value||1));passiveSynergyState.scoreDriveComboTimer=1.8;if(passiveSynergyState.scoreDriveCharge>=35&&passiveSynergyState.scoreDriveTimer<=0){passiveSynergyState.scoreDriveCharge=0;passiveSynergyState.scoreDriveTimer=5.0;showPassiveSkillCutin('scoreDrive',{icon:'💎',name:'スコアドライブ',line:'ジェム回収でスコアアップ！'});screenFlash=Math.max(screenFlash,.16);if(player)bigBurst(player.x,player.y,'#66d9ff',44,.75);showMessage('スコアドライブ！ ジェムスコアアップ',1050);playSfx('level');}}
+function hasYomigaeri(){return getPassiveLevel('heart')>=5&&getPassiveLevel('speed')>=5;}function tryYomigaeri(){if(!hasYomigaeri()||!passiveSynergyState||passiveSynergyState.yomigaeriUsed)return false;passiveSynergyState.yomigaeriUsed=true;showPassiveSkillCutin('yomigaeri',{icon:'👻',name:'黄泉がえり',line:'一度だけ復活！'});player.hp=Math.max(1,Math.floor(player.maxHp*.55));player.inv=3.0;player.hitFace=.8;screenFlash=Math.max(screenFlash,.65);bigBurst(player.x,player.y,'#ffdf6b',120,1.3);bigBurst(player.x,player.y,'#ff7899',70,1.0);for(var i=enemies.length-1;i>=0;i--){var e=enemies[i],d=Math.hypot(e.x-player.x,e.y-player.y);if(d<170+player.r){var a=Math.atan2(e.y-player.y,e.x-player.x);e.x+=Math.cos(a)*(e.boss?28:90);e.y+=Math.sin(a)*(e.boss?28:90);e.slowTimer=Math.max(e.slowTimer||0,1.35);if(!e.boss&&d<110&&damageEnemy(e,70,{weapon:'yomigaeri',slow:1.2}))killEnemyAt(i);}}showMessage('黄泉がえり！ サニーさんはまだ倒れない！',1600);playSfx('clear');return true;}
 function hasAfterImageStep(){return getPassiveLevel('speed')>=5&&getPassiveLevel('goggles')>=5;}function registerAfterStepMovement(dist){if(!hasAfterImageStep()||!passiveSynergyState||dist<=0)return;if(passiveSynergyState.afterStepCooldown>0)return;passiveSynergyState.afterStepCharge+=dist;if(passiveSynergyState.afterStepCharge>=760){passiveSynergyState.afterStepCharge=0;passiveSynergyState.afterStepCooldown=2.6;spawnAfterImages();}}
 function spawnAfterImages(){
   if(!player)return;
@@ -1281,6 +1314,7 @@ function spawnAfterImages(){
     var side=i===0?-1:1;
     afterImages.push({x:player.x-fx*(36+i*12)+sideX*side*30,y:player.y-fy*(36+i*12)+sideY*side*30,r:player.r*1.08,life:4.4+speedLv*.20,max:4.4+speedLv*.20,tick:0,pulse:0,angle:player.ringAngle||0,taunt:245+speedLv*16+goggles*10,guard:0});
   }
+  showPassiveSkillCutin('afterImageStep',{icon:'👥',name:'残像ダミー',line:'残像が敵の注意をそらす！'});
   if(afterImages.length>8)afterImages.splice(0,afterImages.length-8);
   showMessage('残像ダミー！ ここにいるよ？',850);
   playSfx('level');
@@ -1395,7 +1429,7 @@ function damageEnemy(e,amount,src){
   if(src.flash)pushCap(lightnings,{x:e.x,y:e.y,life:.14,max:.14},CONFIG.lightningCap);
   return e.hp<=0;
 }
-function addBullet(o){if(!o)return;if(o.fusion){o.damage*=damageMult(true)*fusionPowerMult(o.fusion);o.r=(o.r||3)*(1+getBreakLevel('area')*.015);if(o.explode)o.explode*=areaMult();}if(bullets.length>=CONFIG.bulletCap)bullets.splice(0,Math.max(1,bullets.length-CONFIG.bulletCap+1));bullets.push(o);}
+function addBullet(o){if(!o)return;if(o.fusion){o.damage*=damageMult(true)*fusionPowerMult(o.fusion);o.r=(o.r||3)*(1+getBreakLevel('area')*.015);if(o.explode)o.explode*=areaMult();var sv=getSynergyVisual(o.fusion);if(sv){o.synergyVisual=sv.id;o.synergyIcon=sv.icon;o.synergyName=sv.name;o.synergyColor=sv.color;o.visualScale=sv.scale;if(!o.baseColor)o.baseColor=o.color;if(o.color)o.color=sv.color||o.color;if(o.length)o.length*=Math.min(1.22,sv.scale);if(o.thickness)o.thickness*=Math.min(1.18,sv.scale);}}if(bullets.length>=CONFIG.bulletCap)bullets.splice(0,Math.max(1,bullets.length-CONFIG.bulletCap+1));bullets.push(o);}
 function rocketLaunchBurst(x,y,angle,lv){var back=angle+Math.PI;if(particles.length<CONFIG.particleCap-10){for(var i=0;i<3+lv;i++){var a=back+rand(-.28,.28),sp=rand(60,160);pushCap(particles,{x:x+Math.cos(back)*8,y:y+Math.sin(back)*8,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:rand(.18,.35),max:.4,color:Math.random()<.45?'#ffb06a':'#d8d8d8',r:rand(1.6,3.3)},CONFIG.particleCap);}}addTrail(x+Math.cos(back)*12,y+Math.sin(back)*12,'#d8d8d8',7+lv, .34,'smoke');}
 function explodeAt(x,y,r,damage,color,src){
   src=src||{weapon:'explosion'};
@@ -1627,7 +1661,13 @@ function shootParalyzeGun(lv){
   for(var j=0;j<shots;j++){var aa=base-spread/2+spread*(shots===1?0:j/(shots-1))+rand(-.020,.020),sp2=690+lv*28;addBullet({x:player.x+Math.cos(aa)*18,y:player.y+Math.sin(aa)*18,vx:Math.cos(aa)*sp2,vy:Math.sin(aa)*sp2,r:4.25+lv*.28,life:.90+lv*.06,damage:22+lv*6.0,color:'#b9ff6a',pierce:2+lv,type:'normal',weapon:'machinegun',fusion:'paralyzeGun',slow:1.05+lv*.18,paralyze:2.15+lv*.35,paralyzeDps:9.0+lv*2.8,stun:.055+lv*.012,paralyzeSplash:30+lv*7});}
 }
 function shootMeteorMissile(lv){
-  var target=nearestEnemy();if(!target)return;var caution=activeSynergy('fallingCaution');var a=Math.atan2(target.y-player.y,target.x-player.x),sp=320+lv*32+(caution?18:0);if(caution){pushCap(zones,{x:target.x,y:target.y,r:58+lv*14,life:.85,max:.85,damage:0,slow:0,type:'meteorMark',tick:99,tickRate:99,fusion:'meteorMissile'},CONFIG.zoneCap);}addBullet({x:player.x+Math.cos(a)*28,y:player.y+Math.sin(a)*28,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:15+lv*3.2+(caution?2.2:0),life:3.0+lv*.20+(caution?.15:0),damage:(96+lv*32)*(caution?1.08:1),color:caution?'#ffdf6b':'#ff9d4d',pierce:0,type:'missile',weapon:'missile',fusion:'meteorMissile',homing:true,homingPower:.014+lv*.002+(caution?.003:0),baseSpeed:sp,explode:68+lv*15+(caution?16:0),meteor:true,meteorAlert:caution,explosionKnock:44+lv*8+(caution?20:0)});rocketLaunchBurst(player.x,player.y,a,lv+3+(caution?1:0));screenFlash=Math.max(screenFlash,caution?.08:.055);
+  var target=nearestEnemy();if(!target)return;
+  var caution=activeSynergy('fallingCaution');
+  var a=Math.atan2(target.y-player.y,target.x-player.x),sp=320+lv*32+(caution?28:0);
+  if(caution){pushCap(zones,{x:target.x,y:target.y,r:72+lv*18,life:1.05,max:1.05,damage:0,slow:0,type:'meteorMark',tick:99,tickRate:99,fusion:'meteorMissile'},CONFIG.zoneCap);}
+  addBullet({x:player.x+Math.cos(a)*28,y:player.y+Math.sin(a)*28,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:15+lv*3.2+(caution?5.6:0),life:3.0+lv*.20+(caution?.22:0),damage:(96+lv*32)*(caution?1.12:1),color:caution?'#ff5f3a':'#ff9d4d',pierce:0,type:'missile',weapon:'missile',fusion:'meteorMissile',homing:true,homingPower:.014+lv*.002+(caution?.004:0),baseSpeed:sp,explode:68+lv*15+(caution?36:0),meteor:true,meteorAlert:caution,explosionKnock:44+lv*8+(caution?34:0)});
+  rocketLaunchBurst(player.x,player.y,a,lv+3+(caution?2:0));
+  screenFlash=Math.max(screenFlash,caution?.10:.055);
 }
 function shootCharmPulse(lv){var count=16+lv*6,base=rand(0,Math.PI*2);for(var i=0;i<count;i++){var a=base+Math.PI*2*i/count,sp=380+lv*28;addBullet({x:player.x+Math.cos(a)*20,y:player.y+Math.sin(a)*20,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:8.7+lv*.75,life:1.18+lv*.12,damage:14+lv*4.4,color:'#ff9bd2',pierce:1+Math.floor(lv/2),type:'beam',weapon:'beam',fusion:'charmPulse',charm:3.3+lv*.68,charmPower:1.22+lv*.25,slow:.70+lv*.08,charmSplash:34+lv*8});}showMessage('チャームパルス！',520);}
 function shootBloodFang(lv){var target=nearestEnemyFrom(player.x,player.y,620);if(!target)return;var base=aimAssistAngle(Math.atan2(target.y-player.y,target.x-player.x),.50,.19,670),shots=5+lv*3,spread=.30+lv*.045;for(var i=0;i<shots;i++){var a=base-spread/2+spread*(shots===1?0:i/(shots-1))+rand(-.012,.012),sp=750+lv*32;addBullet({x:player.x+Math.cos(a)*20,y:player.y+Math.sin(a)*20,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:4.5+lv*.32,life:.92+lv*.07,damage:28+lv*8.2,color:'#ff5c8a',pierce:3+lv,type:'needle',weapon:'needle',fusion:'bloodFang',length:40+lv*7,thickness:2.15+lv*.24,vampire:true,vampireNeed:Math.max(6,10-lv*2)});}}
@@ -1638,22 +1678,24 @@ function updateNewContinuousFusions(dt){
   if(lv>0){
     var fanSpin=baseSpin*(activeSynergy('senpuShuriken')?1.38:1);
     laserFanAngle+=dt*(3.5+lv*.72)*fanSpin;
-    var blades=3+lv+(fanSpin>2.05?1:0)+(activeSynergy('senpuShuriken')?1:0),reach=82+lv*16+getPassiveLevel('speed')*2+(activeSynergy('senpuShuriken')?8:0),thick=(12.5+lv*2.1)*areaMult(),dmg=(18+lv*5.8)*damageMult(true)*fusionPowerMult('laserFan')*(activeSynergy('senpuShuriken')?1.08:1);
-    for(var b=0;b<blades;b++){var a=laserFanAngle+Math.PI*2*b/blades,x1=player.x,y1=player.y,x2=player.x+Math.cos(a)*reach,y2=player.y+Math.sin(a)*reach;if(Math.random()<.72)addTrail(x2,y2,'#b7f9ff',10,.12,'line');for(var i=enemies.length-1;i>=0;i--){var e=enemies[i];if(!e||e.laserFanHitTimer>0)continue;if(distPointSegment(e.x,e.y,x1,y1,x2,y2)<e.r+thick){e.laserFanHitTimer=Math.max(.038,.125/fanSpin);if(damageEnemy(e,dmg,{weapon:'laserFan',fusion:'laserFan',slow:1.00+lv*.18}))killEnemyAt(i);}}}
+    var blades=3+lv+(fanSpin>2.05?1:0)+(activeSynergy('senpuShuriken')?1:0),reach=82+lv*16+getPassiveLevel('speed')*2+(activeSynergy('senpuShuriken')?8:0),thick=(12.5+lv*2.1)*areaMult(),dmg=(17.2+lv*5.35)*damageMult(true)*fusionPowerMult('laserFan')*(activeSynergy('senpuShuriken')?1.04:1);
+    for(var b=0;b<blades;b++){var a=laserFanAngle+Math.PI*2*b/blades,x1=player.x,y1=player.y,x2=player.x+Math.cos(a)*reach,y2=player.y+Math.sin(a)*reach;if(Math.random()<.72)addTrail(x2,y2,'#b7f9ff',10,.12,'line');for(var i=enemies.length-1;i>=0;i--){var e=enemies[i];if(!e||e.laserFanHitTimer>0)continue;if(distPointSegment(e.x,e.y,x1,y1,x2,y2)<e.r+thick){e.laserFanHitTimer=Math.max(.038,.125/fanSpin);var laserFanDmg=e.boss?dmg*.92:dmg;if(damageEnemy(e,laserFanDmg,{weapon:'laserFan',fusion:'laserFan',slow:e.boss?0:1.00+lv*.18}))killEnemyAt(i);}}}
   }
   lv=getFusionLevel('cycloneCutter');
   if(lv>0){
-    var cycloneSpin=baseSpin*(activeSynergy('guruguruDefense')?1.20:1);
-    cycloneAngle+=dt*(5.2+lv*.92)*cycloneSpin;
-    var count=2+lv+(cycloneSpin>2.25?1:0)+(activeSynergy('guruguruDefense')?1:0),radius=54+lv*9+(activeSynergy('guruguruDefense')?6:0),orbR=(12.5+lv*1.55)*areaMult(),cdmg=(18+lv*5.8)*damageMult(true)*fusionPowerMult('cycloneCutter')*(activeSynergy('guruguruDefense')?1.06:1);
-    for(var c=0;c<count;c++){var ca=cycloneAngle+Math.PI*2*c/count,ox=player.x+Math.cos(ca)*radius,oy=player.y+Math.sin(ca)*radius;addTrail(ox,oy,'#d6f4ff',orbR,.14,'ice');for(var j=enemies.length-1;j>=0;j--){var ce=enemies[j];if(!ce||ce.cycloneHitTimer>0)continue;if(Math.hypot(ce.x-ox,ce.y-oy)<ce.r+orbR){ce.cycloneHitTimer=Math.max(.045,.135/cycloneSpin);var pa=Math.atan2(ce.y-player.y,ce.x-player.x);var push=(activeSynergy('guruguruDefense')?30:22);ce.x+=Math.cos(pa)*(ce.boss?7:push);ce.y+=Math.sin(pa)*(ce.boss?7:push);if(damageEnemy(ce,cdmg,{weapon:'cycloneCutter',fusion:'cycloneCutter',slow:1.35+lv*.30+(activeSynergy('guruguruDefense')?.30:0)}))killEnemyAt(j);}}}
+    var cycloneSpin=baseSpin*(activeSynergy('guruguruDefense')?1.12:1);
+    cycloneAngle+=dt*(5.4+lv*.82)*cycloneSpin;
+    // 狭い回転半径＋小さなボスノックバック。ボスの危険円より内側でしか押し返せない近距離防衛型。
+    var count=2+lv+(activeSynergy('guruguruDefense')?1:0),radius=38+lv*5+(activeSynergy('guruguruDefense')?5:0),orbR=(10.5+lv*1.15)*areaMult(),cdmg=(16.8+lv*4.85)*damageMult(true)*fusionPowerMult('cycloneCutter')*(activeSynergy('guruguruDefense')?1.02:1);
+    for(var c=0;c<count;c++){var ca=cycloneAngle+Math.PI*2*c/count,ox=player.x+Math.cos(ca)*radius,oy=player.y+Math.sin(ca)*radius;addTrail(ox,oy,'#d6f4ff',orbR,.14,'ice');for(var j=enemies.length-1;j>=0;j--){var ce=enemies[j];if(!ce||ce.cycloneHitTimer>0)continue;if(Math.hypot(ce.x-ox,ce.y-oy)<ce.r+orbR){ce.cycloneHitTimer=Math.max(.045,.135/cycloneSpin);var pa=Math.atan2(ce.y-player.y,ce.x-player.x);var push=(activeSynergy('guruguruDefense')?32:22);var cyclonePush=ce.boss?(activeSynergy('guruguruDefense')?5.5:3.5):push;ce.x+=Math.cos(pa)*cyclonePush;ce.y+=Math.sin(pa)*cyclonePush;var cycloneDmg=ce.boss?cdmg*.88:cdmg;if(damageEnemy(ce,cycloneDmg,{weapon:'cycloneCutter',fusion:'cycloneCutter',slow:ce.boss?.22:1.35+lv*.30+(activeSynergy('guruguruDefense')?.30:0)}))killEnemyAt(j);}}}
   }
   lv=getFusionLevel('chainFlail');
   if(lv>0){
-    var flailSpin=baseSpin*(activeSynergy('bunbunMaru')?1.34:1)*(activeSynergy('guruguruDefense')?1.10:1);
-    flailAngle+=dt*(3.8+lv*.70)*flailSpin;
-    var balls=1+(lv>=2?1:0)+(lv>=3?1:0)+(flailSpin>2.35?1:0)+(activeSynergy('bunbunMaru')?1:0),fr=70+lv*12+(activeSynergy('bunbunMaru')?7:0),ballR=(16+lv*3.0)*areaMult(),fdmg=(42+lv*13.5)*damageMult(true)*fusionPowerMult('chainFlail')*(activeSynergy('bunbunMaru')?1.07:1);
-    for(var f=0;f<balls;f++){var fa=flailAngle+Math.PI*2*f/balls,fx=player.x+Math.cos(fa)*fr,fy=player.y+Math.sin(fa)*fr;addTrail(fx,fy,'#aeb7c6',ballR*.76,.13,'smoke');for(var k=enemies.length-1;k>=0;k--){var fe=enemies[k];if(!fe||fe.flailHitTimer>0)continue;if(Math.hypot(fe.x-fx,fe.y-fy)<fe.r+ballR){fe.flailHitTimer=Math.max(.058,.19/flailSpin);var ka=Math.atan2(fe.y-player.y,fe.x-player.x);var push2=(activeSynergy('bunbunMaru')?70:56)+(activeSynergy('guruguruDefense')?12:0);fe.x+=Math.cos(ka)*(fe.boss?18:push2);fe.y+=Math.sin(ka)*(fe.boss?18:push2);if(Math.random()<(activeSynergy('bunbunMaru')?.62:.48)){for(var q=0;q<3;q++){var sa=fa+rand(-.8,.8),sp=340+lv*28;addBullet({x:fx,y:fy,vx:Math.cos(sa)*sp,vy:Math.sin(sa)*sp,r:4.2,life:.52,damage:fdmg*.24,color:'#d8d8d8',pierce:0,type:'normal',weapon:'chainShard',fusion:'chainFlail'});}}if(damageEnemy(fe,fdmg,{weapon:'chainFlail',fusion:'chainFlail',slow:.55+(activeSynergy('guruguruDefense')?.30:0)}))killEnemyAt(k);}}}
+    var flailSpin=baseSpin*(activeSynergy('bunbunMaru')?1.02:.82);
+    flailAngle+=dt*(2.65+lv*.46)*flailSpin;
+    // 遅いが重い打撃型。ボスにも押し返しは残すが、ヒット間隔を長めにして常時バリア化を避ける。
+    var balls=1+(lv>=3?1:0)+(activeSynergy('bunbunMaru')?1:0),fr=76+lv*13+(activeSynergy('bunbunMaru')?10:0),ballR=(18+lv*3.4)*areaMult(),fdmg=(43+lv*13.8)*damageMult(true)*fusionPowerMult('chainFlail')*(activeSynergy('bunbunMaru')?1.06:1);
+    for(var f=0;f<balls;f++){var fa=flailAngle+Math.PI*2*f/balls,fx=player.x+Math.cos(fa)*fr,fy=player.y+Math.sin(fa)*fr;addTrail(fx,fy,'#aeb7c6',ballR*.76,.13,'smoke');for(var k=enemies.length-1;k>=0;k--){var fe=enemies[k];if(!fe||fe.flailHitTimer>0)continue;if(Math.hypot(fe.x-fx,fe.y-fy)<fe.r+ballR){fe.flailHitTimer=fe.boss?Math.max(.24,.42/flailSpin):Math.max(.09,.28/flailSpin);var ka=Math.atan2(fe.y-player.y,fe.x-player.x);var push2=(activeSynergy('bunbunMaru')?76:58);var flailPush=fe.boss?(activeSynergy('bunbunMaru')?18:12):push2;fe.x+=Math.cos(ka)*flailPush;fe.y+=Math.sin(ka)*flailPush;if(Math.random()<(activeSynergy('bunbunMaru')?.62:.48)){for(var q=0;q<3;q++){var sa=fa+rand(-.8,.8),sp=340+lv*28;addBullet({x:fx,y:fy,vx:Math.cos(sa)*sp,vy:Math.sin(sa)*sp,r:4.2,life:.52,damage:fdmg*.24,color:'#d8d8d8',pierce:0,type:'normal',weapon:'chainShard',fusion:'chainFlail'});}}var flailDmg=fe.boss?fdmg*.95:fdmg;if(damageEnemy(fe,flailDmg,{weapon:'chainFlail',fusion:'chainFlail',slow:fe.boss?0:.55}))killEnemyAt(k);}}}
   }
   lv=getFusionLevel('burningGun');
   if(lv>0&&activeSynergy('fireDaruma')){
@@ -1718,19 +1760,27 @@ function createLightningRod(target,x,y,damage,lv){
   pushCap(lightnings,{x:x,y:y,life:.16,max:.16},CONFIG.lightningCap);
   burst(x,y,'#fff06b',forecast?13:9);
 }
-function createMeteorShockwave(x,y,lv,damage){
-  pushCap(zones,{x:x,y:y,r:(86+lv*20)*areaMult(),life:.52+lv*.06,max:.52+lv*.06,damage:damage||30+lv*9,preScaled:!!damage,slow:.45,type:'meteorShockwave',tick:0,tickRate:.20,fusion:'meteorMissile',knock:32+lv*8},CONFIG.zoneCap);
-  bigBurst(x,y,'#ffdf6b',42+lv*8,1.0);
+function createMeteorShockwave(x,y,lv,damage,alert){
+  pushCap(zones,{x:x,y:y,r:(86+lv*20+(alert?34:0))*areaMult(),life:.52+lv*.06+(alert?.18:0),max:.52+lv*.06+(alert?.18:0),damage:damage||30+lv*9,preScaled:!!damage,slow:.45,type:'meteorShockwave',tick:0,tickRate:.20,fusion:'meteorMissile',knock:32+lv*8+(alert?18:0)},CONFIG.zoneCap);
+  bigBurst(x,y,alert?'#ff5f3a':'#ffdf6b',42+lv*8+(alert?22:0),alert?1.18:1.0);
 }
 function createMeteorExplosionVisual(x,y,lv,damage,alert){
   // メテオミサイル専用：命中時・寿命切れ時に必ず見える大爆発を残す。
-  // 既存の explodeAt は一瞬のパーティクル中心なので、軽量/超軽量だと爆発が分かりにくかった。
-  var r=(78+lv*18+(alert?18:0))*areaMult();
-  var life=.46+lv*.045+(alert?.12:0);
-  pushCap(zones,{x:x,y:y,r:r,life:life,max:life,damage:(damage||0),preScaled:true,slow:.30+(alert?.25:0),type:'meteorBlast',tick:0,tickRate:.16,fusion:'meteorMissile',knock:34+lv*8+(alert?20:0)},CONFIG.zoneCap);
-  bigBurst(x,y,alert?'#ffdf6b':'#ff9d4d',52+lv*12+(alert?22:0),alert?1.18:1.0);
-  screenFlash=Math.max(screenFlash,alert?.18:.12);
-  for(var i=0;i<Math.min(3,1+lv);i++){pushCap(lightnings,{x:x+rand(-18,18),y:y+rand(-18,18),life:.13,max:.13},CONFIG.lightningCap);}
+  // 爆発注意では見た目も範囲も一回り大きくし、元の合成武器との差を出す。
+  var r=(78+lv*18+(alert?44:0))*areaMult();
+  var life=.46+lv*.045+(alert?.26:0);
+  pushCap(zones,{x:x,y:y,r:r,life:life,max:life,damage:(damage||0),preScaled:true,slow:.30+(alert?.25:0),type:'meteorBlast',tick:0,tickRate:.16,fusion:'meteorMissile',knock:34+lv*8+(alert?22:0)},CONFIG.zoneCap);
+  bigBurst(x,y,alert?'#ff5f3a':'#ff9d4d',52+lv*12+(alert?36:0),alert?1.30:1.0);
+  screenFlash=Math.max(screenFlash,alert?.24:.12);
+  for(var i=0;i<Math.min(5,1+lv+(alert?2:0));i++){pushCap(lightnings,{x:x+rand(-22,22),y:y+rand(-22,22),life:.13,max:.13},CONFIG.lightningCap);}
+}
+function spawnMeteorAlertExplosions(x,y,lv,damage){
+  var count=3+Math.min(2,lv);
+  for(var i=0;i<count;i++){
+    var a=Math.PI*2*i/count+rand(-.18,.18),dist=38+lv*9+rand(-8,12),ex=x+Math.cos(a)*dist,ey=y+Math.sin(a)*dist;
+    explodeAt(ex,ey,(34+lv*7)*areaMult(),damage*.12,'#ff7a35',{weapon:'meteorChain',fusion:'meteorMissile',knock:12+lv*3});
+    createMeteorExplosionVisual(ex,ey,Math.max(1,lv-1),damage*.045,true);
+  }
 }
 function spawnMissileFragments(x,y,damage,lv){
   var count=4+(lv>=5?2:0);
@@ -1743,8 +1793,9 @@ function finishBullet(b){
   if(b.explode)explodeAt(b.x,b.y,b.explode*areaMult(),b.damage*.55,b.color,{weapon:b.weapon,fusion:b.fusion,slow:b.slow,flash:b.flash,stun:b.stun,knock:b.explosionKnock||b.fireworkKnock||0});
   if(b.meteor){
     var mlv=getFusionLevel('meteorMissile')||1;
-    createMeteorExplosionVisual(b.x,b.y,mlv,b.damage*(b.meteorAlert?.20:.14),!!b.meteorAlert);
-    createMeteorShockwave(b.x,b.y,mlv,b.damage*(b.meteorAlert?.34:.22));
+    createMeteorExplosionVisual(b.x,b.y,mlv,b.damage*(b.meteorAlert?.24:.14),!!b.meteorAlert);
+    createMeteorShockwave(b.x,b.y,mlv,b.damage*(b.meteorAlert?.40:.22),!!b.meteorAlert);
+    if(b.meteorAlert)spawnMeteorAlertExplosions(b.x,b.y,mlv,b.damage);
   }
   if(b.freezeZone)createFrozenZone(b.x,b.y,b.freezeLv||1,b.damage*.30);
   if(b.press)createIronPressZone(b.x,b.y,b.pressLv||1,b.damage*.26);
@@ -1804,8 +1855,8 @@ function drawMetalBallBullet(b){var r=b.r||10;var g=ctx.createRadialGradient(b.x
 function drawHotIronBullet(b){var r=b.r||18;ctx.save();ctx.translate(b.x,b.y);ctx.shadowColor='#ff7a35';ctx.shadowBlur=16;ctx.fillStyle='#333844';ctx.beginPath();ctx.roundRect?ctx.roundRect(-r*.75,-r*.42,r*1.5,r*.9,6):ctx.rect(-r*.75,-r*.42,r*1.5,r*.9);ctx.fill();ctx.strokeStyle='#ffb06a';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#ff7a35';ctx.globalAlpha=.75;ctx.fillRect(-r*.55,r*.18,r*1.1,r*.15);ctx.globalAlpha=1;ctx.strokeStyle='#d8d8d8';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-r*.55,r*.45,Math.PI,0);ctx.stroke();ctx.restore();}
 function drawFairies(){var lv=getFusionLevel('fairySummon');if(lv<=0||!player)return;var pairs=1+(lv>=2?1:0)+(lv>=3?1:0),radius=54+lv*9,orbR=(13.0+lv*1.55)*areaMult();for(var p=0;p<pairs;p++){for(var k=0;k<2;k++){var fire=k===0,ang=fairyAngle+(p*Math.PI*2/pairs)+(fire?0:Math.PI),ox=player.x+Math.cos(ang)*radius,oy=player.y+Math.sin(ang)*radius;ctx.save();ctx.shadowColor=fire?'#ff7a35':'#9ee8ff';ctx.shadowBlur=14;ctx.fillStyle=fire?'#ff7a35':'#9ee8ff';ctx.beginPath();ctx.arc(ox,oy,orbR,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,255,255,.86)';ctx.beginPath();ctx.arc(ox-orbR*.25,oy-orbR*.28,orbR*.28,0,Math.PI*2);ctx.fill();ctx.font=Math.max(12,orbR*1.05)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(fire?'🔥':'❄️',ox,oy+1);ctx.restore();}}}
 function drawNewOrbitFusions(){if(!player)return;var lv=getFusionLevel('laserFan');if(lv>0){var isSenpu=activeSynergy('senpuShuriken');var blades=3+lv+(isSenpu?1:0),reach=76+lv*14+(isSenpu?8:0);ctx.save();ctx.shadowColor=isSenpu?'#f2f7ff':'#b7f9ff';ctx.shadowBlur=isSenpu?18:14;ctx.strokeStyle=isSenpu?'#dff6ff':'#b7f9ff';ctx.lineCap='round';for(var b=0;b<blades;b++){var a=laserFanAngle+Math.PI*2*b/blades;var tipx=player.x+Math.cos(a)*reach,tipy=player.y+Math.sin(a)*reach;ctx.globalAlpha=.74;ctx.lineWidth=(isSenpu?4.2:3)+lv*.6;ctx.beginPath();ctx.moveTo(player.x,player.y);ctx.lineTo(tipx,tipy);ctx.stroke();if(isSenpu){ctx.save();ctx.translate(tipx,tipy);ctx.rotate(a+gameTime*8);ctx.fillStyle='#f6fbff';ctx.strokeStyle='#8beaff';ctx.lineWidth=1.2;ctx.beginPath();for(var i=0;i<4;i++){var ang=i*Math.PI/2;var ox=Math.cos(ang)*(10+lv*1.0),oy=Math.sin(ang)*(10+lv*1.0);ctx.moveTo(0,0);ctx.lineTo(ox,oy);ctx.lineTo(Math.cos(ang+Math.PI/4)*(4+lv*.25),Math.sin(ang+Math.PI/4)*(4+lv*.25));}ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();}}ctx.restore();}
-lv=getFusionLevel('cycloneCutter');if(lv>0){var isDefense=activeSynergy('guruguruDefense');var count=2+lv+(isDefense?1:0),radius=48+lv*8+(isDefense?6:0),orbR=(11+lv*1.2+(isDefense?1.4:0))*areaMult();if(isDefense){ctx.save();ctx.strokeStyle='rgba(190,245,255,.42)';ctx.lineWidth=5;ctx.shadowColor='rgba(190,245,255,.38)';ctx.shadowBlur=16;ctx.beginPath();ctx.arc(player.x,player.y,radius+14,0,Math.PI*2);ctx.stroke();ctx.restore();}for(var c=0;c<count;c++){var ca=cycloneAngle+Math.PI*2*c/count,ox=player.x+Math.cos(ca)*radius,oy=player.y+Math.sin(ca)*radius;ctx.save();ctx.translate(ox,oy);ctx.rotate(ca*2);ctx.shadowColor='#d6f4ff';ctx.shadowBlur=isDefense?16:12;ctx.fillStyle=isDefense?'#eafcff':'#d6f4ff';ctx.beginPath();ctx.moveTo(0,-orbR);ctx.lineTo(orbR*.8,0);ctx.lineTo(0,orbR);ctx.lineTo(-orbR*.8,0);ctx.closePath();ctx.fill();if(isDefense){ctx.strokeStyle='rgba(90,210,255,.9)';ctx.lineWidth=1.4;ctx.stroke();}ctx.fillStyle='rgba(255,255,255,.75)';ctx.fillText(isDefense?'🛡️':'❄️',0,1);ctx.restore();}}
-lv=getFusionLevel('chainFlail');if(lv>0){var isBunbun=activeSynergy('bunbunMaru');var balls=1+(lv>=2?1:0)+(lv>=3?1:0)+(isBunbun?1:0),fr=66+lv*11+(isBunbun?7:0),ballR=(15+lv*2.8)*areaMult();for(var f=0;f<balls;f++){var fa=flailAngle+Math.PI*2*f/balls,fx=player.x+Math.cos(fa)*fr,fy=player.y+Math.sin(fa)*fr;ctx.save();ctx.strokeStyle=isBunbun?'rgba(255,220,150,.86)':'rgba(210,220,238,.72)';ctx.lineWidth=isBunbun?4:3;ctx.beginPath();ctx.moveTo(player.x,player.y);ctx.lineTo(fx,fy);ctx.stroke();ctx.shadowColor=isBunbun?'rgba(255,176,64,.38)':'rgba(0,0,0,.45)';ctx.shadowBlur=isBunbun?14:10;var g=ctx.createRadialGradient(fx-ballR*.35,fy-ballR*.35,ballR*.12,fx,fy,ballR);g.addColorStop(0,isBunbun?'#fff7cf':'#ffffff');g.addColorStop(.24,isBunbun?'#ffd479':'#b7bfcc');g.addColorStop(1,isBunbun?'#7c5124':'#303743');ctx.fillStyle=g;ctx.beginPath();ctx.arc(fx,fy,ballR,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.38)';ctx.stroke();ctx.restore();}}
+lv=getFusionLevel('cycloneCutter');if(lv>0){var isDefense=activeSynergy('guruguruDefense');var count=2+lv+(isDefense?1:0),radius=36+lv*5+(isDefense?5:0),orbR=(9.8+lv*.95+(isDefense?1.0:0))*areaMult();if(isDefense){ctx.save();ctx.strokeStyle='rgba(190,245,255,.42)';ctx.lineWidth=5;ctx.shadowColor='rgba(190,245,255,.38)';ctx.shadowBlur=16;ctx.beginPath();ctx.arc(player.x,player.y,radius+8,0,Math.PI*2);ctx.stroke();ctx.restore();}for(var c=0;c<count;c++){var ca=cycloneAngle+Math.PI*2*c/count,ox=player.x+Math.cos(ca)*radius,oy=player.y+Math.sin(ca)*radius;ctx.save();ctx.translate(ox,oy);ctx.rotate(ca*2);ctx.shadowColor='#d6f4ff';ctx.shadowBlur=isDefense?16:12;ctx.fillStyle=isDefense?'#eafcff':'#d6f4ff';ctx.beginPath();ctx.moveTo(0,-orbR);ctx.lineTo(orbR*.8,0);ctx.lineTo(0,orbR);ctx.lineTo(-orbR*.8,0);ctx.closePath();ctx.fill();if(isDefense){ctx.strokeStyle='rgba(90,210,255,.9)';ctx.lineWidth=1.4;ctx.stroke();}ctx.fillStyle='rgba(255,255,255,.75)';ctx.fillText(isDefense?'🛡️':'❄️',0,1);ctx.restore();}}
+lv=getFusionLevel('chainFlail');if(lv>0){var isBunbun=activeSynergy('bunbunMaru');var balls=1+(lv>=3?1:0)+(isBunbun?1:0),fr=76+lv*13+(isBunbun?10:0),ballR=(18+lv*3.4)*areaMult();for(var f=0;f<balls;f++){var fa=flailAngle+Math.PI*2*f/balls,fx=player.x+Math.cos(fa)*fr,fy=player.y+Math.sin(fa)*fr;ctx.save();ctx.strokeStyle=isBunbun?'rgba(255,220,150,.86)':'rgba(210,220,238,.72)';ctx.lineWidth=isBunbun?4:3;ctx.beginPath();ctx.moveTo(player.x,player.y);ctx.lineTo(fx,fy);ctx.stroke();ctx.shadowColor=isBunbun?'rgba(255,176,64,.38)':'rgba(0,0,0,.45)';ctx.shadowBlur=isBunbun?14:10;var g=ctx.createRadialGradient(fx-ballR*.35,fy-ballR*.35,ballR*.12,fx,fy,ballR);g.addColorStop(0,isBunbun?'#fff7cf':'#ffffff');g.addColorStop(.24,isBunbun?'#ffd479':'#b7bfcc');g.addColorStop(1,isBunbun?'#7c5124':'#303743');ctx.fillStyle=g;ctx.beginPath();ctx.arc(fx,fy,ballR,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(255,255,255,.38)';ctx.stroke();ctx.restore();}}
 lv=getFusionLevel('burningGun');if(lv>0&&activeSynergy('fireDaruma')){var area=getPassiveLevel('area'),count=4+lv+Math.floor(area/3),radius=54+lv*8+area*2,orbR=(10.5+lv*1.2+area*.18)*areaMult(),phase=gameTime*(2.8+lv*.55);for(var fd=0;fd<count;fd++){var da=phase+Math.PI*2*fd/count,fx2=player.x+Math.cos(da)*radius,fy2=player.y+Math.sin(da)*radius;ctx.save();ctx.shadowColor='#ff7a35';ctx.shadowBlur=16;ctx.fillStyle='#ffb044';ctx.beginPath();ctx.arc(fx2,fy2,orbR,0,Math.PI*2);ctx.fill();ctx.font=Math.max(12,orbR*1.05)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🔥',fx2,fy2+1);ctx.restore();}}}
 function drawDrones(){
   if(!drones.length||!player)return;
@@ -1933,13 +1984,13 @@ function drawEnemyBadges(en){if(!en)return;var marks=[];if(en.burnTimer>0)marks.
 function drawIceOrbs(){var lv=getWeaponLevel('ice');if(lv<=0||!player)return;var count=1+(lv>=2?1:0)+(lv>=5?1:0),radius=44+lv*8,orbR=(10.5+lv*1.15)*areaMult();for(var o=0;o<count;o++){var a=iceAngle+Math.PI*2*o/count,ox=player.x+Math.cos(a)*radius,oy=player.y+Math.sin(a)*radius;ctx.save();ctx.shadowColor='#9ee8ff';ctx.shadowBlur=12;ctx.fillStyle='#9ee8ff';ctx.beginPath();ctx.arc(ox,oy,orbR,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,255,255,.76)';ctx.beginPath();ctx.arc(ox-orbR*.25,oy-orbR*.25,orbR*.35,0,Math.PI*2);ctx.fill();ctx.restore();}}
 function draw(){drawBackground();if(!running&&!player){drawViewportFrame();return;}if(!player){drawViewportFrame();return;}items.forEach(function(item){if(!item)return;var type=item.type||'gem';ctx.save();var fill=type==='heart'?'#ff7899':(type==='magnet'?'#66d9ff':(type==='bomb'?'#ffdf6b':(type==='chest'?'#ffdf6b':'#6cff92')));ctx.fillStyle=fill;ctx.beginPath();ctx.arc(item.x,item.y,item.r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.globalAlpha=.9;if(type==='gem'){ctx.beginPath();ctx.arc(item.x-1,item.y-1,item.r*.35,0,Math.PI*2);ctx.fill();}else{ctx.font=Math.max(14,item.r*1.45)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(type==='heart'?'❤️':(type==='magnet'?'🧲':(type==='bomb'?'💣':'🎁')),item.x,item.y+1);}ctx.restore();});
 zones.forEach(function(z){if(!z)return;var za=Math.max(0,z.life/(z.max||1));ctx.save();var fill=z.type==='steam'?'#dff7ff':(z.type==='ironPressZone'||z.type==='pressMark'||z.type==='napalmFire'||z.type==='fireFloor'||z.type==='meteorBlast'||z.type==='meteorShockwave'||z.type==='meteorMark'?'#ff9d4d':(z.type==='lightningRod'?'#fff06b':(z.type==='lightningLink'?'#fff06b':'#9ee8ff')));ctx.globalAlpha=(z.type==='pressMark'?.10:.18)+za*.24;ctx.fillStyle=fill;ctx.beginPath();ctx.arc(z.x,z.y,z.r,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.45*za;ctx.strokeStyle=z.type==='ironPressZone'?'#ffdf6b':'#fff';ctx.lineWidth=z.type==='pressMark'?1:2;ctx.stroke();if(z.type==='lightningRod'){ctx.globalAlpha=.9*za;ctx.strokeStyle='#fff06b';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(z.x,z.y-z.r*.55);ctx.lineTo(z.x,z.y+z.r*.35);ctx.stroke();ctx.font='18px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff06b';ctx.fillText('⚡',z.x,z.y-z.r*.72);}if(z.type==='meteorBlast'||z.type==='meteorShockwave'){ctx.globalAlpha=.80*za;ctx.strokeStyle=z.type==='meteorBlast'?'#ffdf6b':'#fff3a6';ctx.lineWidth=z.type==='meteorBlast'?4:2;ctx.beginPath();ctx.arc(z.x,z.y,z.r*(1.05-za*.12),0,Math.PI*2);ctx.stroke();ctx.font='bold '+Math.round(18+8*za)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff3a6';ctx.fillText('☄️',z.x,z.y);}
-if(z.type==='meteorMark'){ctx.globalAlpha=.95*za;ctx.font='bold 20px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#ffdf6b';ctx.fillText('⚠️',z.x,z.y);}ctx.restore();});
+if(z.type==='meteorMark'){ctx.globalAlpha=.95*za;ctx.font='bold 20px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#ffdf6b';ctx.fillText('💥',z.x,z.y);}ctx.restore();});
 if(!lightMode)trails.forEach(function(tr){if(!tr)return;var ta=Math.max(0,tr.life/tr.max);ctx.save();ctx.globalAlpha=ta*.55;ctx.fillStyle=tr.color;ctx.strokeStyle=tr.color;if(tr.type==='line'){ctx.lineWidth=Math.max(1,tr.size*.22);ctx.beginPath();ctx.arc(tr.x,tr.y,tr.size*ta,0,Math.PI*2);ctx.stroke();}else if(tr.type==='smoke'){ctx.globalAlpha=ta*.32;ctx.beginPath();ctx.arc(tr.x,tr.y,tr.size*(1.25-ta*.15),0,Math.PI*2);ctx.fill();}else{ctx.beginPath();ctx.arc(tr.x,tr.y,tr.size*ta,0,Math.PI*2);ctx.fill();}ctx.restore();});
 particles.forEach(function(p){if(!p)return;var pa=Math.max(0,p.life/(p.max||.65));ctx.save();ctx.globalAlpha=pa;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,(p.r||3)*pa,0,Math.PI*2);ctx.fill();ctx.restore();});
 if(!lightMode)lightnings.forEach(function(ln){if(!ln)return;var la=Math.max(0,ln.life/ln.max);ctx.save();ctx.globalAlpha=la;ctx.strokeStyle='#fff06b';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(ln.x+rand(-10,10),0);ctx.lineTo(ln.x+4,ln.y-20);ctx.lineTo(ln.x-5,ln.y+8);ctx.lineTo(ln.x+8,ln.y+22);ctx.stroke();ctx.restore();});
 enemies.forEach(function(en){if(!en)return;if(lightMode){if(en.boss)drawUltraBossAura(en);ctx.save();var pulse=en.hitPulse>0?1.10:1;ctx.globalAlpha=en.boss?.96:.88;ctx.fillStyle=en.boss?(en.color||'#ff445f'):en.color;ctx.beginPath();ctx.arc(en.x,en.y,en.r*pulse,0,Math.PI*2);ctx.fill();if(en.boss){ctx.strokeStyle='rgba(255,255,255,.48)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(en.x,en.y,en.r*1.18,0,Math.PI*2);ctx.stroke();}ctx.restore();if(en.boss)drawUltraBossType(en);drawEnemyBadges(en);drawEnemyHp(en);return;}ctx.save();var pulse=en.hitPulse>0?1.18:1;if(en.boss){var br=Math.max(0,en.hp/en.maxHp);pulse*=br<.18?1.16+.12*Math.sin(performance.now()/55):(br<.42?1.08:1);ctx.globalAlpha=br<.28?.82+.18*Math.sin(performance.now()/70):1;}var drewSprite=drawEnemySprite(en);if(!drewSprite){ctx.fillStyle=en.color;ctx.beginPath();ctx.arc(en.x,en.y,en.r*pulse,0,Math.PI*2);ctx.fill();ctx.font=Math.max(14,en.r*1.08)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(en.emoji||'☁️',en.x,en.y+1);}if(en.boss){ctx.strokeStyle='rgba(255,255,255,.38)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(en.x,en.y,en.r*(1.16+0.05*Math.sin(performance.now()/90)),0,Math.PI*2);ctx.stroke();ctx.globalAlpha=.16;ctx.fillStyle='#ff445f';ctx.beginPath();ctx.arc(en.x,en.y,en.r+72,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}ctx.restore();drawEnemyBadges(en);drawEnemyHp(en);});
 bullets.forEach(function(b){if(!b)return;if(lightMode){ctx.save();ctx.globalAlpha=.86;ctx.fillStyle=b.color||'#fff';ctx.strokeStyle=b.color||'#fff';if(b.type==='railgun'||b.type==='laser'||b.type==='needle'){var lang=Math.atan2(b.vy,b.vx),ll=(b.length||18)*.65;ctx.lineWidth=Math.max(1.5,(b.thickness||2)*.72);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(b.x-Math.cos(lang)*ll*.18,b.y-Math.sin(lang)*ll*.18);ctx.lineTo(b.x+Math.cos(lang)*ll,b.y+Math.sin(lang)*ll);ctx.stroke();}else{ctx.beginPath();ctx.arc(b.x,b.y,Math.max(2,Math.min((b.r||3),9)),0,Math.PI*2);ctx.fill();}ctx.restore();return;}ctx.save();if(b.type==='missile'){var ma=Math.atan2(b.vy,b.vx);ctx.translate(b.x,b.y);ctx.rotate(ma);ctx.shadowColor=b.drill?'#d6e8ff':'#ff775f';ctx.shadowBlur=10;ctx.fillStyle=b.color;ctx.beginPath();ctx.ellipse(0,0,b.r*1.35,b.r*.78,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=b.drill?'#ffffff':'#ffcf75';ctx.globalAlpha=.72;ctx.beginPath();if(b.drill){ctx.moveTo(b.r*1.75,0);ctx.lineTo(b.r*.55,-b.r*.55);ctx.lineTo(b.r*.55,b.r*.55);ctx.closePath();}else{ctx.ellipse(-b.r*1.15,0,b.r*.65,b.r*.32,0,0,Math.PI*2);}ctx.fill();}else if(b.type==='ironPress'){drawHotIronBullet(b);}else if(b.type==='iron'){drawMetalBallBullet(b);}else if(b.type==='railgun'||b.type==='laser'||b.type==='needle'){var ang=Math.atan2(b.vy,b.vx),lx=Math.cos(ang)*(b.length||18),ly=Math.sin(ang)*(b.length||18);ctx.shadowColor=b.color;ctx.shadowBlur=b.type==='railgun'?18:8;ctx.strokeStyle=b.color;ctx.lineWidth=b.thickness||1.5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(b.x-lx*.15,b.y-ly*.15);ctx.lineTo(b.x+lx,b.y+ly);ctx.stroke();if(b.type==='railgun'){ctx.globalAlpha=.35;ctx.lineWidth=(b.thickness||3)*2.2;ctx.beginPath();ctx.moveTo(b.x-lx*.08,b.y-ly*.08);ctx.lineTo(b.x+lx*.85,b.y+ly*.85);ctx.stroke();}}else{ctx.shadowColor=b.color;ctx.shadowBlur=b.type==='fire'||b.ricochet?10:0;ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();if(b.type==='fire'){ctx.font=Math.max(12,b.r*1.15)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🔥',b.x,b.y+1);}else if(b.type==='ice'){ctx.fillStyle='rgba(255,255,255,.75)';ctx.beginPath();ctx.arc(b.x-b.r*.25,b.y-b.r*.25,b.r*.35,0,Math.PI*2);ctx.fill();ctx.font=Math.max(12,b.r*1.0)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('❄️',b.x,b.y+1);}else if(b.ricochet){ctx.strokeStyle='rgba(255,255,255,.72)';ctx.lineWidth=1.5;ctx.stroke();}}ctx.restore();});
-drawIceOrbs();drawNewOrbitFusions();drawFairies();drawDrones();drawAfterImages();if(levelPulse>0){var lp=levelPulse;ctx.save();ctx.globalAlpha=lp*.85;ctx.strokeStyle='#66d9ff';ctx.lineWidth=3;ctx.shadowColor='#66d9ff';ctx.shadowBlur=18;ctx.beginPath();ctx.arc(player.x,player.y,player.r+14+(1-lp)*46,0,Math.PI*2);ctx.stroke();ctx.font='bold '+Math.round(20+8*lp)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff3a6';ctx.shadowColor='#ffdf6b';ctx.shadowBlur=14;ctx.fillText('LV UP!',player.x,player.y-player.r-34-(1-lp)*16);ctx.restore();}var playerAlpha=player.inv>0?.68+.32*Math.sin(performance.now()/35):1;if(gameOver&&deathTimer>0){playerAlpha*=.32+.68*Math.abs(Math.sin(performance.now()/42));}var deathScale=(gameOver&&deathTimer>0)?(1+(1.35-deathTimer)*.24):1;var spriteSize=player.r*2.35*deathScale;ctx.save();ctx.translate(player.x,player.y);ctx.globalAlpha=playerAlpha;ctx.rotate(player.ringAngle||0);if(playerRingImg&&playerRingImg.complete&&playerRingImg.naturalWidth!==0){ctx.drawImage(playerRingImg,-spriteSize/2,-spriteSize/2,spriteSize,spriteSize);}else{ctx.fillStyle='#ffd95a';ctx.beginPath();ctx.arc(0,0,player.r+8,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.save();ctx.globalAlpha=playerAlpha;ctx.translate(player.x,player.y);var face=((player.hitFace>0||gameOver)&&playerHitImg&&playerHitImg.complete&&playerHitImg.naturalWidth!==0)?playerHitImg:playerFaceImg;if(face&&face.complete&&face.naturalWidth!==0){ctx.drawImage(face,-spriteSize/2,-spriteSize/2,spriteSize,spriteSize);}else{ctx.fillStyle='#362100';ctx.font='25px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('☀️',0,1);}ctx.restore();if(gameOver&&deathTimer>0){ctx.save();ctx.globalAlpha=Math.max(0,deathTimer/1.35)*.55;ctx.strokeStyle='#ffdf6b';ctx.lineWidth=3;ctx.shadowColor='#ffdf6b';ctx.shadowBlur=18;ctx.beginPath();ctx.arc(player.x,player.y,player.r+18+(1.35-deathTimer)*36,0,Math.PI*2);ctx.stroke();ctx.restore();}
+drawSynergyBulletAccents();drawIceOrbs();drawNewOrbitFusions();drawFairies();drawDrones();drawAfterImages();if(levelPulse>0){var lp=levelPulse;ctx.save();ctx.globalAlpha=lp*.85;ctx.strokeStyle='#66d9ff';ctx.lineWidth=3;ctx.shadowColor='#66d9ff';ctx.shadowBlur=18;ctx.beginPath();ctx.arc(player.x,player.y,player.r+14+(1-lp)*46,0,Math.PI*2);ctx.stroke();ctx.font='bold '+Math.round(20+8*lp)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff3a6';ctx.shadowColor='#ffdf6b';ctx.shadowBlur=14;ctx.fillText('LV UP!',player.x,player.y-player.r-34-(1-lp)*16);ctx.restore();}var playerAlpha=player.inv>0?.68+.32*Math.sin(performance.now()/35):1;if(gameOver&&deathTimer>0){playerAlpha*=.32+.68*Math.abs(Math.sin(performance.now()/42));}var deathScale=(gameOver&&deathTimer>0)?(1+(1.35-deathTimer)*.24):1;var spriteSize=player.r*2.35*deathScale;ctx.save();ctx.translate(player.x,player.y);ctx.globalAlpha=playerAlpha;ctx.rotate(player.ringAngle||0);if(playerRingImg&&playerRingImg.complete&&playerRingImg.naturalWidth!==0){ctx.drawImage(playerRingImg,-spriteSize/2,-spriteSize/2,spriteSize,spriteSize);}else{ctx.fillStyle='#ffd95a';ctx.beginPath();ctx.arc(0,0,player.r+8,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.save();ctx.globalAlpha=playerAlpha;ctx.translate(player.x,player.y);var face=((player.hitFace>0||gameOver)&&playerHitImg&&playerHitImg.complete&&playerHitImg.naturalWidth!==0)?playerHitImg:playerFaceImg;if(face&&face.complete&&face.naturalWidth!==0){ctx.drawImage(face,-spriteSize/2,-spriteSize/2,spriteSize,spriteSize);}else{ctx.fillStyle='#362100';ctx.font='25px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('☀️',0,1);}ctx.restore();if(gameOver&&deathTimer>0){ctx.save();ctx.globalAlpha=Math.max(0,deathTimer/1.35)*.55;ctx.strokeStyle='#ffdf6b';ctx.lineWidth=3;ctx.shadowColor='#ffdf6b';ctx.shadowBlur=18;ctx.beginPath();ctx.arc(player.x,player.y,player.r+18+(1.35-deathTimer)*36,0,Math.PI*2);ctx.stroke();ctx.restore();}
 if(touch.active){ctx.save();ctx.globalAlpha=.30;ctx.strokeStyle='#66d9ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(touch.startX,touch.startY,42,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(touch.x,touch.y,20,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(touch.startX,touch.startY);ctx.lineTo(touch.x,touch.y);ctx.stroke();ctx.restore();}if(screenFlash>0){ctx.save();ctx.globalAlpha=screenFlash*.65;ctx.fillStyle='#fff6b8';ctx.fillRect(0,0,width,height);ctx.restore();}drawViewportFrame();}
 function loop(){var now=performance.now();var dt=Math.min((now-lastTime)/1000,.033);lastTime=now;updateGamepad(dt);update(dt);draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
 if(DEBUG_MODE){window.__SUNNY_TEST__={start:startGame,setTime:function(t){gameTime=t;},giveExp:function(v){gainExp(v);checkLevelUps();updateHud();},setWeapon:function(id,lv){weaponLevels[id]=lv;updateSlots();},setFusion:function(id,lv){fusionLevels[id]=lv;updateSlots();},spawnBoss:spawnBoss,openChest:openTreasureChest,state:function(){return{running:running,paused:paused,gameTime:gameTime,level:level,exp:exp,nextExp:nextExp,enemies:enemies.length,bullets:bullets.length,items:items.length,trails:trails.length,particles:particles.length,clearOffered:clearOffered,endlessMode:endlessMode,hp:player&&player.hp};}};}
