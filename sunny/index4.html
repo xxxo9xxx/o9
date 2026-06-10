@@ -574,7 +574,7 @@ function rankDetailHtml(data){
     '到達Lv：'+escapeHtml(data.level||1)+' / 撃破数：'+escapeHtml(data.kills||0)+' / モード：'+escapeHtml(data.mode||'NORMAL')+'<br>'+
     '区分：'+escapeHtml(rankGroupLabel(data.ageGroup||'all'))+' / シーズン：'+escapeHtml(data.seasonLabel||data.season||'記録なし')+'<br>'+
     (titles?'称号：'+escapeHtml(titles)+'<br>':'')+
-    '<b>使用武器</b><br>'+(attack||build||'記録なし')+'<br'+'>
+    '<b>使用武器</b><br>'+(attack||build||'記録なし')+'<br>'+
     '<b>補助</b><br>'+(passive||'なし')+'<br>'+
     (br?'<b>限界突破</b><br>'+br+'<br>':'')+
     '<span class="muted">登録日時：'+escapeHtml(formatRankDate(data))+'</span></div>';
@@ -1981,6 +1981,37 @@ function drawUltraBossType(en){
 }
 
 function drawEnemyBadges(en){if(!en)return;var marks=[];if(en.burnTimer>0)marks.push('🔥');if(en.paralyzeTimer>0)marks.push('☠️');if(en.charmTimer>0)marks.push('💘');if(!marks.length)return;ctx.save();ctx.font=Math.max(11,en.r*.72)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';for(var i=0;i<marks.length;i++){ctx.fillStyle='rgba(0,0,0,.55)';ctx.beginPath();ctx.arc(en.x+(i-(marks.length-1)/2)*13,en.y-en.r-22,8,0,Math.PI*2);ctx.fill();ctx.fillText(marks[i],en.x+(i-(marks.length-1)/2)*13,en.y-en.r-22);}ctx.restore();}
+
+function drawSynergyBulletAccents(){
+  // v51 hotfix: シナジー弾の追加アクセント。未定義呼び出しでゲーム全体が止まらないよう、
+  // 軽量モードでは処理を省略し、通常モードだけ控えめに重ね描きする。
+  if(lightMode||!Array.isArray(bullets)||!bullets.length)return;
+  for(var i=0;i<bullets.length;i++){
+    var b=bullets[i];
+    if(!b||!b.fusion)continue;
+    var sv=b.synergyVisual?{icon:b.synergyIcon,color:b.synergyColor,scale:b.visualScale}:getSynergyVisual(b.fusion);
+    if(!sv||!sv.icon)continue;
+    var icon=sv.icon;
+    ctx.save();
+    ctx.globalAlpha=.42;
+    ctx.shadowColor=sv.color||b.color||'#ffdf6b';
+    ctx.shadowBlur=10;
+    ctx.strokeStyle=sv.color||b.color||'#ffdf6b';
+    ctx.lineWidth=1.5;
+    var rr=Math.max(7,Math.min(22,(b.r||4)*1.75));
+    ctx.beginPath();
+    ctx.arc(b.x,b.y,rr,0,Math.PI*2);
+    ctx.stroke();
+    ctx.globalAlpha=.74;
+    ctx.font=Math.max(10,Math.min(18,rr*.95))+'px serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillStyle='#fff3a6';
+    ctx.fillText(icon,b.x,b.y+1);
+    ctx.restore();
+  }
+}
+
 function drawIceOrbs(){var lv=getWeaponLevel('ice');if(lv<=0||!player)return;var count=1+(lv>=2?1:0)+(lv>=5?1:0),radius=44+lv*8,orbR=(10.5+lv*1.15)*areaMult();for(var o=0;o<count;o++){var a=iceAngle+Math.PI*2*o/count,ox=player.x+Math.cos(a)*radius,oy=player.y+Math.sin(a)*radius;ctx.save();ctx.shadowColor='#9ee8ff';ctx.shadowBlur=12;ctx.fillStyle='#9ee8ff';ctx.beginPath();ctx.arc(ox,oy,orbR,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,255,255,.76)';ctx.beginPath();ctx.arc(ox-orbR*.25,oy-orbR*.25,orbR*.35,0,Math.PI*2);ctx.fill();ctx.restore();}}
 function draw(){drawBackground();if(!running&&!player){drawViewportFrame();return;}if(!player){drawViewportFrame();return;}items.forEach(function(item){if(!item)return;var type=item.type||'gem';ctx.save();var fill=type==='heart'?'#ff7899':(type==='magnet'?'#66d9ff':(type==='bomb'?'#ffdf6b':(type==='chest'?'#ffdf6b':'#6cff92')));ctx.fillStyle=fill;ctx.beginPath();ctx.arc(item.x,item.y,item.r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.globalAlpha=.9;if(type==='gem'){ctx.beginPath();ctx.arc(item.x-1,item.y-1,item.r*.35,0,Math.PI*2);ctx.fill();}else{ctx.font=Math.max(14,item.r*1.45)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(type==='heart'?'❤️':(type==='magnet'?'🧲':(type==='bomb'?'💣':'🎁')),item.x,item.y+1);}ctx.restore();});
 zones.forEach(function(z){if(!z)return;var za=Math.max(0,z.life/(z.max||1));ctx.save();var fill=z.type==='steam'?'#dff7ff':(z.type==='ironPressZone'||z.type==='pressMark'||z.type==='napalmFire'||z.type==='fireFloor'||z.type==='meteorBlast'||z.type==='meteorShockwave'||z.type==='meteorMark'?'#ff9d4d':(z.type==='lightningRod'?'#fff06b':(z.type==='lightningLink'?'#fff06b':'#9ee8ff')));ctx.globalAlpha=(z.type==='pressMark'?.10:.18)+za*.24;ctx.fillStyle=fill;ctx.beginPath();ctx.arc(z.x,z.y,z.r,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.45*za;ctx.strokeStyle=z.type==='ironPressZone'?'#ffdf6b':'#fff';ctx.lineWidth=z.type==='pressMark'?1:2;ctx.stroke();if(z.type==='lightningRod'){ctx.globalAlpha=.9*za;ctx.strokeStyle='#fff06b';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(z.x,z.y-z.r*.55);ctx.lineTo(z.x,z.y+z.r*.35);ctx.stroke();ctx.font='18px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff06b';ctx.fillText('⚡',z.x,z.y-z.r*.72);}if(z.type==='meteorBlast'||z.type==='meteorShockwave'){ctx.globalAlpha=.80*za;ctx.strokeStyle=z.type==='meteorBlast'?'#ffdf6b':'#fff3a6';ctx.lineWidth=z.type==='meteorBlast'?4:2;ctx.beginPath();ctx.arc(z.x,z.y,z.r*(1.05-za*.12),0,Math.PI*2);ctx.stroke();ctx.font='bold '+Math.round(18+8*za)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff3a6';ctx.fillText('☄️',z.x,z.y);}
