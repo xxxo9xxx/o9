@@ -415,13 +415,15 @@ setPerfMode(perfMode,false);
 setAudioMuted(audioMuted,false);
 
 
-var firebaseConfig={apiKey:"AIzaSyA2CrJWFBsFJJGZOe0EvCs115E3EdEd72k",authDomain:"sunny-survivor-ranking.firebaseapp.com",projectId:"sunny-survivor-ranking",storageBucket:"sunny-survivor-ranking.firebasestorage.app",messagingSenderId:"912604013845",appId:"1:912604013845:web:8a882d32ea65491d33f51c"};
+var firebaseConfig={apiKey:"AIzaSyD8p-7lu0syxnlJnqdyW9awr4V__-PEmhA",authDomain:"sunnysan-49665.firebaseapp.com",projectId:"sunnysan-49665",storageBucket:"sunnysan-49665.firebasestorage.app",messagingSenderId:"69142550174",appId:"1:69142550174:web:3ce8574373845a32894d8f"};
 var RANKING_COLLECTION="scores_season2",RANKING_SEASON="season2",RANKING_SEASON_LABEL="シーズン2";
 var AGE_GROUP_LABELS={all:"全体",elementary:"小学生",juniorPlus:"中学生以上"},rankingGroupFilter="all";
 var firebaseInitPromise=null,fireDb=null,fireFns=null,lastResultPayload=null,scoreAlreadySubmitted=false,scoreSubmitInProgress=false,rankingsLoaded=false,rankingsLoading=false;
+var rankingCacheScoreDocs=[],rankingCacheTodayDocs=[],rankingLastFetchAt=0,rankingButtonsManualDisabled=false,rankingButtonTimer=0;
 // v15: エンドレスや追加合成で通常プレイでも100万点を超えることがあるため、
 // 登録拒否の上限をかなり広めに変更。最終的な公開運用ではFirestore Rules側でも同じ上限に合わせる。
 var RANKING_LIMITS={score:50000000,time:14400,level:999,kills:999999,cooldownMs:8000};
+var RANKING_FETCH_LIMIT=50,RANKING_RELOAD_COOLDOWN_MS=60000;
 function initRanking(){
   if(firebaseInitPromise)return firebaseInitPromise;
   firebaseInitPromise=Promise.all([
@@ -536,7 +538,7 @@ function makeResultPayload(name){
     moderationStatus:'public',
     resultTitle:(document.getElementById('resultTitle')&&document.getElementById('resultTitle').textContent)||'',
     clientCreatedAt:new Date().toISOString(),
-    gameVersion:'v54-fairybit-guruguru-ranking-synergy'
+    gameVersion:'v56-ranking-read-saver-limit50'
   };
 }
 function validatePayload(p){
@@ -623,7 +625,22 @@ function renderRankList(id,docs,kind){
   el.innerHTML=docs.slice(0,5).map(function(d,i){var data=d.data?d.data():d;var name=escapeHtml(data.name||'ななしサニー');var score=Math.floor(data.score||0);var time=Math.floor(data.surviveTime||0);var main=(kind==='time')?formatRankTime(time):(score+'点');var sub=(kind==='time')?(score+'点 / Lv'+(data.level||1)+' / '+(data.kills||0)+'撃破'):(formatRankTime(time)+' / Lv'+(data.level||1)+' / '+(data.kills||0)+'撃破');return '<div class="rankRow" role="button" tabindex="0" data-rank-click="1"><span>'+(i+1)+'位</span><span class="rankName">'+name+'</span><span class="rankMeta">'+escapeHtml(main)+'</span><span class="rankSub">'+escapeHtml(sub)+'　▼詳細</span>'+rankDetailHtml(data)+'</div>';}).join('');
 }
 function mirrorRankings(scoreDocs,todayScoreDocs){renderRankList('menuScoreRanks',scoreDocs,'score');renderRankList('menuTimeRanks',todayScoreDocs,'score');renderRankList('resultScoreRanks',scoreDocs,'score');renderRankList('resultTimeRanks',todayScoreDocs,'score');}
-function setRankingButtons(disabled){['menuLoadRankingsBtn','resultLoadRankingsBtn'].forEach(function(id){var btn=document.getElementById(id);if(btn)btn.disabled=!!disabled;});}
+function rankingCooldownLeft(){return Math.max(0,RANKING_RELOAD_COOLDOWN_MS-(Date.now()-rankingLastFetchAt));}
+function updateRankingButtonStates(){
+  clearTimeout(rankingButtonTimer);
+  var left=rankingCooldownLeft();
+  var disabled=!!rankingButtonsManualDisabled||rankingsLoading||left>0;
+  ['menuLoadRankingsBtn','resultLoadRankingsBtn'].forEach(function(id){
+    var btn=document.getElementById(id);if(!btn)return;
+    var base=id==='menuLoadRankingsBtn'?'ランキングを表示':'ランキングを表示/更新';
+    btn.disabled=disabled;
+    if(rankingsLoading||rankingButtonsManualDisabled)btn.textContent='ランキング読み込み中...';
+    else if(left>0)btn.textContent='再読み込み '+Math.ceil(left/1000)+'秒';
+    else btn.textContent=base;
+  });
+  if(left>0||rankingsLoading||rankingButtonsManualDisabled){rankingButtonTimer=setTimeout(updateRankingButtonStates,1000);}
+}
+function setRankingButtons(disabled){rankingButtonsManualDisabled=!!disabled;updateRankingButtonStates();}
 function todayJstRange(){var now=new Date(),jstOffset=9*60*60*1000,jst=new Date(now.getTime()+jstOffset);var startUtc=Date.UTC(jst.getUTCFullYear(),jst.getUTCMonth(),jst.getUTCDate())-jstOffset;return{start:new Date(startUtc),end:new Date(startUtc+86400000)};}
 function sortScoreDocs(docs){return uniqueBestRankDocs(filterVisibleRankDocs(docs)).slice(0,5);}
 function filterRankDocsByGroup(docs,group){
@@ -634,6 +651,31 @@ function filterRankDocsByGroup(docs,group){
     if(group==='all')return true;
     return normalizeAgeGroup(data.ageGroup||'elementary')===group;
   });
+}
+function renderCachedRankings(note){
+  if(!rankingsLoaded){renderRankPrompt();syncRankGroupButtons();return false;}
+  var group=rankingGroupFilter;
+  var scoreDocs=uniqueBestRankDocs(filterRankDocsByGroup(rankingCacheScoreDocs,group)).slice(0,5);
+  var todayScoreDocs=sortScoreDocs(filterRankDocsByGroup(rankingCacheTodayDocs,group));
+  mirrorRankings(scoreDocs,todayScoreDocs);
+  syncRankGroupButtons();
+  var label=RANKING_SEASON_LABEL+'・'+rankGroupLabel(group)+' 読み込み済み（上限'+RANKING_FETCH_LIMIT+'件）';
+  if(note)label=note;
+  setRankBoxStatus('menu',label);
+  setRankBoxStatus('result',label);
+  updateRankingButtonStates();
+  return true;
+}
+function makeLocalRankDoc(data){return{__local:true,data:function(){return data;}};}
+function rankDocLocalKey(doc){var data=doc&&doc.data?doc.data():doc;return rankNameKey(data)+'|'+Math.floor((data&&data.score)||0)+'|'+Math.floor((data&&data.surviveTime)||0)+'|'+(data&&data.clientCreatedAt||'');}
+function uniqueRankDocList(docs){var seen={},out=[];(docs||[]).forEach(function(d){var k=rankDocLocalKey(d);if(!seen[k]){seen[k]=true;out.push(d);}});return out;}
+function rankDocIsToday(doc){var ms=docCreatedMs(doc),range=todayJstRange();return ms>=range.start.getTime()&&ms<range.end.getTime();}
+function mergeLocalRankingDoc(data){
+  if(!data||!rankingsLoaded)return;
+  var doc=makeLocalRankDoc(Object.assign({},data));
+  rankingCacheScoreDocs=uniqueRankDocList([doc].concat(rankingCacheScoreDocs||[]));
+  if(rankDocIsToday(doc))rankingCacheTodayDocs=uniqueRankDocList([doc].concat(rankingCacheTodayDocs||[]));
+  renderCachedRankings(RANKING_SEASON_LABEL+'・'+rankGroupLabel(rankingGroupFilter)+' 登録結果を反映（再読み込みなし）');
 }
 function syncRankGroupButtons(){
   [].slice.call(document.querySelectorAll('.rankGroupBtn')).forEach(function(btn){
@@ -646,13 +688,16 @@ function syncRankGroupButtons(){
 }
 function setRankingGroup(group){
   rankingGroupFilter=normalizeRankGroup(group);
-  rankingsLoaded=false;
-  syncRankGroupButtons();
-  renderRankPrompt();
-  loadRankings();
+  if(rankingsLoaded)renderCachedRankings();
+  else{syncRankGroupButtons();renderRankPrompt();}
 }
 function loadRankings(){
   if(rankingsLoading)return;
+  var left=rankingCooldownLeft();
+  if(left>0&&rankingsLoaded){
+    renderCachedRankings(RANKING_SEASON_LABEL+'・'+rankGroupLabel(rankingGroupFilter)+' 前回データ表示中（再読み込みはあと'+Math.ceil(left/1000)+'秒）');
+    return;
+  }
   var group=rankingGroupFilter;
   rankingsLoading=true;setRankingButtons(true);setRankBoxStatus('menu',RANKING_SEASON_LABEL+'・'+rankGroupLabel(group)+' 読み込み中...');setRankBoxStatus('result',RANKING_SEASON_LABEL+'・'+rankGroupLabel(group)+' 読み込み中...');
   initRanking().then(function(){
@@ -660,19 +705,21 @@ function loadRankings(){
     var col=fs.collection(fireDb,RANKING_COLLECTION);
     var today=todayJstRange();
     return Promise.all([
-      // 新シーズン専用コレクションを多めに取得し、区分と非表示をクライアント側で安全に絞り込む。
-      fs.getDocs(fs.query(col,fs.orderBy('score','desc'),fs.limit(360))),
-      fs.getDocs(fs.query(col,fs.where('createdAt','>=',today.start),fs.where('createdAt','<',today.end),fs.orderBy('createdAt','desc'),fs.limit(500)))
+      // 読み取り節約：シーズンTOPと今日の記録を各50件だけ取得。タブ切替はキャッシュ内で絞り込む。
+      fs.getDocs(fs.query(col,fs.orderBy('score','desc'),fs.limit(RANKING_FETCH_LIMIT))),
+      fs.getDocs(fs.query(col,fs.where('createdAt','>=',today.start),fs.where('createdAt','<',today.end),fs.orderBy('createdAt','desc'),fs.limit(RANKING_FETCH_LIMIT)))
     ]);
   }).then(function(snaps){
     rankingsLoaded=true;
-    var scoreDocs=uniqueBestRankDocs(filterRankDocsByGroup(snaps[0].docs,group)).slice(0,5);
-    var todayScoreDocs=sortScoreDocs(filterRankDocsByGroup(snaps[1].docs,group));
-    mirrorRankings(scoreDocs,todayScoreDocs);
-    setRankBoxStatus('menu',RANKING_SEASON_LABEL+'・'+rankGroupLabel(group)+' 読み込み済み');
-    setRankBoxStatus('result',RANKING_SEASON_LABEL+'・'+rankGroupLabel(group)+' 読み込み済み');
-    syncRankGroupButtons();
-  }).catch(function(err){console.warn('ranking load failed',err);renderRankError('menuScoreRanks');renderRankError('menuTimeRanks');renderRankError('resultScoreRanks');renderRankError('resultTimeRanks');setRankBoxStatus('menu','読み込み失敗');setRankBoxStatus('result','読み込み失敗');}).finally(function(){rankingsLoading=false;setRankingButtons(false);});
+    rankingLastFetchAt=Date.now();
+    rankingCacheScoreDocs=snaps[0].docs||[];
+    rankingCacheTodayDocs=snaps[1].docs||[];
+    renderCachedRankings();
+  }).catch(function(err){
+    console.warn('ranking load failed',err);
+    if(rankingsLoaded){renderCachedRankings(RANKING_SEASON_LABEL+'・'+rankGroupLabel(rankingGroupFilter)+' 更新失敗・前回データ表示');}
+    else{renderRankError('menuScoreRanks');renderRankError('menuTimeRanks');renderRankError('resultScoreRanks');renderRankError('resultTimeRanks');setRankBoxStatus('menu','読み込み失敗');setRankBoxStatus('result','読み込み失敗');}
+  }).finally(function(){rankingsLoading=false;setRankingButtons(false);});
 }
 function submitScore(){
   if(scoreAlreadySubmitted){setRankingStatus('この結果は登録済みです');return;}
@@ -681,9 +728,10 @@ function submitScore(){
   var input=document.getElementById('playerNameInput');
   var group=getSelectedAgeGroup();
   var payload=makeResultPayload(input?input.value:'');
+  var localPayload=Object.assign({},payload,{clientCreatedAt:new Date().toISOString(),createdAt:new Date()});
   var problem=validatePayload(payload);if(problem){setRankingStatus(problem);return;}
   scoreSubmitInProgress=true;setSubmitButtonState(true);setRankingStatus(RANKING_SEASON_LABEL+'・'+rankGroupLabel(group)+'へ登録中...');
-  initRanking().then(function(){var fs=fireFns;payload.createdAt=fs.serverTimestamp();return fs.addDoc(fs.collection(fireDb,RANKING_COLLECTION),payload);}).then(function(){scoreAlreadySubmitted=true;localStorage.setItem('sunnyLastSubmitAt',String(Date.now()));localStorage.setItem('sunnyAgeGroup',group);rankingGroupFilter=group;setRankingStatus('登録ありがとう！ヒントカードをどうぞ！');showScoreHintCard(payload);loadRankings();}).catch(function(err){console.warn('score submit failed',err);setRankingStatus('登録に失敗しました。Firestoreのルールを確認してください。');}).finally(function(){scoreSubmitInProgress=false;setSubmitButtonState(false);});
+  initRanking().then(function(){var fs=fireFns;payload.createdAt=fs.serverTimestamp();return fs.addDoc(fs.collection(fireDb,RANKING_COLLECTION),payload);}).then(function(){scoreAlreadySubmitted=true;localStorage.setItem('sunnyLastSubmitAt',String(Date.now()));localStorage.setItem('sunnyAgeGroup',group);rankingGroupFilter=group;setRankingStatus('登録ありがとう！ヒントカードをどうぞ！ ランキングは表示/更新ボタンで確認できます');showScoreHintCard(localPayload);mergeLocalRankingDoc(localPayload);syncRankGroupButtons();updateRankingButtonStates();}).catch(function(err){console.warn('score submit failed',err);setRankingStatus('登録に失敗しました。Firestoreのルールを確認してください。');}).finally(function(){scoreSubmitInProgress=false;setSubmitButtonState(false);});
 }
 function setupRankingEvents(){
   var m=document.getElementById('menuLoadRankingsBtn');if(m)m.addEventListener('click',loadRankings);
