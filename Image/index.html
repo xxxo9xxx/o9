@@ -278,6 +278,7 @@
     }
     const ARCHIVE_KEEP_DAYS = 14;
     function roomArchiveRootRef() { return db.ref('roomArchives/' + currentRoomId); }
+    function roomArchiveIndexRef(archiveId) { return db.ref('roomArchiveIndex/' + archiveId); }
     function roomHasArchivableResults(state) {
       const answers = state?.answers || {};
       if (!answers || typeof answers !== 'object') return false;
@@ -286,6 +287,13 @@
     function makeArchiveId(state) {
       const base = Number(state?.startedAt) || Date.now();
       return String(base) + '-' + Math.random().toString(36).slice(2, 8);
+    }
+    function countVotesFromAnswers(answers) {
+      if (!answers || typeof answers !== 'object') return 0;
+      return Object.values(answers).reduce((sum, qAnswers) => {
+        if (!qAnswers || typeof qAnswers !== 'object') return sum;
+        return sum + Object.keys(qAnswers).length;
+      }, 0);
     }
     function makeArchivePayload(state, reason, archiveId) {
       const now = Date.now();
@@ -312,13 +320,33 @@
         reason
       };
     }
+    function makeArchiveIndexPayload(payload) {
+      return {
+        archiveId: payload.archiveId,
+        roomId: payload.roomId,
+        gameKey: payload.gameKey,
+        host: payload.host || '',
+        reason: payload.reason || '',
+        startedAt: payload.startedAt || null,
+        archivedAt: firebase.database.ServerValue.TIMESTAMP,
+        archivedAtClient: payload.archivedAtClient || Date.now(),
+        expiresAt: payload.expiresAt || null,
+        memberCount: Array.isArray(payload.members) ? payload.members.length : 0,
+        questionCount: Array.isArray(payload.questions) ? payload.questions.length : 0,
+        voteCount: countVotesFromAnswers(payload.answers)
+      };
+    }
     async function archiveCurrentRoom(reason='manual') {
       if (!roomRef || !currentRoomId) return null;
       const snap = await roomRef.once('value');
       const state = snap.val();
       if (!state || !roomHasArchivableResults(state)) return null;
       const archiveId = makeArchiveId(state);
-      await roomArchiveRootRef().child(archiveId).set(makeArchivePayload(state, reason, archiveId));
+      const payload = makeArchivePayload(state, reason, archiveId);
+      await Promise.all([
+        roomArchiveRootRef().child(archiveId).set(payload),
+        roomArchiveIndexRef(archiveId).set(makeArchiveIndexPayload(payload))
+      ]);
       return archiveId;
     }
     async function allReset() {
