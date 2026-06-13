@@ -276,7 +276,74 @@
       myName = ''; myRole = ''; myColor = ''; currentRoomId = params.get('room') || ''; gameState = null; answerDraft = { qIdx: null, main: '', subs: [] };
       if (currentRoomId) connectRoom(currentRoomId); else { if (unsubscribe && roomRef) roomRef.off('value', unsubscribe); roomRef=null; setRoomLabel(); render(); }
     }
-    function allReset() { if (!currentRoomId) return resetMyEntry(false); if (confirm('ルームを解散しますか？\n参加者全員の部屋情報が削除されます。')) roomRef.remove(); }
+    const ARCHIVE_KEEP_DAYS = 14;
+    function roomArchiveRootRef() { return db.ref('roomArchives/' + currentRoomId); }
+    function roomHasArchivableResults(state) {
+      const answers = state?.answers || {};
+      if (!answers || typeof answers !== 'object') return false;
+      return Object.values(answers).some(qAnswers => qAnswers && typeof qAnswers === 'object' && Object.keys(qAnswers).length > 0);
+    }
+    function makeArchiveId(state) {
+      const base = Number(state?.startedAt) || Date.now();
+      return String(base) + '-' + Math.random().toString(36).slice(2, 8);
+    }
+    function makeArchivePayload(state, reason, archiveId) {
+      const now = Date.now();
+      return {
+        archiveId,
+        roomId: currentRoomId,
+        gameKey: GAME_KEY,
+        host: state?.host || '',
+        phase: state?.phase || '',
+        members: state?.members || [],
+        memberColors: state?.memberColors || {},
+        questions: state?.questions || [],
+        answers: state?.answers || {},
+        selfExpects: state?.selfExpects || {},
+        deckConfig: state?.deckConfig || null,
+        mode: state?.mode || '',
+        currentQIdx: state?.currentQIdx || 0,
+        revealIdx: state?.revealIdx || 0,
+        startedAt: state?.startedAt || null,
+        archivedAt: firebase.database.ServerValue.TIMESTAMP,
+        archivedAtClient: now,
+        expiresAt: now + ARCHIVE_KEEP_DAYS * 24 * 60 * 60 * 1000,
+        archivedBy: myName || '',
+        reason
+      };
+    }
+    async function archiveCurrentRoom(reason='manual') {
+      if (!roomRef || !currentRoomId) return null;
+      const snap = await roomRef.once('value');
+      const state = snap.val();
+      if (!state || !roomHasArchivableResults(state)) return null;
+      const archiveId = makeArchiveId(state);
+      await roomArchiveRootRef().child(archiveId).set(makeArchivePayload(state, reason, archiveId));
+      return archiveId;
+    }
+    async function allReset() {
+      if (!currentRoomId) return resetMyEntry(false);
+      if (myRole !== 'host') return alert('部屋の解散はホストだけができます。');
+      if (confirm('ルームを解散しますか？\n参加者全員の部屋情報が削除されます。')) {
+        try {
+          await archiveCurrentRoom('room_closed');
+          await roomRef.remove();
+        } catch(e) {
+          console.error('room archive failed', e);
+          alert('部屋の解散に失敗しました。通信状態を確認してください。');
+        }
+      }
+    }
+    async function archiveAndReturnToSetup() {
+      if (!roomRef || myRole !== 'host') return;
+      try {
+        await archiveCurrentRoom('restart');
+        await roomRef.update({ phase:'setup', answers:{}, selfExpects:{}, revealIdx:0, currentQIdx:0 });
+      } catch(e) {
+        console.error('room archive failed', e);
+        alert('結果のリセットに失敗しました。通信状態を確認してください。');
+      }
+    }
     function copyInvite() { navigator.clipboard?.writeText(getInviteUrl()); playSfx('tap'); alert('招待URLをコピーしました'); }
     async function shareInvite() {
       const data = { title:'Image Profile', text:'Image Profileに参加してね', url:getInviteUrl() };
@@ -1001,7 +1068,7 @@
             <div class="flex flex-wrap gap-2">${topItems.length ? topItems.map((item,idx)=>`<span class="px-4 py-1 rounded-full font-black text-white text-[10px] shadow-sm" style="background-color:${COLORS[idx % COLORS.length]}">${esc(item.text)}</span>`).join('') : '<span class="px-4 py-1 rounded-full font-black bg-white border border-slate-100 text-slate-400 text-[10px]">ひとつの印象に決めつけられにくいタイプ</span>'}</div>
           </div>
           <div class="glass p-5 rounded-[2rem] mb-5"><p class="text-[9px] font-black text-slate-300 uppercase mb-4 tracking-widest text-center border-b pb-2">Impression Detail</p><div class="space-y-3">${(gameState.questions || []).map((q,i)=>`<div class="flex items-center justify-between gap-3"><div class="flex items-center gap-2 min-w-0"><div class="w-3 h-3 rounded-full shrink-0 shadow-sm" style="background-color:${COLORS[i % COLORS.length]}"></div><span class="text-[10px] font-bold text-slate-500 truncate">${esc(q)}</span></div><span class="text-[9px] font-black text-slate-400 shrink-0">${stat.detailScore[i] || 0}点</span></div>`).join('')}</div></div>
-          ${myRole === 'host' ? `<button onclick="roomRef.update({phase:'setup', answers:{}, selfExpects:{}, revealIdx:0, currentQIdx:0})" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-black shadow-xl active:scale-95 transition-all">もう一度あそぶ</button>` : ''}
+          ${myRole === 'host' ? `<button onclick="archiveAndReturnToSetup()" class="w-full bg-slate-800 text-white h-16 rounded-2xl font-black shadow-xl active:scale-95 transition-all">もう一度あそぶ</button>` : ''}
         </div>`;
       }
       lastPhase = gameState?.phase || '';
