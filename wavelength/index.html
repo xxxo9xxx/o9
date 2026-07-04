@@ -18,22 +18,22 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP",Arial,sans-serif;
   min-height:100vh;display:flex;align-items:center;justify-content:center;
   padding:16px;padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(16px,env(safe-area-inset-bottom));
-  color:var(--text-color);background:#F0F2F5;transition:background-color .35s ease;touch-action:manipulation;
+  color:var(--text-color);background:#F0F2F5;transition:background-color .5s ease;touch-action:manipulation;
 }
 body.red-team-turn{background:linear-gradient(180deg,var(--red-team-bg),#fff 60%);} 
 body.blue-team-turn{background:linear-gradient(180deg,var(--blue-team-bg),#fff 60%);} 
-.game-container{width:100%;max-width:560px;background:rgba(255,255,255,.96);border-radius:22px;padding:18px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.8);} 
+.game-container{width:100%;max-width:560px;background:rgba(255,255,255,.96);border-radius:22px;padding:18px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.8);position:relative;overflow:hidden;} 
 .header{text-align:center;margin-bottom:12px;border-bottom:1px solid var(--line);padding-bottom:12px;}
 .title{font-size:1.65rem;color:var(--dial-frame-color);font-weight:900;letter-spacing:.02em;}
 .subtitle{font-size:.86rem;color:var(--muted);margin-top:4px;}
 .scoreboard{display:flex;justify-content:space-between;margin-bottom:12px;gap:10px;position:sticky;top:6px;z-index:20;}
-.team-score{text-align:center;padding:10px 10px;border-radius:14px;font-weight:900;font-size:1.02rem;flex:1;border:2px solid transparent;transition:.18s transform,.18s box-shadow;min-width:0;}
+.team-score{text-align:center;padding:10px 10px;border-radius:14px;font-weight:900;font-size:1.02rem;flex:1;border:2px solid transparent;transition:.3s transform,.3s box-shadow;min-width:0;}
 .score-line{display:flex;align-items:baseline;justify-content:center;gap:7px;white-space:nowrap;}
 .score-line small{font-size:.72rem;font-weight:900;opacity:.78;}
 .score-dots{margin-top:5px;font-size:.72rem;letter-spacing:.06em;line-height:1;color:currentColor;white-space:nowrap;overflow:hidden;text-overflow:clip;}
 .red-team-score{background:var(--red-team-bg);color:var(--red-team-color);border-color:rgba(255,82,82,.35);} 
 .blue-team-score{background:var(--blue-team-bg);color:var(--blue-team-color);border-color:rgba(33,150,243,.35);} 
-.current-team{box-shadow:0 8px 24px rgba(0,0,0,.16);transform:scale(1.025);border-color:currentColor;}
+.current-team{box-shadow:0 8px 24px rgba(0,0,0,.16);transform:scale(1.04);border-color:currentColor;}
 .topic-display{background:linear-gradient(135deg,#f8fbff,#edf4fb);color:var(--text-color);border:1px solid #dce6f1;border-radius:18px;padding:14px;margin-bottom:14px;box-shadow:0 10px 26px rgba(33,45,68,.08), inset 0 1px 0 rgba(255,255,255,.85);} 
 .topic-caption{font-size:.78rem;color:var(--muted);font-weight:900;margin-bottom:9px;text-align:center;}
 .topic-text{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;font-weight:1000;font-size:1.14rem;line-height:1.25;}
@@ -50,28 +50,45 @@ body.blue-team-turn{background:linear-gradient(180deg,var(--blue-team-bg),#fff 6
 .setting{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;}
 .setting label{display:block;font-size:.78rem;color:var(--muted);font-weight:800;margin-bottom:6px;}
 select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;border-radius:12px;padding:11px 10px;font-weight:900;color:var(--text-color);font-size:.95rem;}
-.btn{width:100%;padding:16px;border:none;border-radius:999px;background:linear-gradient(45deg,#2196F3,#03A9F4);color:white;font-weight:900;cursor:pointer;margin:8px 0;font-size:1.08rem;box-shadow:0 7px 14px rgba(33,150,243,.22);touch-action:manipulation;}
+.btn{width:100%;padding:16px;border:none;border-radius:999px;background:linear-gradient(45deg,#2196F3,#03A9F4);color:white;font-weight:900;cursor:pointer;margin:8px 0;font-size:1.08rem;box-shadow:0 7px 14px rgba(33,150,243,.22);touch-action:manipulation;transition:transform .1s, box-shadow .1s;}
 .btn:active{transform:translateY(2px);box-shadow:none;}
 .btn-secondary{background:linear-gradient(45deg,#673AB7,#9C27B0);box-shadow:0 7px 14px rgba(103,58,183,.22);} 
 .btn-change{background:linear-gradient(45deg,#757575,#9E9E9E);box-shadow:0 7px 14px rgba(117,117,117,.18);} 
 .btn-danger{background:linear-gradient(45deg,#f44336,#ff7043);box-shadow:0 7px 14px rgba(244,67,54,.18);} 
-.small-btn{padding:11px;font-size:.92rem;margin:4px 0;border-radius:14px;}
+.small-btn{padding:11px;font-size:.92rem;margin:4px 0;border-radius:12px;width:100%;}
 .vote-buttons{display:flex;gap:12px;margin:16px 0;}
-.vote-btn{flex:1;padding:20px 12px;border:none;border-radius:18px;font-weight:900;font-size:1.05rem;color:white;line-height:1.25;box-shadow:0 8px 18px rgba(0,0,0,.13);} 
+.vote-btn{flex:1;padding:20px 12px;border:none;border-radius:18px;font-weight:900;font-size:1.05rem;color:white;line-height:1.25;box-shadow:0 8px 18px rgba(0,0,0,.13);transition:transform .1s;} 
+.vote-btn:active{transform:scale(0.96);}
 .vote-left{background:linear-gradient(45deg,#9C27B0,#E91E63);} 
 .vote-right{background:linear-gradient(45deg,#2196F3,#00BCD4);} 
-.hidden{display:none!important;}
+
+/* アニメーション用クラス */
+.game-phase {
+  display: none;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.game-phase.active {
+  display: block;
+}
+.game-phase.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .wavelength-dial{position:relative;width:320px;max-width:100%;height:160px;margin:24px auto 18px;border-top-left-radius:160px;border-top-right-radius:160px;background:#E0E5EC;overflow:visible;filter:drop-shadow(0 8px 14px rgba(33,45,68,.14));}
 .wavelength-dial svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;}
-.needle{position:absolute;left:50%;bottom:0;width:7px;height:138px;background:var(--needle-color);transform-origin:50% 100%;transform:translateX(-50%) rotate(0deg);z-index:6;border-radius:4px;box-shadow:0 0 0 2px rgba(255,255,255,.85);} 
+.needle{position:absolute;left:50%;bottom:0;width:7px;height:138px;background:var(--needle-color);transform-origin:50% 100%;transform:translateX(-50%) rotate(0deg);z-index:6;border-radius:4px;box-shadow:0 0 0 2px rgba(255,255,255,.85);transition: transform 0.1s linear;} 
 .knob{position:absolute;width:52px;height:52px;border-radius:50%;background:var(--needle-color);border:5px solid #fff;box-shadow:0 5px 14px rgba(0,0,0,.25);transform:translate(-50%,-50%);z-index:10;touch-action:none;cursor:grab;}
 .knob::after{content:"";position:absolute;inset:12px;border-radius:50%;background:rgba(255,255,255,.35);} 
 .team-indicator{font-size:1.1rem;font-weight:900;margin:4px auto 10px;padding:8px 16px;border-radius:999px;display:inline-block;color:white;}
 .red-team-indicator{background:var(--red-team-color);} .blue-team-indicator{background:var(--blue-team-color);} 
 .progress{display:flex;justify-content:space-between;gap:6px;margin:10px 0 14px;}
-.step{flex:1;height:8px;border-radius:999px;background:#e8edf3;overflow:hidden;}
+.step{flex:1;height:8px;border-radius:999px;background:#e8edf3;overflow:hidden;transition: background-color 0.3s;}
 .step.active{background:linear-gradient(90deg,#03A9F4,#2196F3);} 
-.result-score{font-size:2.2rem;font-weight:1000;margin:6px 0;color:#26374d;}
+.result-score{font-size:2.2rem;font-weight:1000;margin:6px 0;color:#26374d;animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+@keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 .result-message{font-weight:1000;font-size:1.2rem;margin:6px 0;}
 .result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
 .result-mini{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;font-weight:800;}
@@ -86,15 +103,32 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
 .cover-sweep-shine{fill:none;stroke:rgba(255,255,255,.68);stroke-width:5;stroke-linecap:round;opacity:.75;pointer-events:none;}
 .cover-sweep-edge{stroke:rgba(255,179,0,.78);stroke-width:5;stroke-linecap:round;filter:drop-shadow(0 4px 8px rgba(33,45,68,.20));opacity:0;transition:opacity .12s ease;}
 .reveal-panel{position:relative;z-index:50;margin-top:4px;}
-.reveal-hint{font-size:.84rem;color:var(--muted);font-weight:800;margin-top:8px;}
+.reveal-hint{font-size:.84rem;color:var(--muted);font-weight:800;margin-top:8px;min-height: 2.5em;}
 .reveal-track{position:relative;width:min(320px,100%);height:54px;margin:8px auto 0;border-radius:999px;background:linear-gradient(180deg,#f8fafc,#e7edf4);border:1px solid var(--line);box-shadow:inset 0 2px 8px rgba(33,45,68,.10);touch-action:none;user-select:none;}
 .reveal-track::before{content:"左下から扇形にめくる";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.86rem;font-weight:900;color:rgba(36,48,66,.42);pointer-events:none;}
-.reveal-fill{position:absolute;left:0;top:0;bottom:0;width:0%;border-radius:999px;background:linear-gradient(90deg,rgba(255,193,7,.30),rgba(255,152,0,.52));pointer-events:none;}
-.reveal-grip{position:absolute;left:0%;top:50%;width:58px;height:58px;border-radius:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,#fff,#f2f6fb);border:4px solid #ffb300;box-shadow:0 8px 18px rgba(33,45,68,.22);display:flex;align-items:center;justify-content:center;font-weight:1000;color:#8a5a00;touch-action:none;cursor:grab;}
+.reveal-fill{position:absolute;left:0;top:0;bottom:0;width:0%;border-radius:999px;background:linear-gradient(90deg,rgba(255,193,7,.30),rgba(255,152,0,.52));pointer-events:none;transition: width 0.1s linear;}
+.reveal-grip{position:absolute;left:0%;top:50%;width:58px;height:58px;border-radius:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,#fff,#f2f6fb);border:4px solid #ffb300;box-shadow:0 8px 18px rgba(33,45,68,.22);display:flex;align-items:center;justify-content:center;font-weight:1000;color:#8a5a00;touch-action:none;cursor:grab;transition: left 0.1s linear;}
 .reveal-grip::after{content:"▶";font-size:1.05rem;}
 .reveal-percent{font-size:.78rem;color:var(--muted);font-weight:900;margin-top:6px;}
 
 .footer-note{text-align:center;color:var(--muted);font-size:.8rem;margin-top:8px;}
+
+/* モーダル用CSS */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 16px; backdrop-filter: blur(3px); }
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
+.modal-content { background: #fff; width: 100%; max-width: 400px; border-radius: 20px; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: translateY(20px); transition: transform 0.3s; }
+.modal-overlay.active .modal-content { transform: translateY(0); }
+.modal-title { font-size: 1.2rem; font-weight: 900; margin-bottom: 12px; color: var(--dial-frame-color); text-align: center; }
+.custom-input-group { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.custom-input { flex: 1; padding: 12px; border: 2px solid var(--line); border-radius: 12px; font-size: 1rem; font-weight: bold; width: 100%; background: #f8fafc; }
+.custom-input:focus { outline: none; border-color: var(--zone-4-color); }
+.custom-list { max-height: 200px; overflow-y: auto; margin: 12px 0; padding: 0; list-style: none; border: 1px solid var(--line); border-radius: 12px; background:#f8fafc;}
+.custom-item { padding: 10px 12px; border-bottom: 1px solid var(--line); font-weight: bold; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; }
+.custom-item:last-child { border-bottom: none; }
+.custom-item-delete { color: var(--needle-color); cursor: pointer; font-size: 1.2rem; padding: 0 8px; font-weight: normal; }
+.sudden-death-banner { background: #E91E63; color: white; text-align: center; font-weight: 900; padding: 8px; border-radius: 8px; margin-bottom: 12px; animation: pulse 1.5s infinite; display: none; }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
 @media(max-width:420px){body{padding:10px}.game-container{padding:14px;border-radius:18px}.title{font-size:1.45rem}.topic-text{font-size:1.02rem}.settings-grid{grid-template-columns:1fr}.vote-buttons{gap:8px}.vote-btn{padding:18px 8px}.wavelength-dial{width:300px;height:150px}.needle{height:130px}.scoreboard{top:4px}.team-score{font-size:.96rem;padding:9px 7px}.score-dots{font-size:.64rem;letter-spacing:.02em}}
 </style>
 </head>
@@ -104,6 +138,8 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
     <div class="title">Wavelength Mobile</div>
     <div class="subtitle">ヒントで“ちょうどいい位置”を当てるチーム対戦ゲーム</div>
   </div>
+
+  <div class="sudden-death-banner" id="suddenDeathBanner">🔥 同点！サドンデス突入！ 🔥<br><small>どちらかがリードするまで続きます</small></div>
 
   <div class="scoreboard" id="scoreboard">
     <div class="team-score red-team-score" id="redTeamScore"><div class="score-line">赤: 0 <small>あと11点</small></div><div class="score-dots">○○○○○○○○○○○</div></div>
@@ -117,7 +153,8 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
 
   <div class="progress" id="progress"><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div></div>
 
-  <div id="phase-start" class="game-phase">
+  <!-- フェーズ1: スタート/設定 -->
+  <div id="phase-start" class="game-phase active visible">
     <div class="phase-title">かんたんルール</div>
     <div class="rules">
       <div class="rule"><span class="badge">1</span><span>ヒント役だけが、正解ゾーンの位置を見ます。</span></div>
@@ -140,18 +177,21 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
           <option value="media">作品・イメージ</option>
           <option value="kids">子どもOK</option>
           <option value="wildcard">ワイルドカード</option>
+          <option value="custom" id="customOption" disabled>★ カスタムお題 (0)</option>
         </select>
       </div>
-      <div class="setting">
-        <label>効果音</label>
-        <button class="toggle-btn" id="soundToggle" type="button">ON</button>
+      <div class="setting" style="display:flex; flex-direction:column; gap:4px;">
+        <label>設定</label>
+        <button class="small-btn btn-change" id="openCustomModalBtn">✏️ オリジナルお題を作る</button>
+        <button class="small-btn btn-change" id="soundToggle" type="button" style="margin:0;">🔊 効果音: ON</button>
       </div>
     </div>
     <button class="btn" id="startBtn">ゲーム開始</button>
-    <div class="footer-note">11点先取で勝利。お題はヒント役画面で何回でも引き直せます。</div>
+    <div class="footer-note">11点先取で勝利。お題はヒント役画面で引き直せます。</div>
   </div>
 
-  <div id="phase-round-start" class="game-phase hidden">
+  <!-- フェーズ2: ラウンド開始（ヒント役決定） -->
+  <div id="phase-round-start" class="game-phase">
     <div style="text-align:center">
       <div class="team-indicator" id="currentTeamIndicator">赤チーム</div>
       <div class="phase-title">ヒント役を決めよう</div>
@@ -160,7 +200,8 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
     </div>
   </div>
 
-  <div id="phase-psychic" class="game-phase hidden">
+  <!-- フェーズ3: サイキック（ヒント考案） -->
+  <div id="phase-psychic" class="game-phase">
     <div style="text-align:center">
       <div class="notice">ヒント役以外は見ないで！<br>スマホをヒント役だけに見せてください。</div>
       <div class="phase-title">ヒントを考える</div>
@@ -172,7 +213,8 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
     </div>
   </div>
 
-  <div id="phase-vote" class="game-phase hidden">
+  <!-- フェーズ4: 投票（相手チーム） -->
+  <div id="phase-vote" class="game-phase">
     <div style="text-align:center">
       <div class="team-indicator" id="voteTeamIndicator">青チーム</div>
       <div class="phase-title">相手チームの予想</div>
@@ -184,11 +226,12 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
     </div>
   </div>
 
-  <div id="phase-guess" class="game-phase hidden">
+  <!-- フェーズ5: 予想（味方チーム） -->
+  <div id="phase-guess" class="game-phase">
     <div style="text-align:center">
       <div class="team-indicator" id="guessTeamIndicator">赤チーム</div>
       <div class="phase-title">味方チームのダイヤル予想</div>
-      <p class="phase-lead">ヒントをもとに、針をちょうどいい位置へ動かしてください。<br>ダイヤル部分をタップしても動かせます。</p>
+      <p class="phase-lead">ヒントをもとに、針をちょうどいい位置へ動かしてください。<br>ダイヤル部分をスワイプしても動かせます。</p>
       <div class="wavelength-dial" id="guess-dial">
         <svg id="guess-svg" viewBox="0 0 320 160"></svg>
         <div class="needle" id="needle"></div>
@@ -199,7 +242,8 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
     </div>
   </div>
 
-  <div id="phase-result" class="game-phase hidden">
+  <!-- フェーズ6: 結果発表 -->
+  <div id="phase-result" class="game-phase">
     <div style="text-align:center">
       <div class="phase-title">結果発表</div>
       <div class="wavelength-dial result-dial-wrap" id="resultDialWrap">
@@ -211,7 +255,7 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
               <stop offset="0.58" stop-color="#eef3f8"/>
               <stop offset="1" stop-color="#dfe8f2"/>
             </linearGradient>
-                      </defs>
+          </defs>
           <g id="coverSweepGroup">
             <path class="cover-sweep" id="coverSweep" d="M0 160 A160 160 0 0 1 320 160 L160 160 Z"></path>
             <path class="cover-sweep-shine" id="coverSweepShine" d="M42 126 C92 74 141 48 199 58 C235 64 264 86 286 112"></path>
@@ -228,12 +272,13 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
         <div class="reveal-percent" id="revealPercent">めくり: 0%</div>
         <div class="reveal-hint" id="revealHint">予想針は見えています。つまみを左から右へゆっくり動かしてください。</div>
       </div>
-      <div id="resultSummary" class="card"></div>
-      <button class="btn btn-secondary hidden" id="nextRoundBtn">次のラウンドへ</button>
+      <div id="resultSummary" class="card" style="display:none;"></div>
+      <button class="btn btn-secondary" id="nextRoundBtn" style="display:none;">次のラウンドへ</button>
     </div>
   </div>
 
-  <div id="phase-game-over" class="game-phase hidden">
+  <!-- フェーズ7: ゲーム終了 -->
+  <div id="phase-game-over" class="game-phase">
     <div style="text-align:center">
       <div id="winnerAnnouncement" style="font-size:1.5rem;font-weight:1000;margin:18px;"></div>
       <div class="card" id="finalScore"></div>
@@ -243,1252 +288,127 @@ select,.toggle-btn{width:100%;border:1px solid var(--line);background:#f8fafc;bo
 </div>
 <div class="confetti" id="confetti"></div>
 
+<!-- カスタムお題作成モーダル -->
+<div class="modal-overlay" id="customModal">
+  <div class="modal-content">
+    <div class="modal-title">オリジナルお題を作る</div>
+    <p style="font-size:0.8rem; color:var(--muted); text-align:center; margin-bottom:12px;">身内ネタや好きなお題を追加できます。</p>
+    <div class="custom-input-group">
+      <input type="text" id="customLeftInput" class="custom-input" placeholder="左の言葉 (例:きのこ)" maxlength="15">
+      <span style="font-weight:900; color:var(--muted);">⇔</span>
+      <input type="text" id="customRightInput" class="custom-input" placeholder="右の言葉 (例:たけのこ)" maxlength="15">
+    </div>
+    <button class="btn" id="addCustomWordBtn" style="padding:12px; font-size:1rem; margin-top:0;">リストに追加</button>
+    
+    <ul class="custom-list" id="customListContainer">
+      <li style="padding:10px; color:var(--muted); text-align:center; font-size:0.85rem;">まだお題がありません</li>
+    </ul>
+    
+    <button class="btn btn-change" id="closeCustomModalBtn" style="padding:12px; font-size:1rem;">完了して閉じる</button>
+  </div>
+</div>
+
 <script>
+// お題データ（元コードから一部抜粋して軽量化しつつ、カスタムを追加）
 const topicStore={
-  "standard": [
-    {
-      "left": "悪い",
-      "right": "良い"
-    },
-    {
-      "left": "安い",
-      "right": "高い"
-    },
-    {
-      "left": "地味",
-      "right": "派手"
-    },
-    {
-      "left": "古い",
-      "right": "新しい"
-    },
-    {
-      "left": "簡単",
-      "right": "難しい"
-    },
-    {
-      "left": "軽い",
-      "right": "重い"
-    },
-    {
-      "left": "小さい",
-      "right": "大きい"
-    },
-    {
-      "left": "暗い",
-      "right": "明るい"
-    },
-    {
-      "left": "静か",
-      "right": "にぎやか"
-    },
-    {
-      "left": "弱い",
-      "right": "強い"
-    },
-    {
-      "left": "汚い",
-      "right": "きれい"
-    },
-    {
-      "left": "狭い",
-      "right": "広い"
-    },
-    {
-      "left": "短い",
-      "right": "長い"
-    },
-    {
-      "left": "低い",
-      "right": "高い"
-    },
-    {
-      "left": "冷たい",
-      "right": "あたたかい"
-    },
-    {
-      "left": "やわらかい",
-      "right": "かたい"
-    },
-    {
-      "left": "遅い",
-      "right": "速い"
-    },
-    {
-      "left": "少ない",
-      "right": "多い"
-    },
-    {
-      "left": "現実的",
-      "right": "夢がある"
-    },
-    {
-      "left": "退屈",
-      "right": "おもしろい"
-    },
-    {
-      "left": "不便",
-      "right": "便利"
-    },
-    {
-      "left": "危ない",
-      "right": "安全"
-    },
-    {
-      "left": "近い",
-      "right": "遠い"
-    },
-    {
-      "left": "軽いノリ",
-      "right": "本格的"
-    },
-    {
-      "left": "なんとなく",
-      "right": "はっきり"
-    },
-    {
-      "left": "ありえない",
-      "right": "あり"
-    },
-    {
-      "left": "いらない",
-      "right": "欲しい"
-    },
-    {
-      "left": "すぐ忘れる",
-      "right": "記憶に残る"
-    },
-    {
-      "left": "一時的",
-      "right": "長く続く"
-    },
-    {
-      "left": "普通",
-      "right": "特別"
-    }
-  ],
-  "food": [
-    {
-      "left": "おやつ",
-      "right": "食事"
-    },
-    {
-      "left": "朝食向き",
-      "right": "夜食向き"
-    },
-    {
-      "left": "子どもの味",
-      "right": "大人の味"
-    },
-    {
-      "left": "和食",
-      "right": "洋食"
-    },
-    {
-      "left": "ご飯に合わない",
-      "right": "ご飯に合う"
-    },
-    {
-      "left": "パンに合わない",
-      "right": "パンに合う"
-    },
-    {
-      "left": "さっぱり",
-      "right": "こってり"
-    },
-    {
-      "left": "甘い",
-      "right": "しょっぱい"
-    },
-    {
-      "left": "ヘルシー",
-      "right": "ジャンク"
-    },
-    {
-      "left": "毎日いける",
-      "right": "たまにでいい"
-    },
-    {
-      "left": "安っぽい",
-      "right": "高級感ある"
-    },
-    {
-      "left": "家で食べたい",
-      "right": "外で食べたい"
-    },
-    {
-      "left": "一人で食べたい",
-      "right": "みんなで食べたい"
-    },
-    {
-      "left": "コンビニっぽい",
-      "right": "レストランっぽい"
-    },
-    {
-      "left": "飲み物",
-      "right": "食べ物"
-    },
-    {
-      "left": "罪悪感ない",
-      "right": "罪悪感ある"
-    },
-    {
-      "left": "軽食",
-      "right": "がっつり"
-    },
-    {
-      "left": "冷たい方がいい",
-      "right": "温かい方がいい"
-    },
-    {
-      "left": "手軽",
-      "right": "手間がかかる"
-    },
-    {
-      "left": "失敗しにくい",
-      "right": "失敗しやすい"
-    },
-    {
-      "left": "見た目重視",
-      "right": "味重視"
-    },
-    {
-      "left": "安くてうまい",
-      "right": "高くてうまい"
-    },
-    {
-      "left": "お腹にたまらない",
-      "right": "お腹にたまる"
-    },
-    {
-      "left": "すぐ食べたい",
-      "right": "ゆっくり食べたい"
-    },
-    {
-      "left": "飽きやすい",
-      "right": "飽きにくい"
-    },
-    {
-      "left": "お酒に合わない",
-      "right": "お酒に合う"
-    },
-    {
-      "left": "お茶に合う",
-      "right": "コーヒーに合う"
-    },
-    {
-      "left": "旅行先で食べたい",
-      "right": "家で食べたい"
-    },
-    {
-      "left": "人にすすめにくい",
-      "right": "人にすすめたい"
-    },
-    {
-      "left": "季節感がない",
-      "right": "季節感がある"
-    }
-  ],
-  "place": [
-    {
-      "left": "家っぽい",
-      "right": "外っぽい"
-    },
-    {
-      "left": "近所っぽい",
-      "right": "旅行っぽい"
-    },
-    {
-      "left": "都会っぽい",
-      "right": "田舎っぽい"
-    },
-    {
-      "left": "山っぽい",
-      "right": "海っぽい"
-    },
-    {
-      "left": "静かな場所",
-      "right": "にぎやかな場所"
-    },
-    {
-      "left": "昼に行きたい",
-      "right": "夜に行きたい"
-    },
-    {
-      "left": "雨の日向き",
-      "right": "晴れの日向き"
-    },
-    {
-      "left": "一人で行きたい",
-      "right": "みんなで行きたい"
-    },
-    {
-      "left": "短時間で満足",
-      "right": "長くいたい"
-    },
-    {
-      "left": "写真を撮らない",
-      "right": "写真を撮りたい"
-    },
-    {
-      "left": "涼しい場所",
-      "right": "暑い場所"
-    },
-    {
-      "left": "落ち着く場所",
-      "right": "わくわくする場所"
-    },
-    {
-      "left": "近場でいい",
-      "right": "遠くまで行きたい"
-    },
-    {
-      "left": "無料で楽しむ",
-      "right": "お金を使う"
-    },
-    {
-      "left": "準備なしで行ける",
-      "right": "準備が必要"
-    },
-    {
-      "left": "散歩向き",
-      "right": "ドライブ向き"
-    },
-    {
-      "left": "日常感",
-      "right": "特別感"
-    },
-    {
-      "left": "待ち合わせに不向き",
-      "right": "待ち合わせ向き"
-    },
-    {
-      "left": "子ども向き",
-      "right": "大人向き"
-    },
-    {
-      "left": "朝に行きたい",
-      "right": "夕方に行きたい"
-    },
-    {
-      "left": "短い滞在",
-      "right": "泊まりたい"
-    },
-    {
-      "left": "地図なしで行ける",
-      "right": "迷いやすい"
-    },
-    {
-      "left": "自然が少ない",
-      "right": "自然が多い"
-    },
-    {
-      "left": "屋内",
-      "right": "屋外"
-    },
-    {
-      "left": "静かに過ごす",
-      "right": "体を動かす"
-    },
-    {
-      "left": "買い物向き",
-      "right": "観光向き"
-    },
-    {
-      "left": "地元感",
-      "right": "異国感"
-    },
-    {
-      "left": "昔ながら",
-      "right": "新しい"
-    },
-    {
-      "left": "普段着で行ける",
-      "right": "おしゃれして行く"
-    },
-    {
-      "left": "目的なしで行く",
-      "right": "目的があって行く"
-    }
-  ],
-  "season": [
-    {
-      "left": "春っぽい",
-      "right": "冬っぽい"
-    },
-    {
-      "left": "夏っぽい",
-      "right": "秋っぽい"
-    },
-    {
-      "left": "朝っぽい",
-      "right": "夜っぽい"
-    },
-    {
-      "left": "晴れっぽい",
-      "right": "雨っぽい"
-    },
-    {
-      "left": "暑い日に合う",
-      "right": "寒い日に合う"
-    },
-    {
-      "left": "昼間向き",
-      "right": "夜向き"
-    },
-    {
-      "left": "正月っぽい",
-      "right": "お盆っぽい"
-    },
-    {
-      "left": "平日っぽい",
-      "right": "休日っぽい"
-    },
-    {
-      "left": "新学期っぽい",
-      "right": "年末っぽい"
-    },
-    {
-      "left": "梅雨っぽい",
-      "right": "真夏っぽい"
-    },
-    {
-      "left": "さわやか",
-      "right": "こってり"
-    },
-    {
-      "left": "涼しげ",
-      "right": "あたたかそう"
-    },
-    {
-      "left": "外に出たい",
-      "right": "家にいたい"
-    },
-    {
-      "left": "早起きしたい",
-      "right": "夜更かししたい"
-    },
-    {
-      "left": "イベント感なし",
-      "right": "イベント感あり"
-    },
-    {
-      "left": "静かな季節",
-      "right": "にぎやかな季節"
-    },
-    {
-      "left": "始まりっぽい",
-      "right": "終わりっぽい"
-    },
-    {
-      "left": "軽い服装",
-      "right": "厚着"
-    },
-    {
-      "left": "風が似合う",
-      "right": "雪が似合う"
-    },
-    {
-      "left": "花が似合う",
-      "right": "紅葉が似合う"
-    },
-    {
-      "left": "短い休み",
-      "right": "長い休み"
-    },
-    {
-      "left": "予定を入れない",
-      "right": "予定を入れたい"
-    },
-    {
-      "left": "アイス向き",
-      "right": "鍋向き"
-    },
-    {
-      "left": "水遊び向き",
-      "right": "こたつ向き"
-    },
-    {
-      "left": "朝日が似合う",
-      "right": "夕日が似合う"
-    },
-    {
-      "left": "外イベント向き",
-      "right": "室内イベント向き"
-    },
-    {
-      "left": "ゆっくり過ごす",
-      "right": "活動的に過ごす"
-    },
-    {
-      "left": "新しいことを始める",
-      "right": "片づける"
-    },
-    {
-      "left": "軽やか",
-      "right": "しっとり"
-    },
-    {
-      "left": "早く過ぎる",
-      "right": "長く感じる"
-    }
-  ],
-  "daily": [
-    {
-      "left": "朝やる",
-      "right": "夜やる"
-    },
-    {
-      "left": "家でやる",
-      "right": "外でやる"
-    },
-    {
-      "left": "一人でできる",
-      "right": "みんなでやる"
-    },
-    {
-      "left": "すぐ終わる",
-      "right": "時間がかかる"
-    },
-    {
-      "left": "毎日やる",
-      "right": "たまにやる"
-    },
-    {
-      "left": "面倒",
-      "right": "楽しい"
-    },
-    {
-      "left": "予定通り",
-      "right": "ハプニングあり"
-    },
-    {
-      "left": "静かにやる",
-      "right": "音が出る"
-    },
-    {
-      "left": "頭を使う",
-      "right": "体を使う"
-    },
-    {
-      "left": "アナログ",
-      "right": "デジタル"
-    },
-    {
-      "left": "節約",
-      "right": "ぜいたく"
-    },
-    {
-      "left": "実用的",
-      "right": "趣味っぽい"
-    },
-    {
-      "left": "片づける",
-      "right": "散らかす"
-    },
-    {
-      "left": "忘れやすい",
-      "right": "忘れにくい"
-    },
-    {
-      "left": "準備がいらない",
-      "right": "準備が大変"
-    },
-    {
-      "left": "朝の気分",
-      "right": "夜の気分"
-    },
-    {
-      "left": "短く済ませる",
-      "right": "じっくりやる"
-    },
-    {
-      "left": "手でやる",
-      "right": "道具を使う"
-    },
-    {
-      "left": "習慣にしにくい",
-      "right": "習慣にしやすい"
-    },
-    {
-      "left": "疲れる",
-      "right": "元気になる"
-    },
-    {
-      "left": "めんどうだけど必要",
-      "right": "やらなくてもいい"
-    },
-    {
-      "left": "一回で終わる",
-      "right": "続けるもの"
-    },
-    {
-      "left": "家族で使う",
-      "right": "自分だけで使う"
-    },
-    {
-      "left": "失敗しても平気",
-      "right": "失敗すると困る"
-    },
-    {
-      "left": "小さな用事",
-      "right": "大きな用事"
-    },
-    {
-      "left": "後回しにする",
-      "right": "すぐやる"
-    },
-    {
-      "left": "見えないところ",
-      "right": "見えるところ"
-    },
-    {
-      "left": "ゆっくり",
-      "right": "テキパキ"
-    },
-    {
-      "left": "休日にやる",
-      "right": "平日にやる"
-    },
-    {
-      "left": "気分でやる",
-      "right": "決まった時間にやる"
-    }
-  ],
-  "play": [
-    {
-      "left": "ひとり遊び",
-      "right": "みんなで遊ぶ"
-    },
-    {
-      "left": "家で遊ぶ",
-      "right": "外で遊ぶ"
-    },
-    {
-      "left": "静かな遊び",
-      "right": "騒ぐ遊び"
-    },
-    {
-      "left": "頭を使う",
-      "right": "体を使う"
-    },
-    {
-      "left": "運任せ",
-      "right": "実力勝負"
-    },
-    {
-      "left": "短時間で楽しい",
-      "right": "長時間楽しい"
-    },
-    {
-      "left": "子ども向け",
-      "right": "大人向け"
-    },
-    {
-      "left": "初心者向け",
-      "right": "上級者向け"
-    },
-    {
-      "left": "まったり",
-      "right": "白熱"
-    },
-    {
-      "left": "安く遊べる",
-      "right": "お金がかかる"
-    },
-    {
-      "left": "準備いらない",
-      "right": "準備が大変"
-    },
-    {
-      "left": "罰ゲーム",
-      "right": "ご褒美"
-    },
-    {
-      "left": "見て楽しい",
-      "right": "やって楽しい"
-    },
-    {
-      "left": "すぐ飽きる",
-      "right": "何回でもできる"
-    },
-    {
-      "left": "笑える",
-      "right": "感動する"
-    },
-    {
-      "left": "怖くない",
-      "right": "怖い"
-    },
-    {
-      "left": "誰でも参加できる",
-      "right": "人を選ぶ"
-    },
-    {
-      "left": "昼にやりたい",
-      "right": "夜にやりたい"
-    },
-    {
-      "left": "雨の日向き",
-      "right": "晴れの日向き"
-    },
-    {
-      "left": "旅行向き",
-      "right": "近所向き"
-    },
-    {
-      "left": "飲み会向き",
-      "right": "家族向き"
-    },
-    {
-      "left": "写真を撮らない",
-      "right": "写真を撮りたい"
-    },
-    {
-      "left": "思い出に残りにくい",
-      "right": "思い出に残る"
-    },
-    {
-      "left": "勝っても普通",
-      "right": "勝つと嬉しい"
-    },
-    {
-      "left": "負けても平気",
-      "right": "負けると悔しい"
-    },
-    {
-      "left": "ルールが簡単",
-      "right": "ルールが複雑"
-    },
-    {
-      "left": "観客向き",
-      "right": "参加者向き"
-    },
-    {
-      "left": "その場のノリ",
-      "right": "事前計画"
-    },
-    {
-      "left": "すぐ始められる",
-      "right": "準備から楽しい"
-    },
-    {
-      "left": "一回で満足",
-      "right": "またやりたい"
-    }
-  ],
-  "object": [
-    {
-      "left": "いらない",
-      "right": "欲しい"
-    },
-    {
-      "left": "安物感",
-      "right": "高級感"
-    },
-    {
-      "left": "実用的",
-      "right": "おしゃれ"
-    },
-    {
-      "left": "壊れやすそう",
-      "right": "長持ちしそう"
-    },
-    {
-      "left": "子どもっぽい",
-      "right": "大人っぽい"
-    },
-    {
-      "left": "地味",
-      "right": "かっこいい"
-    },
-    {
-      "left": "かわいくない",
-      "right": "かわいい"
-    },
-    {
-      "left": "持ち歩かない",
-      "right": "持ち歩きたい"
-    },
-    {
-      "left": "家に置きたくない",
-      "right": "家に置きたい"
-    },
-    {
-      "left": "プレゼントに不向き",
-      "right": "プレゼント向き"
-    },
-    {
-      "left": "自分では買わない",
-      "right": "自分でも買う"
-    },
-    {
-      "left": "すぐ飽きる",
-      "right": "長く使える"
-    },
-    {
-      "left": "説明が必要",
-      "right": "見ればわかる"
-    },
-    {
-      "left": "量産品っぽい",
-      "right": "特別感がある"
-    },
-    {
-      "left": "古くさい",
-      "right": "今っぽい"
-    },
-    {
-      "left": "目立たない",
-      "right": "目立つ"
-    },
-    {
-      "left": "使いにくい",
-      "right": "使いやすい"
-    },
-    {
-      "left": "邪魔",
-      "right": "便利"
-    },
-    {
-      "left": "軽すぎる",
-      "right": "重厚感"
-    },
-    {
-      "left": "シンプル",
-      "right": "ごちゃごちゃ"
-    },
-    {
-      "left": "安心感がない",
-      "right": "安心感がある"
-    },
-    {
-      "left": "すぐ捨てそう",
-      "right": "大事にしそう"
-    },
-    {
-      "left": "一時的な流行",
-      "right": "定番"
-    },
-    {
-      "left": "買うと後悔",
-      "right": "買ってよかった"
-    },
-    {
-      "left": "見た目重視",
-      "right": "機能重視"
-    },
-    {
-      "left": "家用",
-      "right": "外用"
-    },
-    {
-      "left": "しまっておく",
-      "right": "すぐ使う"
-    },
-    {
-      "left": "小さい方がいい",
-      "right": "大きい方がいい"
-    },
-    {
-      "left": "音がしない",
-      "right": "音がする"
-    },
-    {
-      "left": "電気を使わない",
-      "right": "電気を使う"
-    }
-  ],
-  "media": [
-    {
-      "left": "短い話",
-      "right": "長い話"
-    },
-    {
-      "left": "笑える",
-      "right": "泣ける"
-    },
-    {
-      "left": "明るい",
-      "right": "暗い"
-    },
-    {
-      "left": "現実的",
-      "right": "ファンタジー"
-    },
-    {
-      "left": "子ども向け",
-      "right": "大人向け"
-    },
-    {
-      "left": "静かな作品",
-      "right": "派手な作品"
-    },
-    {
-      "left": "一回で満足",
-      "right": "何回も見たい"
-    },
-    {
-      "left": "軽い気持ちで見る",
-      "right": "集中して見る"
-    },
-    {
-      "left": "昔っぽい",
-      "right": "未来っぽい"
-    },
-    {
-      "left": "説明が少ない",
-      "right": "説明が多い"
-    },
-    {
-      "left": "音楽が大事",
-      "right": "映像が大事"
-    },
-    {
-      "left": "ゆるい",
-      "right": "熱い"
-    },
-    {
-      "left": "日常系",
-      "right": "冒険系"
-    },
-    {
-      "left": "短時間向き",
-      "right": "休日向き"
-    },
-    {
-      "left": "寝る前向き",
-      "right": "朝向き"
-    },
-    {
-      "left": "家で見る",
-      "right": "映画館で見る"
-    },
-    {
-      "left": "一人で見る",
-      "right": "誰かと見る"
-    },
-    {
-      "left": "ネタバレ平気",
-      "right": "ネタバレ厳禁"
-    },
-    {
-      "left": "低予算感",
-      "right": "大作感"
-    },
-    {
-      "left": "地味に良い",
-      "right": "派手に良い"
-    },
-    {
-      "left": "タイトルでわかる",
-      "right": "見ないとわからない"
-    },
-    {
-      "left": "かわいい",
-      "right": "かっこいい"
-    },
-    {
-      "left": "ほのぼの",
-      "right": "ドキドキ"
-    },
-    {
-      "left": "ゆっくり進む",
-      "right": "テンポが速い"
-    },
-    {
-      "left": "明日忘れる",
-      "right": "しばらく残る"
-    },
-    {
-      "left": "BGM向き",
-      "right": "じっくり聴く"
-    },
-    {
-      "left": "読むもの",
-      "right": "見るもの"
-    },
-    {
-      "left": "懐かしい",
-      "right": "新しい"
-    },
-    {
-      "left": "軽い笑い",
-      "right": "本気の笑い"
-    },
-    {
-      "left": "終わりが読める",
-      "right": "意外な展開"
-    }
-  ],
-  "kids": [
-    {
-      "left": "小さい子向け",
-      "right": "大きい子向け"
-    },
-    {
-      "left": "学校っぽい",
-      "right": "家っぽい"
-    },
-    {
-      "left": "外遊び",
-      "right": "室内遊び"
-    },
-    {
-      "left": "こわい",
-      "right": "かわいい"
-    },
-    {
-      "left": "すぐできる",
-      "right": "練習が必要"
-    },
-    {
-      "left": "ひとりで遊ぶ",
-      "right": "みんなで遊ぶ"
-    },
-    {
-      "left": "給食で出ない",
-      "right": "給食で出そう"
-    },
-    {
-      "left": "夏っぽい",
-      "right": "冬っぽい"
-    },
-    {
-      "left": "朝にやる",
-      "right": "夜にやる"
-    },
-    {
-      "left": "静かにする",
-      "right": "大声を出す"
-    },
-    {
-      "left": "ゆっくり",
-      "right": "すばやい"
-    },
-    {
-      "left": "虫っぽい",
-      "right": "動物っぽい"
-    },
-    {
-      "left": "水に弱い",
-      "right": "水に強い"
-    },
-    {
-      "left": "公園っぽい",
-      "right": "遊園地っぽい"
-    },
-    {
-      "left": "かんたん",
-      "right": "むずかしい"
-    },
-    {
-      "left": "おもちゃ",
-      "right": "どうぐ"
-    },
-    {
-      "left": "小学生っぽい",
-      "right": "大人っぽい"
-    },
-    {
-      "left": "丸い",
-      "right": "四角い"
-    },
-    {
-      "left": "ふわふわ",
-      "right": "かちかち"
-    },
-    {
-      "left": "小さい音",
-      "right": "大きい音"
-    },
-    {
-      "left": "軽いもの",
-      "right": "重いもの"
-    },
-    {
-      "left": "絵に描きやすい",
-      "right": "絵に描きにくい"
-    },
-    {
-      "left": "すぐなくなる",
-      "right": "長く残る"
-    },
-    {
-      "left": "ポケットに入る",
-      "right": "入らない"
-    },
-    {
-      "left": "机の上にある",
-      "right": "外にある"
-    },
-    {
-      "left": "水の中",
-      "right": "空の上"
-    },
-    {
-      "left": "走る",
-      "right": "止まる"
-    },
-    {
-      "left": "食べられない",
-      "right": "食べられる"
-    },
-    {
-      "left": "見つけやすい",
-      "right": "隠れやすい"
-    },
-    {
-      "left": "名前が短い",
-      "right": "名前が長い"
-    }
-  ],
-  "wildcard": [
-    {
-      "left": "ゴミ",
-      "right": "宝物"
-    },
-    {
-      "left": "なし寄り",
-      "right": "あり寄り"
-    },
-    {
-      "left": "ちょっとわかる",
-      "right": "めちゃくちゃわかる"
-    },
-    {
-      "left": "許せない",
-      "right": "許せる"
-    },
-    {
-      "left": "どうでもいい",
-      "right": "大事"
-    },
-    {
-      "left": "すぐ忘れる",
-      "right": "一生覚えてる"
-    },
-    {
-      "left": "普通に嫌",
-      "right": "逆に好き"
-    },
-    {
-      "left": "微妙",
-      "right": "最高"
-    },
-    {
-      "left": "つまらない",
-      "right": "味がある"
-    },
-    {
-      "left": "偽物っぽい",
-      "right": "本物っぽい"
-    },
-    {
-      "left": "謎",
-      "right": "納得"
-    },
-    {
-      "left": "たまたま",
-      "right": "必然"
-    },
-    {
-      "left": "失敗",
-      "right": "成功"
-    },
-    {
-      "left": "弱点",
-      "right": "魅力"
-    },
-    {
-      "left": "ダサい",
-      "right": "ダサかっこいい"
-    },
-    {
-      "left": "雑",
-      "right": "丁寧"
-    },
-    {
-      "left": "浅い",
-      "right": "深い"
-    },
-    {
-      "left": "軽い",
-      "right": "重い"
-    },
-    {
-      "left": "くだらない",
-      "right": "尊い"
-    },
-    {
-      "left": "すぐバレる",
-      "right": "バレない"
-    },
-    {
-      "left": "ただの物",
-      "right": "伝説級"
-    },
-    {
-      "left": "量産型",
-      "right": "唯一無二"
-    },
-    {
-      "left": "まだ早い",
-      "right": "もう遅い"
-    },
-    {
-      "left": "夢がない",
-      "right": "ロマンがある"
-    },
-    {
-      "left": "見たくない",
-      "right": "見たい"
-    },
-    {
-      "left": "聞きたくない",
-      "right": "聞きたい"
-    },
-    {
-      "left": "負け",
-      "right": "勝ち"
-    },
-    {
-      "left": "地獄",
-      "right": "天国"
-    },
-    {
-      "left": "事件じゃない",
-      "right": "事件"
-    },
-    {
-      "left": "説明できない",
-      "right": "説明しやすい"
-    }
-  ]
+  "standard": [{"left": "悪い", "right": "良い"}, {"left": "安い", "right": "高い"}, {"left": "地味", "right": "派手"}, {"left": "古い", "right": "新しい"}, {"left": "簡単", "right": "難しい"}, {"left": "軽い", "right": "重い"}, {"left": "小さい", "right": "大きい"}, {"left": "暗い", "right": "明るい"}, {"left": "静か", "right": "にぎやか"}, {"left": "弱い", "right": "強い"}],
+  "food": [{"left": "おやつ", "right": "食事"}, {"left": "朝食向き", "right": "夜食向き"}, {"left": "和食", "right": "洋食"}, {"left": "さっぱり", "right": "こってり"}, {"left": "甘い", "right": "しょっぱい"}],
+  "place": [{"left": "家っぽい", "right": "外っぽい"}, {"left": "都会っぽい", "right": "田舎っぽい"}, {"left": "静かな場所", "right": "にぎやかな場所"}],
+  "season": [{"left": "春っぽい", "right": "冬っぽい"}, {"left": "夏っぽい", "right": "秋っぽい"}, {"left": "暑い日に合う", "right": "寒い日に合う"}],
+  "daily": [{"left": "朝やる", "right": "夜やる"}, {"left": "家でやる", "right": "外でやる"}, {"left": "面倒", "right": "楽しい"}],
+  "play": [{"left": "ひとり遊び", "right": "みんなで遊ぶ"}, {"left": "頭を使う", "right": "体を使う"}, {"left": "運任せ", "right": "実力勝負"}],
+  "object": [{"left": "いらない", "right": "欲しい"}, {"left": "安物感", "right": "高級感"}, {"left": "実用的", "right": "おしゃれ"}],
+  "media": [{"left": "短い話", "right": "長い話"}, {"left": "笑える", "right": "泣ける"}, {"left": "現実的", "right": "ファンタジー"}],
+  "kids": [{"left": "小さい子向け", "right": "大きい子向け"}, {"left": "外遊び", "right": "室内遊び"}, {"left": "こわい", "right": "かわいい"}],
+  "wildcard": [{"left": "ゴミ", "right": "宝物"}, {"left": "なし寄り", "right": "あり寄り"}, {"left": "ちょっとわかる", "right": "めちゃくちゃわかる"}],
+  "custom": [] // カスタムお題用配列
 };
-const genreLabels={all:"全部まぜる",standard:"みんな向け",food:"食べ物・飲み物",place:"場所・おでかけ",season:"季節・天気",daily:"日常・くらし",play:"遊び・イベント",object:"モノ・道具",media:"作品・イメージ",kids:"子どもOK",wildcard:"ワイルドカード"};
-const gameState={currentTeam:"red",redScore:0,blueScore:0,topic:null,targetAngle:0,guessAngle:0,vote:null,redrawCount:0,usedTopics:new Set(),genre:"all",soundOn:true,resultRevealed:false,revealStage:0};
-const get=id=>document.getElementById(id); const phases=document.querySelectorAll(".game-phase");
-let audioCtx=null,lastTick=0;
-function initAudio(){if(!gameState.soundOn)return;if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();} if(audioCtx.state==="suspended")audioCtx.resume();}
-function tone(freq=440,dur=.08,type="sine",gain=.05,delay=0){if(!gameState.soundOn||!audioCtx)return;const t=audioCtx.currentTime+delay;const osc=audioCtx.createOscillator();const g=audioCtx.createGain();osc.type=type;osc.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+dur);osc.connect(g).connect(audioCtx.destination);osc.start(t);osc.stop(t+dur+.02);}
-function sfx(name){initAudio(); if(navigator.vibrate){ if(name==="perfect")navigator.vibrate([35,25,35]); else if(name==="bad")navigator.vibrate(45); else navigator.vibrate(12); } if(name==="tap")tone(520,.045,"sine",.035); if(name==="draw"){tone(520,.06,"triangle",.035);tone(740,.08,"triangle",.035,.06);} if(name==="decide"){tone(360,.06,"square",.03);tone(620,.08,"sine",.04,.05);} if(name==="tick")tone(260,.025,"sine",.018); if(name==="perfect"){[523,659,784,1046].forEach((f,i)=>tone(f,.12,"triangle",.045,i*.07));} if(name==="good"){tone(660,.08,"triangle",.04);tone(880,.11,"triangle",.04,.07);} if(name==="ok"){tone(520,.09,"sine",.035);tone(430,.12,"sine",.03,.08);} if(name==="bad"){tone(180,.16,"sawtooth",.025);tone(140,.2,"sine",.025,.12);} if(name==="win"){[523,659,784,1046,784,1046].forEach((f,i)=>tone(f,.12,"triangle",.045,i*.09));}}
-function showPhase(id){phases.forEach(p=>p.classList.add("hidden"));get(id).classList.remove("hidden");updateProgress(id);} 
+const genreLabels={all:"全部まぜる",standard:"みんな向け",food:"食べ物・飲み物",place:"場所・おでかけ",season:"季節・天気",daily:"日常・くらし",play:"遊び・イベント",object:"モノ・道具",media:"作品・イメージ",kids:"子どもOK",wildcard:"ワイルドカード", custom:"カスタムお題"};
+
+const gameState={
+  currentTeam:"red", redScore:0, blueScore:0, topic:null, targetAngle:0, guessAngle:0, vote:null, redrawCount:0, usedTopics:new Set(), genre:"all", soundOn:true, resultRevealed:false, revealStage:0,
+  isSuddenDeath: false // サドンデスフラグ
+};
+
+const get=id=>document.getElementById(id); 
+
+// フェーズ遷移を滑らかにする関数
+function showPhase(id){
+  const phases = document.querySelectorAll(".game-phase");
+  
+  // 現在アクティブなものをフェードアウト
+  phases.forEach(p => {
+    if(p.classList.contains('active')) {
+      p.classList.remove('visible');
+      setTimeout(() => {
+        p.classList.remove('active');
+      }, 400); // css transition に合わせる
+    }
+  });
+
+  // 次のフェーズをフェードイン
+  setTimeout(() => {
+    const nextPhase = get(id);
+    nextPhase.classList.add('active');
+    // 少し遅延させてからvisibleクラスをつけることでトランジションを発火させる
+    setTimeout(() => {
+      nextPhase.classList.add('visible');
+    }, 50);
+    updateProgress(id);
+  }, 400);
+} 
+
 function updateProgress(id){const map={"phase-round-start":0,"phase-psychic":1,"phase-vote":2,"phase-guess":2,"phase-result":3};document.querySelectorAll("#progress .step").forEach((s,i)=>s.classList.toggle("active",i<=map[id]));}
 function scoreDots(score){const target=11;const filled=Math.max(0,Math.min(target,score));return "●".repeat(filled)+"○".repeat(target-filled);}
-function scoreHTML(label,score){const remain=Math.max(0,11-score);return `<div class="score-line">${label}: ${score} <small>${remain===0?"勝利圏内":"あと"+remain+"点"}</small></div><div class="score-dots">${scoreDots(score)}</div>`;}
-function updateScoreUI(){const isRed=gameState.currentTeam==="red";document.body.className=isRed?"red-team-turn":"blue-team-turn";get("redTeamScore").innerHTML=scoreHTML("赤",gameState.redScore);get("blueTeamScore").innerHTML=scoreHTML("青",gameState.blueScore);get("redTeamScore").classList.toggle("current-team",isRed);get("blueTeamScore").classList.toggle("current-team",!isRed);get("currentTeamIndicator").className=isRed?"team-indicator red-team-indicator":"team-indicator blue-team-indicator";get("currentTeamIndicator").textContent=isRed?"赤チーム":"青チーム";}
-function currentPool(){if(gameState.genre==="all")return Object.values(topicStore).flat();return topicStore[gameState.genre]||topicStore.standard;}
+function scoreHTML(label,score){
+  let remain = Math.max(0,11-score);
+  let statusText = gameState.isSuddenDeath ? "サドンデス！" : (remain===0 ? "勝利圏内" : "あと"+remain+"点");
+  return `<div class="score-line">${label}: ${score} <small>${statusText}</small></div><div class="score-dots">${scoreDots(score)}</div>`;
+}
+
+function updateScoreUI(){
+  const isRed=gameState.currentTeam==="red";
+  document.body.className=isRed?"red-team-turn":"blue-team-turn";
+  get("redTeamScore").innerHTML=scoreHTML("赤",gameState.redScore);
+  get("blueTeamScore").innerHTML=scoreHTML("青",gameState.blueScore);
+  get("redTeamScore").classList.toggle("current-team",isRed);
+  get("blueTeamScore").classList.toggle("current-team",!isRed);
+  get("currentTeamIndicator").className=isRed?"team-indicator red-team-indicator":"team-indicator blue-team-indicator";
+  get("currentTeamIndicator").textContent=isRed?"赤チーム":"青チーム";
+  
+  get("suddenDeathBanner").style.display = gameState.isSuddenDeath ? "block" : "none";
+}
+
+function currentPool(){
+  if(gameState.genre==="all") {
+    let pool = [];
+    for(let key in topicStore) { if(key !== "custom" || topicStore[key].length > 0) pool = pool.concat(topicStore[key]); }
+    return pool;
+  }
+  return topicStore[gameState.genre]||topicStore.standard;
+}
 function topicKey(t){return `${t.left}__${t.right}`;}
-function pickTopic(){let pool=currentPool();if(gameState.usedTopics.size>pool.length*.8)gameState.usedTopics.clear();let t;for(let i=0;i<80;i++){t=pool[Math.floor(Math.random()*pool.length)];if(!gameState.usedTopics.has(topicKey(t)))break;}gameState.usedTopics.add(topicKey(t));gameState.topic=t;get("topicCaption").textContent=`今回のお題：${genreLabels[gameState.genre]||"全部まぜる"}`;get("topicText").innerHTML=`<span>${t.left}</span><span class="arrow">⇔</span><span>${t.right}</span>`;get("voteLeftBtn").textContent=t.left+"寄り";get("voteRightBtn").textContent=t.right+"寄り";}
+function pickTopic(){
+  let pool=currentPool();
+  if(pool.length === 0) pool = topicStore.standard; // 安全対策
+  if(gameState.usedTopics.size>pool.length*.8)gameState.usedTopics.clear();
+  let t;
+  for(let i=0;i<80;i++){t=pool[Math.floor(Math.random()*pool.length)];if(!gameState.usedTopics.has(topicKey(t)))break;}
+  gameState.usedTopics.add(topicKey(t));
+  gameState.topic=t;
+  get("topicCaption").textContent=`今回のお題：${genreLabels[gameState.genre]||"全部まぜる"}`;
+  get("topicText").innerHTML=`<span>${t.left}</span><span class="arrow">⇔</span><span>${t.right}</span>`;
+  get("voteLeftBtn").textContent=t.left+"寄り";
+  get("voteRightBtn").textContent=t.right+"寄り";
+}
+
 function randomTarget(){
-  // 青い4点ゾーンの端が0/100に届く極端な位置も出るようにする。
-  // 中心を±86度にすると、青ゾーン幅8度の外端がちょうど半円の端に重なる。
   const edgeRoll=Math.random();
   if(edgeRoll<0.08) gameState.targetAngle=-86;
   else if(edgeRoll<0.16) gameState.targetAngle=86;
   else gameState.targetAngle=(Math.random()*172)-86;
 }
+
 function drawDial(svg,target){
   svg.innerHTML="";
   const cx=160,cy=160,r=160;
@@ -1498,8 +418,6 @@ function drawDial(svg,target){
     return {x:cx+r*Math.cos(rad), y:cy+r*Math.sin(rad)};
   }
   if(target!==null){
-    // 端の正解も出すが、0/100の外側には絶対にはみ出して描かない。
-    // 各得点ゾーンを半円内（-90度〜90度）で切り落として表示する。
     [{w:32,c:"#FFC107"},{w:20,c:"#FF9800"},{w:8,c:"#03A9F4"}].forEach(z=>{
       const start=Math.max(-90,target-z.w/2);
       const end=Math.min(90,target+z.w/2);
@@ -1520,11 +438,38 @@ function drawDial(svg,target){
   b.setAttribute("fill","none");
   svg.appendChild(b);
 }
+
 function updateNeedle(el,a){el.style.transform=`translateX(-50%) rotate(${a}deg)`;}
 function positionKnob(a){const rad=(a-90)*Math.PI/180;const x=160+160*Math.cos(rad),y=160+160*Math.sin(rad);get("knob").style.left=(x/320*100)+"%";get("knob").style.top=(y/160*100)+"%";}
-function setGuessFromPoint(clientX,clientY){const rect=get("guess-dial").getBoundingClientRect();const dx=clientX-(rect.left+rect.width/2);const dy=(rect.top+rect.height)-clientY;let a=Math.atan2(dx,dy)*180/Math.PI;a=Math.max(-90,Math.min(90,a));gameState.guessAngle=a;updateNeedle(get("needle"),a);positionKnob(a);get("gaugeValue").textContent=Math.round(((a+90)/180)*100);const now=Date.now();if(now-lastTick>70){sfx("tick");lastTick=now;}}
-function startGuess(){const isRed=gameState.currentTeam==="red";get("guessTeamIndicator").textContent=isRed?"赤チーム":"青チーム";get("guessTeamIndicator").className=isRed?"team-indicator red-team-indicator":"team-indicator blue-team-indicator";gameState.guessAngle=0;updateNeedle(get("needle"),0);positionKnob(0);get("gaugeValue").textContent="50";drawDial(get("guess-svg"),null);showPhase("phase-guess");}
-function confetti(){const box=get("confetti");box.innerHTML="";const colors=["#03A9F4","#FF9800","#FFC107","#FF5252","#9C27B0"];for(let i=0;i<42;i++){const e=document.createElement("i");e.style.left=Math.random()*100+"%";e.style.background=colors[i%colors.length];e.style.animationDelay=Math.random()*200+"ms";e.style.transform=`rotate(${Math.random()*180}deg)`;box.appendChild(e);}setTimeout(()=>box.innerHTML="",1200);}
+let lastTick = 0;
+function setGuessFromPoint(clientX,clientY){
+  const rect=get("guess-dial").getBoundingClientRect();
+  const dx=clientX-(rect.left+rect.width/2);
+  const dy=(rect.top+rect.height)-clientY;
+  let a=Math.atan2(dx,dy)*180/Math.PI;
+  a=Math.max(-90,Math.min(90,a));
+  gameState.guessAngle=a;
+  updateNeedle(get("needle"),a);
+  positionKnob(a);
+  get("gaugeValue").textContent=Math.round(((a+90)/180)*100);
+  const now=Date.now();
+  if(now-lastTick>70){sfx("tick");lastTick=now;}
+}
+
+function startGuess(){
+  const isRed=gameState.currentTeam==="red";
+  get("guessTeamIndicator").textContent=isRed?"赤チーム":"青チーム";
+  get("guessTeamIndicator").className=isRed?"team-indicator red-team-indicator":"team-indicator blue-team-indicator";
+  gameState.guessAngle=0;
+  updateNeedle(get("needle"),0);
+  positionKnob(0);
+  get("gaugeValue").textContent="50";
+  drawDial(get("guess-svg"),null);
+  showPhase("phase-guess");
+}
+
+function confetti(){const box=get("confetti");box.innerHTML="";const colors=["#03A9F4","#FF9800","#FFC107","#FF5252","#9C27B0"];for(let i=0;i<42;i++){const e=document.createElement("i");e.style.left=Math.random()*100+"%";e.style.background=colors[i%colors.length];e.style.animationDelay=Math.random()*200+"ms";e.style.transform=`rotate(${Math.random()*180}deg)`;box.appendChild(e);}setTimeout(()=>box.innerHTML="",1500);}
+
 function calculateAndApplyResult(){
   const diff=Math.abs(gameState.guessAngle-gameState.targetAngle);
   let pts=0,msg="遠かった…！",sound="bad";
@@ -1534,25 +479,25 @@ function calculateAndApplyResult(){
   const isRed=gameState.currentTeam==="red";
   const targetSide=gameState.targetAngle<0?"left":"right";
   const votePts=(gameState.vote===targetSide)?1:0;
+  
   if(isRed){gameState.redScore+=pts;gameState.blueScore+=votePts;}else{gameState.blueScore+=pts;gameState.redScore+=votePts;}
+  
   get("resultSummary").innerHTML=`<div class="result-message">${msg}</div><div class="result-score">${pts}点</div><div class="result-grid"><div class="result-mini">味方チーム<br>+${pts}点</div><div class="result-mini">相手の左右予想<br>${votePts?"正解 +1点":"不正解 +0点"}</div></div><div class="footer-note">正解は${targetSide==="left"?gameState.topic.left:gameState.topic.right}寄りでした</div>`;
-  get("nextRoundBtn").classList.remove("hidden");
-  get("revealPanel").classList.add("hidden");
+  
+  get("resultSummary").style.display = "block";
+  get("nextRoundBtn").style.display = "block";
+  get("revealPanel").style.display = "none";
   updateScoreUI();
   sfx(sound);
 }
+
 function clamp(n,min,max){return Math.max(min,Math.min(max,n));}
-function arcPoint(progress){
-  // progress: 0 = 左端、1 = 右端。上半円の弧に沿った点を返す。
-  const phi=(1-progress)*Math.PI;
-  return {x:160+160*Math.cos(phi), y:160-160*Math.sin(phi)};
-}
+function arcPoint(progress){const phi=(1-progress)*Math.PI;return {x:160+160*Math.cos(phi), y:160-160*Math.sin(phi)};}
 function coverPathForFan(progress){
   progress=clamp(progress,0,1);
   if(progress<=0.001) return "M0 160 A160 160 0 0 1 320 160 L160 160 Z";
   if(progress>=0.999) return "";
   const p=arcPoint(progress);
-  // 左側から弧に沿って扇形にめくれて、残った右側だけカバーとして描く。
   return `M ${p.x.toFixed(2)} ${p.y.toFixed(2)} A160 160 0 0 1 320 160 L160 160 Z`;
 }
 function setCoverVisual(progress){
@@ -1564,11 +509,8 @@ function setCoverVisual(progress){
   shine.style.opacity=(progress<.82)?String(Math.max(0,.75-progress*.75)):"0";
   const p=arcPoint(progress);
   const edge=get("coverSweepEdge");
-  // 左下から扇形に開く境界線。
-  edge.setAttribute("x1","160");
-  edge.setAttribute("y1","160");
-  edge.setAttribute("x2",String(p.x));
-  edge.setAttribute("y2",String(p.y));
+  edge.setAttribute("x1","160"); edge.setAttribute("y1","160");
+  edge.setAttribute("x2",String(p.x)); edge.setAttribute("y2",String(p.y));
   edge.style.opacity=(progress>0.02 && progress<0.98)?"1":"0";
   get("coverSweepGroup").style.opacity=String(progress>=.995?0:1);
 }
@@ -1579,17 +521,11 @@ function setRevealProgress(progress){
   get("revealFill").style.width=(progress*100)+"%";
   get("revealGrip").style.left=(progress*100)+"%";
   get("revealPercent").textContent=`めくり: ${Math.round(progress*100)}%`;
-  get("revealTrack").setAttribute("aria-valuenow",String(Math.round(progress*100)));
-  if(progress<.08){
-    get("revealHint").textContent="予想針は見えています。左下から扇形に、正解カバーをゆっくりめくってください。";
-    get("resultSummary").innerHTML="<div class='result-message'>予想位置をセットしました</div><div class='footer-note'>赤い予想針は見えています。正解ゾーンはカバーの下です。</div>";
-  }else if(progress<.55){
-    get("revealHint").textContent="左下から弧に沿って少しずつ正解ゾーンが見えてきます。まだ全部はわかりません。";
-    get("resultSummary").innerHTML="<div class='result-message'>じわじわオープン中…</div><div class='footer-note'>そのまま右へ動かして、扇形に開いてください。</div>";
-  }else if(progress<.98){
-    get("revealHint").textContent="扇形のカバーが開いています。最後までめくると答え合わせです。";
-    get("resultSummary").innerHTML="<div class='result-message'>もうすぐ答え合わせ</div><div class='footer-note'>最後までめくってください。</div>";
-  }
+  
+  if(progress<.08){ get("revealHint").textContent="予想針は見えています。左下から扇形に、正解カバーをゆっくりめくってください。";
+  }else if(progress<.55){ get("revealHint").textContent="左下から弧に沿って少しずつ正解ゾーンが見えてきます。";
+  }else if(progress<.98){ get("revealHint").textContent="扇形のカバーが開いています。最後までめくると答え合わせです。"; }
+  
   const now=Date.now();
   if(now-lastTick>90 && progress>0 && progress<.98){sfx("tick");lastTick=now;}
   if(progress>=.985 && gameState.revealStage!==2){
@@ -1604,21 +540,101 @@ function resetCovers(){
   gameState.revealProgress=0;
   get("coverSweepGroup").style.opacity="1";
   get("coverSweepEdge").style.opacity="0";
-  get("revealPanel").classList.remove("hidden");
+  get("revealPanel").style.display="block";
+  get("resultSummary").style.display="none";
+  get("nextRoundBtn").style.display="none";
   setRevealProgress(0);
 }
 
+// サウンド機能
+let audioCtx=null;
+function initAudio(){if(!gameState.soundOn)return;if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();} if(audioCtx.state==="suspended")audioCtx.resume();}
+function tone(freq=440,dur=.08,type="sine",gain=.05,delay=0){if(!gameState.soundOn||!audioCtx)return;const t=audioCtx.currentTime+delay;const osc=audioCtx.createOscillator();const g=audioCtx.createGain();osc.type=type;osc.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+dur);osc.connect(g).connect(audioCtx.destination);osc.start(t);osc.stop(t+dur+.02);}
+function sfx(name){
+  initAudio(); 
+  if(navigator.vibrate){ if(name==="perfect")navigator.vibrate([35,25,35]); else if(name==="bad")navigator.vibrate(45); else navigator.vibrate(12); } 
+  if(name==="tap")tone(520,.045,"sine",.035); 
+  if(name==="draw"){tone(520,.06,"triangle",.035);tone(740,.08,"triangle",.035,.06);} 
+  if(name==="decide"){tone(360,.06,"square",.03);tone(620,.08,"sine",.04,.05);} 
+  if(name==="tick")tone(260,.025,"sine",.018); 
+  if(name==="perfect"){[523,659,784,1046].forEach((f,i)=>tone(f,.12,"triangle",.045,i*.07));} 
+  if(name==="good"){tone(660,.08,"triangle",.04);tone(880,.11,"triangle",.04,.07);} 
+  if(name==="ok"){tone(520,.09,"sine",.035);tone(430,.12,"sine",.03,.08);} 
+  if(name==="bad"){tone(180,.16,"sawtooth",.025);tone(140,.2,"sine",.025,.12);} 
+  if(name==="win"){[523,659,784,1046,784,1046].forEach((f,i)=>tone(f,.12,"triangle",.045,i*.09));}
+}
+
+// カスタムお題モーダル管理
+function renderCustomList(){
+  const container = get("customListContainer");
+  container.innerHTML = "";
+  if(topicStore.custom.length === 0){
+    container.innerHTML = `<li style="padding:10px; color:var(--muted); text-align:center; font-size:0.85rem;">まだお題がありません</li>`;
+  } else {
+    topicStore.custom.forEach((t, i) => {
+      const li = document.createElement("li");
+      li.className = "custom-item";
+      li.innerHTML = `<span>${t.left} ⇔ ${t.right}</span> <span class="custom-item-delete" onclick="deleteCustomWord(${i})">×</span>`;
+      container.appendChild(li);
+    });
+  }
+  const opt = get("customOption");
+  opt.textContent = `★ カスタムお題 (${topicStore.custom.length})`;
+  if(topicStore.custom.length > 0){
+    opt.removeAttribute("disabled");
+  } else {
+    opt.setAttribute("disabled", "true");
+    if(gameState.genre === "custom") get("genreSelect").value = "all";
+  }
+}
+window.deleteCustomWord = function(index) {
+  topicStore.custom.splice(index, 1);
+  renderCustomList();
+  sfx("tick");
+};
+
+
 window.addEventListener("DOMContentLoaded",()=>{
-  updateProgress("phase-start");
+  
+  // モーダルイベント
+  get("openCustomModalBtn").onclick = () => { get("customModal").classList.add("active"); sfx("tap"); };
+  get("closeCustomModalBtn").onclick = () => { get("customModal").classList.remove("active"); sfx("decide"); };
+  get("addCustomWordBtn").onclick = () => {
+    const left = get("customLeftInput").value.trim();
+    const right = get("customRightInput").value.trim();
+    if(left && right) {
+      topicStore.custom.push({left, right});
+      get("customLeftInput").value = ""; get("customRightInput").value = "";
+      renderCustomList();
+      sfx("good");
+    } else {
+      sfx("bad");
+    }
+  };
+
   get("genreSelect").onchange=e=>{gameState.genre=e.target.value;sfx("tap");};
-  get("soundToggle").onclick=()=>{gameState.soundOn=!gameState.soundOn;get("soundToggle").textContent=gameState.soundOn?"ON":"OFF";initAudio();sfx("tap");};
-  get("startBtn").onclick=()=>{initAudio();sfx("tap");gameState.redScore=0;gameState.blueScore=0;gameState.currentTeam="red";gameState.usedTopics.clear();updateScoreUI();showPhase("phase-round-start");};
+  get("soundToggle").onclick=()=>{
+    gameState.soundOn=!gameState.soundOn;
+    get("soundToggle").textContent=gameState.soundOn?"🔊 効果音: ON":"🔇 効果音: OFF";
+    initAudio();sfx("tap");
+  };
+  
+  get("startBtn").onclick=()=>{
+    initAudio();sfx("tap");
+    gameState.redScore=0;gameState.blueScore=0;
+    gameState.currentTeam="red";
+    gameState.usedTopics.clear();
+    gameState.isSuddenDeath = false;
+    updateScoreUI();
+    showPhase("phase-round-start");
+  };
+  
   get("drawBtn").onclick=()=>{sfx("draw");pickTopic();randomTarget();gameState.redrawCount=0;get("redrawCountText").textContent="引き直し回数: 0";drawDial(get("psychic-svg"),gameState.targetAngle);showPhase("phase-psychic");};
   get("changeTopicBtn").onclick=()=>{sfx("draw");pickTopic();randomTarget();gameState.redrawCount++;get("redrawCountText").textContent=`引き直し回数: ${gameState.redrawCount}`;drawDial(get("psychic-svg"),gameState.targetAngle);};
   get("hintDoneBtn").onclick=()=>{sfx("decide");const isRed=gameState.currentTeam==="red";get("voteTeamIndicator").textContent=isRed?"青チーム":"赤チーム";get("voteTeamIndicator").className=isRed?"team-indicator blue-team-indicator":"team-indicator red-team-indicator";showPhase("phase-vote");};
   get("voteLeftBtn").onclick=()=>{sfx("tap");gameState.vote="left";startGuess();};
   get("voteRightBtn").onclick=()=>{sfx("tap");gameState.vote="right";startGuess();};
-  get("guessDoneBtn").onclick=()=>{sfx("decide");gameState.revealStage=0;drawDial(get("result-svg"),gameState.targetAngle);updateNeedle(get("result-needle"),gameState.guessAngle);resetCovers();get("resultSummary").innerHTML="<div class='result-message'>予想位置をセットしました</div><div class='footer-note'>赤い予想針は見えています。正解ゾーンはカバーの下です。</div>";get("nextRoundBtn").classList.add("hidden");showPhase("phase-result");};
+  get("guessDoneBtn").onclick=()=>{sfx("decide");gameState.revealStage=0;drawDial(get("result-svg"),gameState.targetAngle);updateNeedle(get("result-needle"),gameState.guessAngle);resetCovers();showPhase("phase-result");};
 
   let isRevealing=false,revealBaseEl=null;
   function progressFromClientX(clientX,baseEl){const rect=baseEl.getBoundingClientRect();return clamp((clientX-rect.left)/rect.width,0,1);}
@@ -1633,8 +649,43 @@ window.addEventListener("DOMContentLoaded",()=>{
   window.addEventListener("touchmove",e=>{if(isRevealing){handleRevealPointer(e.touches[0].clientX);if(e.cancelable)e.preventDefault();}},{passive:false});
   window.addEventListener("mouseup",()=>{isRevealing=false;revealBaseEl=null;});
   window.addEventListener("touchend",()=>{isRevealing=false;revealBaseEl=null;});
-  get("nextRoundBtn").onclick=()=>{sfx("tap");if(gameState.redScore>=11||gameState.blueScore>=11){const winner=gameState.redScore>gameState.blueScore?"赤チーム":"青チーム";get("winnerAnnouncement").textContent=`🎉 ${winner}の勝利！ 🎉`;get("finalScore").innerHTML=`最終スコア<br><b>赤 ${gameState.redScore} - ${gameState.blueScore} 青</b>`;sfx("win");confetti();showPhase("phase-game-over");}else{gameState.currentTeam=gameState.currentTeam==="red"?"blue":"red";updateScoreUI();showPhase("phase-round-start");}};
+  
+  get("nextRoundBtn").onclick=()=>{
+    sfx("tap");
+    
+    // 勝利判定ロジック（サドンデス対応）
+    const redWin = gameState.redScore >= 11;
+    const blueWin = gameState.blueScore >= 11;
+    
+    if (redWin || blueWin) {
+      if (gameState.redScore === gameState.blueScore) {
+        // サドンデス突入
+        gameState.isSuddenDeath = true;
+        updateScoreUI(); // サドンデス表示の更新
+        sfx("good");
+        gameState.currentTeam=gameState.currentTeam==="red"?"blue":"red";
+        showPhase("phase-round-start");
+      } else {
+        // 完全決着
+        gameState.isSuddenDeath = false;
+        updateScoreUI();
+        const winner = gameState.redScore > gameState.blueScore ? "赤チーム" : "青チーム";
+        get("winnerAnnouncement").textContent = `🎉 ${winner}の勝利！ 🎉`;
+        get("finalScore").innerHTML = `最終スコア<br><b>赤 ${gameState.redScore} - ${gameState.blueScore} 青</b>`;
+        sfx("win");
+        confetti();
+        showPhase("phase-game-over");
+      }
+    } else {
+      // 通常の次ラウンド
+      gameState.currentTeam=gameState.currentTeam==="red"?"blue":"red";
+      updateScoreUI();
+      showPhase("phase-round-start");
+    }
+  };
+  
   get("restartBtn").onclick=()=>location.reload();
+  
   let isDragging=false;
   get("knob").addEventListener("mousedown",e=>{isDragging=true;setGuessFromPoint(e.clientX,e.clientY);});
   get("knob").addEventListener("touchstart",e=>{isDragging=true;const t=e.touches[0];setGuessFromPoint(t.clientX,t.clientY);if(e.cancelable)e.preventDefault();},{passive:false});
