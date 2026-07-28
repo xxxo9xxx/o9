@@ -1,5 +1,5 @@
 // 「りっちゃん・すっくん どんぐりゲーム」と同じFirebaseプロジェクトを利用します。
-// ランキングの保存先は別コレクション（waterCatScores）なので、リス側とは混ざりません。
+// ランキングの保存先は別コレクションなので、リス側や旧ランキングとは混ざりません。
 window.WATER_CAT_FIREBASE_CONFIG = {
   apiKey: "AIzaSyAKJf8RNFw8Pnz4dyezwYxzKtneMTaNhYw",
   authDomain: "ritchan-sukkun-donguri.firebaseapp.com",
